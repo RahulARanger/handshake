@@ -6,7 +6,7 @@ import {
     Stack,
     Typography,
     Tooltip,
-    Checkbox,
+    Divider,
     Switch,
 } from "@mui/material";
 import { Cell, Pie, PieChart, ResponsiveContainer } from "recharts";
@@ -54,7 +54,12 @@ function ProgressPieChart(props: {
                 gap: "10px",
             }}
         >
-            <Stack display="flex" flexDirection="column">
+            <Stack
+                display="flex"
+                flexDirection="column"
+                sx={{ alignSelf: "flex-start" }}
+            >
+                &nbsp;
                 <Typography variant="caption">Executed,</Typography>
                 <Typography variant="h6">
                     &nbsp;
@@ -66,27 +71,27 @@ function ProgressPieChart(props: {
                         &nbsp;&nbsp;{`${fromNow(props.startDate)}`}
                     </Typography>
                 </Tooltip>
+                <br />
+                <Divider />
             </Stack>
-            <ResponsiveContainer width={200} height={200}>
-                <PieChart>
-                    <Pie
-                        activeIndex={activeIndex}
-                        activeShape={renderActiveShape}
-                        data={data}
-                        innerRadius={60}
-                        outerRadius={85}
-                        fill="#8884d8"
-                        strokeWidth={0}
-                        dataKey="value"
-                        nameKey={"name"}
-                        onMouseEnter={onMouseHover}
-                    >
-                        {data.map((status) => (
-                            <Cell key={status.name} fill={status.color}></Cell>
-                        ))}
-                    </Pie>
-                </PieChart>
-            </ResponsiveContainer>
+            <PieChart width={200} height={200}>
+                <Pie
+                    activeIndex={activeIndex}
+                    activeShape={renderActiveShape}
+                    data={data}
+                    innerRadius={60}
+                    outerRadius={85}
+                    fill="#8884d8"
+                    strokeWidth={0}
+                    dataKey="value"
+                    nameKey={"name"}
+                    onMouseEnter={onMouseHover}
+                >
+                    {data.map((status) => (
+                        <Cell key={status.name} fill={status.color}></Cell>
+                    ))}
+                </Pie>
+            </PieChart>
         </GraphCard>
     );
 }
@@ -273,8 +278,8 @@ export default function Overview(props: { fileName: string }): ReactNode {
         );
     }
     return (
-        <Grid columns={3} spacing={2}>
-            <Grid sx={1}>
+        <Grid container gap={6} columns={4.5} spacing={2} sx={{ flexGrow: 1 }}>
+            <Grid xs={1.69}>
                 <ProgressPieChart
                     passed={data.passed}
                     failed={data.failed}
@@ -282,11 +287,12 @@ export default function Overview(props: { fileName: string }): ReactNode {
                     startDate={readDateForKey(data.started)}
                 />
             </Grid>
-
-            <Grid sx={2}>
+            <Grid xs={1.1}>
                 <OverviewOfFeatures features={data.features} />
             </Grid>
-            <KeyValuePairs vars={data.vars} />
+            <Grid xs={2}>
+                <KeyValuePairs vars={data.vars} />
+            </Grid>
         </Grid>
     );
 }
