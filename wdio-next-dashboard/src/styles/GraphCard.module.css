@@ -1,0 +1,11 @@
+.graphCard {
+    transition: all 0.5s ease;
+    box-shadow: rgba(17, 17, 26, 0.1) 0px 4px 16px,
+        rgba(17, 17, 26, 0.05) 0px 8px 32px;
+    border: 1px solid transparent;
+}
+
+.graphCard:hover {
+    box-shadow: #272423 0px 15px 25px, #333232 0px 5px 10px;
+    border: 1px solid grey;
+}
