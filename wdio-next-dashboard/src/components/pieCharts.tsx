@@ -1,9 +1,13 @@
 import React, { type ReactElement } from "react";
 import { type PieProps, Sector, type SectorProps } from "recharts";
 
-interface ExtraPieProps {
+export interface ExtraPieProps {
     payload: { name: string; value: string };
     percent: number;
+    cx: number;
+    cy: number;
+    innerRadius: number;
+    outerRadius: number;
 }
 
 const renderActiveShape = (

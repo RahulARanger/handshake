@@ -1,21 +1,27 @@
 import click
 import pathlib
+from shipment import init_repo, export_results
 
 
 @click.command()
-@click.option('--save', default="results", help='Results are stored in this file', show_default=True)
-@click.option(
-    '-d', '--dir', default=pathlib.Path.cwd(), show_default=True,
-    help="directory where i can access node.exe, note: Not its actual path",
-    type=click.Path(exists=True)
-)
+@click.option('-o', '--out', default="results", help='Export folder name', show_default=True)
 @click.option(
     '-s', '--save', default=pathlib.Path.cwd(), show_default=True,
     help='Parent Folder of the expected results', type=click.Path()
 )
-@click.option('-d', help="Show only demo results", default=False, flag_value=True)
-def init_shipment(saved_to_dir: str, name: str, parent_folder: str):
-    click.echo(f"Will be saved in the dir: {saved_to_dir}")
+@click.option(
+    '-f', '--force', default=False, flag_value=True,
+    help='Instead of copying the next dashboard everytime,'
+    'we store the templates in a folder for quickly generating the results, use this to generate the results from '
+    'beginning',
+    show_default=True
+)
+@click.option('-d', '--demo', help="Show only demo results", default=False, flag_value=True)
+def init_shipment(out: str, save: str, force: bool, demo: bool):
+    root = pathlib.Path(save)
+
+    results_dir = init_repo(out, root, force)
+    export_results(results_dir)
 
 
 if __name__ == "__main__":

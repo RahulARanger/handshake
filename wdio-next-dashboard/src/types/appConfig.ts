@@ -17,6 +17,7 @@ export interface FeatureResult extends Suite {
 
 export interface DetailedTestResult extends Suite {
     version: string;
+    name: string;
     started: string;
     finished: string;
     features: Record<string, FeatureResult>;

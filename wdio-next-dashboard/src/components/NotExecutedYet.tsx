@@ -11,13 +11,16 @@ import React, {
 
 import { PieChart, Pie, Cell, Sector, type PieProps } from "recharts";
 import Grid from "@mui/material/Unstable_Grid2";
+import { type ExtraPieProps } from "./pieCharts";
 
 interface EmptyStateProps {
     error?: string;
     isLoading: boolean;
 }
 
-function renderActiveShape(props: PieProps): ReactElement<SVGElement> {
+function renderActiveShape(
+    props: PieProps & ExtraPieProps
+): ReactElement<SVGElement> {
     return (
         <g>
             <Sector

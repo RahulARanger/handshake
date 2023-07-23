@@ -1,7 +1,6 @@
 "use client";
 
 import React, { type ReactNode } from "react";
-import dayjs from "dayjs";
 import { AskStaticConfig } from "@/components/askThings";
 import readDateForKey, { toFileString } from "@/components/helper";
 import { redirect } from "next/navigation";

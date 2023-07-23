@@ -1,7 +1,19 @@
 "use client";
+
 import EmptyState from "@/components/NotExecutedYet";
-import { AskTestResult } from "@/components/askThings";
+import { AskStaticConfig, AskTestResult } from "@/components/askThings";
 import React, { type ReactNode } from "react";
+
+interface GenerateResults {
+    slug: string;
+}
+
+export async function generateStaticParams(): Promise<GenerateResults[]> {
+    const { data } = AskStaticConfig();
+    console.log(data);
+    if (data === undefined) return [];
+    return Object.keys(data).map((file) => ({ slug: file }));
+}
 
 export default function EnsureFile({
     children,

@@ -2,14 +2,11 @@
 wdio-next-dashboard/node_modules/*
 wdio-next-dashboard/.next/*
 wdio-next-dashboard/results/*
+wdio-next-dashboard/out/*
 
-
+*.pyc
 # testing
-/coverage
-
-# next.js
-/.next/
-/out/
+results
 
 # production
 /build

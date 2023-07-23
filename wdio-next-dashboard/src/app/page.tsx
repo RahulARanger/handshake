@@ -1,9 +1,9 @@
 "use client";
 
-import React, { Component } from "react";
+import React, { Component, type ReactNode } from "react";
 
 export default class MainPage extends Component {
-    render() {
+    render(): ReactNode {
         return <></>;
     }
 }
