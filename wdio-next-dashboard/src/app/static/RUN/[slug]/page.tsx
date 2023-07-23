@@ -7,6 +7,7 @@ import Tab from "@mui/material/Tab";
 import TabContext from "@mui/lab/TabContext";
 import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
+import Divider from "@mui/material/Divider";
 import Overview from "@/components/overview";
 
 interface MainPageStates {
@@ -37,15 +38,23 @@ export default class MainPage extends Component<
                         <TabPanel value={this.overview}>
                             <Overview fileName={fileName} />
                         </TabPanel>
-                        <TabPanel value={this.timeline}>Item Two</TabPanel>
                         <TabPanel value="3">Item Three</TabPanel>
+                        <TabPanel value={this.timeline}>Timeline</TabPanel>
                     </Stack>
+                    <Divider orientation="vertical" />
                     <TabList
                         onChange={(_: unknown, selected: string) => {
                             this.setState({ currentTabIndex: selected });
                         }}
                         aria-label="Tabs in Dashboard"
                         orientation="vertical"
+                        sx={{
+                            minWidth: "95px",
+                            width: "95px",
+                            position: "sticky",
+                            top: 0,
+                            alignSelf: "flex-start",
+                        }}
                     >
                         <Tab label="Overview" value={this.overview} />
                         <Tab label="Timeline" value={this.timeline} />

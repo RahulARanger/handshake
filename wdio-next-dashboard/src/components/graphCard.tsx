@@ -5,14 +5,16 @@ import GraphCardStyles from "../styles/GraphCard.module.css";
 export default function GraphCard({
     children,
     sx,
+    className,
 }: {
     children: ReactNode;
     sx: SxProps;
+    className?: string;
 }): ReactNode {
     return (
         <Paper
             elevation={3}
-            className={GraphCardStyles.graphCard}
+            className={GraphCardStyles.graphCard + " " + (className ?? "")}
             sx={{
                 display: "flex",
                 flexDirection: "row",
