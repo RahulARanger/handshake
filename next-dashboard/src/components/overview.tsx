@@ -1,8 +1,7 @@
 import React, { useState, type ReactNode, useCallback, useMemo } from "react";
-import { AskTestResult } from "./askThings";
 import CountUp from "react-countup";
 import { Cell, Pie, PieChart } from "recharts";
-import { type FeatureResult } from "@/types/appConfig";
+import { DetailedTestResult, type FeatureResult } from "@/types/appConfig";
 import Paper from "@mui/material/Paper";
 import Skeleton from "@mui/material/Skeleton";
 import Stack from "@mui/material/Stack";
@@ -20,7 +19,7 @@ import renderActiveShape from "./pieCharts";
 import { schemeDark2 } from "d3-scale-chromatic";
 import type dayjs from "dayjs";
 import StyledTableCell, { StyledTableRow } from "./tableThings";
-import Grid from "@mui/material/Unstable_Grid2/Grid2";
+import Grid from "@mui/material/Grid";
 import CarouselComponent from "./carousel";
 import type Suite from "@/types/testRelated";
 import { AgGridReact } from "ag-grid-react";
@@ -324,48 +323,10 @@ function TopTestSuites(props: { suites: Suite[] }): ReactNode {
     );
 }
 
-export default function Overview(props: { fileName: string }): ReactNode {
-    const { data, isLoading } = AskTestResult(props.fileName);
-
-    if (data === undefined || isLoading) {
-        return (
-            <Stack gap={"2rem"} flexWrap="wrap">
-                <Stack
-                    flexDirection="row"
-                    gap={"2rem"}
-                    flexWrap="wrap"
-                    justifyContent={"stretch"}
-                >
-                    <Skeleton
-                        animation="pulse"
-                        variant="rounded"
-                        height={200}
-                        width={400}
-                    />
-                    <Skeleton
-                        animation="pulse"
-                        height={200}
-                        variant="rounded"
-                        width={400}
-                    />
-                </Stack>
-                <Stack flexDirection="row" gap={"2rem"} flexWrap="wrap">
-                    <Skeleton
-                        animation="pulse"
-                        variant="rounded"
-                        height={200}
-                        width={400}
-                    />
-                    <Skeleton
-                        animation="pulse"
-                        height={200}
-                        variant="rounded"
-                        width={400}
-                    />
-                </Stack>
-            </Stack>
-        );
-    }
+export default function Overview(props: {
+    details: DetailedTestResult;
+}): ReactNode {
+    const data = props.details;
     return (
         <Grid
             container

@@ -1,5 +1,3 @@
-"use client";
-
 import React, { Component, type ReactNode } from "react";
 
 export default class MainPage extends Component {

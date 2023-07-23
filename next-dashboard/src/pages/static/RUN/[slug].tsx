@@ -1,5 +1,3 @@
-"use client";
-
 import React, { Component, type ReactNode } from "react";
 import Stack from "@mui/material/Stack";
 import { Header } from "@/components/header";
@@ -9,22 +7,61 @@ import TabList from "@mui/lab/TabList";
 import TabPanel from "@mui/lab/TabPanel";
 import Divider from "@mui/material/Divider";
 import Overview from "@/components/overview";
+import {
+    GetStaticPathsResult,
+    GetStaticPropsContext,
+    GetStaticPropsResult,
+} from "next";
+import EmptyState from "@/components/NotExecutedYet";
+import staticConfig, { readTestCase } from "@/components/askFromFiles";
+import { DetailedTestResult } from "@/types/appConfig";
+import readDateForKey, { toFileString } from "@/components/helper";
+
+interface FileRelated {
+    details?: DetailedTestResult;
+    failed?: string;
+}
+
+export function getStaticPaths(
+    path: GetStaticPropsContext
+): GetStaticPathsResult {
+    const data = staticConfig();
+    return {
+        paths: Object.keys(data).map((key) => ({
+            params: { slug: toFileString(readDateForKey(key)) },
+        })),
+        fallback: false,
+    };
+}
+
+export function getStaticProps(
+    path: GetStaticPropsContext
+): GetStaticPropsResult<FileRelated> {
+    try {
+        const expectedSlug = path.params?.slug;
+        if (typeof expectedSlug !== "string")
+            throw new Error(`Invalid file: ${expectedSlug}, Not Found.`);
+        const details = readTestCase(expectedSlug);
+        return { props: { details: details } };
+    } catch (error) {
+        return {
+            props: {
+                failed: `Failed to load the resulted test file: ${path.params?.slug}`,
+            },
+        };
+    }
+}
 
 interface MainPageStates {
     currentTabIndex: string;
 }
 
-export default class MainPage extends Component<
-    { params: { slug: string } },
-    MainPageStates
-> {
+export default class MainPage extends Component<FileRelated, MainPageStates> {
     overview = "overview";
     timeline = "timeline";
     state: MainPageStates = { currentTabIndex: "overview" };
 
-    tabThings(): ReactNode {
-        const fileName = this.props.params.slug;
-
+    tabThings(details: DetailedTestResult): ReactNode {
         return (
             <>
                 <Stack
@@ -36,7 +73,7 @@ export default class MainPage extends Component<
                 >
                     <Stack sx={{ flexGrow: 1 }}>
                         <TabPanel value={this.overview}>
-                            <Overview fileName={fileName} />
+                            <Overview details={details} />
                         </TabPanel>
                         <TabPanel value="3">Item Three</TabPanel>
                         <TabPanel value={this.timeline}>Timeline</TabPanel>
@@ -64,13 +101,21 @@ export default class MainPage extends Component<
             </>
         );
     }
+    render() {
+        if (this.props.failed || !this.props.details) {
+            return <EmptyState error={this.props.failed} isLoading={false} />;
+        }
 
-    render(): ReactNode {
+        const details = this.props.details;
         return (
             <Stack display="flex" flexDirection="column" height="100%">
-                <Header file={this.props.params.slug}></Header>
+                <Header
+                    name={details.name}
+                    version={details.version}
+                    finishedAt={details.finished}
+                ></Header>
                 <TabContext value={this.state.currentTabIndex}>
-                    {this.tabThings()}
+                    {this.tabThings(details)}
                 </TabContext>
             </Stack>
         );

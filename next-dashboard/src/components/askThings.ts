@@ -1,5 +1,6 @@
 import { type DetailedTestResult, type SWRResponse } from "@/types/appConfig";
 import type TestResults from "@/types/appConfig";
+import { join } from "path";
 import useSWRImmutable from "swr/immutable";
 
 async function ensure(url: string, response: Response): Promise<void> {
@@ -33,6 +34,10 @@ export function AskStaticConfig(): SWRResponse<TestResults> {
         "/TestResults/init.json",
         async (url: string) => await askButRead(url)
     );
+}
+
+export function publicDir(): string {
+    return join(process.cwd(), "public");
 }
 
 export function AskTestResult(

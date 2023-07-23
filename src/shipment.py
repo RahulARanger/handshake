@@ -29,7 +29,7 @@ def init_repo(name: str, parent_dir: pathlib.Path, fresh_copy: bool) -> pathlib.
 
 def save_board(path):
     click.secho("Generating the template...", blink=True, bold=True, fg="blue")
-    board = pathlib.Path(__file__).parent.parent / "wdio-next-dashboard"
+    board = pathlib.Path(__file__).parent.parent / "next-dashboard"
     saved = expected_cache(path)
     if saved.exists():
         shutil.rmtree(saved, ignore_errors=False)

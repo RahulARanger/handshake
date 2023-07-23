@@ -1,12 +1,16 @@
-# dependencies
-next-dashboard/node_modules/*
-next-dashboard/.next/*
-next-dashboard/results/*
-next-dashboard/out/*
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-*.pyc
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
 # testing
-results
+/coverage
+
+# next.js
+/.next/
+/out/
 
 # production
 /build
