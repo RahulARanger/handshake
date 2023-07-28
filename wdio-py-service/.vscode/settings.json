@@ -1,0 +1,12 @@
+{
+	"marquee.widgets.npm-stats.packageNames": [
+		"wdio-py",
+		"wdio-py-service",
+		"next-dashboard"
+	],
+	"editor.formatOnSave": true,
+	"editor.codeActionsOnSave": {
+		"source.fixAll.eslint": true
+	},
+	"eslint.validate": ["javascript"]
+}

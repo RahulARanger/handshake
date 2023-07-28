@@ -7,69 +7,84 @@ import shutil
 import click
 
 
-def expected_cache(path: pathlib.Path):
-    return path / "cache"
+class Shipment:
+    def __init__(self, name: str, parent_dir: pathlib.Path):
+        self.root = parent_dir / name
+        self.root.mkdir(exist_ok=True)
 
+    @property
+    def cache(self):
+        return self.root / "cache"
 
-def static_results(path):
-    return path / "out"
+    @property
+    def static_results(self):
+        return self.root / "out"
 
+    @property
+    def public(self):
+        return self.cache / "public"
 
-def init_repo(name: str, parent_dir: pathlib.Path, fresh_copy: bool) -> pathlib.Path:
-    results = parent_dir / name
-    results.mkdir()
+    @property
+    def prev_results(self):
+        return self.static_results / "TestResults"
 
-    generate_copy = fresh_copy or not expected_cache(results).exists()
-    if generate_copy:
-        # removing the previously stored nextjs scripts when required
-        save_board(results)
+    @property
+    def cache_results(self):
+        return self.public / "TestResults"
 
-    return results
+    @property
+    def dashboard(self):
+        return pathlib.Path(__file__).parent.parent / "next-dashboard"
 
+    @property
+    def saved_results(self):
+        return self.root / "saved.zip"
 
-def save_board(path):
-    click.secho("Generating the template...", blink=True, bold=True, fg="blue")
-    board = pathlib.Path(__file__).parent.parent / "next-dashboard"
-    saved = expected_cache(path)
-    if saved.exists():
-        shutil.rmtree(saved, ignore_errors=False)
-        click.secho("Removing dashboard files", fg="red")
+    def init_cache_repo(self, force: bool):
+        click.secho("Checking if we require to generate the dashboard")
 
-    shutil.copytree(
-        board, saved,
-        ignore=shutil.ignore_patterns("**node_modules", "**out", "**.next", "**.vscode")
-    )
-    click.secho("Done!", bold=True, fg="green")
-    click.secho("Downloading npm packages", fg="blue", bold=True, blink=True)
-    init_npm(saved)
-    click.secho("Done!", bold=True, fg="green")
+        generate_cache = force or (self.cache_results.exists() and self.prev_results.exists())
+        if generate_cache:
+            click.secho("Generating the Dashboard", fg="blue", bold=True)
+            shutil.rmtree(self.cache_results)
+            shutil.copytree(
+                self.dashboard, self.cache_results,
+                ignore=shutil.ignore_patterns("**node_modules", "**out", "**.next", "**.vscode"))
+            click.secho("Generated the results", fg="green", bold=True)
 
+        node_modules = self.cache_results / "node_modules"
+        if node_modules.exists():
+            return
 
-def init_npm(path: pathlib.Path):
-    subprocess.run(
-        "npm install", cwd=path, check=True, shell=True
-    )
+        click.secho("Installing npm packages...", blink=True, fg="blue", bold=True)
+        subprocess.run("npm install", check=True, shell=True, cwd=self.cache_results)
+        click.secho("Done!", fg="green", bold=True)
 
+    def save_prev_results(self):
+        click.secho("Checking and saving the previous results...", fg="green", bold=True)
 
-def export_results(path: pathlib.Path) -> pathlib.Path:
-    cache = expected_cache(path)
-    click.secho(f"Exporting the results to {cache}", bold=True, fg="blue")
-    subprocess.run(
-        f"npx next build --no-lint",
-        cwd=cache, check=True, shell=True
-    )
-    click.secho("Generated the export", bold=True, fg="green")
+        if not self.prev_results.exists():
+            click.secho("Failed to find the previous results, hence skipping", fg="yellow", bold=True, blink=True)
+            return
 
-    # removing previous results
-    static = static_results(path)
-    if static.exists():
-        click.secho("Removing previous results", blink=True, bold=True, fg="blue")
-        shutil.rmtree(static, ignore_errors=False)
-        click.secho("Done!", bold=True, fg="green")
+        return shutil.make_archive("saved", "zip", self.root)
 
-    shutil.copytree(expected_cache(path) / "out", static)
-    click.secho(f"saved results in {static}", fg="green", bold=True, blink=True)
-    return static
+    def attach_saved_results(self):
+        if self.cache_results.exists():
+            shutil.rmtree(self.cache_results)
+
+        saved = zipfile.ZipFile(self.saved_results)
+        saved.extractall(self.public)
+
+    def export_the_results(self):
+        click.secho("Exporting the results...")
+        subprocess.run("npx export --no-lint", check=True, shell=True, cwd=self.cache_results)
+
+        if self.static_results.exists():
+            shutil.rmtree(self.static_results)
+
+        shutil.copytree(self.cache_results / "out", self.static_results)
+        click.secho("Exported", fg="green", bold=True, blink=True)
 
 
 def demo(name: str, dir_path: str, node: str) -> bool:

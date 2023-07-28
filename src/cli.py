@@ -1,6 +1,6 @@
 import click
 import pathlib
-from shipment import init_repo, export_results
+from shipment import Shipment
 
 
 @click.command()
@@ -12,16 +12,18 @@ from shipment import init_repo, export_results
 @click.option(
     '-f', '--force', default=False, flag_value=True,
     help='Instead of copying the next dashboard everytime,'
-    'we store the templates in a folder for quickly generating the results, use this to generate the results from '
-    'beginning',
+         'we store the templates in a folder for quickly generating the results, use this to generate the results from '
+         'beginning',
     show_default=True
 )
 @click.option('-d', '--demo', help="Show only demo results", default=False, flag_value=True)
+@click.option("-p", "--port", help="specify the port to connect to", default=6666)
 def init_shipment(out: str, save: str, force: bool, demo: bool):
     root = pathlib.Path(save)
 
-    results_dir = init_repo(out, root, force)
-    export_results(results_dir)
+    parcel = Shipment(out, root)
+    parcel.init_cache_repo(force)
+    parcel.export_the_results()
 
 
 if __name__ == "__main__":

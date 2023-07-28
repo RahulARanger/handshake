@@ -1,9 +1,9 @@
 # dependencies
-next-dashboard/node_modules/*
 next-dashboard/.next/*
 next-dashboard/results/*
-next-dashboard/out/*
 
+**/out/*
+**/node_modules/*
 *.pyc
 # testing
 results

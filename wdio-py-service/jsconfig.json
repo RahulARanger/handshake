@@ -1,0 +1,9 @@
+{
+	"include": [
+		"**/*.js",
+		"**/*.json",
+		"node_modules/expect-webdriverio",
+		"@wdio/mocha-framework",
+		"@wdio/logger"
+	]
+}
