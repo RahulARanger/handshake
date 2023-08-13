@@ -1,8 +1,12 @@
 import { dirname } from 'node:path';
 // eslint-disable-next-line import/extensions
 import Shipment from './src/shipment.js';
+// eslint-disable-next-line import/extensions
+import NeXtReporter from './src/reporter.js';
 
 export default Shipment;
+
+const port = 6969;
 
 export const config = {
     //
@@ -28,7 +32,9 @@ export const config = {
     // will be called from there.
     //
     specs: [
-        './test-mocha/specs/**/*.js',
+        ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
+        './test-mocha/specs/test.e2e.js',
+        './test-mocha/specs/package-version.e2e.js',
     ],
     // Patterns to exclude.
     exclude: [
@@ -50,7 +56,7 @@ export const config = {
     // and 30 processes will get spawned. The property handles how many capabilities
     // from the same test should run tests.
     //
-    maxInstances: 10,
+    maxInstances: 1,
     //
     // If you have trouble getting all important capabilities together, check out the
     // Sauce Labs platform configurator - a great tool to configure your capabilities:
@@ -111,7 +117,7 @@ export const config = {
         'chromedriver',
         [
             Shipment,
-            { port: 6969, cwd: dirname(process.cwd()) },
+            { port, cwd: dirname(process.cwd()) },
         ],
     ],
 
@@ -136,7 +142,7 @@ export const config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec'],
+    reporters: ['spec', [NeXtReporter, { port }]],
 
     //
     // Options to be passed to Mocha.
@@ -293,7 +299,7 @@ export const config = {
      * @param {object} exitCode 0 - success, 1 - fail
      * @param {object} config wdio configuration object
      * @param {Array.<object>} capabilities list of capabilities details
-     * @param {<Object>} results object containing test results
+     * @param {any} results object containing test results
      */
     // onComplete: function(exitCode, config, capabilities, results) {
     // },

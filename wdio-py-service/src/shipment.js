@@ -1,19 +1,21 @@
+/* eslint-disable import/extensions */
 import { spawn, ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
-import logger from '@wdio/logger';
 import {
     clearInterval, setTimeout, clearTimeout, setInterval,
 } from 'node:timers';
+// eslint-disable-next-line import/no-unresolved
+import logger from '@wdio/logger';
+import ContactList from './contacts.js';
 
 /**
  * @class
  */
-export default class Shipment {
-    port = 6969;
+
+export default class Shipment extends ContactList {
+    timeout = 20e3;
 
     logger = logger('wdio-py-service');
-
-    timeout = 20e3;
 
     cwd = process.cwd();
 
@@ -28,13 +30,10 @@ export default class Shipment {
      *  Options for Shipping the test results
      */
     constructor(options) {
+        super();
         this.port = options.port ?? this.port;
         this.cwd = options.cwd ?? this.cwd;
         this.timeout = options.timeout ?? this.timeout;
-    }
-
-    get url() {
-        return `http://127.0.0.1:${this.port}`;
     }
 
     async onPrepare() {
@@ -54,6 +53,10 @@ export default class Shipment {
         process.on('exit', async () => { await this.forceKill(); });
     }
 
+    async onWorkerStart() {
+        await Promise.resolve(this.waitUntilItsReady.bind(this)());
+    }
+
     async onComplete() {
         const completed = this.pyProcess.killed || (await fetch(`${this.url}/setLastWave`, { method: 'POST' })).status !== 200;
         if (completed) return this.pyProcess.exitCode === 0;
@@ -69,6 +72,29 @@ export default class Shipment {
     async sayBye() {
         if (this.pyProcess.killed) return;
         await fetch(`${this.url}/bye`, { method: 'POST' });
+    }
+
+    async waitUntilItsReady() {
+        const waitingForTheServer = new Error('Not able to connect with server within 10 seconds');
+        return new Promise((resolve, reject) => {
+            const bomb = setTimeout(() => {
+                this.logger.error('Failed to connect with the server');
+                reject(waitingForTheServer);
+            }, 10e3); // 5 seconds buffer
+
+            const timer = setInterval(() => {
+                this.logger.warn('pinging py-server...');
+
+                fetch(`${this.url}/`).then((resp) => {
+                    if (resp.status !== 200) return;
+
+                    clearTimeout(bomb);
+                    clearInterval(timer);
+                    this.logger.info('Connection Found!');
+                    resolve();
+                });
+            }, 3e3);
+        }).catch(this.sayBye);
     }
 
     async flagToPyThatsItsDone() {
@@ -95,26 +121,6 @@ export default class Shipment {
         }).then(async () => {
             this.logger.info('Killed the process...');
             await this.sayBye();
-        });
-    }
-
-    continueWhenStarted(resolve, reject) {
-        const bomb = setTimeout(() => {
-            this.logger.error("waited for 5s for the server to start, but it didn't 😢");
-            reject();
-        }, 5e3);
-
-        const timeout = setInterval(() => {
-            this.logger.log('Waiting for the py-server to start...');
-
-            fetch(`${this.url}/`).then((response) => {
-                const passed = response.status === 200;
-
-                if (!passed) return;
-                clearInterval(timeout);
-                clearTimeout(bomb);
-                resolve();
-            }, 500);
         });
     }
 }

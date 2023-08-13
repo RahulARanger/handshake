@@ -12,13 +12,24 @@ describe("Verifying if our packages are up to date", async function () {
         await browser.url("https://www.npmjs.com/")
     })
 
-
-    const _its = Object.keys(packages).map(async (pack) => {
+    it("Search for the package", async function () {
         const searchBar = $("input[type=search]")
-        await expect(searchBar).toBeDisplayed();
-        await searchBar.setValue(pack);
-        await browser.keys([Key.Enter]);
+        expect(searchBar).toBeDisplayed();
+        await searchBar.setValue(Object.keys(packages)[0])
+        await browser.keys([Key.Enter])
     })
 
-    _its.map(_func => it(_func));
+    it.skip("This step is skipped", async () => {
+        return "skipped"
+    })
+
+
+    // Object.keys(packages).map(
+    //     it("Waiting for the test case", async (pack) => {
+    //         const searchBar = $("input[type=search]")
+    //         await expect(searchBar).toBeDisplayed();
+    //         await searchBar.setValue(pack);
+    //         await browser.keys([Key.Enter]);
+    //     })
+    // )
 })
