@@ -110,7 +110,7 @@ export default class Shipment extends ContactList {
 
                 fetch(`${this.url}/isItDone`).then((data) => data.json()).then(
                     (data) => {
-                        if (!data.done) return;
+                        if (!data.done) { this.logger.warn(`Pending tasks: ${data.message}`); return; }
 
                         clearTimeout(bomb);
                         clearInterval(timer);

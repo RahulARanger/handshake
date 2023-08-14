@@ -3,6 +3,9 @@ from src.service.DBService.models.config_base import SessionBase, RegistersSessi
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text
+from sanic import Sanic
+from asyncio.tasks import Task
+from src.service.DBService.updateRecords import sample_await
 
 service = Blueprint("DBService", url_prefix="/save")
 
@@ -60,7 +63,12 @@ async def updateSuite(request: Request):
     resp["endDate"] = understand_js_date(resp["endDate"]) if resp["endDate"] else None
     await suite.update_from_dict(resp)
     await suite.save()
-    return text(str(suite.startDate) + " || Updated", status=201)
+
+    app: Sanic = request.app
+
+    task: Task = app.add_task(sample_await(), name=suite_id)
+
+    return text(str(suite.startDate) + " || Updated || Task Name: " + task.get_name(), status=201)
 
 
 @service.put("/updateSession")
