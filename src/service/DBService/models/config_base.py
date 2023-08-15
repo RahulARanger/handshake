@@ -52,5 +52,12 @@ class SuiteBase(Model):
     tags = fields.CharField(max_length=225, description="Comma separated tags", default="", null=False)
 
 
+class DynamicBase(Model):
+    generatedStaticReport = fields.BooleanField(
+        default=False, null=False, description="Did we generate Nextjs's static report"
+    )
+    enabledDynamicReport = fields.BooleanField(default=False, null=False, description="Did we enable dynamic report")
+
+
 def understand_js_date(utc_date_string: str) -> datetime:
     return datetime.strptime(utc_date_string, "%a, %d %b %Y %H:%M:%S %Z")
