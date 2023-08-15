@@ -7,6 +7,8 @@ from shutil import rmtree
 from json import loads
 
 
+# Expected 1 min
+
 @fixture(scope="class")
 def temp_dir():
     return Path(mkdtemp(prefix="test-next-py-results"))

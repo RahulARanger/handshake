@@ -7,6 +7,15 @@ import NeXtReporter from './src/reporter.js';
 export default Shipment;
 
 const port = 6969;
+const root = dirname(process.cwd());
+
+const service = [
+    Shipment,
+    {
+        port, root, collectionName: 'test-results',
+    },
+];
+const reporter = [NeXtReporter, { port }];
 
 export const config = {
     //
@@ -115,10 +124,7 @@ export const config = {
     // commands. Instead, they hook themselves up into the test process.
     services: [
         'chromedriver',
-        [
-            Shipment,
-            { port, cwd: dirname(process.cwd()) },
-        ],
+        service,
     ],
 
     // Framework you want to run your specs with.
@@ -142,7 +148,7 @@ export const config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec', [NeXtReporter, { port, folder_name: 'test-results', root_dir: process.cwd() }]],
+    reporters: ['spec', reporter],
 
     //
     // Options to be passed to Mocha.

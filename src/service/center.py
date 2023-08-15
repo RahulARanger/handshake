@@ -24,10 +24,10 @@ async def init_tortoise_orm(file_path: str):
 # from tortoise.contrib.sanic import register_tortoise
 # custom way to register tortoise, we are doing this because the file path is dynamically generated
 @service_provider.main_process_start
-async def started(app, loop):
-    # _, temp_file = mkstemp(suffix=".db", prefix='wdio-py-reporter')
-    # close(_)
-    temp_file = "sample.db"
+async def started(app: Sanic, loop):
+    _, temp_file = mkstemp(suffix=".db", prefix='wdio-py-reporter')
+    close(_)
+    # temp_file = "sample.db"
     app.shared_ctx.db_path = Array('c', str.encode(temp_file), lock=False)
 
 
@@ -47,12 +47,12 @@ async def end_of_day(app: Sanic, loop):
 @service_provider.main_process_stop
 async def packing_bags(app: Sanic, loop):
     try:
-        # main_file = Path(app.shared_ctx.db_path.value.decode("utf-8"))
-        # shm = main_file.parent / (main_file.name + "-shm")
-        # wal = main_file.parent / (main_file.name + "-wal")
-        # shm.unlink(missing_ok=True)
-        # wal.unlink(missing_ok=True)
-        # main_file.unlink(missing_ok=True)
+        main_file = Path(app.shared_ctx.db_path.value.decode("utf-8"))
+        shm = main_file.parent / (main_file.name + "-shm")
+        wal = main_file.parent / (main_file.name + "-wal")
+        shm.unlink(missing_ok=True)
+        wal.unlink(missing_ok=True)
+        main_file.unlink(missing_ok=True)
         print("DELETED DB")
     except OSError as error:
         print("FAILED TO DELETE DB", error)

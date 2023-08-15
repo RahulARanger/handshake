@@ -1,5 +1,5 @@
 /* eslint-disable import/extensions */
-import { spawn, ChildProcess } from 'node:child_process';
+import { spawn, ChildProcess, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
 import {
     clearInterval, setTimeout, clearTimeout, setInterval,
@@ -17,8 +17,6 @@ export default class Shipment extends ContactList {
 
     logger = logger('wdio-py-service');
 
-    cwd = process.cwd();
-
     /**
      * @type {ChildProcess}
      */
@@ -26,10 +24,19 @@ export default class Shipment extends ContactList {
 
     async onPrepare() {
         const path = join('venv', 'Scripts', 'activate');
-        const { cwd, port, collectionName } = this.options;
+        const { root: cwd, port, collectionName } = this.options;
+        this.logger.warn(`${'HERE'} - ${path} - ${cwd}`);
+
+        const output = spawnSync(
+            `"${path}" && next-py init-shipment -s "${collectionName}" -o "${cwd}" `,
+            { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
+            { cwd },
+        );
+        this.logger.info(output?.stdout?.toString());
+        if (output?.stderr?.length ?? 0) this.logger.error(output?.stderr?.toString());
 
         this.pyProcess = spawn(
-            `"${path}" && next-py -s ${collectionName} -o ${cwd} && sanic app:app --port ${port} --workers 2`,
+            `"${path}" && sanic app:app --port ${port} --workers 2`,
             { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
             { cwd },
         );

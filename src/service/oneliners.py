@@ -16,13 +16,10 @@ async def health_status(request: Request) -> HTTPResponse:
 
 @one_liners.get("/isItDone")
 async def isItDone(request: Request) -> JSONResponse:
-    app: Sanic = request.app
-    tasks = [task.get_name() async for task in app.tasks if not task.done()]
-
     return json(
         dict(
-            done=len(tasks) == 0,
-            message=tasks
+            done=True,
+            message="Completed"
         )
     )
 
