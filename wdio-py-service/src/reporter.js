@@ -127,7 +127,7 @@ export default class NeXtReporter extends WDIOReporter {
             sessionID: this.runnerStat.sessionId,
             framework,
             logLevel,
-            specs,
+            specs: (specs ?? []).map((spec) => relative(process.cwd(), spec)),
             suitesConfig,
             automationProtocol,
         };
@@ -159,7 +159,7 @@ export default class NeXtReporter extends WDIOReporter {
             parent,
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             fullTitle,
-            file: relative(file ?? this.currentSuites.at(-1).file, process.cwd()),
+            file: relative(process.cwd(), file ?? this.currentSuites.at(-1).file),
             standing: returnStatus(suiteOrTest.end, this.runnerStat.failures),
             tags: tags ?? [],
             startDate,
@@ -173,12 +173,12 @@ export default class NeXtReporter extends WDIOReporter {
 
     /**
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
-     * @returns {{duration, startDate, endDate, failures, specs, sessionID, standing}}
+     * @returns {{duration, startDate, endDate, failures, sessionID, standing}}
      * returns the info that needs to be updated for either suite or test
      */
     extractRequiredForCompletion(suiteOrTest) {
         const {
-            duration, specs,
+            duration,
         } = suiteOrTest;
 
         const startDate = suiteOrTest.start.toUTCString();
@@ -191,7 +191,6 @@ export default class NeXtReporter extends WDIOReporter {
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             endDate,
             failures: this.runnerStat.failures ?? 0,
-            specs: (specs ?? []).map((spec) => relative(spec, process.cwd())),
             sessionID: this.runnerStat.sessionId,
             standing,
         };
