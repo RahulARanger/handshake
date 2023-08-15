@@ -24,23 +24,15 @@ export default class Shipment extends ContactList {
      */
     pyProcess;
 
-    /**
-     *
-     * @param {{port?: number, cwd: string, timeout: number}} options
-     *  Options for Shipping the test results
-     */
-    constructor(options) {
-        super();
-        this.port = options.port ?? this.port;
-        this.cwd = options.cwd ?? this.cwd;
-        this.timeout = options.timeout ?? this.timeout;
-    }
-
     async onPrepare() {
         const path = join('venv', 'Scripts', 'activate');
-        const { cwd } = this;
+        const { cwd, port, collectionName } = this.options;
 
-        this.pyProcess = spawn(`"${path}" && sanic app:app --port ${this.port} --workers 2`, { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'] }, { cwd });
+        this.pyProcess = spawn(
+            `"${path}" && next-py -s ${collectionName} -o ${cwd} && sanic app:app --port ${port} --workers 2`,
+            { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
+            { cwd },
+        );
 
         this.pyProcess.stdout.on('data', (data) => this.logger.info(data?.toString()));
         this.pyProcess.stderr.on('data', (data) => this.logger.warn(data?.toString()));

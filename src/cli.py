@@ -10,10 +10,10 @@ def handle_cli():
 
 @handle_cli.command()
 @option(
-    '-o', '--out', default="results", help='Export folder name (not absolute path)', show_default=True
+    '-s', '--save', default="results", help='Export folder name (not absolute path)', show_default=True
 )
 @option(
-    '-s', '--save', default=Path.cwd(), show_default=True,
+    '-o', '--out', default=Path.cwd(), show_default=True,
     help='Parent Folder of the expected results', type=C_Path()
 )
 # @click.option(
@@ -22,8 +22,8 @@ def handle_cli():
 #     show_default=True
 # )
 def init_shipment(out: str, save: str):
-    root = Path(save)
-    parcel = Shipment(out, root)
+    root = Path(out)
+    parcel = Shipment(save, root)
     parcel.init_cache_repo()
     parcel.save_prev_results()
 

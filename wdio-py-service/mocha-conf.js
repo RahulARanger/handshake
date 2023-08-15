@@ -142,7 +142,7 @@ export const config = {
     // Test reporter for stdout.
     // The only one supported by default is 'dot'
     // see also: https://webdriver.io/docs/dot-reporter
-    reporters: ['spec', [NeXtReporter, { port }]],
+    reporters: ['spec', [NeXtReporter, { port, folder_name: 'test-results', root_dir: process.cwd() }]],
 
     //
     // Options to be passed to Mocha.

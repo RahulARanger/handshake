@@ -40,14 +40,20 @@ class Shipment:
     def saved_results(self):
         return self.root / "saved.zip"
 
+    def verify_cache(self):
+        return (self.cache / "package.json").exists() and \
+            self.cache_results.exists() and \
+            (self.cache / "src").exists()
+
     def init_cache_repo(self):
         generate_cache = True
 
-        if (self.cache_results / "package.json").exists():
+        if self.verify_cache():
             secho("Checking for the dashboard version...")
             preferred = Version(loads((self.dashboard / 'package.json').read_text()).get("version", False))
-            found = Version(loads((self.cache_results / 'package.json').read_text()).get("version", False))
+            found = Version(loads((self.cache / 'package.json').read_text()).get("version", False))
             generate_cache = preferred > found
+            secho(f"Preferred: v{preferred}, Found: v{found}", bg="red" if generate_cache else "green")
 
         if generate_cache:
             secho("Generating the Dashboard...", fg="blue", bold=True)
@@ -56,7 +62,10 @@ class Shipment:
 
             copytree(
                 self.dashboard, self.cache,
-                ignore=ignore_patterns("**node_modules", "**out", "**.next", "**.vscode")
+                ignore=ignore_patterns(
+                    "**node_modules", "**out", "**.next", "**.vscode",
+                    "**.env", "**.development", '.prettierrc', '.eslintrc.json'
+                )
             )
             secho("Plain Dashboard is copied", fg="green", bold=True)
 
@@ -70,7 +79,8 @@ class Shipment:
 
     def save_prev_results(self):
         if not self.prev_results.exists():
-            secho("Failed to find the previous results, hence skipping", fg="yellow", bold=True, blink=True)
+            secho("skipping the step where we save your previous results, as this would be your first run", bg="yellow",
+                  bold=True, blink=True)
             return
 
         secho("Saving the results generated in the previous runs", fg="green", bold=True)
