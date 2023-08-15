@@ -1,4 +1,4 @@
-from src.service.DBService.models.config_base import SessionBase, SuiteBase
+from src.services.DBService.models.config_base import SessionBase, SuiteBase
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import json, JSONResponse

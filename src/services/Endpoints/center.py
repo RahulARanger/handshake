@@ -1,12 +1,13 @@
 from sanic import Sanic
 from tortoise import Tortoise, connections
-from src.service.oneliners import one_liners
-from src.service.DBService.center import service
+from src.services.Endpoints.oneliners import one_liners
+from src.services.DBService.center import service
 from pathlib import Path
 from tempfile import mkstemp
 from os import close
 from multiprocessing.sharedctypes import Array
-from src.service.DBService.getThings import get_service
+from src.services.DBService.getThings import get_service
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 service_provider = Sanic("WDIO-PY")
 service_provider.blueprint(one_liners)
@@ -16,7 +17,7 @@ service_provider.blueprint(get_service)
 
 async def init_tortoise_orm(file_path: str):
     await Tortoise.init(db_url=r"{}".format(f'sqlite://{file_path}'), modules={
-        "models": ["src.service.DBService.models"]
+        "models": ["src.services.DBService.models"]
     })
     await Tortoise.generate_schemas()
 

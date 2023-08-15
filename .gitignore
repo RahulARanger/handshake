@@ -34,3 +34,5 @@ next-env.d.ts
 
 sample.db
 sample.db-*
+
+**/.pytest_cache/*

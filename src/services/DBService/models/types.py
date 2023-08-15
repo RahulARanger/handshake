@@ -1,5 +1,5 @@
 from typing import Union, TypedDict, Optional, List, Dict
-from src.service.DBService.models.enums import Status, SuiteType
+from src.services.DBService.models.enums import Status, SuiteType
 from datetime import datetime
 
 

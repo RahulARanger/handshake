@@ -2,7 +2,7 @@ from sanic import Sanic
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
-from src.service.types import ByeWithCommands
+from src.services.Endpoints.types import ByeWithCommands
 
 one_liners = Blueprint(name="one_liners", url_prefix="/")
 

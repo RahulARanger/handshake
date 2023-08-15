@@ -25,7 +25,7 @@ export default class Shipment extends ContactList {
     async onPrepare() {
         const path = join('venv', 'Scripts', 'activate');
         const { root: cwd, port, collectionName } = this.options;
-        this.logger.warn(`${'HERE'} - ${path} - ${cwd}`);
+        this.logger.warn(`${'RUNNING'} - ${path} - ${cwd}`);
 
         const output = spawnSync(
             `"${path}" && next-py init-shipment -s "${collectionName}" -o "${cwd}" `,

@@ -1,7 +1,7 @@
 from datetime import datetime
 from tortoise.models import Model
 from tortoise import fields
-from src.service.DBService.models.enums import Status, LogLevel, SuiteType
+from src.services.DBService.models.enums import Status, LogLevel, SuiteType
 
 
 class SessionBase(Model):
