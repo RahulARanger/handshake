@@ -1,4 +1,5 @@
 /* eslint-disable import/no-unresolved */
+import { relative } from 'node:path';
 import WDIOReporter from '@wdio/reporter';
 import logger from '@wdio/logger';
 import AsyncLock from 'async-lock';
@@ -158,7 +159,7 @@ export default class NeXtReporter extends WDIOReporter {
             parent,
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             fullTitle,
-            file: file ?? this.currentSuites.at(-1).file,
+            file: relative(file ?? this.currentSuites.at(-1).file, process.cwd()),
             standing: returnStatus(suiteOrTest.end, this.runnerStat.failures),
             tags: tags ?? [],
             startDate,
@@ -190,7 +191,7 @@ export default class NeXtReporter extends WDIOReporter {
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             endDate,
             failures: this.runnerStat.failures ?? 0,
-            specs,
+            specs: (specs ?? []).map((spec) => relative(spec, process.cwd())),
             sessionID: this.runnerStat.sessionId,
             standing,
         };
