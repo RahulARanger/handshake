@@ -1,6 +1,6 @@
-from .config_base import SessionBase, SuiteBase
+from .config_base import SessionBase, SuiteBase, DynamicBase
 
 __all__ = [
-     SessionBase, SuiteBase
+     SessionBase, SuiteBase, DynamicBase
 ]
 

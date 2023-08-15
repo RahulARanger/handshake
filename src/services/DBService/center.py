@@ -4,9 +4,6 @@ from src.services.DBService.models.types import RegistersSession, RegisterSuite
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text
-from sanic import Sanic
-from asyncio.tasks import Task
-
 service = Blueprint("DBService", url_prefix="/save")
 
 

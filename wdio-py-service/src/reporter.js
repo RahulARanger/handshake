@@ -17,7 +17,7 @@ function returnStatus(endDate, failures) {
 export default class NeXtReporter extends WDIOReporter {
     logger = logger('wdio-py-reporter');
 
-    lock = new AsyncLock();
+    lock = new AsyncLock({ timeout: 20e3, maxExecutionTime: 10e3 });
 
     packing = false; // false if its free
 
@@ -57,11 +57,31 @@ export default class NeXtReporter extends WDIOReporter {
 
     /**
      *
-     * @param {{port?: number}} options Options for the reporter
+     * @param {{port?: number, timeout?: number}} options Options for the reporter
      */
     constructor(options) {
         super(options);
         this.port = options.port ?? this.port;
+    }
+
+    /**
+     *
+     * @param {string} feedURL url to use for sending the request to
+     * @param {any} feedJSON request body
+     */
+    async feed(feedURL, feedJSON) {
+        this.lock.acquire(
+            this.runnerStat.sessionId,
+            async (done) => {
+                const resp = await fetch(feedURL, { method: 'PUT', body: JSON.stringify(feedJSON) });
+                done(Math.floor(resp.status / 200) === 1
+                    ? undefined : resp.statusText, await resp.text());
+            },
+            (er, text) => {
+                if (er) this.logger.error(er);
+                else this.logger.info(text);
+            },
+        );
     }
 
     /**
@@ -92,7 +112,7 @@ export default class NeXtReporter extends WDIOReporter {
             endDate,
             standing,
             browserName,
-            failures,
+            failures: failures ?? 0,
             retried,
             totalRetries,
             platformName,
@@ -105,10 +125,7 @@ export default class NeXtReporter extends WDIOReporter {
             automationProtocol,
         };
 
-        await this.lock.acquire(this.runnerStat.sessionId, async () => {
-            const resp = await (await fetch(this.registerSession, { method: 'PUT', body: JSON.stringify(payload) })).text();
-            this.logger.info(`Registered a session: ${resp}`);
-        });
+        await this.feed(this.registerSession, payload);
     }
 
     /**
@@ -166,7 +183,7 @@ export default class NeXtReporter extends WDIOReporter {
             startDate,
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             endDate,
-            failures: this.runnerStat.failures,
+            failures: this.runnerStat.failures ?? 0,
             specs,
             sessionID: this.runnerStat.sessionId,
             standing: suiteState.toUpperCase(),
@@ -182,11 +199,7 @@ export default class NeXtReporter extends WDIOReporter {
     async onSuiteStart(suite) {
         const payload = this.extractSuiteOrTestDetails(suite);
         payload.suiteType = 'SUITE';
-
-        await this.lock.acquire(this.runnerStat.sessionId, async () => {
-            const resp = await (await fetch(this.registerSuite, { method: 'PUT', body: JSON.stringify(payload) })).text();
-            this.logger.info(`Registered ${suite.title} | ${resp}`);
-        });
+        await this.feed(this.registerSuite, payload);
     }
 
     /**
@@ -197,10 +210,7 @@ export default class NeXtReporter extends WDIOReporter {
         const payload = this.extractRequiredForCompletion(suite);
         payload.suiteType = 'SUITE';
 
-        await this.lock.acquire(this.runnerStat.sessionId, async () => {
-            const resp = await (await fetch(this.updateSuite, { method: 'PUT', body: JSON.stringify(payload) })).text();
-            this.logger.info(`Updated Suite: ${suite.title} | ${resp}`);
-        });
+        await this.feed(this.updateSuite, payload);
     }
 
     /**
@@ -212,10 +222,7 @@ export default class NeXtReporter extends WDIOReporter {
         const payload = this.extractSuiteOrTestDetails(test);
         payload.suiteType = 'TEST';
 
-        await this.lock.acquire(this.runnerStat.sessionId, async () => {
-            const resp = await (await fetch(this.registerSuite, { method: 'PUT', body: JSON.stringify(payload) })).text();
-            this.logger.info(`Registered ${test.title} from session: ${this.runnerStat.sessionId} | ${resp}`);
-        });
+        await this.feed(this.registerSuite, payload);
     }
 
     /**
@@ -236,10 +243,7 @@ export default class NeXtReporter extends WDIOReporter {
         const payload = this.extractRequiredForCompletion(test);
         payload.suiteType = 'TEST';
 
-        await this.lock.acquire(this.runnerStat.sessionId, async () => {
-            const resp = await (await fetch(this.updateSuite, { method: 'PUT', body: JSON.stringify(payload) })).text();
-            this.logger.info(`Updated Test: ${test.title} | ${resp}`);
-        });
+        await this.feed(this.updateSuite, payload);
     }
 
     /**
@@ -267,12 +271,14 @@ export default class NeXtReporter extends WDIOReporter {
     async onRunnerEnd(runner) {
         const endDate = runner.end?.toUTCString();
         const {
-            passes: passed, failures: failed, skipping: skipped, tests,
+            passes: passed, skipping: skipped, tests,
         } = this.counts;
+        const failed = this.counts.failures ?? 0;
         const retried = runner.retries;
         const standing = returnStatus(runner.end, runner.failures);
 
         const payload = {
+            duration: this.runnerStat.duration,
             passed,
             failed,
             skipped,
@@ -283,10 +289,7 @@ export default class NeXtReporter extends WDIOReporter {
             sessionID: this.runnerStat.sessionId,
         };
 
-        await this.lock.acquire(payload.sessionID, async () => {
-            const resp = await (await fetch(this.updateSession, { method: 'PUT', body: JSON.stringify(payload) })).text();
-            this.logger.info(`Session: ${this.runnerStat.sessionId} is updated | ${resp}`);
-        });
+        await this.feed(this.updateSession, payload);
     }
 
     /**

@@ -50,11 +50,15 @@ class SuiteBase(Model):
     endDate = fields.DatetimeField(null=True)
     standing = fields.CharEnumField(Status, description="status of the suite", default="PENDING")
     tags = fields.CharField(max_length=225, description="Comma separated tags", default="", null=False)
+    modified = fields.DatetimeField(auto_now=True, description='Modified timestamp', null=False)
 
 
 class DynamicBase(Model):
-    staticReportPath = fields.CharField(max_length=225, null=False, description="Expected Path for the static report")
-    enabledDynamicReport = fields.BooleanField(default=False, null=False, description="Did we enable dynamic report")
+    runID = fields.CharField(pk=True, description="name of the temp file for the database", max_length=20)
+    staticReportPath = fields.CharField(max_length=225, default="", description="Expected Path for the static report")
+    enabledDynamicReport = fields.BooleanField(default=False, description="Did we enable dynamic report")
+    enabledSchedular = fields.BooleanField(
+        default=False, null=False, description="Did we enable schedular in any of the workers ?")
 
 
 def understand_js_date(utc_date_string: str) -> datetime:
