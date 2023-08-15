@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "next-py"
+version = "0.1.0"
+description = "Next Dashboard for test results"
+authors = ["Rahul <saihanumarahul66@gmail.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "src"}]
+maintainers = [
+    "Rahul <saihanumarahul66@gmail.com>"
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+sanic = "^23.6.0"
+tortoise-orm = "^0.20.0"
+click = "^8.1.6"
+
+[tool.poetry.group.dev.dependencies]
+poetry = "^1.5.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
