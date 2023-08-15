@@ -53,9 +53,7 @@ class SuiteBase(Model):
 
 
 class DynamicBase(Model):
-    generatedStaticReport = fields.BooleanField(
-        default=False, null=False, description="Did we generate Nextjs's static report"
-    )
+    staticReportPath = fields.CharField(max_length=225, null=False, description="Expected Path for the static report")
     enabledDynamicReport = fields.BooleanField(default=False, null=False, description="Did we enable dynamic report")
 
 

@@ -1,30 +1,32 @@
-import click
-import pathlib
-from shipment import Shipment
+from src.shipment import Shipment
+from click import group, option, Path as C_Path
+from pathlib import Path
 
 
-@click.command()
-@click.option('-o', '--out', default="results", help='Export folder name', show_default=True)
-@click.option(
-    '-s', '--save', default=pathlib.Path.cwd(), show_default=True,
-    help='Parent Folder of the expected results', type=click.Path()
+@group()
+def handle_cli():
+    pass
+
+
+@handle_cli.command()
+@option(
+    '-o', '--out', default="results", help='Export folder name (not absolute path)', show_default=True
 )
-@click.option(
-    '-f', '--force', default=False, flag_value=True,
-    help='Instead of copying the next dashboard everytime,'
-         'we store the templates in a folder for quickly generating the results, use this to generate the results from '
-         'beginning',
-    show_default=True
+@option(
+    '-s', '--save', default=Path.cwd(), show_default=True,
+    help='Parent Folder of the expected results', type=C_Path()
 )
-@click.option('-d', '--demo', help="Show only demo results", default=False, flag_value=True)
-@click.option("-p", "--port", help="specify the port to connect to", default=6666)
-def init_shipment(out: str, save: str, force: bool, demo: bool):
-    root = pathlib.Path(save)
-
+# @click.option(
+#     '-f', '--force', default=False, flag_value=True, is_flag=True,
+#     help='reuse the existing dashboard if available, if the package is updated ',
+#     show_default=True
+# )
+def init_shipment(out: str, save: str):
+    root = Path(save)
     parcel = Shipment(out, root)
-    parcel.init_cache_repo(force)
-    parcel.export_the_results()
+    parcel.init_cache_repo()
+    parcel.save_prev_results()
 
 
 if __name__ == "__main__":
-    init_shipment()
+    handle_cli()
