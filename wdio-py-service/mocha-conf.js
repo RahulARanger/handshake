@@ -18,6 +18,8 @@ const service = [
 const reporter = [NeXtReporter, { port }];
 
 export const config = {
+    reporterSyncTimeout: 30e3, // IMPORTANT
+
     //
     // ====================
     // Runner Configuration

@@ -2,6 +2,7 @@
 import WDIOReporter from '@wdio/reporter';
 import logger from '@wdio/logger';
 import AsyncLock from 'async-lock';
+import fetch from 'node-fetch';
 
 /**
  *
@@ -17,7 +18,7 @@ function returnStatus(endDate, failures) {
 export default class NeXtReporter extends WDIOReporter {
     logger = logger('wdio-py-reporter');
 
-    lock = new AsyncLock({ timeout: 60e3, maxExecutionTime: 60e3 });
+    lock = new AsyncLock({ timeout: 60e3, maxExecutionTime: 60e3, maxPending: 1000 });
 
     packing = false; // false if its free
 
@@ -75,9 +76,10 @@ export default class NeXtReporter extends WDIOReporter {
      */
     feed(feedURL, feedJSON) {
         this.lock.acquire(
-            this.runnerStat.sessionId,
+            this.runnerStat.config.framework,
             async (done) => {
-                const resp = await fetch(feedURL, { method: 'PUT', body: JSON.stringify(feedJSON) });
+                this.logger.info(`Requesting ${feedURL} `);
+                const resp = await fetch(feedURL, { method: 'PUT', body: JSON.stringify(feedJSON), keepalive: true });
                 done(Math.floor(resp.status / 200) === 1
                     ? undefined : resp.statusText, await resp.text());
             },
@@ -156,7 +158,7 @@ export default class NeXtReporter extends WDIOReporter {
             parent,
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             fullTitle,
-            file: file ?? this.currentSuites.at(0).file,
+            file: file ?? this.currentSuites.at(-1).file,
             standing: returnStatus(suiteOrTest.end, this.runnerStat.failures),
             tags: tags ?? [],
             startDate,
@@ -225,7 +227,6 @@ export default class NeXtReporter extends WDIOReporter {
     addTest(test) {
         const payload = this.extractSuiteOrTestDetails(test);
         payload.suiteType = 'TEST';
-
         this.feed(this.registerSuite, payload);
     }
 
@@ -298,9 +299,10 @@ export default class NeXtReporter extends WDIOReporter {
 
     /**
      * Return true if we have completed blocking operation
+     * saves us from race condition
      * @returns {boolean} Return true if we have completed sending data
      */
-    isSynchronised() {
+    get isSynchronised() {
         return !this.lock.isBusy();
     }
 }
