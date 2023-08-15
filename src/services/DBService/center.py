@@ -37,7 +37,7 @@ async def register_suite(request: Request) -> HTTPResponse:
 
     suite, _ = await SuiteBase.update_or_create(**resp)
     await suite.save()
-    return text(f"Registered Suite: {suite.title}", status=201)
+    return text(f"Registered Suite: {suite.title} : {suite.suiteID}", status=201)
 
 
 @service.put("/updateSuite")
@@ -57,7 +57,7 @@ async def updateSuite(request: Request):
 
     await suite.update_from_dict(resp)
     await suite.save()
-    return text(f'Updated Suite: {suite.title}', status=201)
+    return text(f'Updated Suite: {suite.title} : {suite.suiteID}', status=201)
 
 
 @service.put("/updateSession")

@@ -29,6 +29,7 @@ class SessionBase(Model):
 
 class SuiteBase(Model):
     # https://tortoise.github.io/models.html#the-db-backing-field
+    # so we require session_id instead of sessionID
     session: fields.ForeignKeyRelation[SessionBase] = fields.ForeignKeyField(
         "models.SessionBase", related_name="suites", to_field="sessionID"
     )
