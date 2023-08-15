@@ -1,5 +1,6 @@
-from src.service.DBService.models.config_base import SessionBase, RegistersSession, understand_js_date, SuiteBase, \
-    RegisterSuite, SuiteType
+from src.service.DBService.models.config_base import SessionBase, understand_js_date, SuiteBase, \
+    SuiteType
+from src.service.DBService.models.types import RegistersSession, RegisterSuite
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text

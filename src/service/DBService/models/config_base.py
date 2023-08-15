@@ -1,31 +1,7 @@
 from datetime import datetime
-from typing import TypedDict, Optional, Union, List, Dict
 from tortoise.models import Model
 from tortoise import fields
-from enum import StrEnum
-
-
-class Status(StrEnum):
-    PASSED = "PASSED"
-    SKIPPED = "SKIPPED"
-    FAILED = "FAILED"
-    PENDING = "PENDING"
-    YET_TO_CALCULATE = "YET_TO_CALC"  # needs to be updated by our server to either passed or failed
-    # yet_to_calc is mostly seen for the suite
-
-
-class LogLevel(StrEnum):
-    info = "info"
-    warn = "warn"
-    error = "error"
-    trace = "trace"
-    debug = "debug"
-    silent = "silent"
-
-
-class SuiteType(StrEnum):
-    TEST = "TEST"
-    SUITE = "SUITE"
+from src.service.DBService.models.enums import Status, LogLevel, SuiteType
 
 
 class SessionBase(Model):
@@ -74,41 +50,6 @@ class SuiteBase(Model):
     endDate = fields.DatetimeField(null=True)
     standing = fields.CharEnumField(Status, description="status of the suite", default="PENDING")
     tags = fields.CharField(max_length=225, description="Comma separated tags", default="", null=False)
-
-
-class CommonCols(TypedDict):
-    duration: float
-    retried: int
-    totalRetries: int
-    failures: int
-    tests: int
-    skipped: int
-    passed: int
-    standing: Status
-
-    startDate: Union[datetime, str]
-    endDate: Optional[Union[datetime, str]]
-
-
-class RegistersSession(CommonCols):
-    sessionID: str
-    suiteID: str
-    browserName: str
-    browserVersion: str
-    platformName: str
-    framework: str
-    specs: List[str]
-    suitesConfig: Dict[str, str]
-    automationProtocol: str
-
-
-class RegisterSuite(CommonCols):
-    tags: str
-    suiteType: SuiteType
-    session_id: str
-    suiteID: str
-    title: str
-    full_title: str
 
 
 def understand_js_date(utc_date_string: str) -> datetime:

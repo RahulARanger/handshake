@@ -1,4 +1,4 @@
 click~=8.1.6
 setuptools==68.0.0
 sanic~=23.6.0
-tortoise-orm~=0.19.3
+tortoise-orm==0.20.0
