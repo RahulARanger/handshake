@@ -19,12 +19,12 @@ class SessionBase(Model):
     startDate = fields.DatetimeField()
     endDate = fields.DatetimeField(null=True)
     suites = fields.ReverseRelation["SuiteBase"]
-    standing = fields.CharEnumField(Status, description="status of the session", default="PENDING")
-    framework = fields.CharField(max_length=35, null=False)
+    standing = fields.CharEnumField(Status, description="status of the session", default=Status.PENDING)
+    framework = fields.CharField(max_length=35, null=False, default="-")
     specs = fields.JSONField()
     suitesConfig = fields.JSONField()
-    logLevel = fields.CharEnumField(LogLevel, description="Log Level set for this session")
-    automationProtocol = fields.CharField(max_length=20, description="https://webdriver.io/docs/automationProtocols/")
+    logLevel = fields.CharEnumField(LogLevel, description="Log Level set for this session", default=LogLevel.info)
+    automationProtocol = fields.CharField(max_length=20, description="https://webdriver.io/docs/automationProtocols/", default="")
 
 
 class SuiteBase(Model):
@@ -39,6 +39,7 @@ class SuiteBase(Model):
     title = fields.TextField(max_length=225)
     fullTitle = fields.TextField(max_length=225)
     totalRetries = fields.IntField(default=0, null=False)
+    file = fields.CharField(max_length=150, null=False, description="path to the spec file")
     retried = fields.IntField(default=0, null=False)
     tests = fields.IntField(default=0, null=False)
     passed = fields.IntField(default=0, null=False)
@@ -48,7 +49,7 @@ class SuiteBase(Model):
     duration = fields.FloatField(default=0, null=False)
     startDate = fields.DatetimeField()
     endDate = fields.DatetimeField(null=True)
-    standing = fields.CharEnumField(Status, description="status of the suite", default="PENDING")
+    standing = fields.CharEnumField(Status, description="status of the suite", default=Status.PENDING)
     tags = fields.CharField(max_length=225, description="Comma separated tags", default="", null=False)
     modified = fields.DatetimeField(auto_now=True, description='Modified timestamp', null=False)
 

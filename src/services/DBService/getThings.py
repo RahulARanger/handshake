@@ -1,7 +1,8 @@
 from src.services.DBService.models.config_base import SessionBase, SuiteBase
 from sanic.request import Request
 from sanic.blueprints import Blueprint
-from sanic.response import json, JSONResponse
+from sanic.response import json, JSONResponse, text
+from sanic import Sanic
 
 get_service = Blueprint("GetService", url_prefix="/get")
 
@@ -15,3 +16,16 @@ async def get_sessions(_: Request) -> JSONResponse:
             for row in rows
         ]
     )
+
+
+def get_db_name() -> str:
+    return Sanic.get_app().shared_ctx.db_path.value.decode("utf-8")
+
+
+@get_service.get("/session-status")
+async def get_session_status(_: Request):
+    _id = _.args.get("sessionID")
+    if not await SessionBase.exists(sessionID=_id):
+        return text(f"Session Not found: {_id}", status=404)
+
+    return text((await SessionBase.filter(sessionID=_id).first()).standing, status=200)

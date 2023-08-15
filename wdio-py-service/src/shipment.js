@@ -57,9 +57,8 @@ export default class Shipment extends ContactList {
     }
 
     async onComplete() {
-        const completed = this.pyProcess.killed || (await fetch(`${this.url}/setLastWave`, { method: 'POST' })).status !== 200;
+        const completed = this.pyProcess.killed;
         if (completed) return this.pyProcess.exitCode === 0;
-
         return this.flagToPyThatsItsDone();
     }
 

@@ -1,4 +1,3 @@
-from sanic import Sanic
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
@@ -15,18 +14,15 @@ async def health_status(request: Request) -> HTTPResponse:
 
 
 @one_liners.get("/isItDone")
-async def isItDone(request: Request) -> JSONResponse:
+async def isItDone(_: Request) -> JSONResponse:
+    # pending = await pending_tasks()
+    pending = 0
     return json(
         dict(
-            done=True,
-            message="Completed"
+            done=pending == 0,
+            message=f"{pending} tasks are pending" if pending else "Completed"
         )
     )
-
-
-@one_liners.post("/setLastWave")
-def setLastWave(request: Request) -> HTTPResponse:
-    return text("1")
 
 
 # bye is core request, so make sure to handle it carefully

@@ -17,7 +17,7 @@ function returnStatus(endDate, failures) {
 export default class NeXtReporter extends WDIOReporter {
     logger = logger('wdio-py-reporter');
 
-    lock = new AsyncLock({ timeout: 20e3, maxExecutionTime: 10e3 });
+    lock = new AsyncLock({ timeout: 60e3, maxExecutionTime: 60e3 });
 
     packing = false; // false if its free
 
@@ -55,6 +55,10 @@ export default class NeXtReporter extends WDIOReporter {
         return `${this.saveUrl}/updateSession`;
     }
 
+    get getService() {
+        return `${this.url}/get`;
+    }
+
     /**
      *
      * @param {{port?: number, timeout?: number}} options Options for the reporter
@@ -69,7 +73,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {string} feedURL url to use for sending the request to
      * @param {any} feedJSON request body
      */
-    async feed(feedURL, feedJSON) {
+    feed(feedURL, feedJSON) {
         this.lock.acquire(
             this.runnerStat.sessionId,
             async (done) => {
@@ -88,7 +92,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @typedef {import("@wdio/reporter").RunnerStats} RunnerStats
      * @param {RunnerStats} stats Stats when starting the Runner
      */
-    async onRunnerStart(stats) {
+    onRunnerStart(stats) {
         /**
          * @type {number}
          */
@@ -125,7 +129,7 @@ export default class NeXtReporter extends WDIOReporter {
             automationProtocol,
         };
 
-        await this.feed(this.registerSession, payload);
+        this.feed(this.registerSession, payload);
     }
 
     /**
@@ -152,7 +156,7 @@ export default class NeXtReporter extends WDIOReporter {
             parent,
             suiteID: `${startDate}-${suiteOrTest.uid}`,
             fullTitle,
-            file,
+            file: file ?? this.currentSuites.at(0).file,
             standing: returnStatus(suiteOrTest.end, this.runnerStat.failures),
             tags: tags ?? [],
             startDate,
@@ -176,7 +180,7 @@ export default class NeXtReporter extends WDIOReporter {
 
         const startDate = suiteOrTest.start.toUTCString();
         const endDate = suiteOrTest?.end ? suiteOrTest.end.toUTCString() : '';
-        const suiteState = suiteOrTest?.state ?? 'YET_TO_CALC';
+        const standing = (suiteOrTest.uid.includes('test') ? (suiteOrTest?.state || 'PENDING') : '').toUpperCase();
 
         const payload = {
             duration,
@@ -186,7 +190,7 @@ export default class NeXtReporter extends WDIOReporter {
             failures: this.runnerStat.failures ?? 0,
             specs,
             sessionID: this.runnerStat.sessionId,
-            standing: suiteState.toUpperCase(),
+            standing,
         };
 
         return payload;
@@ -196,21 +200,21 @@ export default class NeXtReporter extends WDIOReporter {
      *
      * @param {SuiteStats} suite stats provided for a suite
      */
-    async onSuiteStart(suite) {
+    onSuiteStart(suite) {
         const payload = this.extractSuiteOrTestDetails(suite);
         payload.suiteType = 'SUITE';
-        await this.feed(this.registerSuite, payload);
+        this.feed(this.registerSuite, payload);
     }
 
     /**
      *
      * @param {SuiteStats} suite stats provided for a suite
      */
-    async onSuiteEnd(suite) {
+    onSuiteEnd(suite) {
         const payload = this.extractRequiredForCompletion(suite);
         payload.suiteType = 'SUITE';
 
-        await this.feed(this.updateSuite, payload);
+        this.feed(this.updateSuite, payload);
     }
 
     /**
@@ -218,11 +222,11 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {TestStats} test
      * meta data related to the test case that will be now executed
      */
-    async addTest(test) {
+    addTest(test) {
         const payload = this.extractSuiteOrTestDetails(test);
         payload.suiteType = 'TEST';
 
-        await this.feed(this.registerSuite, payload);
+        this.feed(this.registerSuite, payload);
     }
 
     /**
@@ -230,8 +234,8 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {TestStats} test
      * meta data related to the test case that will be now executed
      */
-    async onTestStart(test) {
-        await this.addTest(test);
+    onTestStart(test) {
+        this.addTest(test);
     }
 
     /**
@@ -239,11 +243,11 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {TestStats} test
      * meta data related to the test case that will be now executed
      */
-    async markTestCompletion(test) {
+    markTestCompletion(test) {
         const payload = this.extractRequiredForCompletion(test);
         payload.suiteType = 'TEST';
 
-        await this.feed(this.updateSuite, payload);
+        this.feed(this.updateSuite, payload);
     }
 
     /**
@@ -251,15 +255,15 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {TestStats} test
      * meta data related to the test case that will be now executed
      */
-    async onTestEnd(test) {
-        await this.markTestCompletion(test);
+    onTestEnd(test) {
+        this.markTestCompletion(test);
     }
 
-    async onTestSkip(test) {
+    onTestSkip(test) {
         // skipped tests are not registered
         // this.packing = true;
-        await this.addTest(test);
-        await this.markTestCompletion(test);
+        this.addTest(test);
+        this.markTestCompletion(test);
         // this.packing = false;
     }
 
@@ -268,7 +272,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {RunnerStats} runner
      * info regarding the session, it is required for updating the registered session
      */
-    async onRunnerEnd(runner) {
+    onRunnerEnd(runner) {
         const endDate = runner.end?.toUTCString();
         const {
             passes: passed, skipping: skipped, tests,
@@ -289,7 +293,7 @@ export default class NeXtReporter extends WDIOReporter {
             sessionID: this.runnerStat.sessionId,
         };
 
-        await this.feed(this.updateSession, payload);
+        this.feed(this.updateSession, payload);
     }
 
     /**
