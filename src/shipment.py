@@ -72,7 +72,7 @@ class Shipment:
 
         node_modules = self.cache / "node_modules"
         if node_modules.exists():
-            return
+            return secho("Dashboard is ready!", fg="green")
 
         secho("Installing npm packages...", blink=True, fg="blue", bold=True)
         run("npm install", check=True, shell=True, cwd=self.cache)

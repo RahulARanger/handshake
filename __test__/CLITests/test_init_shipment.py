@@ -57,7 +57,7 @@ class TestShipment:
         assert "Dashboard is ready!" in result.output
         assert "Installing npm packages..." in result.output
         assert "Done!" in result.output
-        assert "Didn't find your previous results, will generate new result" in result.output
+        assert "Didn't find your previous results, will generate new result" not in result.output
 
         version = loads(
             (Path(__file__).parent.parent.parent / "next-dashboard" / 'package.json').read_text()
@@ -90,4 +90,5 @@ class TestShipment:
         assert preferred == found
 
         assert f"Preferred: v{preferred}, Found: v{found}" in result.output
-        assert "Didn't find your previous results, will generate new result" in result.output
+        assert "Didn't find your previous results, will generate new result" not in result.output
+        assert "Dashboard is ready!" in result.output
