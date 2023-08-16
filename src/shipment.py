@@ -68,15 +68,13 @@ class Shipment:
             if self.prev_result.exists():
                 move(self.prev_result, self.cache_db)
 
-            secho("Dashboard is ready!", fg="green", bold=True)
-
         node_modules = self.cache / "node_modules"
-        if node_modules.exists():
-            return secho("Dashboard is ready!", fg="green")
 
-        secho("Installing npm packages...", blink=True, fg="blue", bold=True)
-        run("npm install", check=True, shell=True, cwd=self.cache)
-        secho("Done!", fg="green", bold=True)
+        if not node_modules.exists():
+            secho("Installing npm packages...", blink=True, fg="blue", bold=True)
+            run("npm install", check=True, shell=True, cwd=self.cache)
+
+        return secho("Dashboard is ready!", fg="green", bold=True)
 
     def save_prev_results(self):
         if not (self.prev_result.exists() or self.cache_db.exists()):
