@@ -1,13 +1,19 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from src.services.SchedularService.updateRecords import find_and_update_suites
-from apscheduler.triggers.interval import IntervalTrigger
+from src.services.SchedularService.updateRecords import modify_suite
+from sanic import Sanic
 
 
-async def create_scheduler_and_tasks():
+def scheduler() -> AsyncIOScheduler:
     schedular = AsyncIOScheduler()
-    schedular.add_job(
-        find_and_update_suites, IntervalTrigger(seconds=3), coalesce=True, replace_existing=True,
-        name="update suites", id='update-suites'
-    )
-    schedular.start()
     return schedular
+
+
+def ctx_scheduler() -> AsyncIOScheduler:
+    return Sanic.get_app().ctx.scheduler
+
+
+def schedule_update_suite(suite_id: str, suite_title: str):
+    _scheduler = ctx_scheduler()
+    return _scheduler.add_job(
+        modify_suite, "date", args=[suite_id], name=f'update suite: {suite_title}', id=f'update-suite-${suite_id}'
+    )  # run this immediately

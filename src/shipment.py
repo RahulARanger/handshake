@@ -1,6 +1,5 @@
 from subprocess import run
-from shutil import copytree, rmtree, make_archive, ignore_patterns
-from zipfile import ZipFile
+from shutil import copytree, rmtree, move, ignore_patterns
 from click import secho
 from pathlib import Path
 from json import loads
@@ -12,44 +11,42 @@ class Shipment:
         self.root = parent_dir / name
         self.root.mkdir(exist_ok=True)
 
+    # This is the cache folder where we refer the previous results from
     @property
     def cache(self):
         return self.root / "cache"
 
+    # out is statically generated pages from cache folder
     @property
     def static_results(self):
         return self.root / "out"
 
+    # this is where we store TestResults
     @property
     def public(self):
         return self.cache / "public"
 
     @property
-    def prev_results(self):
-        return self.static_results / "TestResults"
-
-    @property
-    def cache_results(self):
-        return self.public / "TestResults"
+    def cache_db(self):
+        return self.public / "TestResults.db"
 
     @property
     def dashboard(self):
         return Path(__file__).parent.parent / "next-dashboard"
 
-    @property
-    def saved_results(self):
-        return self.root / "saved.zip"
-
-    def verify_cache(self):
+    def verify_cache(self) -> bool:
         return (self.cache / "package.json").exists() and \
-            self.cache_results.exists() and \
             (self.cache / "src").exists()
+
+    @property
+    def prev_result(self):
+        return self.root / "TestResults.db"
 
     def init_cache_repo(self):
         generate_cache = True
 
         if self.verify_cache():
-            secho("Checking for the dashboard version...")
+            secho("Checking for the package version of dashboard...")
             preferred = Version(loads((self.dashboard / 'package.json').read_text()).get("version", False))
             found = Version(loads((self.cache / 'package.json').read_text()).get("version", False))
             generate_cache = preferred > found
@@ -57,7 +54,8 @@ class Shipment:
 
         if generate_cache:
             secho("Generating the Dashboard...", fg="blue", bold=True)
-            if self.cache_results.exists():
+            if self.cache.exists():
+                self.save_prev_results()
                 rmtree(self.cache)
 
             copytree(
@@ -67,31 +65,44 @@ class Shipment:
                     "**.env", "**.development", '.prettierrc', '.eslintrc.json'
                 )
             )
-            secho("Plain Dashboard is copied", fg="green", bold=True)
+            if self.prev_result.exists():
+                move(self.prev_result, self.cache_db)
+
+            secho("Dashboard is ready!", fg="green", bold=True)
 
         node_modules = self.cache / "node_modules"
         if node_modules.exists():
             return
 
         secho("Installing npm packages...", blink=True, fg="blue", bold=True)
-        run("npm install", check=True, shell=True, cwd=self.cache_results)
+        run("npm install", check=True, shell=True, cwd=self.cache)
         secho("Done!", fg="green", bold=True)
 
     def save_prev_results(self):
-        if not self.prev_results.exists():
-            secho("skipping the step where we save your previous results, as this would be your first run", bg="yellow",
-                  bold=True, blink=True)
+        if not (self.prev_result.exists() or self.cache_db.exists()):
+            secho(
+                "Didn't find your previous results, will generate new result", bg="yellow",
+                bold=True, blink=True)
             return
 
         secho("Saving the results generated in the previous runs", fg="green", bold=True)
-        return make_archive("saved", "zip", self.root, self.prev_results)
-
-    def attach_saved_results(self):
-        if self.cache_results.exists():
-            rmtree(self.cache_results)
-
-        saved = ZipFile(self.saved_results)
-        saved.extractall(self.public)
+        if self.prev_result.exists():
+            secho(
+                "Found two results, giving preference to cache ones, Please raise an issue if this conflicts your plan",
+                bg="red", blink=True
+            )
+            try:
+                self.prev_result.unlink()
+            except PermissionError:
+                secho("Someone is using this DB, please run this project one at a time", bg="red")
+            except OSError as error:
+                secho(f"OS didn't allow us to delete this file: {error}", bg="red")
+        try:
+            move(self.cache_db, self.prev_result)
+        except PermissionError:
+            secho("Someone is using this DB, please run this project one at a time", bg="red")
+        except OSError as error:
+            secho(f"OS didn't allow us to move this file: {error}", bg="red")
 
     def export_the_results(self):
         secho("Exporting the results...")

@@ -2,6 +2,7 @@ from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
 from src.services.Endpoints.types import ByeWithCommands
+from src.services.SchedularService.updateRecords import pending_tasks
 
 one_liners = Blueprint(name="one_liners", url_prefix="/")
 
@@ -15,8 +16,7 @@ async def health_status(request: Request) -> HTTPResponse:
 
 @one_liners.get("/isItDone")
 async def isItDone(_: Request) -> JSONResponse:
-    # pending = await pending_tasks()
-    pending = 0
+    pending = await pending_tasks()
     return json(
         dict(
             done=pending == 0,

@@ -25,7 +25,6 @@ def init_shipment(out: str, save: str):
     root = Path(out)
     parcel = Shipment(save, root)
     parcel.init_cache_repo()
-    parcel.save_prev_results()
 
 
 if __name__ == "__main__":

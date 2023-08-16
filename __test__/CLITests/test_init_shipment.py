@@ -52,11 +52,12 @@ class TestShipment:
         result = self.runner.invoke(handle_cli, ['init-shipment', '-s', collection_name, '-o', root_dir])
         print(result.output)
         assert result.exit_code == 0
-        assert "Checking for the dashboard version..." not in result.output
+        assert "Checking for the package version of dashboard..." not in result.output
         assert "Generating the Dashboard..." in result.output
-        assert "Plain Dashboard is copied" in result.output
+        assert "Dashboard is ready!" in result.output
         assert "Installing npm packages..." in result.output
         assert "Done!" in result.output
+        assert "Didn't find your previous results, will generate new result" in result.output
 
         version = loads(
             (Path(__file__).parent.parent.parent / "next-dashboard" / 'package.json').read_text()
@@ -71,9 +72,10 @@ class TestShipment:
     def test_second_run(self, root_dir, collection_name, cache_results):
         result = self.runner.invoke(handle_cli, ['init-shipment', '-s', root_dir, '-o', collection_name])
         assert result.exit_code == 0
-        assert "Checking for the dashboard version..." in result.output
+        # notice the "not"
+        assert "Checking for the package version of dashboard..." in result.output
         assert "Generating the Dashboard..." not in result.output
-        assert "Plain Dashboard is copied" not in result.output
+        assert "Dashboard is ready!" not in result.output
         assert "Installing npm packages..." not in result.output
         assert "Done!" not in result.output
 
@@ -88,4 +90,4 @@ class TestShipment:
         assert preferred == found
 
         assert f"Preferred: v{preferred}, Found: v{found}" in result.output
-        assert 'skipping the step where we save your previous results, as this would be your first run' in result.output
+        assert "Didn't find your previous results, will generate new result" in result.output

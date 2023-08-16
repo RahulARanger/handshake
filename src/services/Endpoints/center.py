@@ -8,6 +8,7 @@ from os import close
 from multiprocessing.sharedctypes import Array
 from src.services.DBService.getThings import get_service, get_db_name
 from src.services.DBService.deleteDB import delete_db
+from src.services.SchedularService.center import ctx_scheduler, scheduler
 
 service_provider = Sanic("WDIO-PY")
 service_provider.blueprint(one_liners)
@@ -41,13 +42,23 @@ async def started(app: Sanic, loop):
 async def before_start_of_day(app: Sanic, loop):
     file_path = get_db_name()
     await init_tortoise_orm(file_path)
-    print("DB - connected - DB PATH -", file_path)
+    app.ctx.scheduler = scheduler()
+    app.ctx.scheduler.start()
+
+    print("DB & Schedular - connected - DB PATH -", file_path)
+
+
+async def say_some_thing():
+    print("JELLY")
 
 
 @service_provider.after_server_stop
 async def end_of_day(app: Sanic, loop):
     print("closing connections")
     await connections.close_all()
+
+    _scheduler = ctx_scheduler()
+    await _scheduler.shutdown(wait=True)
 
 
 @service_provider.main_process_stop

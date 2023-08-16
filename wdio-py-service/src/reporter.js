@@ -127,7 +127,7 @@ export default class NeXtReporter extends WDIOReporter {
             sessionID: this.runnerStat.sessionId,
             framework,
             logLevel,
-            specs: (specs ?? []).map((spec) => relative(process.cwd(), spec)),
+            specs: (specs ?? []).map((spec) => relative(process.cwd(), spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec)),
             suitesConfig,
             automationProtocol,
         };
