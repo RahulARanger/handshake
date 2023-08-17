@@ -25,7 +25,7 @@ export default class Shipment extends ContactList {
     async onPrepare() {
         const path = join('venv', 'Scripts', 'activate');
         const { root: cwd, port, collectionName } = this.options;
-        this.logger.warn(`${'RUNNING'} - ${path} - ${cwd}`);
+        this.logger.warn('Shipping the Reporter');
 
         const output = spawnSync(
             `"${path}" && next-py init-shipment -s "${collectionName}" -o "${cwd}" `,
@@ -54,12 +54,6 @@ export default class Shipment extends ContactList {
 
     async onWorkerStart() {
         await Promise.resolve(this.waitUntilItsReady.bind(this)());
-    }
-
-    async onComplete() {
-        const completed = this.pyProcess.killed;
-        if (completed) return this.pyProcess.exitCode === 0;
-        return this.flagToPyThatsItsDone();
     }
 
     async forceKill() {
@@ -116,9 +110,12 @@ export default class Shipment extends ContactList {
                     },
                 );
             }, 1e3);
-        }).then(async () => {
-            this.logger.info('Killed the process...');
-            await this.sayBye();
-        });
+        }).then(this.sayBye);
+    }
+
+    async onComplete() {
+        const completed = this.pyProcess.killed;
+        if (completed) return this.pyProcess.exitCode === 0;
+        return this.flagToPyThatsItsDone();
     }
 }

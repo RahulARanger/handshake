@@ -7,6 +7,14 @@ import fetch from 'node-fetch';
 
 /**
  *
+ * List of options which we could use for the reporter:
+ *   outputDir: path to the directory where our results folder will be written (default: cwd)
+ *   port: specify the port number to use for listening to our test results (default: 6969)
+ * @typedef {{port?: number}} ReporterOptions
+ */
+
+/**
+ *
  * @param {Date | undefined} endDate end date of the test entity
  * @param {string[] | undefined} failures list of failures if there else undefined
  * @returns {string} returns the status of the test on "before" hook
@@ -63,7 +71,7 @@ export default class NeXtReporter extends WDIOReporter {
 
     /**
      *
-     * @param {{port?: number, timeout?: number}} options Options for the reporter
+     * @param {ReporterOptions} options Options for the reporter
      */
     constructor(options) {
         super(options);
