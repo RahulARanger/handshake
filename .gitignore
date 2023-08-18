@@ -8,6 +8,7 @@ next-dashboard/results/*
 # testing
 results
 test-results/*
+TestResults/*
 
 # production
 /build

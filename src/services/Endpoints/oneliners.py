@@ -3,6 +3,8 @@ from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
 from src.services.Endpoints.types import ByeWithCommands
 from src.services.SchedularService.updateRecords import pending_tasks
+from src.services.SchedularService.center import ctx_scheduler
+from src.services.DBService.lifecycle import close_connection
 
 one_liners = Blueprint(name="one_liners", url_prefix="/")
 
@@ -29,5 +31,12 @@ async def isItDone(_: Request) -> JSONResponse:
 @one_liners.post("/bye")
 async def bye(request: Request) -> HTTPResponse:
     resp: ByeWithCommands = request.json
+
+    if ctx_scheduler():
+        _scheduler = ctx_scheduler()
+        _scheduler.shutdown(wait=True)
+
+    await close_connection()
+
     request.app.m.terminate()
     return text("1")

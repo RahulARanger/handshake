@@ -1,6 +1,7 @@
 /**
  * @typedef {{port?:number, root?: string,
- *  timeout?:number, collectionName?:string, reportLabel?: string, generateOut?:boolean}
+ *  timeout?:number, collectionName?:string, reportLabel?: string, generateOut?:boolean,
+ *  projectName:string}
  * } ShipmentOptions Options to be utilized for the Service
  */
 

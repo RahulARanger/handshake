@@ -1,5 +1,5 @@
 from src.shipment import Shipment
-from click import group, option, Path as C_Path
+from click import option, group, Path as C_Path
 from pathlib import Path
 
 
@@ -16,16 +16,7 @@ def handle_cli():
     '-o', '--out', default=Path.cwd(), show_default=True,
     help='Parent Folder of the expected results', type=C_Path()
 )
-# @click.option(
-#     '-f', '--force', default=False, flag_value=True, is_flag=True,
-#     help='reuse the existing dashboard if available, if the package is updated ',
-#     show_default=True
-# )
 def init_shipment(out: str, save: str):
     root = Path(out)
     parcel = Shipment(save, root)
     parcel.init_cache_repo()
-
-
-if __name__ == "__main__":
-    handle_cli()

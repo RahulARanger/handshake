@@ -2,6 +2,7 @@ from src.services.DBService.models.result_base import SessionBase, understand_js
 from src.services.DBService.models.types import RegistersSession, RegisterSuite
 from src.services.DBService.models.enums import Status, SuiteType
 from src.services.SchedularService.center import schedule_update_suite
+from src.services.DBService.shared import get_test_id
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text
@@ -18,7 +19,7 @@ async def register_session(request: Request) -> HTTPResponse:
     if session.get("endDate", ""):
         session["endDate"] = understand_js_date(session["endDate"])
 
-    created, _ = await SessionBase.update_or_create(**session)
+    created, _ = await SessionBase.update_or_create(**session, test_id=get_test_id())
     await created.save()
     return text(f"Registered Session: {created.sessionID}", status=201)
 

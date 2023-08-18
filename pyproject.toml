@@ -25,4 +25,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-next-py = "src.cli:handle_cli"
+next-py = "src.center:handle_cli"

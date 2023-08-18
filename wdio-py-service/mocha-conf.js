@@ -1,5 +1,6 @@
 import { dirname } from 'node:path';
-import attachNeXtReporter from './src/glue';
+// eslint-disable-next-line import/extensions
+import attachNeXtReporter from './src/glue.js';
 
 // eslint-disable-next-line import/prefer-default-export
 export const config = attachNeXtReporter({
@@ -33,5 +34,9 @@ export const config = attachNeXtReporter({
         timeout: 60000,
     },
 }, {
-    collectionName: 'TestResults', reportLabel: 'mocha', port: 6969, root: dirname(process.cwd()),
+    collectionName: 'TestResults',
+    reportLabel: 'mocha',
+    port: 6969,
+    root: dirname(process.cwd()),
+    projectName: 'NeXtReport:Mocha',
 });

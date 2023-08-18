@@ -4,6 +4,7 @@ from click import secho
 from pathlib import Path
 from json import loads
 from packaging.version import Version
+from src.services.DBService.sanic_free_shared import db_name
 
 
 class Shipment:
@@ -21,14 +22,9 @@ class Shipment:
     def static_results(self):
         return self.root / "out"
 
-    # this is where we store TestResults
     @property
-    def public(self):
-        return self.cache / "public"
-
-    @property
-    def cache_db(self):
-        return self.public / "TestResults.db"
+    def test_results(self):
+        return self.root / db_name()
 
     @property
     def dashboard(self):
@@ -36,11 +32,7 @@ class Shipment:
 
     def verify_cache(self) -> bool:
         return (self.cache / "package.json").exists() and \
-            (self.cache / "src").exists()
-
-    @property
-    def prev_result(self):
-        return self.root / "TestResults.db"
+            (self.cache / "src").exists() and (self.cache / "public").exists()
 
     def init_cache_repo(self):
         generate_cache = True
@@ -55,7 +47,6 @@ class Shipment:
         if generate_cache:
             secho("Generating the Dashboard...", fg="blue", bold=True)
             if self.cache.exists():
-                self.save_prev_results()
                 rmtree(self.cache)
 
             copytree(
@@ -65,8 +56,6 @@ class Shipment:
                     "**.env", "**.development", '.prettierrc', '.eslintrc.json'
                 )
             )
-            if self.prev_result.exists():
-                move(self.prev_result, self.cache_db)
 
         node_modules = self.cache / "node_modules"
 
@@ -75,32 +64,6 @@ class Shipment:
             run("npm install", check=True, shell=True, cwd=self.cache)
 
         return secho("Dashboard is ready!", fg="green", bold=True)
-
-    def save_prev_results(self):
-        if not (self.prev_result.exists() or self.cache_db.exists()):
-            secho(
-                "Didn't find your previous results, will generate new result", bg="yellow",
-                bold=True, blink=True)
-            return
-
-        secho("Saving the results generated in the previous runs", fg="green", bold=True)
-        if self.prev_result.exists():
-            secho(
-                "Found two results, giving preference to cache ones, Please raise an issue if this conflicts your plan",
-                bg="red", blink=True
-            )
-            try:
-                self.prev_result.unlink()
-            except PermissionError:
-                secho("Someone is using this DB, please run this project one at a time", bg="red")
-            except OSError as error:
-                secho(f"OS didn't allow us to delete this file: {error}", bg="red")
-        try:
-            move(self.cache_db, self.prev_result)
-        except PermissionError:
-            secho("Someone is using this DB, please run this project one at a time", bg="red")
-        except OSError as error:
-            secho(f"OS didn't allow us to move this file: {error}", bg="red")
 
     def export_the_results(self):
         secho("Exporting the results...")

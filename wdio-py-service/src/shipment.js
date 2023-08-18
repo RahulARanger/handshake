@@ -22,23 +22,31 @@ export default class Shipment extends ContactList {
      */
     pyProcess;
 
-    async onPrepare() {
+    /**
+     *
+     * @param {import("@wdio/types").Options.WebdriverIO} config
+     * Config used for the webdriverIO tests
+     */
+    async onPrepare(config) {
         const path = join('venv', 'Scripts', 'activate');
-        const { root: cwd, port, collectionName } = this.options;
+        const {
+            root: rootDir, port, collectionName, reportLabel, projectName,
+        } = this.options;
         this.logger.warn('Shipping the Reporter');
 
         const output = spawnSync(
-            `"${path}" && next-py init-shipment -s "${collectionName}" -o "${cwd}" `,
-            { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
-            { cwd },
+            `"${path}" && next-py init-shipment -s "${collectionName}" -o "${rootDir}"`,
+            { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
+            { cwd: rootDir },
         );
+
         this.logger.info(output?.stdout?.toString());
         if (output?.stderr?.length ?? 0) this.logger.error(output?.stderr?.toString());
 
         this.pyProcess = spawn(
-            `"${path}" && sanic app:app --port ${port} --workers 2`,
-            { cwd, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
-            { cwd },
+            `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2 -l ${reportLabel} -i ${config.maxInstances ?? 1}`,
+            { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
+            { cwd: rootDir },
         );
 
         this.pyProcess.stdout.on('data', (data) => this.logger.info(data?.toString()));
@@ -86,7 +94,7 @@ export default class Shipment extends ContactList {
                     resolve();
                 });
             }, 3e3);
-        }).catch(this.sayBye);
+        }).catch(this.sayBye.bind(this));
     }
 
     async flagToPyThatsItsDone() {
@@ -110,7 +118,7 @@ export default class Shipment extends ContactList {
                     },
                 );
             }, 1e3);
-        }).then(this.sayBye);
+        }).then(this.sayBye.bind(this));
     }
 
     async onComplete() {

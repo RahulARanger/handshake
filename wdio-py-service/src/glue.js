@@ -1,5 +1,6 @@
-import NeXtReporter from './reporter';
-import Shipment from './shipment';
+/* eslint-disable import/extensions */
+import NeXtReporter from './reporter.js';
+import Shipment from './shipment.js';
 
 /**
  * @typedef {import("./reporter").ReporterOptions} ReporterOptions
@@ -12,6 +13,8 @@ import Shipment from './shipment';
 export function neXtReporter(
     options,
 ) {
+    if (!options.projectName) throw new Error('Please provide the name of the project');
+
     const reporterOptions = {
         port: options.port || 6969,
     };
@@ -23,6 +26,7 @@ export function neXtReporter(
         timeout: options.timeout || 30e3,
         reportLabel: options.reportLabel || undefined,
         generateOut: options.generateOut || false,
+        projectName: options.projectName,
     };
 
     return {

@@ -1,5 +1,6 @@
-from src.services.DBService.models.result_base import SuiteBase
+from src.services.DBService.models.result_base import SuiteBase, SessionBase
 from src.services.DBService.models.types import Status
+from src.services.DBService.shared import get_test_id
 
 
 async def modify_suite(suiteID: str):
@@ -20,6 +21,15 @@ async def modify_suite(suiteID: str):
         dict(standing=standing, passed=passed, skipped=skipped, failures=failed, tests=total)
     )
     await suite.save()
+
+
+def fix_old_records_id():
+    return 'fix-old-records'
+
+
+def fix_old_records():
+    test_id = get_test_id()
+    SessionBase.filter(test_id=test_id)
 
 
 async def pending_tasks():

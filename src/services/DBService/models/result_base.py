@@ -2,9 +2,14 @@ from datetime import datetime
 from tortoise.models import Model
 from tortoise import fields
 from src.services.DBService.models.enums import Status, LogLevel, SuiteType
+from src.services.DBService.models.config_base import ConfigBase
 
 
 class SessionBase(Model):
+    test: fields.ForeignKeyRelation[ConfigBase] = fields.ForeignKeyField(
+        "models.ConfigBase", related_name="tests", to_field="testID"
+    )
+    suites = fields.ReverseRelation["SuiteBase"]
     sessionID = fields.CharField(max_length=35, pk=True)
     duration = fields.FloatField(default=0, null=False)
     totalRetries = fields.IntField(default=0, null=False)
@@ -18,13 +23,14 @@ class SessionBase(Model):
     platformName = fields.CharField(max_length=10, default="")
     startDate = fields.DatetimeField()
     endDate = fields.DatetimeField(null=True)
-    suites = fields.ReverseRelation["SuiteBase"]
     standing = fields.CharEnumField(Status, description="status of the session", default=Status.PENDING)
     framework = fields.CharField(max_length=35, null=False, default="-")
     specs = fields.JSONField()
     suitesConfig = fields.JSONField()
     logLevel = fields.CharEnumField(LogLevel, description="Log Level set for this session", default=LogLevel.info)
-    automationProtocol = fields.CharField(max_length=20, description="https://webdriver.io/docs/automationProtocols/", default="")
+    automationProtocol = fields.CharField(
+        max_length=20, description="https://webdriver.io/docs/automationProtocols/",
+        default="")
 
 
 class SuiteBase(Model):

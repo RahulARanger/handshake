@@ -1,5 +1,5 @@
 from click.testing import CliRunner
-from src.cli import handle_cli
+from src.handle_shipment import handle_cli
 from pathlib import Path
 from pytest import fixture, mark
 from tempfile import mkdtemp
@@ -57,7 +57,6 @@ class TestShipment:
         assert "Dashboard is ready!" in result.output
         assert "Installing npm packages..." in result.output
         assert "Dashboard is ready!" in result.output
-        assert "Didn't find your previous results, will generate new result" not in result.output
 
         version = loads(
             (Path(__file__).parent.parent.parent / "next-dashboard" / 'package.json').read_text()
@@ -79,7 +78,6 @@ class TestShipment:
         assert "Checking for the package version of dashboard..." in result.output
         assert "Generating the Dashboard..." not in result.output
         assert "Installing npm packages..." not in result.output
-        assert "Didn't find your previous results, will generate new result" not in result.output
 
         preferred = loads(
             (Path(__file__).parent.parent.parent / "next-dashboard" / 'package.json').read_text()

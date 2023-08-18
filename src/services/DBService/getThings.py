@@ -18,10 +18,6 @@ async def get_sessions(_: Request) -> JSONResponse:
     )
 
 
-def get_db_name() -> str:
-    return Sanic.get_app().shared_ctx.db_path.value.decode("utf-8")
-
-
 @get_service.get("/session-status")
 async def get_session_status(_: Request):
     _id = _.args.get("sessionID")
