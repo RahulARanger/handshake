@@ -1,6 +1,10 @@
-from src.services.DBService.models.result_base import SuiteBase, SessionBase
+from src.services.DBService.models.result_base import SuiteBase, SessionBase, RunBase
 from src.services.DBService.models.types import Status
 from src.services.DBService.shared import get_test_id
+from tortoise.expressions import Q
+from tortoise.functions import Sum
+from datetime import datetime
+from functools import reduce
 
 
 async def modify_suite(suiteID: str):
@@ -23,14 +27,60 @@ async def modify_suite(suiteID: str):
     await suite.save()
 
 
-def fix_old_records_id():
-    return 'fix-old-records'
-
-
-def fix_old_records():
+async def fix_old_records():
     test_id = get_test_id()
-    SessionBase.filter(test_id=test_id)
+    pending_suites = await SuiteBase.filter(Q(standing=Status.YET_TO_CALCULATE) & ~Q(session__test_id=test_id)).all()
+    for suite in pending_suites:
+        print("FIXING - ", suite.suiteID, suite.title)
+        await modify_suite(suite.suiteID)
 
 
 async def pending_tasks():
     return await SuiteBase.filter(standing=Status.YET_TO_CALCULATE).count()
+
+
+def fetch_status(entities_status: set):
+    return Status.FAILED if Status.FAILED in entities_status else Status.PASSED if Status.PASSED in entities_status else Status.SKIPPED
+
+
+async def complete_test_run():
+    test_id = get_test_id()
+
+    test_run = await RunBase.filter(testID=test_id).first()
+    filtered = SessionBase.filter(test_id=test_id)
+
+    aggregated = await filtered.annotate(
+        total_passed=Sum("passed"),
+        total_failed=Sum("failures"),
+        total_skipped=Sum("skipped"),
+        total_retried=Sum("retried"),
+        total_tests=Sum("tests"),
+        duration=Sum("duration"),
+    ).values(
+        "total_passed", "total_failed", "total_skipped", "total_retried"
+    )
+
+    overall_spec_files = reduce(
+        lambda a, b: a + b,
+        await filtered.all().values_list("specs", flat=True)
+    )
+
+    suites = reduce(
+        lambda a, b:
+        (list(a.keys()) if isinstance(a, dict) else []) + (list(b.keys()) if isinstance(b, dict) else []),
+        await filtered.all().values_list('suites')
+    )
+
+    await test_run.update_from_dict(dict(
+        ended=datetime.now(),
+        tests=aggregated.get("total_tests", 0),
+        passed=aggregated.get("total_passed", 0),
+        failures=aggregated.get("total_failed", 0),
+        skipped=aggregated.get("total_skipped", 0),
+        duration=aggregated.get("duration", 0.0),
+        retried=aggregated.get("total_retried", 0),
+        specs=overall_spec_files,
+        suitesConfig=suites,
+        standing=fetch_status(set(await filtered.all().values_list('standing', flat=True)))
+    ))
+    await test_run.save()

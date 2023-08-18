@@ -3,7 +3,8 @@ from click import argument, option, Path, BadParameter
 from pathlib import Path as P_Path
 from src.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
-from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run, maintain_limits
+from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run, set_limits
+from src.services.DBService.models.result_base import SuiteBase
 
 
 @handle_cli.command()
@@ -29,12 +30,19 @@ from src.services.DBService.lifecycle import init_tortoise_orm, close_connection
     type=int
 )
 @option(
+    "-f", "--frame-work", default="-", show_default=True, help="framework used", type=str
+)
+@option(
+    "-m", "--max-retries", default=0, show_default=True, help='Max. number of retries set for the test run', type=int
+)
+@option(
     "-mr", "--max-reports", default=100, show_default=True, help="Max. Reports to save", type=int
 )
 def run_app(
         projectname: str,
         path: str, port: str, workers: int, fast: bool,
         label: str, instances: int,
+        frame_work: str, max_retries: int,
         max_reports: int
 ):
     if not P_Path(path).is_dir():
@@ -46,10 +54,11 @@ def run_app(
     async def get_me_started(app, loop):
         service_provider.shared_ctx.ROOT = Array('c', str.encode(path))
         await init_tortoise_orm()
-        service_provider.shared_ctx.TEST_ID = Array('c', str.encode(await create_run(
-            label, projectname, min(instances, 1)
-        )))
-        await maintain_limits(min(max_reports, 3))
+        test_id = await create_run(
+            label, projectname, min(instances, 1), frame_work, max(max_retries, 0)
+        )
+        service_provider.shared_ctx.TEST_ID = Array('c', str.encode(test_id))
+        await set_limits(min(max_reports, 3))
         await close_connection()
 
     service_provider.run(

@@ -1,7 +1,7 @@
-from .result_base import SessionBase, SuiteBase
-from .config_base import ConfigBase, ReportBase
+from .result_base import SessionBase, SuiteBase, RunBase
+from .config_base import ReportBase
 
 __all__ = [
-     SessionBase, SuiteBase, ConfigBase, ReportBase
+     SessionBase, SuiteBase, RunBase, ReportBase
 ]
 

@@ -37,3 +37,6 @@ sample.db
 sample.db-*
 
 **/.pytest_cache/*
+
+
+test.py

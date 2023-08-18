@@ -1,4 +1,5 @@
-from src.services.DBService.models.config_base import ConfigBase, ReportBase
+from src.services.DBService.models.config_base import ReportBase
+from src.services.DBService.models.result_base import RunBase
 from tortoise import Tortoise, connections
 from src.services.DBService.shared import db_name, db_path
 from atexit import register
@@ -6,9 +7,13 @@ from asyncio import run
 from sanic import Sanic
 
 
-async def create_run(label: str, projectName: str, instances: int) -> str:
-    return str((await ConfigBase.create(
-        collectionName=label, projectName=projectName, instances=instances
+async def create_run(
+        label: str, projectName: str, instances: int, frame_work: str, max_retries: int
+) -> str:
+    return str((await RunBase.create(
+        collectionName=label, projectName=projectName, instances=instances,
+        framework=frame_work,
+        totalRetries=max_retries
     )).testID)
 
 
@@ -19,11 +24,12 @@ async def init_tortoise_orm():
     await Tortoise.generate_schemas()
 
 
-async def maintain_limits(max_reports: int):
-    await ReportBase.update_or_create(
+async def set_limits(max_reports: int):
+    config, _ = await ReportBase.update_or_create(
         configID=0,
         maxTestRuns=max_reports
     )
+    await config.save()
 
 
 async def close_connection():

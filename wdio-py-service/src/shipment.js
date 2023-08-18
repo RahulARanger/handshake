@@ -44,7 +44,7 @@ export default class Shipment extends ContactList {
         if (output?.stderr?.length ?? 0) this.logger.error(output?.stderr?.toString());
 
         this.pyProcess = spawn(
-            `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2 -l ${reportLabel} -i ${config.maxInstances ?? 1}`,
+            `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2 -l ${reportLabel} -i ${config.maxInstances ?? 1} -f ${config.framework} -m ${config.specFileRetries ?? 0}`,
             { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
             { cwd: rootDir },
         );

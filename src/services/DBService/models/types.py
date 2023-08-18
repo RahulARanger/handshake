@@ -13,8 +13,8 @@ class CommonCols(TypedDict):
     passed: int
     standing: Status
 
-    startDate: Union[datetime, str]
-    endDate: Optional[Union[datetime, str]]
+    started: Union[datetime, str]
+    ended: Optional[Union[datetime, str]]
 
 
 class RegistersSession(CommonCols):

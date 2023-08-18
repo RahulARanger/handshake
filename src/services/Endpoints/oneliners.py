@@ -2,7 +2,7 @@ from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
 from src.services.Endpoints.types import ByeWithCommands
-from src.services.SchedularService.updateRecords import pending_tasks
+from src.services.SchedularService.updateRecords import pending_tasks, complete_test_run
 from src.services.SchedularService.center import ctx_scheduler
 from src.services.DBService.lifecycle import close_connection
 
@@ -36,6 +36,7 @@ async def bye(request: Request) -> HTTPResponse:
         _scheduler = ctx_scheduler()
         _scheduler.shutdown(wait=True)
 
+    await complete_test_run()
     await close_connection()
 
     request.app.m.terminate()

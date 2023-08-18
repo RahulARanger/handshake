@@ -108,7 +108,7 @@ export default class NeXtReporter extends WDIOReporter {
          * @type {number}
          */
 
-        const [startDate, endDate] = [stats.start.toUTCString(), stats.end?.toUTCString()];
+        const [started, ended] = [stats.start.toUTCString(), stats.end?.toUTCString()];
         const standing = returnStatus(stats.end, stats.failures);
         const {
             failures, duration,
@@ -117,14 +117,13 @@ export default class NeXtReporter extends WDIOReporter {
         const retried = stats.retry;
         const [browserName, browserVersion, platformName] = stats.sanitizedCapabilities.split('.');
 
-        const { framework, logLevel, automationProtocol } = this.runnerStat.config;
         const { specs } = this;
         const suitesConfig = this.runnerStat.config.suites;
 
         const payload = {
             duration,
-            startDate,
-            endDate,
+            started,
+            ended,
             standing,
             browserName,
             failures: failures ?? 0,
@@ -133,11 +132,8 @@ export default class NeXtReporter extends WDIOReporter {
             platformName,
             browserVersion,
             sessionID: this.runnerStat.sessionId,
-            framework,
-            logLevel,
             specs: (specs ?? []).map((spec) => relative(process.cwd(), spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec)),
             suitesConfig,
-            automationProtocol,
         };
 
         this.feed(this.registerSession, payload);
@@ -148,7 +144,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @typedef {import("@wdio/reporter").TestStats} TestStats
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
      * @returns {{description, title, parent, fullTitle,
-     *  file, tags, standing, startDate, endDate, session_id, totalRetries, retried}}
+     *  file, tags, standing, started, ended, session_id, totalRetries, retried}}
      * returns the info that is crucial to the suite or test
      */
     extractSuiteOrTestDetails(suiteOrTest) {
@@ -158,20 +154,20 @@ export default class NeXtReporter extends WDIOReporter {
             //  rule,
             // above commented keys are for the Gherkin Files
         } = suiteOrTest;
-        const startDate = suiteOrTest.start.toUTCString();
-        const endDate = suiteOrTest.end?.toUTCString();
+        const started = suiteOrTest.start.toUTCString();
+        const ended = suiteOrTest.end?.toUTCString();
         const parent = suiteOrTest?.parent ? `${this.currentSuites.at(-1).start.toUTCString()}-${this.currentSuites.at(-1).uid}` : '';
         const payload = {
             duration,
             title,
             parent,
-            suiteID: `${startDate}-${suiteOrTest.uid}`,
+            suiteID: `${started}-${suiteOrTest.uid}`,
             fullTitle,
             file: relative(process.cwd(), file ?? this.currentSuites.at(-1).file),
             standing: returnStatus(suiteOrTest.end, this.runnerStat.failures),
             tags: tags ?? [],
-            startDate,
-            endDate,
+            started,
+            ended,
             session_id: this.runnerStat.sessionId,
             totalRetries: this.runnerStat.retries,
             retried: this.runnerStat.retry,
@@ -181,7 +177,7 @@ export default class NeXtReporter extends WDIOReporter {
 
     /**
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
-     * @returns {{duration, startDate, endDate, failures, sessionID, standing}}
+     * @returns {{duration, started, ended, failures, sessionID, standing}}
      * returns the info that needs to be updated for either suite or test
      */
     extractRequiredForCompletion(suiteOrTest) {
@@ -189,15 +185,15 @@ export default class NeXtReporter extends WDIOReporter {
             duration,
         } = suiteOrTest;
 
-        const startDate = suiteOrTest.start.toUTCString();
-        const endDate = suiteOrTest?.end ? suiteOrTest.end.toUTCString() : '';
+        const started = suiteOrTest.start.toUTCString();
+        const ended = suiteOrTest?.end ? suiteOrTest.end.toUTCString() : '';
         const standing = (suiteOrTest.uid.includes('test') ? (suiteOrTest?.state || 'PENDING') : '').toUpperCase();
 
         const payload = {
             duration,
-            startDate,
-            suiteID: `${startDate}-${suiteOrTest.uid}`,
-            endDate,
+            started,
+            suiteID: `${started}-${suiteOrTest.uid}`,
+            ended,
             failures: this.runnerStat.failures ?? 0,
             sessionID: this.runnerStat.sessionId,
             standing,
