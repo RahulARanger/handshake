@@ -39,4 +39,4 @@ sample.db-*
 **/.pytest_cache/*
 
 
-test.py
+check.py
