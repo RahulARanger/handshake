@@ -4,7 +4,8 @@ from pathlib import Path as P_Path
 from src.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
 from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run, set_limits
-from src.services.DBService.models.result_base import SuiteBase
+from src.services.SchedularService.updateRecords import fix_old_records
+from src.services.DBService.shared import set_test_id
 
 
 @handle_cli.command()
@@ -55,10 +56,16 @@ def run_app(
         service_provider.shared_ctx.ROOT = Array('c', str.encode(path))
         await init_tortoise_orm()
         test_id = await create_run(
-            label, projectname, min(instances, 1), frame_work, max(max_retries, 0)
+            label, projectname, min(instances, 1),
+            frame_work, max(max_retries, 0)
         )
         service_provider.shared_ctx.TEST_ID = Array('c', str.encode(test_id))
         await set_limits(min(max_reports, 3))
+        set_test_id()
+        await fix_old_records()
+
+    @service_provider.main_process_stop
+    async def close_things(app, loop):
         await close_connection()
 
     service_provider.run(

@@ -10,6 +10,7 @@ from sanic import Sanic
 async def create_run(
         label: str, projectName: str, instances: int, frame_work: str, max_retries: int
 ) -> str:
+    print("---CREATING TEST RUN---")
     return str((await RunBase.create(
         collectionName=label, projectName=projectName, instances=instances,
         framework=frame_work,

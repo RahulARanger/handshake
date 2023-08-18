@@ -54,7 +54,7 @@ async def updateSuite(request: Request):
 
     suite = await SuiteBase.filter(suiteID=suite_id).first()
     resp["started"] = understand_js_date(resp["started"])
-    resp["ended"] = understand_js_date(resp["ended"]) if resp["ended"] else None
+    resp["ended"] = understand_js_date(resp["ended"]) if resp.get("ended", False) else None
 
     if suite.suiteType == SuiteType.SUITE:
         resp["standing"] = Status.YET_TO_CALCULATE
@@ -68,8 +68,8 @@ async def updateSuite(request: Request):
 
     await suite.update_from_dict(resp)
     await suite.save()
-    schedule_update_suite(suite.suiteID, suite.title)
-    return text(f'Updated Suite: {suite.title} : {suite.suiteID}', status=201)
+    job_id = schedule_update_suite(suite.suiteID, suite.title)
+    return text(f'Updated Suite: {suite.title} : {suite.suiteID} || {job_id.name}', status=201)
 
 
 @service.put("/updateSession")

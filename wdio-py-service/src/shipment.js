@@ -43,8 +43,10 @@ export default class Shipment extends ContactList {
         this.logger.info(output?.stdout?.toString());
         if (output?.stderr?.length ?? 0) this.logger.error(output?.stderr?.toString());
 
+        const command = `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2 -l ${reportLabel} -i ${config.maxInstances ?? 1} -f ${config.framework} -m ${config.specFileRetries ?? 0}`;
         this.pyProcess = spawn(
-            `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2 -l ${reportLabel} -i ${config.maxInstances ?? 1} -f ${config.framework} -m ${config.specFileRetries ?? 0}`,
+            command,
+            // 'echo \'za warudo\'',
             { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
             { cwd: rootDir },
         );
@@ -53,6 +55,7 @@ export default class Shipment extends ContactList {
         this.pyProcess.stderr.on('data', (data) => this.logger.warn(data?.toString()));
 
         this.pyProcess.on('error', (err) => { throw new Error(String(err)); });
+        // comment below line for debugging sanic server
         this.pyProcess.on('exit', (code) => { throw new Error(`Failed to generate the report, Error Code: ${code}`); });
 
         this.logger.warn(`pid: ${this.pyProcess.pid}`);

@@ -3,7 +3,7 @@ from src.services.Endpoints.oneliners import one_liners
 from src.services.DBService.center import service
 from src.services.DBService.getThings import get_service
 from src.services.SchedularService.center import scheduler
-from src.services.DBService.lifecycle import init_tortoise_orm
+from src.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from src.services.DBService.shared import set_test_id
 
 service_provider = Sanic("WDIO-PY")
@@ -22,3 +22,9 @@ async def before_start_of_day(app: Sanic, loop):
 
     app.ctx.scheduler = scheduler()
     app.ctx.scheduler.start()
+
+
+@service_provider.after_server_stop
+async def close_scheduler(app: Sanic, loop):
+    app.ctx.scheduler.shutdown(wait=True)
+    await close_connection()

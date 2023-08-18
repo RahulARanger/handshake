@@ -9,6 +9,7 @@ from functools import reduce
 
 async def modify_suite(suiteID: str):
     suite = await SuiteBase.filter(suiteID=suiteID).first()
+    print(f"FOUND -- {suite.suiteID} for {suite.title}")
     if suite.standing != Status.YET_TO_CALCULATE:
         return
     pending = await SuiteBase.filter(parent=suite.suiteID, standing=Status.PENDING).count()
@@ -49,14 +50,14 @@ async def complete_test_run():
     test_run = await RunBase.filter(testID=test_id).first()
     filtered = SessionBase.filter(test_id=test_id)
 
-    aggregated = await filtered.annotate(
+    summary = await filtered.annotate(
         total_passed=Sum("passed"),
         total_failed=Sum("failures"),
         total_skipped=Sum("skipped"),
         total_retried=Sum("retried"),
         total_tests=Sum("tests"),
         duration=Sum("duration"),
-    ).values(
+    ).first().values(
         "total_passed", "total_failed", "total_skipped", "total_retried"
     )
 
@@ -68,19 +69,23 @@ async def complete_test_run():
     suites = reduce(
         lambda a, b:
         (list(a.keys()) if isinstance(a, dict) else []) + (list(b.keys()) if isinstance(b, dict) else []),
-        await filtered.all().values_list('suites')
+        await filtered.all().values_list('suitesConfig')
     )
+
+    print(summary)
 
     await test_run.update_from_dict(dict(
         ended=datetime.now(),
-        tests=aggregated.get("total_tests", 0),
-        passed=aggregated.get("total_passed", 0),
-        failures=aggregated.get("total_failed", 0),
-        skipped=aggregated.get("total_skipped", 0),
-        duration=aggregated.get("duration", 0.0),
-        retried=aggregated.get("total_retried", 0),
+        tests=summary.get("total_tests", 0),
+        passed=summary.get("total_passed", 0),
+        failures=summary.get("total_failed", 0),
+        skipped=summary.get("total_skipped", 0),
+        duration=summary.get("duration", 0.0),
+        retried=summary.get("total_retried", 0),
         specs=overall_spec_files,
         suitesConfig=suites,
         standing=fetch_status(set(await filtered.all().values_list('standing', flat=True)))
     ))
     await test_run.save()
+
+    print("COMPLETED saving a test run")
