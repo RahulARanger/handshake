@@ -1,0 +1,6 @@
+test-mocha/*
+.eslintignore
+.eslintrc.json
+mocha-conf.js
+babel.config.js
+jsconfig.json

@@ -3,9 +3,8 @@
 	"version": "1.0.0",
 	"type": "module",
 	"description": "Custom Service for connecting with the python reporter which generates the reports for the test cases",
-	"main": "index.js",
+	"main": "src/glue.js",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
 		"test:mocha": "wdio run ./mocha-conf.js"
 	},
 	"author": "RahulARanger",
@@ -17,15 +16,15 @@
 		"node-fetch": "^3.3.2"
 	},
 	"devDependencies": {
-		"@wdio/cli": "^8.15.0",
-		"@wdio/local-runner": "^8.15.0",
-		"@wdio/mocha-framework": "^8.15.0",
+		"@wdio/cli": "^8.15.5",
+		"@wdio/local-runner": "^8.15.4",
+		"@wdio/mocha-framework": "^8.15.4",
 		"@wdio/spec-reporter": "^8.15.0",
-		"chromedriver": "^115.0.1",
+		"chromedriver": "^116.0.0",
 		"eslint": "^8.47.0",
 		"eslint-config-airbnb-base": "^15.0.0",
-		"eslint-plugin-import": "^2.28.0",
-		"eslint-plugin-jsdoc": "^46.4.6",
+		"eslint-plugin-import": "^2.28.1",
+		"eslint-plugin-jsdoc": "^46.5.0",
 		"wdio-chromedriver-service": "^8.1.1"
 	}
 }
