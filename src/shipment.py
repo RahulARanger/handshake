@@ -28,7 +28,7 @@ class Shipment:
 
     @property
     def dashboard(self):
-        return Path(__file__).parent.parent / "next-dashboard"
+        return Path(__file__).parent.parent / "next-py-dashboard"
 
     def verify_cache(self) -> bool:
         return (self.cache / "package.json").exists() and \

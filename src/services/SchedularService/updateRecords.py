@@ -58,7 +58,7 @@ async def complete_test_run():
         total_tests=Sum("tests"),
         duration=Sum("duration"),
     ).first().values(
-        "total_passed", "total_failed", "total_skipped", "total_retried"
+        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests", "duration"
     )
 
     overall_spec_files = reduce(
