@@ -1,9 +1,0 @@
-{
-    "16/07/2023 14:00:00": {
-        "passed": 10,
-        "failed": 2,
-        "skipped": 3,
-        "name": "Next-WDIO",
-        "description": "Dashboard for displaying the test results"
-    }
-}
