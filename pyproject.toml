@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "NeXtPy"
+name = "NeXtPyReports"
 version = "0.1.0"
 description = "Next Dashboard for test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
