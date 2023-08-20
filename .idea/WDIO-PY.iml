@@ -8,6 +8,7 @@
       <excludeFolder url="file://$MODULE_DIR$/test-results" />
       <excludeFolder url="file://$MODULE_DIR$/wdio-py-service/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/TestResults" />
+      <excludeFolder url="file://$MODULE_DIR$/dist" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (WDIO-PY)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />

@@ -1,6 +1,6 @@
 # dependencies
 next-py-dashboard/.next/*
-
+dist/*
 **/out/*
 **/node_modules/*
 *.pyc

@@ -11,7 +11,7 @@ import { DetailedTestResults } from "@/components/DetailedTestResults";
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
     const resp = await fetch(getTestRuns(), { method: "GET" });
     return {
-        paths: (await resp.json()).slice(0, 1).map((id: string) => ({
+        paths: (await resp.json()).slice(-1).map((id: string) => ({
             params: {
                 id,
             },
