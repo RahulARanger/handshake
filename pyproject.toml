@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "NeXtPyReports"
-version = "0.1.0"
+version = "0.2.0"
 description = "Next Dashboard for test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
@@ -10,13 +10,15 @@ maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
 ]
 include=[
-    {path="next-py-dashboard"}
+    {path="next-py-dashboard", format = ["sdist", "wheel"]}
 ]
 [tool.poetry.dependencies]
 python = "^3.8"
 sanic = "^23.6.0"
 tortoise-orm = "^0.20.0"
 click = "^8.1.6"
+sanic-cors = "^2.2.0"
+apscheduler = "^3.10.4"
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.5.1"
