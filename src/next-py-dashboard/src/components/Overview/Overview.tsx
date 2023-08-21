@@ -24,6 +24,7 @@ import useSWR from "swr";
 import Android12Switch from "../switch";
 import TestEntities from "./TableEntities";
 import { formatDateTime } from "../parseUtils";
+import { Trykker } from "next/font/google";
 ChartJS.register(ArcElement, ChartTip, Legend);
 
 function ProgressPieChart(props: {
@@ -33,6 +34,8 @@ function ProgressPieChart(props: {
     startDate: dayjs.Dayjs;
     tests: number;
 }): ReactNode {
+    const [isTestCases, showTestCases] = useState(false);
+
     const data: ChartData<"doughnut"> = {
         labels: ["Passed", "Failed", "Skipped"],
         datasets: [
@@ -75,9 +78,15 @@ function ProgressPieChart(props: {
                 <Grid item md={1}>
                     &nbsp;
                     <Typography variant="caption">Executed,</Typography>
-                    <Typography variant="h6">
+                    <br />
+                    <Stack
+                        flexDirection="row"
+                        flexWrap={"nowrap"}
+                        alignItems={"center"}
+                        columnGap={"5px"}
+                        ml="10px"
+                    >
                         <b>
-                            &nbsp;
                             <CountUp
                                 end={props.tests}
                                 useIndianSeparators={true}
@@ -93,8 +102,10 @@ function ProgressPieChart(props: {
                                 }
                             />
                         </b>
-                        &nbsp;Test cases
-                    </Typography>
+                        <Typography variant="subtitle1">
+                            {!isTestCases ? "Test Suites" : "Test Cases"}
+                        </Typography>
+                    </Stack>
                     <Tooltip title={formatDateTime(props.startDate)}>
                         <Typography variant="subtitle2">
                             &nbsp;&nbsp;{`${fromNow(props.startDate)}`}
@@ -110,11 +121,15 @@ function ProgressPieChart(props: {
                         sx={{ m: "3px", mt: "10px" }}
                     >
                         <Typography>Suites</Typography>
-                        <Android12Switch />
+                        <Android12Switch
+                            onChange={(_, isChecked: boolean) => {
+                                showTestCases(isChecked);
+                            }}
+                        />
                         <Typography>Tests</Typography>
                     </Stack>
                 </Grid>
-                <Grid item md={1.2} mr={2} sx={{ minWidth: "300px" }}>
+                <Grid item md={1} mr={2} sx={{ minWidth: "300px" }}>
                     <Doughnut data={data} options={options}></Doughnut>
                 </Grid>
                 {/* <Grid md={1.2}>

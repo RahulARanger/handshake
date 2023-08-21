@@ -22,7 +22,10 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
             >
                 <Stack sx={{ flexGrow: 1 }}>
                     <TabPanel value={overview}>
-                        <Overview getTestRun={props.getTestRun} getSuites={props.getSuites}/>
+                        <Overview
+                            getTestRun={props.getTestRun}
+                            getSuites={props.getSuites}
+                        />
                     </TabPanel>
                 </Stack>
                 <Divider orientation="vertical" />
