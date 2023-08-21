@@ -6,6 +6,19 @@ from multiprocessing.sharedctypes import Array
 from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run, set_limits
 from src.services.SchedularService.updateRecords import fix_old_records
 from src.services.DBService.shared import set_test_id
+from sanic.worker.loader import AppLoader
+from sanic import Sanic
+from typing import Tuple
+
+
+def feed_app() -> Sanic:
+    return service_provider
+
+
+def prepare_loader() -> Tuple[Sanic, AppLoader]:
+    loader = AppLoader(factory=feed_app)
+    app = loader.load()
+    return app, loader
 
 
 @handle_cli.command()
@@ -41,7 +54,7 @@ from src.services.DBService.shared import set_test_id
 )
 def run_app(
         projectname: str,
-        path: str, port: str, workers: int, fast: bool,
+        path: str, port: int, workers: int, fast: bool,
         label: str, instances: int,
         frame_work: str, max_retries: int,
         max_reports: int
@@ -68,10 +81,12 @@ def run_app(
     async def close_things(app, loop):
         await close_connection()
 
-    service_provider.run(
+    _app, loader = prepare_loader()
+    _app.prepare(
         port=port, workers=min(2, workers),
         host="127.0.0.1", fast=fast
     )
+    Sanic.serve(primary=_app, app_loader=loader)
 
 
 @handle_cli.command()
@@ -94,7 +109,9 @@ def prepare_report(
     async def close_things(app, loop):
         await close_connection()
 
-    service_provider.run(
+    _app, loader = prepare_loader()
+    _app.prepare(
         port=port,
         host="127.0.0.1"
     )
+    Sanic.serve(primary=_app, app_loader=loader)
