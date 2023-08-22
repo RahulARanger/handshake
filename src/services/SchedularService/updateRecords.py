@@ -75,7 +75,7 @@ async def complete_test_run():
     print(summary)
 
     await test_run.update_from_dict(dict(
-        ended=datetime.now(),
+        ended=datetime.utcnow(),
         tests=summary.get("total_tests", 0),
         passed=summary.get("total_passed", 0),
         failures=summary.get("total_failed", 0),

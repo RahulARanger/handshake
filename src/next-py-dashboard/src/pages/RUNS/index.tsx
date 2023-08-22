@@ -19,6 +19,6 @@ export async function getStaticProps(): Promise<
     };
 }
 
-export default function PageThatWeWontSee(): ReactNode {
-    return <></>;
+export default function PageThatWeWontSee(props: unknown): ReactNode {
+    return <>{props}</>;
 }

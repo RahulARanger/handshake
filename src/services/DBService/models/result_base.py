@@ -72,5 +72,13 @@ class SuiteBase(CommandReportFields):
     modified = fields.DatetimeField(auto_now=True, description='Modified timestamp', null=False)
 
 
+class AttachmentBase:
+    test: fields.ForeignKeyRelation[SuiteBase] = fields.ForeignKeyField(
+        "models.SuiteBase", related_name="attachments", to_field="suiteID"
+    )
+    attachmentValue = fields.JSONField(description="An attachment value", default={"value": ""}, null=False)
+    label = fields.TextField(max_length=30, null=False, description="Label for the attachment")
+
+
 def understand_js_date(utc_date_string: str) -> datetime:
     return datetime.strptime(utc_date_string, "%a, %d %b %Y %H:%M:%S %Z")

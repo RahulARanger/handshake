@@ -1,11 +1,13 @@
 import { AppBar, Stack, Typography, Tooltip, Skeleton } from "@mui/material";
 import React, { type ReactNode } from "react";
-import readDateForKey, { fetcher, fromNow } from "./helper";
+import { fetcher, fromNow } from "./helper";
 import { type OverviewPageProps } from "@/types/detailedTestRunPage";
 import useSWRImmutable from "swr/immutable";
 import type DetailsOfRun from "@/types/testRun";
 import Chip from "@mui/material/Chip";
 import { formatDateTime } from "./parseUtils";
+import dayjs from "dayjs";
+import RelativeTime from "./Datetime/relativeTime";
 
 export default function TestRunHeader(props: OverviewPageProps): ReactNode {
     const { data, isLoading } = useSWRImmutable<DetailsOfRun>(
@@ -18,7 +20,8 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
                 <Skeleton />
             </AppBar>
         );
-    const finishedAt = readDateForKey(data.ended);
+    const finishedAt = dayjs(data.ended);
+
     return (
         <AppBar position="sticky" sx={{ px: "12px", py: "6px" }}>
             <Stack
@@ -31,11 +34,13 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
                     {data.projectName}
                     <sub>
                         {data.label !== null ? (
-                            <Chip
-                                label={data.label}
-                                size={"small"}
-                                color="warning"
-                            />
+                            <Tooltip title="Label">
+                                <Chip
+                                    label={data.label}
+                                    size={"small"}
+                                    color="warning"
+                                />
+                            </Tooltip>
                         ) : (
                             <></>
                         )}
@@ -50,14 +55,7 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
                     </sub>
                 </Typography>
                 <Stack flexDirection="row" columnGap={2} alignItems={"center"}>
-                    <Tooltip
-                        title={formatDateTime(finishedAt)}
-                        sx={{ alignSelf: "flex-end" }}
-                    >
-                        <Typography variant="caption">
-                            {`Last Updated: ${fromNow(finishedAt)}`}
-                        </Typography>
-                    </Tooltip>
+                    <RelativeTime dateTime={finishedAt} />
                 </Stack>
             </Stack>
         </AppBar>

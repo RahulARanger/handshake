@@ -9,7 +9,7 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { type ColDef } from "ag-grid-community";
 import RenderTimeRelativeToStart from "./renderers";
 import type DetailsOfRun from "@/types/testRun";
-import dayjs from "dayjs";
+import dayjs, { Dayjs } from "dayjs";
 
 export function ImportantThings(): ReactNode {
     const columnDefs = [
@@ -33,7 +33,9 @@ export default function TestEntities(props: {
     const sliced = data
         .slice(-10, data.length)
         .reverse()
-        .map((testDate) => parseTestEntity(testDate, testStartedAt));
+        .map((testDate: SuiteDetails) =>
+            parseTestEntity(testDate, testStartedAt)
+        );
 
     const columnDefs: ColDef[] = [
         { field: "Title", resizable: true },

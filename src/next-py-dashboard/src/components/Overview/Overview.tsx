@@ -24,7 +24,7 @@ import useSWR from "swr";
 import Android12Switch from "../switch";
 import TestEntities from "./TableEntities";
 import { formatDateTime } from "../parseUtils";
-import { Trykker } from "next/font/google";
+import RelativeTime from "../Datetime/relativeTime";
 ChartJS.register(ArcElement, ChartTip, Legend);
 
 function ProgressPieChart(props: {
@@ -90,7 +90,7 @@ function ProgressPieChart(props: {
                             <CountUp
                                 end={props.tests}
                                 useIndianSeparators={true}
-                                formattingFn={(n) =>
+                                formattingFn={(n: number) =>
                                     n
                                         .toString()
                                         .padStart(
@@ -106,11 +106,7 @@ function ProgressPieChart(props: {
                             {!isTestCases ? "Test Suites" : "Test Cases"}
                         </Typography>
                     </Stack>
-                    <Tooltip title={formatDateTime(props.startDate)}>
-                        <Typography variant="subtitle2">
-                            &nbsp;&nbsp;{`${fromNow(props.startDate)}`}
-                        </Typography>
-                    </Tooltip>
+                    <RelativeTime dateTime={props.startDate} />
                     <br />
                     <Divider />
                     <Stack
