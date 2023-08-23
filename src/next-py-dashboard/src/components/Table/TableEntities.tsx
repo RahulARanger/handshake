@@ -68,13 +68,13 @@ export default function TestEntities(props: {
         {
             field: "Started",
             cellRenderer: RenderTimeRelativeToStart,
-            width: 170,
+            width: 142,
             cellClass: tableCellStyles.centerRenderedCell,
         },
         {
             field: "Ended",
             cellRenderer: RenderTimeRelativeToStart,
-            width: 170,
+            width: 142,
             cellClass: tableCellStyles.centerRenderedCell,
         },
     ];

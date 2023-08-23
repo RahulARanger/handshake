@@ -65,7 +65,7 @@ export default function TestRunResults(
                 <TestRunHeader
                     getTestRun={props.getTestRun}
                     getSuites={props.getSuites}
-                ></TestRunHeader>
+                />
                 <DetailedTestResults
                     getTestRun={props.getTestRun}
                     getSuites={props.getSuites}

@@ -33,6 +33,10 @@ export function getSuites(testID: string): string {
     return `${serverURL()}/get/suites?test_id=${testID}`;
 }
 
+export function getTestRunSummary(testID: string): string {
+    return `${serverURL()}/get/test-run-summary?test_id=${testID}`;
+}
+
 export async function fetcher<T>(url: string): Promise<T> {
     return await fetch(url).then(async (resp) => await resp.json());
 }

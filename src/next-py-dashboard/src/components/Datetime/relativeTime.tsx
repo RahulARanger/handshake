@@ -1,13 +1,12 @@
 import { Tooltip, Typography } from "@mui/material";
-import { Dayjs } from "dayjs";
-import React, { useState } from "react";
-import { formatDateTime } from "../parseUtils";
+import { type Dayjs } from "dayjs";
+import React, { useState, type CSSProperties, type ReactNode } from "react";
+import { formatTime } from "../parseUtils";
 import useEmblaCarousel from "embla-carousel-react";
 import carouselStyles from "@/styles/carousel.module.css";
 import Autoplay from "embla-carousel-autoplay";
-import type { ReactNode } from "react";
-import { CSSProperties } from "react";
-import { Duration } from "dayjs/plugin/duration";
+
+import { type Duration } from "dayjs/plugin/duration";
 
 export default function RelativeTime(props: {
     dateTime: Dayjs;
@@ -18,7 +17,9 @@ export default function RelativeTime(props: {
         Autoplay({ stopOnInteraction: false }),
     ]);
     const formatter = () =>
-        props.wrt ? props.dateTime.from(props.wrt) : props.dateTime.fromNow();
+        props.wrt != null
+            ? props.dateTime.from(props.wrt)
+            : props.dateTime.fromNow();
     const [formatted, setFormatted] = useState(formatter());
 
     return (
@@ -29,16 +30,18 @@ export default function RelativeTime(props: {
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide} variant="caption">
-                    {formatDateTime(props.dateTime)}
+                    {formatTime(props.dateTime)}
                 </Typography>
                 <Typography className={carouselStyles.slide} variant="caption">
                     <Tooltip
                         title={
-                            props.wrt
-                                ? `Relative to ${formatDateTime(props.wrt)}`
+                            props.wrt != null
+                                ? `Relative to ${formatTime(props.wrt)}`
                                 : "Click me to update!"
                         }
-                        onClick={() => setFormatted(formatter())}
+                        onClick={() => {
+                            setFormatted(formatter());
+                        }}
                     >
                         {formatted}
                     </Tooltip>

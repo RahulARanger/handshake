@@ -1,10 +1,9 @@
-import datetime
 from uuid import UUID
 from src.services.DBService.models.result_base import SessionBase, SuiteBase, RunBase
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import json, JSONResponse, text
-from tortoise.functions import Max
+from tortoise.functions import Max, Sum
 from src.services.DBService.models.types import SuiteType
 
 get_service = Blueprint("GetService", url_prefix="/get")
@@ -22,7 +21,8 @@ async def get_latest_run(_: Request):
 
 @get_service.get("/runs")
 async def get_test_runs(_: Request):
-    return JSONResponse(list(map(lambda mapped: str(mapped.get('testID', False)), await RunBase.all().values("testID"))))
+    return JSONResponse(
+        list(map(lambda mapped: str(mapped.get('testID', False)), await RunBase.all().values("testID"))))
 
 
 @get_service.get("/run")
@@ -58,7 +58,7 @@ async def get_run_details(request: Request):
 @get_service.get("/suites")
 async def get_all_suites(request: Request):
     test_id = request.args.get('test_id')
-    suites = await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE).all()
+    suites = await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
 
     return JSONResponse(list(map(lambda suite: dict(
         suiteID=suite.suiteID,
@@ -75,3 +75,33 @@ async def get_all_suites(request: Request):
         fullTitle=suite.fullTitle,
         tests=suite.tests
     ), suites)))
+
+
+@get_service.get("/test-run-summary")
+async def summary(request: Request):
+    run = await RunBase.filter(testID=request.args.get("test_id")).first()
+    results = await SuiteBase.filter(session__test_id=run.testID, suiteType=SuiteType.TEST).annotate(
+        total_passed=Sum("passed"),
+        total_failed=Sum("failures"),
+        total_skipped=Sum("skipped"),
+        total_retried=Sum("retried"),
+        total_tests=Sum("tests"),
+    ).first().values(
+        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests"
+    )
+
+    return JSONResponse(dict(
+        TEST=dict(
+            tests=run.tests,
+            passed=run.passed,
+            failed=run.failures,
+            skipped=run.skipped,
+            retried=run.retried
+        ),
+        SUITES=dict(
+            passed=results.get("total_passed"),
+            skipped=results.get("total_skipped"),
+            retried=results.get("total_retried"),
+            tests=results.get("total_tests")
+        )
+    ))

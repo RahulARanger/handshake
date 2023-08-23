@@ -34,6 +34,10 @@ export function formatDateTime(dateTime: Dayjs): string {
     return dateTime?.format("MMM DD, YYYY hh:mm A") ?? "Not Specified";
 }
 
+export function formatTime(dateTime: Dayjs): string {
+    return dateTime?.format("hh:mm:ss A") ?? "Not Specified";
+}
+
 export const statusColors: { passed: string; failed: string; skipped: string } =
     {
         passed: "green",
