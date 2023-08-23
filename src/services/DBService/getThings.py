@@ -72,5 +72,6 @@ async def get_all_suites(request: Request):
         standing=suite.standing,
         suitesConfig=suite.suitesConfig,
         title=suite.title,
-        fullTitle=suite.fullTitle
+        fullTitle=suite.fullTitle,
+        tests=suite.tests
     ), suites)))

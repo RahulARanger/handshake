@@ -22,7 +22,7 @@ import {
 } from "chart.js";
 import useSWR from "swr";
 import Android12Switch from "../switch";
-import TestEntities from "./TableEntities";
+import TestEntities from "../Table/TableEntities";
 import { formatDateTime } from "../parseUtils";
 import RelativeTime from "../Datetime/relativeTime";
 ChartJS.register(ArcElement, ChartTip, Legend);
@@ -106,7 +106,10 @@ function ProgressPieChart(props: {
                             {!isTestCases ? "Test Suites" : "Test Cases"}
                         </Typography>
                     </Stack>
-                    <RelativeTime dateTime={props.startDate} />
+                    <RelativeTime
+                        dateTime={props.startDate}
+                        style={{ marginLeft: "10px" }}
+                    />
                     <br />
                     <Divider />
                     <Stack
@@ -159,15 +162,12 @@ export default function Overview(props: OverviewPageProps): ReactNode {
             <Grid item md={2} sm={2} minWidth={"250px"}>
                 <CarouselComponent />
             </Grid>
-            <Grid item md={2.5} sm={3} minWidth={"250px"}>
+            <Grid item md={4} sm={3}>
                 <TestEntities
                     getSuites={props.getSuites}
                     getTestRun={props.getTestRun}
                 />
             </Grid>
-            {/* <Grid md={1.5} sm={2} minWidth={"250px"}>
-                <KeyValuePairs vars={data.vars} />
-            </Grid> */}
         </Grid>
     );
 }

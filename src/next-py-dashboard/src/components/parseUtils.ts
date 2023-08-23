@@ -1,5 +1,7 @@
 import { type SuiteDetails } from "@/types/detailedTestRunPage";
 import dayjs, { type Dayjs } from "dayjs";
+import duration from "dayjs/plugin/duration";
+dayjs.extend(duration);
 
 export interface QuickPreviewForScenarios {
     Started: [Dayjs, Dayjs];
@@ -7,6 +9,9 @@ export interface QuickPreviewForScenarios {
     Status: "PASSED" | "FAILED" | "PENDING";
     Title: string;
     FullTitle: string;
+    Duration: duration.Duration;
+    Rate: [number, number, number];
+    Tests: number;
 }
 
 export default function parseTestEntity(
@@ -19,9 +24,19 @@ export default function parseTestEntity(
         Status: testORSuite.standing,
         Title: testORSuite.title,
         FullTitle: testORSuite.fullTitle,
+        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
+        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
+        Tests: testORSuite.tests,
     };
 }
 
 export function formatDateTime(dateTime: Dayjs): string {
     return dateTime?.format("MMM DD, YYYY hh:mm A") ?? "Not Specified";
 }
+
+export const statusColors: { passed: string; failed: string; skipped: string } =
+    {
+        passed: "green",
+        failed: "#FC4349",
+        skipped: "#2C3E50",
+    };

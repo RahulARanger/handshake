@@ -7,9 +7,14 @@ import parseTestEntity from "../parseUtils";
 import "ag-grid-community/styles/ag-grid.css";
 import "ag-grid-community/styles/ag-theme-alpine.css";
 import { type ColDef } from "ag-grid-community";
-import RenderTimeRelativeToStart from "./renderers";
+import RenderTimeRelativeToStart, {
+    RenderDuration,
+    RenderPassedRate,
+    RenderStatus,
+} from "./renderers";
 import type DetailsOfRun from "@/types/testRun";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
+import tableCellStyles from "@/styles/table.module.css";
 
 export function ImportantThings(): ReactNode {
     const columnDefs = [
@@ -38,16 +43,43 @@ export default function TestEntities(props: {
         );
 
     const columnDefs: ColDef[] = [
+        {
+            field: "Status",
+            cellRenderer: RenderStatus,
+            cellClass: tableCellStyles.centerRenderedCell,
+            width: 75,
+            pinned: true,
+        },
         { field: "Title", resizable: true },
-        { field: "Started", cellRenderer: RenderTimeRelativeToStart },
-        { field: "Ended", cellRenderer: RenderTimeRelativeToStart },
-        { field: "Status" },
+        {
+            field: "Duration",
+            cellRenderer: RenderDuration,
+            width: 120,
+            cellClass: tableCellStyles.centerRenderedCell,
+        },
+        {
+            field: "Rate",
+            cellRenderer: RenderPassedRate,
+            width: 100,
+            cellClass: tableCellStyles.centerRenderedCell,
+            cellStyle: { alignItems: "flex-end" },
+        },
+        { field: "Tests", width: 70 },
+        {
+            field: "Started",
+            cellRenderer: RenderTimeRelativeToStart,
+            width: 170,
+            cellClass: tableCellStyles.centerRenderedCell,
+        },
+        {
+            field: "Ended",
+            cellRenderer: RenderTimeRelativeToStart,
+            width: 170,
+            cellClass: tableCellStyles.centerRenderedCell,
+        },
     ];
     return (
-        <div
-            className="ag-theme-alpine-dark"
-            style={{ height: 270, width: 550 }}
-        >
+        <div className="ag-theme-alpine-dark" style={{ height: 270 }}>
             <AgGridReact rowData={sliced} columnDefs={columnDefs}></AgGridReact>
         </div>
     );
