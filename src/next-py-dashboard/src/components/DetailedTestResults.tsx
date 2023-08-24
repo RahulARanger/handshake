@@ -7,6 +7,7 @@ import TabPanel from "@mui/lab/TabPanel";
 import Divider from "@mui/material/Divider";
 import Overview from "@/components/Overview/Overview";
 import React, { useState, type ReactNode } from "react";
+import HomeIcon from "@mui/icons-material/Home";
 
 export function DetailedTestResults(props: OverviewPageProps): ReactNode {
     const overview = "overview";
@@ -43,7 +44,11 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                         alignSelf: "flex-start",
                     }}
                 >
-                    <Tab label="Overview" value={overview} />
+                    <Tab
+                        icon={<HomeIcon />}
+                        label="Overview"
+                        value={overview}
+                    />
                 </TabList>
             </Stack>
         </TabContext>

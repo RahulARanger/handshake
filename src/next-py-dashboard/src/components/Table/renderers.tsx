@@ -55,16 +55,19 @@ export function RenderPassedRate(props: {
                 label: labels[0],
                 data: [passed],
                 backgroundColor: statusColors.passed,
+                borderWidth: 2,
             },
             {
                 label: labels[1],
                 data: [failed],
                 backgroundColor: statusColors.failed,
+                borderWidth: 2,
             },
             {
                 label: labels[2],
                 data: [skipped],
                 backgroundColor: statusColors.skipped,
+                borderWidth: 2,
             },
         ],
     };

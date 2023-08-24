@@ -63,7 +63,7 @@ export function HumanizeDuration(props: { duration?: Duration }): ReactNode {
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide} variant="caption">
-                    {props?.duration?.asSeconds() ?? "--"}
+                    {`${props?.duration?.asSeconds() ?? "--"} s`}
                 </Typography>
                 <Typography className={carouselStyles.slide} variant="caption">
                     {props?.duration?.humanize() ?? "--"}

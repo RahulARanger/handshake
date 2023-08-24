@@ -22,7 +22,7 @@ import {
 } from "chart.js";
 import useSWR from "swr";
 import Android12Switch from "../switch";
-import TestEntities from "../Table/TableEntities";
+import TestEntities, { ImportantThings } from "../Table/TableEntities";
 import { formatDateTime } from "../parseUtils";
 import RelativeTime from "../Datetime/relativeTime";
 ChartJS.register(ArcElement, ChartTip, Legend);
@@ -34,7 +34,7 @@ function ProgressPieChart(props: {
     startDate: dayjs.Dayjs;
     tests: number;
 }): ReactNode {
-    const [isTestCases, showTestCases] = useState(false);
+    const [isTestCases, showTestCases] = useState(true);
 
     const data: ChartData<"doughnut"> = {
         labels: ["Passed", "Failed", "Skipped"],
@@ -124,6 +124,7 @@ function ProgressPieChart(props: {
                             onChange={(_, isChecked: boolean) => {
                                 showTestCases(isChecked);
                             }}
+                            checked={isTestCases}
                         />
                         <Typography>Tests</Typography>
                     </Stack>
@@ -162,11 +163,14 @@ export default function Overview(props: OverviewPageProps): ReactNode {
             <Grid item md={2} sm={2} minWidth={"250px"}>
                 <CarouselComponent />
             </Grid>
-            <Grid item md={4} sm={3}>
+            <Grid item md={3} sm={3}>
                 <TestEntities
                     getSuites={props.getSuites}
                     getTestRun={props.getTestRun}
                 />
+            </Grid>
+            <Grid item md={1.25} sm={3}>
+                <ImportantThings />
             </Grid>
         </Grid>
     );

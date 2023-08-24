@@ -17,13 +17,17 @@ import dayjs from "dayjs";
 import tableCellStyles from "@/styles/table.module.css";
 
 export function ImportantThings(): ReactNode {
-    const columnDefs = [
-        { field: "Title" },
-        { field: "Started" },
-        { field: "Ended" },
-        { field: "Status" },
+    const columnDefs: ColDef[] = [
+        { field: "Key", width: 150, resizable: true, filter: true },
+        { field: "Value", resizable: true },
     ];
-    return <></>;
+
+    const data = [{ Key: "Max Instances", Value: 1 }];
+    return (
+        <div className="ag-theme-alpine-dark" style={{ height: 270 }}>
+            <AgGridReact rowData={data} columnDefs={columnDefs}></AgGridReact>
+        </div>
+    );
 }
 
 export default function TestEntities(props: {
