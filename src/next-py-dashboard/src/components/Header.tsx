@@ -1,13 +1,13 @@
 import { AppBar, Stack, Typography, Tooltip, Skeleton } from "@mui/material";
 import React, { type ReactNode } from "react";
-import { fetcher, fromNow } from "./helper";
+import { fetcher } from "./helper";
 import { type OverviewPageProps } from "@/types/detailedTestRunPage";
 import useSWRImmutable from "swr/immutable";
 import type DetailsOfRun from "@/types/testRun";
 import Chip from "@mui/material/Chip";
-import { formatDateTime } from "./parseUtils";
 import dayjs from "dayjs";
 import RelativeTime from "./Datetime/relativeTime";
+import HeaderBarStyles from "@/styles/header.module.css";
 
 export default function TestRunHeader(props: OverviewPageProps): ReactNode {
     const { data, isLoading } = useSWRImmutable<DetailsOfRun>(
@@ -23,7 +23,11 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
     const finishedAt = dayjs(data.ended);
 
     return (
-        <AppBar position="sticky" sx={{ px: "12px", py: "6px" }}>
+        <AppBar
+            position="sticky"
+            sx={{ px: "12px", py: "6px" }}
+            className={HeaderBarStyles.header}
+        >
             <Stack
                 justifyContent={"space-between"}
                 flexDirection="row"

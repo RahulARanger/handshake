@@ -41,16 +41,10 @@ async def get_run_details(request: Request):
             skipped=run.skipped,
             tests=run.tests,
             duration=run.duration,
-            label=run.collectionName,
-            framework=run.framework,
             started=run.started.isoformat(),
             ended=run.ended if not run.ended else run.ended.isoformat(),
             retried=run.retried,
-            instances=run.instances,
-            logLevel=run.logLevel,
-            tags=run.tags,
-            suitesConfig=run.suitesConfig,
-            specs=run.specs
+            suitesConfig=run.suitesConfig
         )
     )
 
@@ -80,7 +74,7 @@ async def get_all_suites(request: Request):
 @get_service.get("/test-run-summary")
 async def summary(request: Request):
     run = await RunBase.filter(testID=request.args.get("test_id")).first()
-    results = await SuiteBase.filter(session__test_id=run.testID, suiteType=SuiteType.TEST).annotate(
+    test_result = await SuiteBase.filter(session__test_id=run.testID, suiteType=SuiteType.TEST).annotate(
         total_passed=Sum("passed"),
         total_failed=Sum("failures"),
         total_skipped=Sum("skipped"),
@@ -99,9 +93,9 @@ async def summary(request: Request):
             retried=run.retried
         ),
         SUITES=dict(
-            passed=results.get("total_passed"),
-            skipped=results.get("total_skipped"),
-            retried=results.get("total_retried"),
-            tests=results.get("total_tests")
+            passed=test_result.get("total_passed"),
+            skipped=test_result.get("total_skipped"),
+            retried=test_result.get("total_retried"),
+            tests=test_result.get("total_tests")
         )
     ))
