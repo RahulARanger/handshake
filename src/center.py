@@ -48,9 +48,8 @@ def run_app(
         await init_tortoise_orm()
         test_id = await create_run(projectname)
         service_provider.shared_ctx.TEST_ID = Array('c', str.encode(test_id))
-        await set_limits()
+        await set_limits()  # Empty function as of now
         set_test_id()
-        await fix_old_records()
 
     @service_provider.main_process_stop
     async def close_things(app, loop):

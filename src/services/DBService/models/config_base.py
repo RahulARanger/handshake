@@ -1,12 +1,13 @@
 from tortoise.models import Model
-from tortoise import fields
+from tortoise.fields import IntField, BooleanField, CharField
 
 
 class ConfigBase(Model):
     table = "ConfigBase"
-    configID = fields.IntField(default=69, pk=True)
-    maxTestRuns = fields.IntField(null=True, default=100, description="Max. Number of Test Runs to save")
-    dynamic = fields.BooleanField(default=False, description="Enable Dynamic Nature of report generation")
+    configID = IntField(default=69, pk=True)
+    maxTestRuns = IntField(null=True, default=100, description="Max. Number of Test Runs to save")
+    dynamic = BooleanField(default=False, description="Enable Dynamic Nature of report generation")
+    version = CharField(default="1.0.0", null=True, description="Version of this db file", max_length=10)
     # maxDailyReports = fields.IntField(null=True, default=10, description="Max. Number of Daily Reports to save")
     # maxWeeklyReports = fields.IntField(null=True, default=10, description="Max. Number of Weekly Reports to save")
     # maxBiWeeklyReports = fields.IntField(null=True, default=10, description="Max. Number of BiWeekly Reports to save")
