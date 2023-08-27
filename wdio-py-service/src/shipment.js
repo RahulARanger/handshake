@@ -30,7 +30,7 @@ export default class Shipment extends ContactList {
     async onPrepare(config) {
         const path = join('venv', 'Scripts', 'activate');
         const {
-            root: rootDir, port, collectionName, reportLabel, projectName,
+            root: rootDir, port, collectionName, projectName,
         } = this.options;
         this.logger.warn('Shipping the Reporter');
 
@@ -43,7 +43,7 @@ export default class Shipment extends ContactList {
         this.logger.info(output?.stdout?.toString());
         if (output?.stderr?.length ?? 0) this.logger.error(output?.stderr?.toString());
 
-        const command = `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2 -l ${reportLabel} -i ${config.maxInstances ?? 1} -f ${config.framework} -m ${config.specFileRetries ?? 0}`;
+        const command = `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2`;
         this.pyProcess = spawn(
             command,
             // 'echo \'za warudo\'',

@@ -74,8 +74,8 @@ function ProgressPieChart(props: {
                 flexWrap: "wrap",
             }}
         >
-            <Grid container columns={4} gap={3}>
-                <Grid item md={1}>
+            <Grid container columns={4} gap={1}>
+                <Grid item md={1.5} sm={3}>
                     &nbsp;
                     <Typography variant="caption">Executed,</Typography>
                     <br />
@@ -129,7 +129,7 @@ function ProgressPieChart(props: {
                         <Typography>Tests</Typography>
                     </Stack>
                 </Grid>
-                <Grid item md={1} mr={2} sx={{ minWidth: "300px" }}>
+                <Grid item md={1.5} sm={3} sx={{ minWidth: "260px" }}>
                     <Doughnut data={data} options={options}></Doughnut>
                 </Grid>
                 {/* <Grid md={1.2}>

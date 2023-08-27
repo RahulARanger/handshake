@@ -6,6 +6,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ErrorIcon from "@mui/icons-material/Error";
 import PendingIcon from "@mui/icons-material/Pending";
 import { type statusOfEntity } from "@/types/detailedTestRunPage";
+import TurnSlightLeftIcon from "@mui/icons-material/TurnSlightLeft";
 import { Bar } from "react-chartjs-2";
 import {
     Chart as ChartJS,
@@ -32,13 +33,16 @@ export function RenderDuration(props: { value: Duration }): ReactNode {
 export function RenderStatus(props: { value: statusOfEntity }): ReactNode {
     switch (props.value) {
         case "PASSED": {
-            return <CheckIcon color="success" />;
+            return <CheckIcon color="success" titleAccess="Passed" />;
         }
         case "FAILED": {
-            return <ErrorIcon color="error" />;
+            return <ErrorIcon color="error" titleAccess="Failed" />;
         }
         case "PENDING": {
-            return <PendingIcon color="warning" />;
+            return <PendingIcon color="warning" titleAccess="Pending" />;
+        }
+        case "SKIPPED": {
+            return <TurnSlightLeftIcon color="warning" titleAccess="Skipped" />;
         }
     }
 }

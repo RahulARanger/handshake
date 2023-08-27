@@ -4,6 +4,7 @@
 		"**/*.json",
 		"node_modules/expect-webdriverio",
 		"@wdio/mocha-framework",
-		"@wdio/logger"
+		"@wdio/logger",
+		"node_modules/@wdio/types"
 	]
 }

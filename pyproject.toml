@@ -17,8 +17,8 @@ python = "^3.8"
 sanic = "^23.6.0"
 tortoise-orm = "^0.20.0"
 click = "^8.1.6"
-sanic-cors = "^2.2.0"
 apscheduler = "^3.10.4"
+pydantic = "^2.3.0"
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.5.1"

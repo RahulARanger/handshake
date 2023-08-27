@@ -1,7 +1,7 @@
 from datetime import datetime
 from tortoise.models import Model
 from tortoise import fields
-from src.services.DBService.models.enums import Status, LogLevel, SuiteType
+from src.services.DBService.models.enums import Status, SuiteType, AttachmentType
 
 
 class CommandReportFields(Model):
@@ -21,29 +21,31 @@ class CommandReportFields(Model):
 
 
 class CommonDetailedFields(CommandReportFields):
-    specs = fields.JSONField(description="List of spec files", default=[])
     suitesConfig = fields.JSONField(description='Dict. of suites', default={})
 
     class Meta:
         abstract = True
 
 
+class EntityBaseSpecific:
+    error = fields.JSONField(description="Error found", default={}, null=True)
+    errors = fields.JSONField(description="Errors found", default={}, null=True)
+
+    class Meta:
+        abstract = True
+
+
 class RunBase(CommonDetailedFields):
+    table = "RunBase"
     testID = fields.UUIDField(pk=True)
     sessions = fields.ReverseRelation["SessionBase"]
-    totalRetries = fields.IntField(default=0, null=False, descriptiopn="Max. number of retries needed to perform")
     started = fields.DatetimeField(null=False, auto_now=True)
     projectName = fields.CharField(max_length=30, null=False, description="Name of the project")
-    collectionName = fields.CharField(max_length=30, null=False, description="Label for this project")
-    instances = fields.IntField(default=1, description="Number of instances used")
-    framework = fields.CharField(max_length=35, null=False, default="-")
-    logLevel = fields.CharEnumField(
-        LogLevel, null=True, description="Log Level set for this run",
-        default=LogLevel.info)
-    tags = fields.JSONField(description='list of all tags', default=[])
+    specStructure = fields.JSONField(description="file structure of spec files", default=dict())
 
 
 class SessionBase(CommonDetailedFields):
+    table = "SessionBase"
     test: fields.ForeignKeyRelation[RunBase] = fields.ForeignKeyField(
         "models.RunBase", related_name="runs", to_field="testID"
     )
@@ -52,9 +54,11 @@ class SessionBase(CommonDetailedFields):
     browserName = fields.CharField(max_length=10, default="")
     browserVersion = fields.CharField(max_length=20, default="")
     platformName = fields.CharField(max_length=10, default="")
+    specs = fields.JSONField(description="List of spec files", default=[])
 
 
-class SuiteBase(CommandReportFields):
+class SuiteBase(CommandReportFields, EntityBaseSpecific):
+    table = "SuiteBase"
     # https://tortoise.github.io/models.html#the-db-backing-field
     # so we require session_id instead of sessionID
     session: fields.ForeignKeyRelation[SessionBase] = fields.ForeignKeyField(
@@ -72,13 +76,17 @@ class SuiteBase(CommandReportFields):
     modified = fields.DatetimeField(auto_now=True, description='Modified timestamp', null=False)
 
 
-class AttachmentBase:
+class AttachmentFields(Model):
     test: fields.ForeignKeyRelation[SuiteBase] = fields.ForeignKeyField(
         "models.SuiteBase", related_name="attachments", to_field="suiteID"
     )
-    attachmentValue = fields.JSONField(description="An attachment value", default={"value": ""}, null=False)
-    label = fields.TextField(max_length=30, null=False, description="Label for the attachment")
+    attachmentValue = fields.JSONField(description="An attachment value", default={"value": ""})
+    type = fields.CharEnumField(AttachmentType, description="Type of an attachment, refer the enums to get an idea")
+
+    class Meta:
+        abstract = True
 
 
-def understand_js_date(utc_date_string: str) -> datetime:
-    return datetime.strptime(utc_date_string, "%a, %d %b %Y %H:%M:%S %Z")
+class AttachmentBase(AttachmentFields):
+    table = "AttachmentBase"
+    description = fields.JSONField(null=True, default={"text": None})

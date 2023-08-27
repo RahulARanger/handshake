@@ -93,83 +93,42 @@ export default class NeXtReporter extends WDIOReporter {
                     ? undefined : resp.statusText, await resp.text());
             },
             (er, text) => {
-                if (er) this.logger.error(er);
-                else this.logger.info(text);
+                try {
+                    if (er) this.logger.error(JSON.stringify(JSON.parse(er), null, 4));
+                    else this.logger.info(text);
+                } catch {
+                    this.logger.info(text);
+                }
             },
         );
     }
 
     /**
-     * @typedef {import("@wdio/reporter").RunnerStats} RunnerStats
-     * @param {RunnerStats} stats Stats when starting the Runner
-     */
-    onRunnerStart(stats) {
-        /**
-         * @type {number}
-         */
-
-        const [started, ended] = [stats.start.toUTCString(), stats.end?.toUTCString()];
-        const standing = returnStatus(stats.end, stats.failures);
-        const {
-            failures, duration,
-        } = stats;
-        const totalRetries = stats.retries;
-        const retried = stats.retry;
-        const [browserName, browserVersion, platformName] = stats.sanitizedCapabilities.split('.');
-
-        const { specs } = this;
-        const suitesConfig = this.runnerStat.config.suites;
-
-        const payload = {
-            duration,
-            started,
-            ended,
-            standing,
-            browserName,
-            failures: failures ?? 0,
-            retried,
-            totalRetries,
-            platformName,
-            browserVersion,
-            sessionID: this.runnerStat.sessionId,
-            specs: (specs ?? []).map((spec) => relative(process.cwd(), spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec)),
-            suitesConfig,
-        };
-
-        this.feed(this.registerSession, payload);
-    }
-
-    /**
-     * @typedef {import("@wdio/reporter").SuiteStats} SuiteStats
-     * @typedef {import("@wdio/reporter").TestStats} TestStats
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
-     * @returns {{description, title, parent, fullTitle,
-     *  file, tags, standing, started, ended, session_id, totalRetries, retried}}
+     * @returns {RegisterSuite}
      * returns the info that is crucial to the suite or test
      */
     extractSuiteOrTestDetails(suiteOrTest) {
         const {
-            duration, title, fullTitle, file, tags,
+            title, fullTitle, file, tags,
             // , description,
             //  rule,
             // above commented keys are for the Gherkin Files
         } = suiteOrTest;
-        const started = suiteOrTest.start.toUTCString();
-        const ended = suiteOrTest.end?.toUTCString();
-        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(-1).start.toUTCString()}-${this.currentSuites.at(-1).uid}` : '';
+        const started = suiteOrTest.start.toISOString();
+        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(-1).start.toISOString()}-${this.currentSuites.at(-1).uid}` : '';
+
         const payload = {
-            duration,
             title,
             parent,
             suiteID: `${started}-${suiteOrTest.uid}`,
             fullTitle,
+            description: '',
             file: relative(process.cwd(), file ?? this.currentSuites.at(-1).file),
-            standing: returnStatus(suiteOrTest.end, this.runnerStat.failures),
+            standing: suiteOrTest?.state?.toUpperCase() ?? 'YET_TO_CALC',
             tags: tags ?? [],
             started,
-            ended,
             session_id: this.runnerStat.sessionId,
-            totalRetries: this.runnerStat.retries,
             retried: this.runnerStat.retry,
         };
         return payload;
@@ -177,29 +136,65 @@ export default class NeXtReporter extends WDIOReporter {
 
     /**
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
-     * @returns {{duration, started, ended, failures, sessionID, standing}}
+     * @returns {MarkSuite}
      * returns the info that needs to be updated for either suite or test
      */
+    // eslint-disable-next-line class-methods-use-this
     extractRequiredForCompletion(suiteOrTest) {
         const {
             duration,
         } = suiteOrTest;
 
-        const started = suiteOrTest.start.toUTCString();
-        const ended = suiteOrTest?.end ? suiteOrTest.end.toUTCString() : '';
-        const standing = (suiteOrTest.uid.includes('test') ? (suiteOrTest?.state || 'PENDING') : '').toUpperCase();
+        const started = suiteOrTest.start.toISOString();
+        const ended = suiteOrTest?.end ? suiteOrTest.end.toISOString() : new Date().toISOString();
+        const standing = (suiteOrTest.uid.includes('test') ? (suiteOrTest?.state || 'PENDING') : 'YET_TO_CALC').toUpperCase();
+        const { errors, error } = suiteOrTest;
 
         const payload = {
             duration,
-            started,
             suiteID: `${started}-${suiteOrTest.uid}`,
             ended,
-            failures: this.runnerStat.failures ?? 0,
-            sessionID: this.runnerStat.sessionId,
             standing,
+            errors,
+            error,
         };
 
         return payload;
+    }
+
+    /**
+     * @param {RunnerStats} stats Stats when starting the Runner
+     */
+    onRunnerStart(stats) {
+        /**
+         * @type {number}
+         */
+        const standing = returnStatus(stats.end, stats.failures);
+        const {
+            failures,
+        } = stats;
+        const retried = stats.retry;
+        const [browserName, browserVersion] = stats.sanitizedCapabilities.split('.');
+
+        const { specs } = this;
+        const suitesConfig = this.runnerStat.config.suites;
+
+        /**
+         * @type {RegisterSession}
+         */
+        const payload = {
+            started: stats.start.toISOString(),
+            standing,
+            browserName,
+            failures: failures ?? 0,
+            retried,
+            browserVersion,
+            sessionID: this.runnerStat.sessionId,
+            specs: (specs ?? []).map((spec) => relative(process.cwd(), spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec)),
+            suitesConfig,
+        };
+
+        this.feed(this.registerSession, payload);
     }
 
     /**
@@ -218,8 +213,6 @@ export default class NeXtReporter extends WDIOReporter {
      */
     onSuiteEnd(suite) {
         const payload = this.extractRequiredForCompletion(suite);
-        payload.suiteType = 'SUITE';
-
         this.feed(this.updateSuite, payload);
     }
 
@@ -250,8 +243,6 @@ export default class NeXtReporter extends WDIOReporter {
      */
     markTestCompletion(test) {
         const payload = this.extractRequiredForCompletion(test);
-        payload.suiteType = 'TEST';
-
         this.feed(this.updateSuite, payload);
     }
 
@@ -278,7 +269,7 @@ export default class NeXtReporter extends WDIOReporter {
      * info regarding the session, it is required for updating the registered session
      */
     onRunnerEnd(runner) {
-        const endDate = runner.end?.toUTCString();
+        const ended = runner.end?.toISOString();
         const {
             passes: passed, skipping: skipped, tests,
         } = this.counts;
@@ -291,8 +282,8 @@ export default class NeXtReporter extends WDIOReporter {
             passed,
             failed,
             skipped,
-            endDate,
             tests,
+            ended,
             retried,
             standing,
             sessionID: this.runnerStat.sessionId,
@@ -310,3 +301,51 @@ export default class NeXtReporter extends WDIOReporter {
         return !this.lock.isBusy();
     }
 }
+
+/**
+ * @typedef {"PENDING" | "PASSED" | "FAILED"} standing
+ * @typedef {import("@wdio/reporter").SuiteStats} SuiteStats
+ * @typedef {import("@wdio/reporter").TestStats} TestStats
+ * @typedef {import("@wdio/reporter").RunnerStats} RunnerStats
+ * @typedef {{message: string, stack?:string, name: string}} Error
+ */
+
+/**
+ * @typedef {object} CommonRegisterCols
+ * @property {string} started start date-time of the session
+ * @property {number} retried number of times this test case has been retried
+ * @property {standing} standing status of the execution
+ */
+
+/**
+ * @typedef {object} RegisterSessionSpecific
+ * @property {string} browserName name of the browser used
+ * @property {string} browserVersion version of the browser used
+ * @property {string} sessionID session it is depended on
+ * @property {string[]} specs list of specs files that it will execute
+ * @property {{[key: string]: string | string[]}} suitesConfig list of suites and its configuration
+ * @typedef {RegisterSessionSpecific & CommonRegisterCols} RegisterSession
+ */
+
+/**
+ * @typedef {object} RegisterSuiteSpecific
+ * @property {string} description summary of the test entity
+ * @property {string} file residence file of the test entity
+ * @property {string} parent parent id of the test entity
+ * @property {standing} standing status of its result
+ * @property {string} suiteID it's id
+ * @property {string} session_id id of its session
+ * @property {string} title it's subject
+ * @property {string} fullTitle little detailed title
+ * @typedef {RegisterSuiteSpecific & CommonRegisterCols} RegisterSuite
+ */
+
+/**
+ * @typedef {object} MarkSuite
+ * @property {string} suiteID it's id
+ * @property {standing} standing status of its result
+ * @property {number} duration duration it took to complete
+ * @property {string} ended date-time at its completion
+ * @property {Error} error error if any
+ * @property {Error[]} errors errors if any
+ */

@@ -10,15 +10,12 @@ class Status(StrEnum):
     # yet_to_calc is mostly seen for the suite
 
 
-class LogLevel(StrEnum):
-    info = "info"
-    warn = "warn"
-    error = "error"
-    trace = "trace"
-    debug = "debug"
-    silent = "silent"
-
-
 class SuiteType(StrEnum):
     TEST = "TEST"
     SUITE = "SUITE"
+
+
+class AttachmentType(StrEnum):
+    LABEL = "LABEL"
+    ENV = "ENV"
+    IMAGE = "IMAGE"

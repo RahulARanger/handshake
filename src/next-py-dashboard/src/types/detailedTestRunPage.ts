@@ -12,7 +12,7 @@ export interface DetailedTestRunPageProps extends ShareToOtherPages {
 
 export interface OverviewPageProps extends ShareToOtherPages {}
 
-export type statusOfEntity = "PASSED" | "FAILED" | "PENDING";
+export type statusOfEntity = "PASSED" | "FAILED" | "PENDING" | "SKIPPED";
 
 export interface SuiteDetails {
     title: string;
