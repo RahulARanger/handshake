@@ -9,7 +9,7 @@ class TaskBase(Model):
     ticketID = CharField(max_length=45, pk=True)
     type = CharEnumField(JobType, null=False)
     dropped = DatetimeField(auto_now=True)
-    meta = JSONField(null=False)
+    meta = JSONField(null=True, default={}, description="Data required to process the task, Not used as of now though")
     test = ForeignKeyField(
         "models.RunBase", related_name="tasks", to_field="testID"
     )

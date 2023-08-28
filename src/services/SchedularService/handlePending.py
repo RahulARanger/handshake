@@ -1,15 +1,20 @@
-from src.services.SchedularService.modifySuites import handleSuiteStatus
+from src.services.SchedularService.modifySuites import handleSuiteStatus, add_task_if_required as modify_suite
 from src.services.SchedularService.constants import JobType, MODIFY_SUITE_JOB
-from src.services.DBService.models.task_base import TaskBase
-from src.services.SchedularService.center import ctx_scheduler
+from src.services.SchedularService.shared import ctx_scheduler
+from src.services.DBService.models.config_base import get_config
 
 
-def lookup_for_tasks():
-    rounds = 10
+async def lookup_for_tasks():
     _scheduler = ctx_scheduler()
+    rounds = max((await get_config()).lookUpFrequency, 1)
 
     for look_up_rounds in range(rounds):
-        task = await TaskBase.first()
+        task = await modify_suite()
+
+        if not task:
+            ...  # add another type of task if required
+        if not task:
+            break  # take a break and return when you are called
 
         match task.type:
             case JobType.MODIFY_SUITE:

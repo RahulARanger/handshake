@@ -1,6 +1,6 @@
 from src.services.DBService.models.task_base import TaskBase
 from src.services.DBService.shared import get_test_id
-from src.services.SchedularService.center import ctx_scheduler
+from src.services.SchedularService.shared import ctx_scheduler
 from src.services.DBService.lifecycle import close_connection
 from src.services.SchedularService.completeTestRun import complete_test_run
 from sanic.blueprints import Blueprint

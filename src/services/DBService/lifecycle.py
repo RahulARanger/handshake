@@ -1,4 +1,4 @@
-# from src.services.DBService.models.config_base import ConfigBase
+from src.services.DBService.models.config_base import ConfigBase
 from src.services.DBService.models.result_base import RunBase
 from tortoise import Tortoise, connections
 from src.services.DBService.shared import db_name, db_path
@@ -15,6 +15,9 @@ async def init_tortoise_orm():
 
 
 async def create_run(projectName: str) -> str:
+    await ConfigBase.update_or_create(
+        configID=69
+    )
     return str((await RunBase.create(
         projectName=projectName
     )).testID)

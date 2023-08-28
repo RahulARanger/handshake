@@ -14,3 +14,7 @@ class ConfigBase(Model):
     # maxWeeklyReports = fields.IntField(null=True, default=10, description="Max. Number of Weekly Reports to save")
     # maxBiWeeklyReports = fields.IntField(null=True, default=10, description="Max. Number of BiWeekly Reports to save")
     # maxMonthlyReports = fields.IntField(null=True, default=10, description="Max. Number of Monthly Reports to save")
+
+
+async def get_config() -> ConfigBase:
+    return await ConfigBase.filter(configID=69).first()

@@ -116,7 +116,11 @@ export default class NeXtReporter extends WDIOReporter {
             // above commented keys are for the Gherkin Files
         } = suiteOrTest;
         const started = suiteOrTest.start.toISOString();
-        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(-1).start.toISOString()}-${this.currentSuites.at(-1).uid}` : '';
+
+        const isSuite = suiteOrTest.uid.includes('suite');
+        // NOTE: in webdriverio, we do not need to worry about whether the order of suites
+        // since specs can execute parallely but not the suites
+        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(isSuite ? -2 : -1).start.toISOString()}-${this.currentSuites.at(-1).uid}` : '';
 
         const payload = {
             title,
@@ -186,7 +190,7 @@ export default class NeXtReporter extends WDIOReporter {
             started: stats.start.toISOString(),
             standing,
             browserName,
-            failures: failures ?? 0,
+            failed: failures ?? 0,
             retried,
             browserVersion,
             sessionID: this.runnerStat.sessionId,

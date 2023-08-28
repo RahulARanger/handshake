@@ -22,26 +22,26 @@ describe("Verifying the versions of the project's dependencies", async function 
 
     async function verifyPackages(packages) {
         for (let _package in packages) {
-            it("Search for the package", async function () {
+            it(`Search for the package: ${_package}`, async function () {
                 const searchBar = $("input[type=search]")
                 expect(searchBar).toBeDisplayed();
                 await searchBar.setValue(_package)
                 await browser.keys([Key.Enter])
             })
-            it("Should find a exactly matched package", async function () {
+            it(`Should find a exactly matched package: ${_package}`, async function () {
                 const exactlyMatched = await $("#pkg-list-exact-match")
                 const title = await exactlyMatched.previousElement()
                 await expect(title).toHaveText(_package);
                 await title.click();
             })
 
-            it("Verifying if you have opened the detailed view of the package", async function () {
+            it(`Verifying if you have opened the detailed view of the ${_package}`, async function () {
                 const version = await $("h3=Version")
                 await version.waitForDisplayed({ timeout: 10e3 });
                 await expect(browser).toHaveUrl(`https://www.npmjs.com/package/${_package}`)
                 await expect(browser).toHaveTitle(`${_package} - npm`)
             })
-            it("Verifying the version of the package", async function () {
+            it(`Verifying the Version of package: ${_package}`, async function () {
                 const version = await $("h3=Version")
                 const _version = (await version.nextElement()).$("p")
                 await expect(_version).toHaveText(packages[_package].slice(1))
