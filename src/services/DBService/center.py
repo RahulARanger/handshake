@@ -1,7 +1,6 @@
 from src.services.DBService.models.result_base import SessionBase, SuiteBase
 from src.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
 from src.services.DBService.models.enums import Status, SuiteType
-from src.services.SchedularService.center import schedule_update_suite
 from src.services.DBService.shared import get_test_id
 from sanic.request import Request
 from sanic.blueprints import Blueprint
@@ -46,8 +45,7 @@ async def updateSuite(_: Request) -> HTTPResponse:
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    job_id = schedule_update_suite(suite_record.suiteID, suite_record.title)
-    return text(f'Updated Suite: {suite_record.title} || {suite_record.suiteID} || {job_id.name}', status=201)
+    return text(f'Updated Suite: {suite_record.title} || {suite_record.suiteID}', status=201)
 
 
 @service.put("/updateSession")

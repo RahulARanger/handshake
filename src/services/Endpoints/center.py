@@ -13,9 +13,6 @@ service_provider.blueprint(one_liners)
 service_provider.blueprint(service)
 service_provider.blueprint(get_service)
 
-service_provider.config.CORS_METHODS = ["GET"]
-service_provider.config.OAS = False  # disabling the oas, it is enabled by default
-
 service_provider.error_handler.add(ValidationError, handle_validation_error)
 
 

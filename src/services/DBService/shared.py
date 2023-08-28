@@ -15,6 +15,7 @@ def set_test_id():
     app: Sanic = Sanic.get_app()
     if not hasattr(app.shared_ctx, "TEST_ID"):
         return
+    # ease of access so
     app.config.TEST_ID = app.shared_ctx.TEST_ID.value.decode('utf-8')
 
 

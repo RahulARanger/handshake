@@ -1,75 +1,25 @@
-from src.services.DBService.models.result_base import SuiteBase, SessionBase, RunBase
-from src.services.DBService.models.types import Status
+from src.services.DBService.models.result_base import SuiteBase, RunBase
 from src.services.DBService.shared import get_test_id
 from src.services.SchedularService.types import PathTree, PathItem
-from tortoise.expressions import Q
+from src.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum
 from datetime import datetime
-from collections import Counter
 from typing import List
 from pathlib import Path
 from os.path import join
-
-
-async def modify_suite(suiteID: str):
-    suite = await SuiteBase.filter(suiteID=suiteID).first()
-    print(f"FOUND -- {suite.suiteID} for {suite.title}")
-
-    if suite.standing != Status.YET_TO_CALCULATE:
-        return
-
-    raw_filter = SuiteBase.filter(parent=suiteID)
-    records = await raw_filter.all()
-    statuses = []
-
-    for record in records:
-        record.tests = 1
-        key = "failures" if record.standing == Status.FAILED else record.standing.lower()
-        setattr(record, key, 1)
-        statuses.append(record.standing)
-
-    counted = Counter(statuses)
-    passed = counted.get(Status.PASSED, 0)
-    failed = counted.get(Status.FAILED, 0)
-    skipped = counted.get(Status.SKIPPED, 0)
-    total = len(statuses)
-
-    standing = Status.FAILED if failed > 0 else Status.PASSED if passed > 0 or skipped == 0 else Status.SKIPPED
-    await SuiteBase.bulk_update(
-        records, fields=["tests", "failures", "skipped", "passed"], batch_size=100
-    )
-    await suite.save()
-    await suite.update_from_dict(
-        dict(standing=standing, passed=passed, skipped=skipped, failures=failed, tests=total)
-    )
-    await suite.save()
-
-
-async def fix_old_records():
-    test_id = get_test_id()
-    pending_suites = await SuiteBase.filter(Q(standing=Status.YET_TO_CALCULATE) & ~Q(session__test_id=test_id)).all()
-    for suite in pending_suites:
-        print("FIXING - ", suite.suiteID, suite.title)
-        await modify_suite(suite.suiteID)
-
-
-async def pending_tasks():
-    return await SuiteBase.filter(standing=Status.YET_TO_CALCULATE).count()
-
-
-def fetch_status(entities_status: set):
-    return Status.FAILED if Status.FAILED in entities_status else Status.PASSED if Status.PASSED in entities_status else Status.SKIPPED
 
 
 async def complete_test_run():
     test_id = get_test_id()
 
     test_run = await RunBase.filter(testID=test_id).first()
+    if test_run.specStructure:
+        return
     filtered = SuiteBase.filter(session__test_id=test_id)
 
-    summary = await filtered.annotate(
+    test_result = await filtered.annotate(
         total_passed=Sum("passed"),
-        total_failed=Sum("failures"),
+        total_failed=Sum("failed"),
         total_skipped=Sum("skipped"),
         total_retried=Sum("retried"),
         total_tests=Sum("tests"),
@@ -77,17 +27,20 @@ async def complete_test_run():
     ).first().values(
         "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests", "duration"
     )
+    passed = test_result.get("total_passed", 0)
+    failed = test_result.get("total_failed", 0)
+    skipped = test_result.get("total_skipped", 0)
 
     await test_run.update_from_dict(dict(
         ended=datetime.utcnow(),
-        tests=summary.get("total_tests", 0),
-        passed=summary.get("total_passed", 0),
-        failures=summary.get("total_failed", 0),
-        skipped=summary.get("total_skipped", 0),
-        duration=summary.get("duration", 0.0),
-        retried=summary.get("total_retried", 0),
+        tests=test_result.get("total_tests", 0),
+        passed=passed,
+        failed=failed,
+        skipped=skipped,
+        duration=test_result.get("duration", 0.0),
+        retried=test_result.get("total_retried", 0),
         specStructure=simplify_file_paths(await filtered.all().distinct().values_list("file", flat=True)),
-        standing=fetch_status(set(await filtered.all().values_list('standing', flat=True)))
+        standing=fetch_key_from_status(passed, failed, skipped)
     ))
     await test_run.save()
 
@@ -159,5 +112,3 @@ def simplify_file_paths(paths: List[str]):
             break
 
     return tree
-
-

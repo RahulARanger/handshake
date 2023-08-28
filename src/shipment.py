@@ -64,13 +64,3 @@ class Shipment:
             run("npm install", check=True, shell=True, cwd=self.cache)
 
         return secho("Dashboard is ready!", fg="green", bold=True)
-
-    def export_the_results(self):
-        secho("Exporting the results...")
-        run("npx export --no-lint", check=True, shell=True, cwd=self.cache_results)
-
-        if self.static_results.exists():
-            rmtree(self.static_results)
-
-        copytree(self.cache_results / "out", self.static_results)
-        secho("Exported", fg="green", bold=True, blink=True)

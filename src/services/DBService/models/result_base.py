@@ -1,6 +1,7 @@
 from tortoise.models import Model
 from tortoise.fields import DatetimeField, IntField, FloatField, JSONField, CharEnumField, UUIDField, CharField,\
     ReverseRelation, ForeignKeyField, ForeignKeyRelation, TextField
+from tortoise.contrib.pydantic import pydantic_model_creator
 from src.services.DBService.models.enums import Status, SuiteType, AttachmentType
 
 
@@ -39,6 +40,7 @@ class RunBase(CommonDetailedFields):
     table = "RunBase"
     testID = UUIDField(pk=True)
     sessions = ReverseRelation["SessionBase"]
+    tasks = ReverseRelation["TaskBase"]
     started = DatetimeField(null=False, auto_now=True)
     projectName = CharField(max_length=30, null=False, description="Name of the project")
     specStructure = JSONField(description="file structure of spec files", default=dict())
@@ -47,7 +49,7 @@ class RunBase(CommonDetailedFields):
 class SessionBase(CommonDetailedFields):
     table = "SessionBase"
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="runs", to_field="testID"
+        "models.RunBase", related_name="sessions", to_field="testID"
     )
     suites = ReverseRelation["SuiteBase"]
     sessionID = CharField(max_length=35, pk=True)
@@ -90,3 +92,7 @@ class AttachmentFields(Model):
 class AttachmentBase(AttachmentFields):
     table = "AttachmentBase"
     description = JSONField(null=True, default={"text": None})
+
+
+RunBasePydanticModel = pydantic_model_creator(RunBase)
+SuiteBasePydanticModel = pydantic_model_creator(SuiteBase)

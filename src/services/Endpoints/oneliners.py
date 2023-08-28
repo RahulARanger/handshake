@@ -1,10 +1,11 @@
+from src.services.DBService.models.task_base import TaskBase
+from src.services.DBService.shared import get_test_id
+from src.services.SchedularService.center import ctx_scheduler
+from src.services.DBService.lifecycle import close_connection
+from src.services.SchedularService.completeTestRun import complete_test_run
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
-from src.services.Endpoints.types import ByeWithCommands
-from src.services.SchedularService.updateRecords import pending_tasks, complete_test_run
-from src.services.SchedularService.center import ctx_scheduler
-from src.services.DBService.lifecycle import close_connection
 
 one_liners = Blueprint(name="one_liners", url_prefix="/")
 
@@ -18,11 +19,11 @@ async def health_status(request: Request) -> HTTPResponse:
 
 @one_liners.get("/isItDone")
 async def isItDone(_: Request) -> JSONResponse:
-    pending = await pending_tasks()
+    pending_tasks = await TaskBase.filter(test_id=get_test_id()).count()
     return json(
         dict(
-            done=pending == 0,
-            message=f"{pending} tasks are pending" if pending else "Completed"
+            done=pending_tasks == 0,
+            message=f"{pending_tasks} tasks are pending" if pending_tasks else "Completed"
         )
     )
 
@@ -30,8 +31,6 @@ async def isItDone(_: Request) -> JSONResponse:
 # bye is core request, so make sure to handle it carefully
 @one_liners.post("/bye")
 async def bye(request: Request) -> HTTPResponse:
-    resp: ByeWithCommands = request.json
-
     if ctx_scheduler():
         _scheduler = ctx_scheduler()
         _scheduler.shutdown(wait=True)

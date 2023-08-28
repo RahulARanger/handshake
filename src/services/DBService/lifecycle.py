@@ -1,16 +1,10 @@
-from src.services.DBService.models.config_base import ConfigBase
+# from src.services.DBService.models.config_base import ConfigBase
 from src.services.DBService.models.result_base import RunBase
 from tortoise import Tortoise, connections
 from src.services.DBService.shared import db_name, db_path
 from atexit import register
 from asyncio import run
 from sanic import Sanic
-
-
-async def create_run(projectName: str) -> str:
-    return str((await RunBase.create(
-        projectName=projectName
-    )).testID)
 
 
 async def init_tortoise_orm():
@@ -20,9 +14,10 @@ async def init_tortoise_orm():
     await Tortoise.generate_schemas()
 
 
-async def set_limits():
-    config, _ = await ConfigBase.update_or_create(configID=69)
-    await config.save()
+async def create_run(projectName: str) -> str:
+    return str((await RunBase.create(
+        projectName=projectName
+    )).testID)
 
 
 async def close_connection():

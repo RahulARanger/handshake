@@ -3,8 +3,7 @@ from click import argument, option, Path
 from pathlib import Path as P_Path
 from src.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
-from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run, set_limits
-from src.services.SchedularService.updateRecords import fix_old_records
+from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
 from src.services.DBService.shared import set_test_id
 from sanic.worker.loader import AppLoader
 from sanic import Sanic
@@ -48,7 +47,6 @@ def run_app(
         await init_tortoise_orm()
         test_id = await create_run(projectname)
         service_provider.shared_ctx.TEST_ID = Array('c', str.encode(test_id))
-        await set_limits()  # Empty function as of now
         set_test_id()
 
     @service_provider.main_process_stop
