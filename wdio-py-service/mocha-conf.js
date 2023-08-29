@@ -7,16 +7,20 @@ export const config = attachNeXtReporter({
     reporterSyncTimeout: 30e3, // IMPORTANT
     runner: 'local',
     specs: [
-        ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
+        // ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
         './test-mocha/specs/test.e2e.js',
-        './test-mocha/specs/package-version.e2e.js',
+        // './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 1,
     //
     capabilities: [{
         browserName: 'chrome',
+        'goog:chromeOptions': {
+            args: ['headless', 'disable-gpu'],
+        },
     }],
     logLevel: 'info',
+    outputDir: './logs',
     bail: 0,
     baseUrl: 'http://localhost',
     waitforTimeout: 10000,

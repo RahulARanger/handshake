@@ -1,6 +1,5 @@
 from src.services.DBService.models.task_base import TaskBase
-from sanic import Sanic
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import logging
 
 
 async def drop_task(ticket_id: str):
@@ -11,5 +10,5 @@ async def drop_task(ticket_id: str):
     await task.save()
 
 
-def ctx_scheduler() -> AsyncIOScheduler:
-    return Sanic.get_app().ctx.scheduler
+def get_scheduler_logger():
+    return logging.getLogger('apscheduler.executors.default')

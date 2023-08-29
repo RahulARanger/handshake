@@ -1,14 +1,18 @@
 from sanic import Sanic
 from pathlib import Path
 from src.services.DBService.sanic_free_shared import db_name
+from typing import Optional
 
 
 def root_dir() -> Path:
     return Path(Sanic.get_app().shared_ctx.ROOT.value.decode('utf-8'))
 
 
-def db_path() -> Path:
-    return root_dir() / db_name()
+def db_path(given_root: Optional[str] = None) -> Path:
+    if not given_root:
+        return root_dir() / db_name()
+
+    return Path(given_root) / db_name()
 
 
 def set_test_id():

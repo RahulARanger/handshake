@@ -1,10 +1,11 @@
 from src.services.Endpoints.center import service_provider
+from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
+from src.services.DBService.shared import set_test_id, db_path
+from src.services.SchedularService.center import run_service
 from click import argument, option, Path
 from pathlib import Path as P_Path
 from src.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
-from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
-from src.services.DBService.shared import set_test_id
 from sanic.worker.loader import AppLoader
 from sanic import Sanic
 from typing import Tuple
@@ -52,6 +53,10 @@ def run_app(
     @service_provider.main_process_stop
     async def close_things(app, loop):
         await close_connection()
+
+    @service_provider.main_process_ready
+    async def start_scheduler_process(app: Sanic, loop):
+        app.manager.manage("SchedulerService", run_service, {"db_path": str(db_path(path))}, workers=1)
 
     _app, loader = prepare_loader()
     _app.prepare(

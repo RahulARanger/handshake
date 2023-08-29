@@ -87,7 +87,7 @@ export default class NeXtReporter extends WDIOReporter {
         this.lock.acquire(
             this.runnerStat.config.framework,
             async (done) => {
-                this.logger.info(`Requesting ${feedURL} `);
+                this.logger.info(`Requesting ${feedURL} with args: ${JSON.stringify(feedJSON)}`);
                 const resp = await fetch(feedURL, { method: 'PUT', body: JSON.stringify(feedJSON), keepalive: true });
                 done(Math.floor(resp.status / 200) === 1
                     ? undefined : resp.statusText, await resp.text());
@@ -120,7 +120,8 @@ export default class NeXtReporter extends WDIOReporter {
         const isSuite = suiteOrTest.uid.includes('suite');
         // NOTE: in webdriverio, we do not need to worry about whether the order of suites
         // since specs can execute parallely but not the suites
-        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(isSuite ? -2 : -1).start.toISOString()}-${this.currentSuites.at(-1).uid}` : '';
+        const parentIndex = isSuite ? -2 : -1;
+        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(parentIndex).start.toISOString()}-${this.currentSuites.at(parentIndex).uid}` : '';
 
         const payload = {
             title,
@@ -275,9 +276,8 @@ export default class NeXtReporter extends WDIOReporter {
     onRunnerEnd(runner) {
         const ended = runner.end?.toISOString();
         const {
-            passes: passed, skipping: skipped, tests,
+            passes: passed, skipping: skipped, tests, failures: failed,
         } = this.counts;
-        const failed = this.counts.failures ?? 0;
         const retried = runner.retries;
         const standing = returnStatus(runner.end, runner.failures);
 

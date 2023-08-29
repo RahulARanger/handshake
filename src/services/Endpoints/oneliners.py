@@ -1,8 +1,6 @@
 from src.services.DBService.models.task_base import TaskBase
 from src.services.DBService.shared import get_test_id
-from src.services.SchedularService.shared import ctx_scheduler
 from src.services.DBService.lifecycle import close_connection
-from src.services.SchedularService.completeTestRun import complete_test_run
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
@@ -31,12 +29,6 @@ async def isItDone(_: Request) -> JSONResponse:
 # bye is core request, so make sure to handle it carefully
 @one_liners.post("/bye")
 async def bye(request: Request) -> HTTPResponse:
-    if ctx_scheduler():
-        _scheduler = ctx_scheduler()
-        _scheduler.shutdown(wait=True)
-
-    await complete_test_run()
     await close_connection()
-
     request.app.m.terminate()
     return text("1")

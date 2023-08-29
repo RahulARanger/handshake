@@ -1,26 +1,35 @@
-from src.services.SchedularService.modifySuites import handleSuiteStatus, add_task_if_required as modify_suite
+from src.services.DBService.models.task_base import TaskBase
+from src.services.SchedularService.modifySuites import handleSuiteStatus
 from src.services.SchedularService.constants import JobType, MODIFY_SUITE_JOB
-from src.services.SchedularService.shared import ctx_scheduler
-from src.services.DBService.models.config_base import get_config
+from src.services.SchedularService.shared import get_scheduler_logger
+from src.services.SchedularService.specific import _scheduler
+from logging import Logger
+
+
+async def _lookup_for_tasks(logger: Logger):
+    task = await TaskBase.first()
+    if not task:
+        return
+
+    await task.delete()
+    match task.type:
+        case JobType.MODIFY_SUITE:
+            logger.info("Adding a job to modify a suite.")
+            _scheduler.add_job(
+                handleSuiteStatus, "interval", seconds=2,
+                args=[task.ticketID],
+                name=f'update suite: {task.ticketID}', id=f'{MODIFY_SUITE_JOB}-{task.ticketID}',
+                max_instances=1, coalesce=True, replace_existing=False
+            )
+
+        case _:
+            print("Not Implemented yet..")
 
 
 async def lookup_for_tasks():
-    _scheduler = ctx_scheduler()
-    rounds = max((await get_config()).lookUpFrequency, 1)
-
-    for look_up_rounds in range(rounds):
-        task = await modify_suite()
-
-        if not task:
-            ...  # add another type of task if required
-        if not task:
-            break  # take a break and return when you are called
-
-        match task.type:
-            case JobType.MODIFY_SUITE:
-                _scheduler.add_job(
-                    handleSuiteStatus, "date", args=[task.ticketID],
-                    name=f'update suite: {task.ticketID}', id=f'{MODIFY_SUITE_JOB}-{task.ticketID}'
-                )
-            case _:
-                print("Not Implemented yet..")
+    logger = get_scheduler_logger()
+    logger.info("looking up for tasks")
+    try:
+        await _lookup_for_tasks(logger)
+    except Exception as e:
+        logger.exception("Failed while looking up for tasks", exc_info=True)

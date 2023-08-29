@@ -1,5 +1,6 @@
 from src.services.DBService.models.result_base import SessionBase, SuiteBase
 from src.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
+from src.services.DBService.models.task_base import TaskBase, JobType
 from src.services.DBService.models.enums import Status, SuiteType
 from src.services.DBService.shared import get_test_id
 from sanic.request import Request
@@ -11,9 +12,12 @@ service = Blueprint("DBService", url_prefix="/save")
 
 @service.put("/registerSession")
 async def register_session(_: Request) -> HTTPResponse:
-    session = RegisterSession.model_validate(_.json)
-    created = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
-    await created.save()
+    try:
+        session = RegisterSession.model_validate(_.json)
+        created = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
+        await created.save()
+    except Exception as error:
+        return text(str(error), status=404)
     return text(f"Registered Session: {created.sessionID}", status=201)
 
 
@@ -45,7 +49,14 @@ async def updateSuite(_: Request) -> HTTPResponse:
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    return text(f'Updated Suite: {suite_record.title} || {suite_record.suiteID}', status=201)
+    if suite_record.suiteType == SuiteType.SUITE:
+        task = (
+            await TaskBase.create(ticketID=suite_record.suiteID, test_id=get_test_id(), type=JobType.MODIFY_SUITE)
+        ).ticketID
+    else:
+        task = "Updated"
+
+    return text(f'Updated Suite: {suite_record.title} || {suite_record.suiteID} || {task}', status=201)
 
 
 @service.put("/updateSession")

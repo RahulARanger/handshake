@@ -1,50 +1,13 @@
-from src.services.DBService.models.result_base import SuiteBase, RunBase
+from src.services.DBService.models.result_base import SessionBase, RunBase
 from src.services.DBService.shared import get_test_id
 from src.services.SchedularService.types import PathTree, PathItem
 from src.services.SchedularService.modifySuites import fetch_key_from_status
+from src.services.SchedularService.shared import get_scheduler_logger
 from tortoise.functions import Sum
 from datetime import datetime
 from typing import List
 from pathlib import Path
 from os.path import join
-
-
-async def complete_test_run():
-    test_id = get_test_id()
-
-    test_run = await RunBase.filter(testID=test_id).first()
-    if test_run.specStructure:
-        return
-    filtered = SuiteBase.filter(session__test_id=test_id)
-
-    test_result = await filtered.annotate(
-        total_passed=Sum("passed"),
-        total_failed=Sum("failed"),
-        total_skipped=Sum("skipped"),
-        total_retried=Sum("retried"),
-        total_tests=Sum("tests"),
-        duration=Sum("duration"),
-    ).first().values(
-        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests", "duration"
-    )
-    passed = test_result.get("total_passed", 0)
-    failed = test_result.get("total_failed", 0)
-    skipped = test_result.get("total_skipped", 0)
-
-    await test_run.update_from_dict(dict(
-        ended=datetime.utcnow(),
-        tests=test_result.get("total_tests", 0),
-        passed=passed,
-        failed=failed,
-        skipped=skipped,
-        duration=test_result.get("duration", 0.0),
-        retried=test_result.get("total_retried", 0),
-        specStructure=simplify_file_paths(await filtered.all().distinct().values_list("file", flat=True)),
-        standing=fetch_key_from_status(passed, failed, skipped)
-    ))
-    await test_run.save()
-
-    print("COMPLETED saving a test run")
 
 
 def simplify_file_paths(paths: List[str]):
@@ -112,3 +75,54 @@ def simplify_file_paths(paths: List[str]):
             break
 
     return tree
+
+
+async def _complete_test_run(test_id: str):
+    test_run = await RunBase.filter(testID=test_id).first()
+    # if test_run.test:
+    #     return
+    filtered = SessionBase.filter(test_id=test_id)
+
+    test_result = await filtered.annotate(
+        total_passed=Sum("passed"),
+        total_failed=Sum("failed"),
+        total_skipped=Sum("skipped"),
+        total_retried=Sum("retried"),
+        total_tests=Sum("tests"),
+        duration=Sum("duration"),
+    ).first().values(
+        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests", "duration"
+    )
+    passed = test_result.get("total_passed", 0)
+    failed = test_result.get("total_failed", 0)
+    skipped = test_result.get("total_skipped", 0)
+
+    await test_run.update_from_dict(dict(
+        ended=datetime.utcnow(),
+        tests=test_result.get("total_tests", 0),
+        passed=passed,
+        failed=failed,
+        skipped=skipped,
+        duration=test_result.get("duration", 0.0),
+        retried=test_result.get("total_retried", 0),
+        specStructure=simplify_file_paths([
+            path
+            for paths in await filtered.all().distinct().values_list("specs", flat=True)
+            for path in paths
+        ]),
+        standing=fetch_key_from_status(passed, failed, skipped)
+    ))
+    await test_run.save()
+
+    print("COMPLETED saving a test run")
+
+
+async def complete_test_run(test_id: str):
+    logger = get_scheduler_logger()
+    try:
+        await _complete_test_run(test_id)
+        if test_id == get_test_id():
+            return
+
+    except Exception as e:
+        logger.exception("Failed to fill the test run", exc_info=True)

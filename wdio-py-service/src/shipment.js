@@ -8,10 +8,6 @@ import {
 import logger from '@wdio/logger';
 import ContactList from './contacts.js';
 
-/**
- * @class
- */
-
 export default class Shipment extends ContactList {
     timeout = 20e3;
 
@@ -32,7 +28,7 @@ export default class Shipment extends ContactList {
         const {
             root: rootDir, port, collectionName, projectName,
         } = this.options;
-        this.logger.warn('Shipping the Reporter');
+        this.logger.warn('Preparing the Template for the report 📦');
 
         const output = spawnSync(
             `"${path}" && next-py init-shipment -s "${collectionName}" -o "${rootDir}"`,
@@ -69,11 +65,15 @@ export default class Shipment extends ContactList {
 
     async forceKill() {
         if (this.pyProcess.killed) return;
-        if ((await fetch(`${this.url}/`)).status === 200) { this.pyProcess.kill('SIGINT'); }
+        if ((await fetch(`${this.url}/`)).status === 200) {
+            this.pyProcess.kill('SIGINT');
+            this.logger.warn('Had to 🗡️ the py-process.');
+        }
     }
 
     async sayBye() {
         if (this.pyProcess.killed) return;
+        this.logger.warn('See you later py-process 👋');
         await fetch(`${this.url}/bye`, { method: 'POST' });
     }
 
@@ -121,7 +121,9 @@ export default class Shipment extends ContactList {
                     },
                 );
             }, 1e3);
-        }).then(this.sayBye.bind(this));
+        })
+            .catch(this.sayBye.bind(this))
+            .then(this.sayBye.bind(this));
     }
 
     async onComplete() {
