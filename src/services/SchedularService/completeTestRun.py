@@ -87,7 +87,7 @@ async def complete_test_run(test_id: str, current_test_id: str):
     test_run = await RunBase.filter(testID=test_id).first()
     task = await TaskBase.filter(ticketID=test_run.testID).first()
 
-    if test_run.standing != Status.YET_TO_CALCULATE:
+    if test_run.standing != Status.PENDING:
         logger.warning("Invalid task for completing the test run | {}", test_id)
         return await task.delete()
 

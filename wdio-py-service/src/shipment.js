@@ -9,7 +9,7 @@ import logger from '@wdio/logger';
 import ContactList from './contacts.js';
 
 export default class Shipment extends ContactList {
-    timeout = 20e3;
+    timeout = 60e3;
 
     logger = logger('wdio-py-service');
 
@@ -129,7 +129,7 @@ export default class Shipment extends ContactList {
     async onComplete() {
         const completed = this.pyProcess.killed;
         if (completed) return this.pyProcess.exitCode === 0;
-        await fetch(`${this.url}/done`, { method: 'PUT' }).then((data) => this.logger.info(data));
+        await fetch(`${this.url}/done`, { method: 'PUT' }).then(async (data) => this.logger.info(await data.text()));
         return this.flagToPyThatsItsDone();
     }
 }
