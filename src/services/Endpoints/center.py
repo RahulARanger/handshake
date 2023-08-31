@@ -1,11 +1,11 @@
-import asyncio
-from sanic import Sanic
 from src.services.Endpoints.oneliners import one_liners
 from src.services.DBService.center import service
 from src.services.DBService.getThings import get_service
 from src.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from src.services.DBService.shared import set_test_id
 from src.services.Endpoints.errorHandling import handle_validation_error
+import asyncio
+from sanic import Sanic
 from pydantic import ValidationError
 from loguru import logger
 from signal import signal, SIGTERM, SIGINT

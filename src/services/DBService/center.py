@@ -3,6 +3,7 @@ from src.services.DBService.models.types import RegisterSession, RegisterSuite, 
 from src.services.DBService.models.task_base import TaskBase, JobType
 from src.services.DBService.models.enums import Status, SuiteType
 from src.services.DBService.shared import get_test_id
+from src.services.SchedularService.modifySuites import fetch_key_from_status
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text
@@ -45,6 +46,13 @@ async def updateSuite(_: Request) -> HTTPResponse:
 
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
+    else:
+        note = {
+            fetch_key_from_status(suite_record.passed, suite_record.failed, suite_record.skipped).lower(): 1,
+            "tests": 1
+        }
+        await suite_record.update_from_dict(note)
+        await suite_record.save()
 
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()

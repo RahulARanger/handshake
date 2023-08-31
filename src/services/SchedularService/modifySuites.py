@@ -1,37 +1,29 @@
-from src.services.SchedularService.specific import _scheduler
 from src.services.DBService.models.result_base import SuiteBase
 from src.services.DBService.models.task_base import TaskBase
 from src.services.DBService.models.enums import Status
-from src.services.SchedularService.shared import drop_task, get_scheduler_logger
-from src.services.SchedularService.constants import JobType
 from tortoise.expressions import Q
+from loguru import logger
 
 
-def get_modify_suite(suite_id):
-    return _scheduler.get_job(f'{JobType.MODIFY_SUITE}-{suite_id}')
+async def handleSuiteStatus(suiteID: str, testID: str):
+    task = await TaskBase.filter(ticketID=suiteID).first()
+    suite = await SuiteBase.filter(suiteID=suiteID).first()
+    logger.info("Modifying suite {} belonging to the test {}", suite.title, testID)
 
-
-def remove_suite_job(suite_id):
-    job = get_modify_suite(suite_id)
-    if not job:
-        return
-    return job.remove()
-
-
-async def handleSuiteStatus(ticketID: str):
-    task = await TaskBase.filter(ticketID=ticketID).first()
-    if not task:
-        return remove_suite_job(ticketID)
-
-    suite = await SuiteBase.filter(suiteID=task.ticketID).first()
     if suite.standing != Status.YET_TO_CALCULATE:
-        remove_suite_job(ticketID)
-        return await drop_task(ticketID)
+        logger.warning("Removing this task {} as it was already processed", suite.title)
+        if task:
+            return await task.delete()
 
     pending_child_tasks = await SuiteBase.filter(
         Q(parent=suite.suiteID) & (Q(standing=Status.PENDING) | Q(standing=Status.YET_TO_CALCULATE))).exists()
     if pending_child_tasks:
-        return  # continue in the next run
+        logger.warning(
+            "There are some child suites, which are not yet processed, so will process {} suite in the next iteration",
+            suite.title
+        )
+        await task.update_from_dict(dict(picked=False))
+        return await task.save()  # continue in the next run
 
     raw_filter = SuiteBase.filter(parent=suite.suiteID)
     passed = await raw_filter.filter(standing=Status.PASSED).count()
@@ -41,12 +33,12 @@ async def handleSuiteStatus(ticketID: str):
     standing = fetch_key_from_status(passed, failed, skipped)
 
     await suite.update_from_dict(
-        dict(standing=standing, passed=passed, skipped=skipped, failures=failed, tests=total)
+        dict(standing=standing, passed=passed, skipped=skipped, failed=failed, tests=total)
     )
     await suite.save()
 
-    await drop_task(ticketID)
-    return remove_suite_job(ticketID)
+    logger.info("Successfully processed suite: {}", suite.title)
+    return await task.delete()
 
 
 def fetch_key_from_status(passed, failed, skipped):

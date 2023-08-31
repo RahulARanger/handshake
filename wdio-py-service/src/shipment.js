@@ -129,6 +129,7 @@ export default class Shipment extends ContactList {
     async onComplete() {
         const completed = this.pyProcess.killed;
         if (completed) return this.pyProcess.exitCode === 0;
+        await fetch(`${this.url}/done`, { method: 'PUT' }).then((data) => this.logger.info(data));
         return this.flagToPyThatsItsDone();
     }
 }

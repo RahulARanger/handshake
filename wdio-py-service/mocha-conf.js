@@ -7,9 +7,9 @@ export const config = attachNeXtReporter({
     reporterSyncTimeout: 30e3, // IMPORTANT
     runner: 'local',
     specs: [
-        // ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
+        ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
         './test-mocha/specs/test.e2e.js',
-        // './test-mocha/specs/package-version.e2e.js',
+        './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 1,
     //

@@ -1,35 +1,37 @@
 from src.services.DBService.models.task_base import TaskBase
 from src.services.SchedularService.modifySuites import handleSuiteStatus
-from src.services.SchedularService.constants import JobType, MODIFY_SUITE_JOB
-from src.services.SchedularService.shared import get_scheduler_logger
-from src.services.SchedularService.specific import _scheduler
-from logging import Logger
+from src.services.SchedularService.constants import JobType
+from src.services.SchedularService.completeTestRun import complete_test_run
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from loguru import logger
 
 
-async def _lookup_for_tasks(logger: Logger):
-    task = await TaskBase.first()
+async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
+    logger.info("Looking up for the tasks")
+    task = await TaskBase.filter(picked=False).order_by("dropped").first()  # ascending
+
     if not task:
-        return
+        return logger.warning("No Task found in this iteration")
 
-    await task.delete()
+    await task.update_from_dict(dict(picked=True))
+    await task.save()
+
     match task.type:
         case JobType.MODIFY_SUITE:
-            logger.info("Adding a job to modify a suite.")
-            _scheduler.add_job(
-                handleSuiteStatus, "interval", seconds=2,
-                args=[task.ticketID],
-                name=f'update suite: {task.ticketID}', id=f'{MODIFY_SUITE_JOB}-{task.ticketID}',
-                max_instances=1, coalesce=True, replace_existing=False
+            job = _scheduler.add_job(
+                handleSuiteStatus,
+                args=[task.ticketID, task.test_id],
+                name=f'update suite: {task.ticketID}', id=task.ticketID
             )
+            logger.info("Picked a job {} to modify a suite. {}", job.name, task.ticketID)
+
+        case JobType.MODIFY_TEST_RUN:
+            job = _scheduler.add_job(
+                complete_test_run,
+                args=[task.ticketID, task.test_id],
+                name=f'update suite: {task.ticketID}', id=task.ticketID
+            )
+            logger.info("Picked a job {} to modify a suite. {}", job.name, task.ticketID)
 
         case _:
             print("Not Implemented yet..")
-
-
-async def lookup_for_tasks():
-    logger = get_scheduler_logger()
-    logger.info("looking up for tasks")
-    try:
-        await _lookup_for_tasks(logger)
-    except Exception as e:
-        logger.exception("Failed while looking up for tasks", exc_info=True)

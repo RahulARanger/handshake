@@ -1,5 +1,5 @@
 from tortoise.models import Model
-from tortoise.fields import DatetimeField, IntField, FloatField, JSONField, CharEnumField, UUIDField, CharField,\
+from tortoise.fields import DatetimeField, IntField, FloatField, JSONField, CharEnumField, UUIDField, CharField, \
     ReverseRelation, ForeignKeyField, ForeignKeyRelation, TextField
 from tortoise.contrib.pydantic import pydantic_model_creator
 from src.services.DBService.models.enums import Status, SuiteType, AttachmentType
@@ -71,7 +71,7 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
         SuiteType, description="Specifies whether if it is a test suite or test case", null=False
     )
     title = TextField(max_length=225)
-    fullTitle = TextField(max_length=225)
+    fullTitle = TextField(null=True, default="", max_length=225)
     file = TextField(max_length=150, null=False, description="path to the spec file")
     parent = CharField(max_length=45, description="Parent Suite's ID", default="")
     tags = JSONField(description='list of all tags', default=[])

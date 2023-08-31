@@ -2,6 +2,7 @@ from src.services.DBService.models.task_base import TaskBase
 from src.services.DBService.shared import get_test_id
 from src.services.DBService.lifecycle import close_connection
 from sanic.blueprints import Blueprint
+from src.services.SchedularService.constants import JobType
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
 
@@ -13,6 +14,15 @@ one_liners = Blueprint(name="one_liners", url_prefix="/")
 @one_liners.get("/")
 async def health_status(request: Request) -> HTTPResponse:
     return text("1")
+
+
+@one_liners.put("/done")
+async def set_done(request: Request) -> HTTPResponse:
+    task = await TaskBase.create(
+        type=JobType.MODIFY_TEST_RUN,
+        test_id=get_test_id(), ticketID=get_test_id()
+    )
+    return text(task.ticketID)
 
 
 @one_liners.get("/isItDone")

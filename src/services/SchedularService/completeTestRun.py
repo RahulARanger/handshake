@@ -1,13 +1,14 @@
 from src.services.DBService.models.result_base import SessionBase, RunBase
-from src.services.DBService.shared import get_test_id
+from src.services.DBService.models.task_base import TaskBase
+from src.services.DBService.models.types import Status
 from src.services.SchedularService.types import PathTree, PathItem
 from src.services.SchedularService.modifySuites import fetch_key_from_status
-from src.services.SchedularService.shared import get_scheduler_logger
 from tortoise.functions import Sum
 from datetime import datetime
 from typing import List
 from pathlib import Path
 from os.path import join
+from loguru import logger
 
 
 def simplify_file_paths(paths: List[str]):
@@ -77,12 +78,20 @@ def simplify_file_paths(paths: List[str]):
     return tree
 
 
-async def _complete_test_run(test_id: str):
-    test_run = await RunBase.filter(testID=test_id).first()
-    # if test_run.test:
-    #     return
-    filtered = SessionBase.filter(test_id=test_id)
+async def complete_test_run(test_id: str, current_test_id: str):
+    if current_test_id == test_id:
+        logger.info("Patching up the test run... {}", test_id)
+    else:
+        logger.warning("Patching up one of the prev. tests runs... {}", test_id)
 
+    test_run = await RunBase.filter(testID=test_id).first()
+    task = await TaskBase.filter(ticketID=test_run.testID).first()
+
+    if test_run.standing != Status.YET_TO_CALCULATE:
+        logger.warning("Invalid task for completing the test run | {}", test_id)
+        return await task.delete()
+
+    filtered = SessionBase.filter(test_id=test_id)
     test_result = await filtered.annotate(
         total_passed=Sum("passed"),
         total_failed=Sum("failed"),
@@ -112,17 +121,7 @@ async def _complete_test_run(test_id: str):
         ]),
         standing=fetch_key_from_status(passed, failed, skipped)
     ))
+
     await test_run.save()
-
-    print("COMPLETED saving a test run")
-
-
-async def complete_test_run(test_id: str):
-    logger = get_scheduler_logger()
-    try:
-        await _complete_test_run(test_id)
-        if test_id == get_test_id():
-            return
-
-    except Exception as e:
-        logger.exception("Failed to fill the test run", exc_info=True)
+    logger.info("Completed the patch for test run | {}", test_id)
+    return await task.delete()

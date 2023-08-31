@@ -1,6 +1,8 @@
 from tortoise.models import Model
-from tortoise.fields import CharField, DatetimeField, JSONField, CharEnumField, ForeignKeyField, ForeignKeyRelation
+from tortoise.fields import CharField, DatetimeField, JSONField, CharEnumField, ForeignKeyField, ForeignKeyRelation, \
+    BooleanField
 from src.services.SchedularService.constants import JobType
+from src.services.DBService.models.result_base import RunBase
 
 
 class TaskBase(Model):
@@ -8,8 +10,10 @@ class TaskBase(Model):
 
     ticketID = CharField(max_length=45, pk=True)
     type = CharEnumField(JobType, null=False)
-    dropped = DatetimeField(auto_now=True)
+    dropped = DatetimeField(auto_now=True) # use modified timestamp
+    # this would schedule the parent suites in the later rounds
     meta = JSONField(null=True, default={}, description="Data required to process the task, Not used as of now though")
-    test = ForeignKeyField(
+    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
         "models.RunBase", related_name="tasks", to_field="testID"
     )
+    picked = BooleanField(null=True, default=False, description="True if the task is picked by the job else False")

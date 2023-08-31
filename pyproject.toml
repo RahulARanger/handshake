@@ -19,10 +19,13 @@ tortoise-orm = "^0.20.0"
 click = "^8.1.6"
 apscheduler = "^3.10.4"
 pydantic = "^2.3.0"
+loguru = "^0.7.0"
 
 [tool.poetry.group.dev.dependencies]
 poetry = "^1.5.1"
 pytest = "^7.4.0"
+pytest-asyncio = "^0.21.1"
+sanic-testing = "^23.6.0"
 
 [build-system]
 requires = ["poetry-core"]
