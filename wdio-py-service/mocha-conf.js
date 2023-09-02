@@ -20,7 +20,7 @@ export const config = attachNeXtReporter({
         },
     }],
     logLevel: 'info',
-    outputDir: './logs',
+    // outputDir: './logs',
     bail: 0,
     baseUrl: 'http://localhost',
     waitforTimeout: 10000,

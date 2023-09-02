@@ -44,10 +44,10 @@ export default class NeXtReporter extends ReporterEndpoints {
                     { method: 'PUT', body: JSON.stringify(feedJSON), keepalive: true },
                 );
 
-                done(resp.ok ? undefined : resp.statusText, await resp.text());
+                done(resp.ok ? undefined : new Error(resp.statusText), await resp.text());
             },
             (er, text) => {
-                if (er) this.logger.error(`💔 ${feedURL} - ${er} || ${text}`);
+                if (er) this.logger.error(`💔 ${feedURL} - ${er.message} || ${text}`);
                 else this.logger.info(`🗳️ - ${text}`);
             },
         );
@@ -59,10 +59,18 @@ export default class NeXtReporter extends ReporterEndpoints {
      * @returns {string | ""} parent id of the requested entity
      */
     fetchParent(suiteOrTest) {
-        const expectedParent = suiteOrTest.parent;
-        const fetchedParent = this.suites[expectedParent];
-        if (!fetchedParent) return '';
-        return returnSuiteID(fetchedParent);
+        switch (this.runnerStat.config.framework) {
+        case 'cucumber': {
+            const expectedParent = suiteOrTest.parent;
+            const fetchedParent = this.suites[expectedParent];
+            if (!fetchedParent) return '';
+            return returnSuiteID(fetchedParent);
+        }
+        default: {
+            const isSuite = suiteOrTest.uid.includes('suite');
+            return suiteOrTest.parent ? returnSuiteID(this.currentSuites.at(isSuite ? -2 : -1)) : '';
+        }
+        }
     }
 
     /**
@@ -86,7 +94,7 @@ export default class NeXtReporter extends ReporterEndpoints {
             suiteID: `${started}-${suiteOrTest.uid}`,
             fullTitle: fullTitle ?? '',
             description: description ?? '',
-            file: sanitizePaths([file ?? this.suites[suiteOrTest.parent].file]).at(0),
+            file: sanitizePaths([file ?? this.currentSuites.at(-1).file]).at(0),
             standing: suiteOrTest?.state?.toUpperCase() ?? 'YET_TO_CALC',
             tags: tags ?? [],
             started,
