@@ -92,6 +92,11 @@ async def complete_test_run(test_id: str, current_test_id: str):
         return await task.delete()
 
     filtered = SessionBase.filter(test_id=test_id)
+    if await filtered.count() == 0:
+        logger.warning("Detected test run: {} with no sessions", test_id)
+        await task.delete()
+        return await test_run.delete()
+
     test_result = await filtered.annotate(
         total_passed=Sum("passed"),
         total_failed=Sum("failed"),

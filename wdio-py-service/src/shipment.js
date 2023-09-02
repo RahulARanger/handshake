@@ -6,11 +6,9 @@ import {
 } from 'node:timers';
 // eslint-disable-next-line import/no-unresolved
 import logger from '@wdio/logger';
-import ContactList from './contacts.js';
+import ContactList from './referenceUrls.js';
 
 export default class Shipment extends ContactList {
-    timeout = 60e3;
-
     logger = logger('wdio-py-service');
 
     /**
@@ -20,10 +18,10 @@ export default class Shipment extends ContactList {
 
     /**
      *
-     * @param {import("@wdio/types").Options.WebdriverIO} config
+     * @param {import("@wdio/types").Options.WebdriverIO} _
      * Config used for the webdriverIO tests
      */
-    async onPrepare(config) {
+    async onPrepare(_) {
         const path = join('venv', 'Scripts', 'activate');
         const {
             root: rootDir, port, collectionName, projectName,
@@ -52,7 +50,7 @@ export default class Shipment extends ContactList {
 
         this.pyProcess.on('error', (err) => { throw new Error(String(err)); });
         // comment below line for debugging sanic server
-        this.pyProcess.on('exit', (code) => { throw new Error(`Failed to generate the report, Error Code: ${code}`); });
+        this.pyProcess.on('exit', (code) => { throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
 
         this.logger.warn(`pid: ${this.pyProcess.pid}`);
 
@@ -67,33 +65,36 @@ export default class Shipment extends ContactList {
         if (this.pyProcess.killed) return;
         if ((await fetch(`${this.url}/`)).status === 200) {
             this.pyProcess.kill('SIGINT');
-            this.logger.warn('Had to 🗡️ the py-process.');
+            this.logger.warn('→ Had to 🗡️ the py-process.');
         }
     }
 
     async sayBye() {
         if (this.pyProcess.killed) return;
-        this.logger.warn('See you later py-process 👋');
-        await fetch(`${this.url}/bye`, { method: 'POST' });
+        this.logger.warn('→ See you later py-process 👋');
+        try {
+            await fetch(`${this.url}/bye`, { method: 'POST' });
+        } catch {
+            this.logger.info('→ Server is offline as expected. 😪');
+        }
     }
 
     async waitUntilItsReady() {
-        const waitingForTheServer = new Error('Not able to connect with server within 10 seconds');
+        const waitingForTheServer = new Error(
+            'Not able to connect with server within 10 seconds 😢, please try again later',
+        );
+
         return new Promise((resolve, reject) => {
-            const bomb = setTimeout(() => {
-                this.logger.error('Failed to connect with the server');
-                reject(waitingForTheServer);
-            }, 10e3); // 5 seconds buffer
+            const bomb = setTimeout(() => { reject(waitingForTheServer); }, 10e3);
 
             const timer = setInterval(() => {
-                this.logger.warn('pinging py-server...');
+                this.logger.warn('pinging py-server 👆...');
 
                 fetch(`${this.url}/`).then((resp) => {
                     if (resp.status !== 200) return;
+                    clearTimeout(bomb); clearInterval(timer);
 
-                    clearTimeout(bomb);
-                    clearInterval(timer);
-                    this.logger.info('Connection Found!');
+                    this.logger.info('Server is online! 😀');
                     resolve();
                 });
             }, 3e3);
@@ -101,19 +102,18 @@ export default class Shipment extends ContactList {
     }
 
     async flagToPyThatsItsDone() {
-        const explain = new Error('Sorry, could not generate report on time, please increase the timeout.');
+        const explain = new Error('→ There were some pending tasks that was not completed on time 😓, try increasing the timeout or job related spec');
+
         return new Promise((resolve, reject) => {
-            const bomb = setTimeout(() => {
-                this.logger.error('Failed to generate report on time');
-                reject(explain);
-            }, this.timeout + 5e3); // 5 seconds buffer
+            // 5 seconds buffer
+            const bomb = setTimeout(() => { reject(explain); }, this.options.timeout + 5e3);
 
             const timer = setInterval(() => {
-                this.logger.warn('Waiting for the py-process to complete...');
+                this.logger.warn('→ Waiting for the py-process to complete ⏲️...');
 
                 fetch(`${this.url}/isItDone`).then((data) => data.json()).then(
                     (data) => {
-                        if (!data.done) { this.logger.warn(`Pending tasks: ${data.message}`); return; }
+                        if (!data.done) { this.logger.warn(`→ Pending Tasks ⚒️: ${data.message}`); return; }
 
                         clearTimeout(bomb);
                         clearInterval(timer);

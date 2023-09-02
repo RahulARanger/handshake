@@ -11,26 +11,25 @@ def understand_js_date(utc_date_string: str) -> datetime:
 
 class CommonRegisterCols(BaseModel):
     retried: int
-    standing: Status
     started: datetime
 
 
 class RegisterSession(CommonRegisterCols):
     browserName: str
     browserVersion: str
+    platformName: str
+    sanitizedCapabilities: str
     sessionID: str
-    standing: Literal[Status.PENDING]
     specs: List[str]
-    suitesConfig: Optional[Dict[str, Union[List[str], str]]] = {}
 
 
 class RegisterSuite(CommonRegisterCols):
-    suiteID: str
-    suiteType: SuiteType
-    session_id: str
     title: str
     fullTitle: str
     description: Optional[str] = ""
+    suiteID: str
+    suiteType: SuiteType
+    session_id: str
     file: str
     parent: str
     standing: Union[Literal[Status.YET_TO_CALCULATE], Literal[Status.PENDING], Literal[Status.SKIPPED]]
@@ -43,10 +42,9 @@ class MarkSession(BaseModel):
     passed: int
     failed: int
     tests: int
+    hooks: int
     ended: datetime
-    standing: Status
     sessionID: str
-    retried: int
 
 
 class Error(TypedDict):

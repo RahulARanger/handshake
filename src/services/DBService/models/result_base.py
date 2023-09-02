@@ -44,6 +44,7 @@ class RunBase(CommonDetailedFields):
     started = DatetimeField(null=False, auto_now=True)
     projectName = CharField(max_length=30, null=False, description="Name of the project")
     specStructure = JSONField(description="file structure of spec files", default=dict())
+    suiteSummary = JSONField(description="summary of the suites", default=dict(count=0, passed=0, failed=0, skipped=0))
 
 
 class SessionBase(CommonDetailedFields):
@@ -52,11 +53,12 @@ class SessionBase(CommonDetailedFields):
         "models.RunBase", related_name="sessions", to_field="testID"
     )
     suites = ReverseRelation["SuiteBase"]
-    sessionID = CharField(max_length=35, pk=True)
+    sessionID = CharField(max_length=45, pk=True)
     browserName = CharField(max_length=10, default="")
     browserVersion = CharField(max_length=20, default="")
     platformName = CharField(max_length=10, default="")
     specs = JSONField(description="List of spec files", default=[])
+    hooks = IntField(default=0, null=False, description="Number of hooks used")
 
 
 class SuiteBase(CommandReportFields, EntityBaseSpecific):

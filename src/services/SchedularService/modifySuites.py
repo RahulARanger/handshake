@@ -17,6 +17,7 @@ async def handleSuiteStatus(suiteID: str, testID: str):
 
     pending_child_tasks = await SuiteBase.filter(
         Q(parent=suite.suiteID) & (Q(standing=Status.PENDING) | Q(standing=Status.YET_TO_CALCULATE))).exists()
+
     if pending_child_tasks:
         logger.warning(
             "There are some child suites, which are not yet processed, so will process {} suite in the next iteration",

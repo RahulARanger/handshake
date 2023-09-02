@@ -4,7 +4,7 @@ import Shipment from './shipment.js';
 
 /**
  * @typedef {import("./reporter").ReporterOptions} ReporterOptions
- * @typedef {import('./contacts').ShipmentOptions} ShipmentOptions
+ * @typedef {import('./referenceUrls.js').ShipmentOptions} ShipmentOptions
  * @typedef {ReporterOptions | ShipmentOptions} Options
  * @param {Options} options Options to pass to our reporter and service
  * @returns {{Reporter: [NeXtReporter, ReporterOptions],
@@ -22,10 +22,9 @@ export function neXtReporter(
     const serviceOptions = {
         port: reporterOptions.port,
         root: options.root || process.cwd(),
-        collectionName: options.collectionName || 'Test Results',
-        timeout: options.timeout || 30e3,
+        collectionName: options.collectionName || 'TestResults',
+        timeout: options.timeout || 60e3,
         reportLabel: options.reportLabel || undefined,
-        generateOut: options.generateOut || false,
         projectName: options.projectName,
     };
 

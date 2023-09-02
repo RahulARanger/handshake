@@ -41,6 +41,7 @@ async def init_jobs_connections(db_path: str, _scheduler: AsyncIOScheduler):
 
     prev_picked_tasks = await TaskBase.filter(picked=True).all()
     for task in prev_picked_tasks:
+        logger.info("scheduling old task {} for this iteration", task.ticketID)
         task.picked = False
     await TaskBase.bulk_update(prev_picked_tasks, ("picked", ), 100)
 

@@ -25,6 +25,10 @@ async def register_session(_: Request) -> HTTPResponse:
 @service.put("/registerSuite")
 async def register_suite(_: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(_.json)
+
+    if suite.parent == suite.suiteID:
+        return text("Failed to register the suite as the parent id is same as that of its id", status=402)
+
     if await SuiteBase.exists(suiteID=suite.suiteID, session_id=suite.session_id):
         return text(suite.started.isoformat() + " || Existing", status=208)
 

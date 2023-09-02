@@ -1,9 +1,11 @@
+/* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
-import { relative } from 'node:path';
-import WDIOReporter from '@wdio/reporter';
 import logger from '@wdio/logger';
 import AsyncLock from 'async-lock';
 import fetch from 'node-fetch';
+import { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter';
+import extractSessionDetailsForRegistration, { extractSessionDetailsForCompletion, returnSuiteID, sanitizePaths } from './extractors.js';
+import { ReporterEndpoints } from './referenceUrls.js';
 
 /**
  *
@@ -13,61 +15,10 @@ import fetch from 'node-fetch';
  * @typedef {{port?: number}} ReporterOptions
  */
 
-/**
- *
- * @param {Date | undefined} endDate end date of the test entity
- * @param {string[] | undefined} failures list of failures if there else undefined
- * @returns {string} returns the status of the test on "before" hook
- */
-function returnStatus(endDate, failures) {
-    if (!endDate) return 'PENDING';
-    return failures?.length ? 'FAILED' : 'PASSED';
-}
-
-export default class NeXtReporter extends WDIOReporter {
+export default class NeXtReporter extends ReporterEndpoints {
     logger = logger('wdio-py-reporter');
 
     lock = new AsyncLock({ timeout: 60e3, maxExecutionTime: 60e3, maxPending: 1000 });
-
-    packing = false; // false if its free
-
-    port = 6969;
-
-    get url() {
-        return `http://127.0.0.1:${this.port}`;
-    }
-
-    get saveUrl() {
-        return `${this.url}/save`;
-    }
-
-    get addFeatureUrl() {
-        return `${this.saveUrl}/addFeature`;
-    }
-
-    get addSuiteUrl() {
-        return `${this.saveUrl}/addSuite`;
-    }
-
-    get registerSession() {
-        return `${this.saveUrl}/registerSession`;
-    }
-
-    get registerSuite() {
-        return `${this.saveUrl}/registerSuite`;
-    }
-
-    get updateSuite() {
-        return `${this.saveUrl}/updateSuite`;
-    }
-
-    get updateSession() {
-        return `${this.saveUrl}/updateSession`;
-    }
-
-    get getService() {
-        return `${this.url}/get`;
-    }
 
     /**
      *
@@ -75,7 +26,7 @@ export default class NeXtReporter extends WDIOReporter {
      */
     constructor(options) {
         super(options);
-        this.port = options.port ?? this.port;
+        if (!this.options.port) { throw new Error("Port is required for allocating server's place"); }
     }
 
     /**
@@ -87,49 +38,55 @@ export default class NeXtReporter extends WDIOReporter {
         this.lock.acquire(
             this.runnerStat.config.framework,
             async (done) => {
-                this.logger.info(`Requesting ${feedURL} with args: ${JSON.stringify(feedJSON)}`);
-                const resp = await fetch(feedURL, { method: 'PUT', body: JSON.stringify(feedJSON), keepalive: true });
-                done(Math.floor(resp.status / 200) === 1
-                    ? undefined : resp.statusText, await resp.text());
+                this.logger.info(`🚚 URL: ${feedURL} || 📃 payload: ${JSON.stringify(feedJSON)}`);
+                const resp = await fetch(
+                    feedURL,
+                    { method: 'PUT', body: JSON.stringify(feedJSON), keepalive: true },
+                );
+
+                done(resp.ok ? undefined : resp.statusText, await resp.text());
             },
             (er, text) => {
-                try {
-                    if (er) this.logger.error(JSON.stringify(JSON.parse(er), null, 4));
-                    else this.logger.info(text);
-                } catch {
-                    this.logger.info(text);
-                }
+                if (er) this.logger.error(`💔 ${feedURL} - ${er} || ${text}`);
+                else this.logger.info(`🗳️ - ${text}`);
             },
         );
     }
 
     /**
+     * Returns the ID of the parent entity if found
+     * @param {SuiteStats | TestStats} suiteOrTest test entity
+     * @returns {string | ""} parent id of the requested entity
+     */
+    fetchParent(suiteOrTest) {
+        const expectedParent = suiteOrTest.parent;
+        const fetchedParent = this.suites[expectedParent];
+        if (!fetchedParent) return '';
+        return returnSuiteID(fetchedParent);
+    }
+
+    /**
+     * extracts the required information for registering a test entity [suite / test]
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
-     * @returns {RegisterSuite}
+     * @returns {RegisterSuite} payload for registering a suite
      * returns the info that is crucial to the suite or test
      */
-    extractSuiteOrTestDetails(suiteOrTest) {
+    extractRegistrationPayloadForTestEntity(suiteOrTest) {
         const {
             title, fullTitle, file, tags,
-            // , description,
+            description,
             //  rule,
             // above commented keys are for the Gherkin Files
         } = suiteOrTest;
         const started = suiteOrTest.start.toISOString();
 
-        const isSuite = suiteOrTest.uid.includes('suite');
-        // NOTE: in webdriverio, we do not need to worry about whether the order of suites
-        // since specs can execute parallely but not the suites
-        const parentIndex = isSuite ? -2 : -1;
-        const parent = suiteOrTest?.parent ? `${this.currentSuites.at(parentIndex).start.toISOString()}-${this.currentSuites.at(parentIndex).uid}` : '';
-
         const payload = {
             title,
-            parent,
+            parent: this.fetchParent(suiteOrTest),
             suiteID: `${started}-${suiteOrTest.uid}`,
-            fullTitle,
-            description: '',
-            file: relative(process.cwd(), file ?? this.currentSuites.at(-1).file),
+            fullTitle: fullTitle ?? '',
+            description: description ?? '',
+            file: sanitizePaths([file ?? this.suites[suiteOrTest.parent].file]).at(0),
             standing: suiteOrTest?.state?.toUpperCase() ?? 'YET_TO_CALC',
             tags: tags ?? [],
             started,
@@ -145,7 +102,7 @@ export default class NeXtReporter extends WDIOReporter {
      * returns the info that needs to be updated for either suite or test
      */
     // eslint-disable-next-line class-methods-use-this
-    extractRequiredForCompletion(suiteOrTest) {
+    extractRequiredForEntityCompletion(suiteOrTest) {
         const {
             duration,
         } = suiteOrTest;
@@ -171,35 +128,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {RunnerStats} stats Stats when starting the Runner
      */
     onRunnerStart(stats) {
-        /**
-         * @type {number}
-         */
-        const standing = returnStatus(stats.end, stats.failures);
-        const {
-            failures,
-        } = stats;
-        const retried = stats.retry;
-        const [browserName, browserVersion] = stats.sanitizedCapabilities.split('.');
-
-        const { specs } = this;
-        const suitesConfig = this.runnerStat.config.suites;
-
-        /**
-         * @type {RegisterSession}
-         */
-        const payload = {
-            started: stats.start.toISOString(),
-            standing,
-            browserName,
-            failed: failures ?? 0,
-            retried,
-            browserVersion,
-            sessionID: this.runnerStat.sessionId,
-            specs: (specs ?? []).map((spec) => relative(process.cwd(), spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec)),
-            suitesConfig,
-        };
-
-        this.feed(this.registerSession, payload);
+        this.feed(this.registerSession, extractSessionDetailsForRegistration(stats));
     }
 
     /**
@@ -207,7 +136,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {SuiteStats} suite stats provided for a suite
      */
     onSuiteStart(suite) {
-        const payload = this.extractSuiteOrTestDetails(suite);
+        const payload = this.extractRegistrationPayloadForTestEntity(suite);
         payload.suiteType = 'SUITE';
         this.feed(this.registerSuite, payload);
     }
@@ -217,7 +146,7 @@ export default class NeXtReporter extends WDIOReporter {
      * @param {SuiteStats} suite stats provided for a suite
      */
     onSuiteEnd(suite) {
-        const payload = this.extractRequiredForCompletion(suite);
+        const payload = this.extractRequiredForEntityCompletion(suite);
         this.feed(this.updateSuite, payload);
     }
 
@@ -227,7 +156,7 @@ export default class NeXtReporter extends WDIOReporter {
      * meta data related to the test case that will be now executed
      */
     addTest(test) {
-        const payload = this.extractSuiteOrTestDetails(test);
+        const payload = this.extractRegistrationPayloadForTestEntity(test);
         payload.suiteType = 'TEST';
         this.feed(this.registerSuite, payload);
     }
@@ -247,7 +176,7 @@ export default class NeXtReporter extends WDIOReporter {
      * meta data related to the test case that will be now executed
      */
     markTestCompletion(test) {
-        const payload = this.extractRequiredForCompletion(test);
+        const payload = this.extractRequiredForEntityCompletion(test);
         this.feed(this.updateSuite, payload);
     }
 
@@ -262,10 +191,8 @@ export default class NeXtReporter extends WDIOReporter {
 
     onTestSkip(test) {
         // skipped tests are not registered
-        // this.packing = true;
         this.addTest(test);
         this.markTestCompletion(test);
-        // this.packing = false;
     }
 
     /**
@@ -274,24 +201,12 @@ export default class NeXtReporter extends WDIOReporter {
      * info regarding the session, it is required for updating the registered session
      */
     onRunnerEnd(runner) {
-        const ended = runner.end?.toISOString();
-        const {
-            passes: passed, skipping: skipped, tests, failures: failed,
-        } = this.counts;
-        const retried = runner.retries;
-        const standing = returnStatus(runner.end, runner.failures);
-
-        const payload = {
-            duration: this.runnerStat.duration,
-            passed,
-            failed,
-            skipped,
-            tests,
-            ended,
-            retried,
-            standing,
-            sessionID: this.runnerStat.sessionId,
-        };
+        const payload = extractSessionDetailsForCompletion(runner);
+        payload.passed = this.counts.passes;
+        payload.failed = this.counts.failures;
+        payload.skipped = this.counts.skipping;
+        payload.hooks = this.counts.hooks;
+        payload.tests = this.counts.tests;
 
         this.feed(this.updateSession, payload);
     }
@@ -307,10 +222,15 @@ export default class NeXtReporter extends WDIOReporter {
 }
 
 /**
+ * @typedef {object} RegisterSession
+ * @property {string} title
+ * @property {string} fullTitle
+ * @property {string} description
+ * @property {string} suiteID
+ */
+
+/**
  * @typedef {"PENDING" | "PASSED" | "FAILED"} standing
- * @typedef {import("@wdio/reporter").SuiteStats} SuiteStats
- * @typedef {import("@wdio/reporter").TestStats} TestStats
- * @typedef {import("@wdio/reporter").RunnerStats} RunnerStats
  * @typedef {{message: string, stack?:string, name: string}} Error
  */
 
@@ -319,29 +239,6 @@ export default class NeXtReporter extends WDIOReporter {
  * @property {string} started start date-time of the session
  * @property {number} retried number of times this test case has been retried
  * @property {standing} standing status of the execution
- */
-
-/**
- * @typedef {object} RegisterSessionSpecific
- * @property {string} browserName name of the browser used
- * @property {string} browserVersion version of the browser used
- * @property {string} sessionID session it is depended on
- * @property {string[]} specs list of specs files that it will execute
- * @property {{[key: string]: string | string[]}} suitesConfig list of suites and its configuration
- * @typedef {RegisterSessionSpecific & CommonRegisterCols} RegisterSession
- */
-
-/**
- * @typedef {object} RegisterSuiteSpecific
- * @property {string} description summary of the test entity
- * @property {string} file residence file of the test entity
- * @property {string} parent parent id of the test entity
- * @property {standing} standing status of its result
- * @property {string} suiteID it's id
- * @property {string} session_id id of its session
- * @property {string} title it's subject
- * @property {string} fullTitle little detailed title
- * @typedef {RegisterSuiteSpecific & CommonRegisterCols} RegisterSuite
  */
 
 /**
