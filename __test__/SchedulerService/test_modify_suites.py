@@ -59,15 +59,16 @@ class TestModifyTestSuites:
 
     async def test_parent_suite_task(self, prepare_data):
         # in case if the parent task was picked before its children
+        # then we must not process the parent task (to avoid invalid data)
         assert await TaskBase.filter(test_id=prepare_data.testID).count() == 10
         # latest parent
         latest_parent = await TaskBase.filter(test_id=prepare_data.testID).order_by("dropped").first()
         before = latest_parent.dropped
-        await handleSuiteStatus(latest_parent.ticketID, prepare_data.testID, self.dummy)
+        await handleSuiteStatus(latest_parent.ticketID, prepare_data.testID)
 
         latest_parent = await TaskBase.filter(ticketID=latest_parent.ticketID).first()
         assert latest_parent.dropped != before, "Modified date must be changed"
-        assert not latest_parent.picked
+        assert not latest_parent.picked, "parent suite must not have been picked"
 
     async def test_normal_process(self, prepare_data):
         tasks = await TaskBase.filter(test_id=prepare_data.testID).order_by("-dropped").all()

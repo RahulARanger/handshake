@@ -111,7 +111,7 @@ async def complete_test_run(test_id: str, current_test_id: str):
     failed = test_result.get("total_failed", 0)
     skipped = test_result.get("total_skipped", 0)
 
-    summary = await SuiteBase.filter(session__test_id=test_id, parent="").annotate(
+    summary = await SuiteBase.filter(session__test_id=test_id, parent="").group_by("session__test_id").annotate(
         passed=Sum("passed"),
         failed=Sum("failed"),
         skipped=Sum("skipped"),
