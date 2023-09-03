@@ -80,75 +80,70 @@ export default function ProgressPieChart(props: {
         cutout: 45,
     };
     return (
-        <GraphCard
-            sx={{
-                flexShrink: 1,
-                p: "6px",
-                gap: "10px",
-                flexWrap: "wrap",
-            }}
+        <Badge
+            badgeContent={
+                <Counter end={passPercent * 1e2} suffix="%" decimalPoints={1} />
+            }
+            color="primary"
+            showZero={true}
         >
-            <Grid container columns={4} gap={1}>
-                <Grid item md={1.5} sm={3}>
-                    &nbsp;
-                    <Typography variant="caption">Executed,</Typography>
-                    <br />
-                    <Stack
-                        flexDirection="row"
-                        flexWrap={"nowrap"}
-                        alignItems={"center"}
-                        columnGap={"5px"}
-                        ml="10px"
-                    >
-                        <b>
-                            <Counter end={total} />
-                        </b>
-                        <Typography variant="subtitle1">
-                            {!isTestCases ? "Test Suites" : "Test Cases"}
-                        </Typography>
-                    </Stack>
-                    <RelativeTime
-                        dateTime={props.startDate}
-                        style={{ marginLeft: "10px" }}
-                    />
-                    <br />
-                    <Divider />
-                    <Stack
-                        flexDirection="row"
-                        alignItems={"center"}
-                        justifyContent={"flex-start"}
-                        columnGap={"5px"}
-                        sx={{ m: "3px", mt: "10px" }}
-                    >
-                        <Typography>Suites</Typography>
-                        <Android12Switch
-                            onChange={(_, isChecked: boolean) => {
-                                showTestCases(isChecked);
-                            }}
-                            checked={isTestCases}
+            <GraphCard
+                sx={{
+                    flexShrink: 1,
+                    p: "6px",
+                    gap: "10px",
+                }}
+            >
+                <Grid container columns={4} gap={1} sx={{ flexWrap: "nowrap" }}>
+                    <Grid item md={1.5} sm={3}>
+                        &nbsp;
+                        <Typography variant="caption">Executed,</Typography>
+                        <br />
+                        <Stack
+                            flexDirection="row"
+                            flexWrap={"nowrap"}
+                            alignItems={"center"}
+                            columnGap={"5px"}
+                            ml="10px"
+                        >
+                            <b>
+                                <Counter end={total} />
+                            </b>
+                            <Typography variant="subtitle1">
+                                {!isTestCases ? "Test Suites" : "Test Cases"}
+                            </Typography>
+                        </Stack>
+                        <RelativeTime
+                            dateTime={props.startDate}
+                            style={{ marginLeft: "10px" }}
                         />
-                        <Typography>Tests</Typography>
-                    </Stack>
-                </Grid>
-                <Grid item md={1.5} sm={3} sx={{ minWidth: "260px" }}>
-                    <Badge
-                        badgeContent={
-                            <Counter
-                                end={passPercent * 1e2}
-                                suffix="%"
-                                decimalPoints={1}
+                        <br />
+                        <Divider />
+                        <Stack
+                            flexDirection="row"
+                            alignItems={"center"}
+                            justifyContent={"flex-start"}
+                            columnGap={"5px"}
+                            sx={{ m: "3px", mt: "10px" }}
+                        >
+                            <Typography>Suites</Typography>
+                            <Android12Switch
+                                onChange={(_, isChecked: boolean) => {
+                                    showTestCases(isChecked);
+                                }}
+                                checked={isTestCases}
                             />
-                        }
-                        color="primary"
-                        showZero={true}
-                    >
+                            <Typography>Tests</Typography>
+                        </Stack>
+                    </Grid>
+                    <Grid item md={1.5} sm={3} sx={{ minWidth: "260px" }}>
                         <Doughnut data={data} options={options} />
-                    </Badge>
-                </Grid>
-                {/* <Grid md={1.2}>
+                    </Grid>
+                    {/* <Grid md={1.2}>
                     <OverviewOfFeatures features={props.features} />
                 </Grid> */}
-            </Grid>
-        </GraphCard>
+                </Grid>
+            </GraphCard>
+        </Badge>
     );
 }

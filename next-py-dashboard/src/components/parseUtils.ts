@@ -1,4 +1,7 @@
-import { type SuiteDetails } from "@/types/detailedTestRunPage";
+import {
+    type statusOfEntity,
+    type SuiteRecordDetails,
+} from "@/types/detailedTestRunPage";
 import dayjs, { type Dayjs } from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
@@ -6,7 +9,7 @@ dayjs.extend(duration);
 export interface QuickPreviewForScenarios {
     Started: [Dayjs, Dayjs];
     Ended: [Dayjs, Dayjs];
-    Status: "PASSED" | "FAILED" | "PENDING";
+    Status: statusOfEntity;
     Title: string;
     FullTitle: string;
     Duration: duration.Duration;
@@ -15,7 +18,7 @@ export interface QuickPreviewForScenarios {
 }
 
 export default function parseTestEntity(
-    testORSuite: SuiteDetails,
+    testORSuite: SuiteRecordDetails,
     testStartedAt: Dayjs
 ): QuickPreviewForScenarios {
     return {

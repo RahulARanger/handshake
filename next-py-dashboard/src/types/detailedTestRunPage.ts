@@ -15,7 +15,7 @@ export interface OverviewPageProps extends ShareToOtherPages {}
 
 export type statusOfEntity = "PASSED" | "FAILED" | "PENDING" | "SKIPPED";
 
-export interface SuiteDetails {
+export interface SuiteRecordDetails {
     title: string;
     fullTitle: string;
     suiteID: string;
@@ -29,3 +29,6 @@ export interface SuiteDetails {
     standing: statusOfEntity;
     tests: number;
 }
+
+export type SuiteDetails =
+    | Record<string, SuiteRecordDetails> & { "@order": string[] };

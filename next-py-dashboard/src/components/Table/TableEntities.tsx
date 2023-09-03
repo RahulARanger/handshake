@@ -34,16 +34,16 @@ export default function TestEntities(props: {
     getSuites: string;
     getTestRun: string;
 }): ReactNode {
-    const { data } = useSWRImmutable<SuiteDetails[]>(props.getSuites);
+    const { data } = useSWRImmutable<SuiteDetails>(props.getSuites);
     const { data: testRun } = useSWRImmutable<DetailsOfRun>(props.getTestRun);
     if (data == null || testRun == null)
         return <Skeleton width={200} height={150} />;
     const testStartedAt = dayjs(testRun.started);
-    const sliced = data
-        .slice(-10, data.length)
+    const sliced = data["@order"]
+        .slice(-10, data["@order"].length)
         .reverse()
-        .map((testDate: SuiteDetails) =>
-            parseTestEntity(testDate, testStartedAt)
+        .map((suiteID: string) =>
+            parseTestEntity(data[suiteID], testStartedAt)
         );
 
     const columnDefs: ColDef[] = [

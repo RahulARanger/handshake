@@ -1,5 +1,5 @@
 /* eslint-disable import/extensions */
-import { spawn, ChildProcess, spawnSync } from 'node:child_process';
+import { spawn, ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
 import {
     clearInterval, setTimeout, clearTimeout, setInterval,
@@ -18,25 +18,16 @@ export default class Shipment extends ContactList {
 
     /**
      *
-     * @param {import("@wdio/types").Options.WebdriverIO} _
+    //  * @param {import("@wdio/types").Options.WebdriverIO} _
      * Config used for the webdriverIO tests
      */
-    async onPrepare(_) {
+    async onPrepare() {
         const path = join('venv', 'Scripts', 'activate');
         const {
             root: rootDir, port, collectionName, projectName,
         } = this.options;
-        this.logger.warn('Preparing the Template for the report 📦');
 
-        const output = spawnSync(
-            `"${path}" && next-py init-shipment -s "${collectionName}" -o "${rootDir}"`,
-            { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
-            { cwd: rootDir },
-        );
-
-        this.logger.info(output?.stdout?.toString());
-        if (output?.stderr?.length ?? 0) this.logger.error(output?.stderr?.toString());
-
+        this.logger.info('Starting py-process 🚚...');
         const command = `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2`;
         this.pyProcess = spawn(
             command,
@@ -49,11 +40,9 @@ export default class Shipment extends ContactList {
         this.pyProcess.stderr.on('data', (data) => this.logger.warn(data?.toString()));
 
         this.pyProcess.on('error', (err) => { throw new Error(String(err)); });
-        // comment below line for debugging sanic server
         this.pyProcess.on('exit', (code) => { throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
 
-        this.logger.warn(`pid: ${this.pyProcess.pid}`);
-
+        this.logger.info(`Started py-process, running 🏃‍♂️ at pid: ${this.pyProcess.pid}`);
         process.on('exit', async () => { await this.forceKill(); });
     }
 
