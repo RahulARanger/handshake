@@ -1,6 +1,18 @@
 .header {
-    background-color: transparent !important;
+    transition: all 0.5s ease-in-out !important;
+}
+
+.tabList {
     transition: all 0.5s ease-in-out !important;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+}
+
+.tabListHeader {
+    background-color: transparent !important;
+    background: none;
+    position: sticky;
+    bottom: 0px;
+    display: flex !important;
+    align-items: flex-end;
 }

@@ -1,56 +1,81 @@
 import { type OverviewPageProps } from "@/types/detailedTestRunPage";
-import Stack from "@mui/material/Stack";
-import Tab from "@mui/material/Tab";
-import TabContext from "@mui/lab/TabContext";
-import TabList from "@mui/lab/TabList";
-import TabPanel from "@mui/lab/TabPanel";
-import Divider from "@mui/material/Divider";
+import carouselStyles from "@/styles/carousel.module.css";
 import Overview from "@/components/Overview/Overview";
-import React, { useState, type ReactNode } from "react";
+import React, { useCallback, useState, type ReactNode } from "react";
 import HomeIcon from "@mui/icons-material/Home";
+import GridOnIcon from "@mui/icons-material/GridOn";
+import HeaderBarStyles from "@/styles/header.module.css";
+import useEmblaCarousel from "embla-carousel-react";
+import { clsx } from "clsx";
+import { AppBar } from "@mui/material";
+import ToggleButton from "@mui/material/ToggleButton";
+import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
+import StyledToggleButtonGroup from "./Overview/toggleButton";
 
 export function DetailedTestResults(props: OverviewPageProps): ReactNode {
-    const overview = "overview";
-    const [tabState, setTestTabState] = useState({ currentTabIndex: overview });
+    const overview = 0;
+    const grid = 1;
+    const [selectedTab, setSelectedTab] = useState(overview);
+    const [emblaRef, emblaApi] = useEmblaCarousel({
+        watchDrag: false,
+    });
+
+    const scrollTo = useCallback(
+        (index: number) => {
+            emblaApi?.scrollTo(index);
+        },
+        [emblaApi]
+    );
+
     return (
-        <TabContext value={tabState.currentTabIndex}>
-            <Stack
-                display="flex"
-                flexDirection="row"
-                width="100%"
-                justifyContent={"space-between"}
-                flexGrow={1}
+        <>
+            <div
+                className={carouselStyles.embla}
+                ref={emblaRef}
+                style={{ height: "100%", padding: "12px" }}
             >
-                <Stack sx={{ flexGrow: 1 }}>
-                    <TabPanel value={overview}>
+                <div
+                    className={clsx(
+                        carouselStyles.container,
+                        carouselStyles.fullPageContainer
+                    )}
+                >
+                    <div className={carouselStyles.slide}>
                         <Overview
                             getTestRun={props.getTestRun}
                             getSuites={props.getSuites}
+                            runSummary={props.runSummary}
                         />
-                    </TabPanel>
-                </Stack>
-                <Divider orientation="vertical" />
-                <TabList
-                    onChange={(_: unknown, selected: string) => {
-                        setTestTabState({ currentTabIndex: selected });
+                    </div>
+                    <div className={carouselStyles.slide}>
+                        <>Hello There</>
+                    </div>
+                </div>
+            </div>
+            <AppBar
+                position="sticky"
+                className={HeaderBarStyles.tabListHeader}
+                sx={{ backgroundColor: "transparent" }}
+            >
+                <StyledToggleButtonGroup
+                    size="small"
+                    exclusive
+                    value={selectedTab}
+                    onChange={(_, newState: number) => {
+                        const moveTo = newState ?? selectedTab;
+                        setSelectedTab(moveTo);
+                        scrollTo(moveTo);
                     }}
-                    aria-label="Tabs in Dashboard"
-                    orientation="vertical"
-                    sx={{
-                        minWidth: "95px",
-                        width: "95px",
-                        position: "sticky",
-                        top: 0,
-                        alignSelf: "flex-start",
-                    }}
+                    className={HeaderBarStyles.tabList}
                 >
-                    <Tab
-                        icon={<HomeIcon />}
-                        label="Overview"
-                        value={overview}
-                    />
-                </TabList>
-            </Stack>
-        </TabContext>
+                    <ToggleButton value={overview}>
+                        <HomeIcon />
+                    </ToggleButton>
+                    <ToggleButton value={grid}>
+                        <GridOnIcon />
+                    </ToggleButton>
+                </StyledToggleButtonGroup>
+            </AppBar>
+        </>
     );
 }

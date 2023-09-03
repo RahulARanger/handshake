@@ -16,3 +16,19 @@ export default interface DetailsOfRun {
     suitesConfig: string[];
     specs: string[];
 }
+
+export interface TestRunSummary {
+    TESTS: {
+        passed: number;
+        failed: number;
+        skipped: number;
+        tests: number;
+    };
+    SUITES: {
+        passed: number;
+        failed: number;
+        skipped: number;
+        count: number;
+    };
+    RETRIED: number;
+}

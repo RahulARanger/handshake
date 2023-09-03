@@ -3,6 +3,7 @@ import type DetailsOfRun from "./testRun";
 export interface ShareToOtherPages {
     getTestRun: string;
     getSuites: string;
+    runSummary: string;
 }
 
 export interface DetailedTestRunPageProps extends ShareToOtherPages {

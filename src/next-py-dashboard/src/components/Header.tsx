@@ -24,14 +24,15 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
 
     return (
         <AppBar
-            position="sticky"
-            sx={{ px: "12px", py: "6px" }}
+            position="relative"
+            sx={{ px: "12px", py: "6px", top: "0px" }}
             className={HeaderBarStyles.header}
         >
             <Stack
                 justifyContent={"space-between"}
                 flexDirection="row"
                 display="flex"
+                sx={{ backgroundColor: "transparent" }}
                 alignItems="center"
             >
                 <Typography variant="h6" sx={{ letterSpacing: ".2rem" }}>

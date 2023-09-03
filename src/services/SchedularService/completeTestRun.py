@@ -1,4 +1,4 @@
-from src.services.DBService.models.result_base import SessionBase, RunBase
+from src.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
 from src.services.DBService.models.task_base import TaskBase
 from src.services.DBService.models.types import Status
 from src.services.SchedularService.types import PathTree, PathItem
@@ -111,6 +111,15 @@ async def complete_test_run(test_id: str, current_test_id: str):
     failed = test_result.get("total_failed", 0)
     skipped = test_result.get("total_skipped", 0)
 
+    summary = await SuiteBase.filter(session__test_id=test_id, parent="").annotate(
+        passed=Sum("passed"),
+        failed=Sum("failed"),
+        skipped=Sum("skipped"),
+        count=Sum("tests"),
+    ).values(
+        "passed", "failed", "skipped", "count"
+    )
+
     await test_run.update_from_dict(dict(
         ended=datetime.utcnow(),
         tests=test_result.get("total_tests", 0),
@@ -124,7 +133,8 @@ async def complete_test_run(test_id: str, current_test_id: str):
             for paths in await filtered.all().distinct().values_list("specs", flat=True)
             for path in paths
         ]),
-        standing=fetch_key_from_status(passed, failed, skipped)
+        standing=fetch_key_from_status(passed, failed, skipped),
+        suiteSummary=summary
     ))
 
     await test_run.save()

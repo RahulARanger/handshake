@@ -1,144 +1,12 @@
-import React, { useState, type ReactNode, useCallback, useMemo } from "react";
-import CountUp from "react-countup";
-import Typography from "@mui/material/Typography";
-import Tooltip from "@mui/material/Tooltip";
-import Divider from "@mui/material/Divider";
-import Stack from "@mui/material/Stack";
-import readDateForKey, { fromNow } from "../helper";
-import GraphCard from "../graphCard";
-import type dayjs from "dayjs";
+import React, { type ReactNode } from "react";
+import readDateForKey from "../helper";
 import Grid from "@mui/material/Grid";
 import CarouselComponent from "../carousel";
 import type DetailsOfRun from "@/types/testRun";
 import { type OverviewPageProps } from "@/types/detailedTestRunPage";
-import { Doughnut } from "react-chartjs-2";
-import {
-    Chart as ChartJS,
-    ArcElement,
-    Tooltip as ChartTip,
-    Legend,
-    type ChartOptions,
-    type ChartData,
-} from "chart.js";
 import useSWR from "swr";
-import Android12Switch from "../switch";
 import TestEntities, { ImportantThings } from "../Table/TableEntities";
-import { formatDateTime } from "../parseUtils";
-import RelativeTime from "../Datetime/relativeTime";
-ChartJS.register(ArcElement, ChartTip, Legend);
-
-function ProgressPieChart(props: {
-    passed: number;
-    failed: number;
-    skipped: number;
-    startDate: dayjs.Dayjs;
-    tests: number;
-}): ReactNode {
-    const [isTestCases, showTestCases] = useState(true);
-
-    const data: ChartData<"doughnut"> = {
-        labels: ["Passed", "Failed", "Skipped"],
-        datasets: [
-            {
-                data: [props.passed, props.failed, props.skipped],
-                backgroundColor: ["green", "#FC4349", "#2C3E50"],
-                borderWidth: 0.2,
-            },
-        ],
-    };
-    const options: ChartOptions<"doughnut"> = {
-        plugins: {
-            legend: {
-                align: "center",
-                display: true,
-                position: "right",
-            },
-            title: {
-                display: false,
-            },
-        },
-        borderColor: "#D7DADB",
-        layout: {
-            padding: 6,
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: 45,
-    };
-    return (
-        <GraphCard
-            sx={{
-                flexShrink: 1,
-                p: "6px",
-                gap: "10px",
-                flexWrap: "wrap",
-            }}
-        >
-            <Grid container columns={4} gap={1}>
-                <Grid item md={1.5} sm={3}>
-                    &nbsp;
-                    <Typography variant="caption">Executed,</Typography>
-                    <br />
-                    <Stack
-                        flexDirection="row"
-                        flexWrap={"nowrap"}
-                        alignItems={"center"}
-                        columnGap={"5px"}
-                        ml="10px"
-                    >
-                        <b>
-                            <CountUp
-                                end={props.tests}
-                                useIndianSeparators={true}
-                                formattingFn={(n: number) =>
-                                    n
-                                        .toString()
-                                        .padStart(
-                                            Math.floor(
-                                                Math.log10(props.tests) + 1
-                                            ),
-                                            "0"
-                                        )
-                                }
-                            />
-                        </b>
-                        <Typography variant="subtitle1">
-                            {!isTestCases ? "Test Suites" : "Test Cases"}
-                        </Typography>
-                    </Stack>
-                    <RelativeTime
-                        dateTime={props.startDate}
-                        style={{ marginLeft: "10px" }}
-                    />
-                    <br />
-                    <Divider />
-                    <Stack
-                        flexDirection="row"
-                        alignItems={"center"}
-                        justifyContent={"flex-start"}
-                        columnGap={"5px"}
-                        sx={{ m: "3px", mt: "10px" }}
-                    >
-                        <Typography>Suites</Typography>
-                        <Android12Switch
-                            onChange={(_, isChecked: boolean) => {
-                                showTestCases(isChecked);
-                            }}
-                            checked={isTestCases}
-                        />
-                        <Typography>Tests</Typography>
-                    </Stack>
-                </Grid>
-                <Grid item md={1.5} sm={3} sx={{ minWidth: "260px" }}>
-                    <Doughnut data={data} options={options}></Doughnut>
-                </Grid>
-                {/* <Grid md={1.2}>
-                    <OverviewOfFeatures features={props.features} />
-                </Grid> */}
-            </Grid>
-        </GraphCard>
-    );
-}
+import ProgressPieChart from "./overviewChart";
 
 export default function Overview(props: OverviewPageProps): ReactNode {
     const { data } = useSWR<DetailsOfRun>(props.getTestRun);
@@ -153,11 +21,8 @@ export default function Overview(props: OverviewPageProps): ReactNode {
         >
             <Grid item md={2} sm={3} minWidth={"250px"}>
                 <ProgressPieChart
-                    passed={data.passed}
-                    failed={data.failed}
-                    skipped={data.skipped}
+                    runSummary={props.runSummary}
                     startDate={readDateForKey(data.started)}
-                    tests={data.tests}
                 />
             </Grid>
             <Grid item md={2} sm={2} minWidth={"250px"}>
