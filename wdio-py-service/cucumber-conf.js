@@ -1,6 +1,7 @@
 import { dirname } from 'node:path';
 // eslint-disable-next-line import/extensions
 import attachNeXtReporter from './src/glue.js';
+import TestReporter from './src/test_service.js';
 
 const config = {
     runner: 'local',

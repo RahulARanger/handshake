@@ -42,7 +42,7 @@ export default class Shipment extends ContactList {
         this.pyProcess.on('error', (err) => { throw new Error(String(err)); });
         this.pyProcess.on('exit', (code) => { throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
 
-        this.logger.info(`Started py-process, running 🏃‍♂️ at pid: ${this.pyProcess.pid}`);
+        this.logger.info(`Started py-process, running 🐰 at pid: ${this.pyProcess.pid}`);
         process.on('exit', async () => { await this.forceKill(); });
     }
 
@@ -53,6 +53,7 @@ export default class Shipment extends ContactList {
     async forceKill() {
         if (this.pyProcess.killed) return;
         if ((await fetch(`${this.url}/`)).status === 200) {
+            await this.sayBye();
             this.pyProcess.kill('SIGINT');
             this.logger.warn('→ Had to 🗡️ the py-process.');
         }

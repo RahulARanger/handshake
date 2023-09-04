@@ -9,6 +9,7 @@ from typing import List
 from pathlib import Path
 from os.path import join
 from loguru import logger
+from tortoise.expressions import Q
 
 
 def simplify_file_paths(paths: List[str]):
@@ -79,10 +80,7 @@ def simplify_file_paths(paths: List[str]):
 
 
 async def complete_test_run(test_id: str, current_test_id: str):
-    if current_test_id == test_id:
-        logger.info("Patching up the test run... {}", test_id)
-    else:
-        logger.warning("Patching up one of the prev. tests runs... {}", test_id)
+    logger.info("Patching up the test run... {}", test_id)
 
     test_run = await RunBase.filter(testID=test_id).first()
     task = await TaskBase.filter(ticketID=test_run.testID).first()
@@ -92,6 +90,16 @@ async def complete_test_run(test_id: str, current_test_id: str):
         return await task.delete()
 
     filtered = SessionBase.filter(test_id=test_id)
+
+    pending_items = await SuiteBase.filter(
+        session__test_id=test_id).filter(
+        Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)).count()
+
+    if pending_items > 0:
+        logger.warning("Fix test run: {} was picked but some of its test entities were not processed yet.", test_id)
+        await task.update_from_dict(dict(picked=False))
+        return await task.save()  # continue in the next run
+
     if await filtered.count() == 0:
         logger.warning("Detected test run: {} with no sessions", test_id)
         await task.delete()

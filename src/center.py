@@ -9,6 +9,7 @@ from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
 from sanic import Sanic
 from typing import Tuple
+from loguru import logger
 
 
 def feed_app() -> Sanic:
@@ -63,6 +64,7 @@ def run_app(
         port=port, workers=min(2, workers),
         host="127.0.0.1", fast=fast
     )
+    logger.info("Serving at port: {}", port)
     Sanic.serve(primary=_app, app_loader=loader)
 
 
@@ -91,4 +93,5 @@ def prepare_report(
         port=port,
         host="127.0.0.1"
     )
+
     Sanic.serve(primary=_app, app_loader=loader)

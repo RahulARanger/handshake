@@ -34,26 +34,30 @@ async def get_run_details(request: Request) -> HTTPResponse | JSONResponse:
     if not run:
         return text("Not Found", status=404)
 
-    return text((await RunBasePydanticModel.from_tortoise_orm(run)).model_dump_json())
+    return json((await RunBasePydanticModel.from_tortoise_orm(run)).model_dump(mode="json"))
 
 
 @get_service.get("/suites")
-async def get_all_suites(request: Request) -> JSONResponse:
+async def get_all_suites(request: Request) -> HTTPResponse:
     test_id = request.args.get('test_id')
-    suites = await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
+    suites = await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE).order_by("started")
+    mapped = {"@order": []}
+    for suite in suites:
+        _id = str(suite.suiteID)
+        mapped[_id] = (await SuiteBasePydanticModel.from_tortoise_orm(suite)).model_dump(mode="json")
+        mapped["@order"].append(_id)
+    return json(mapped)
 
-    return JSONResponse(list(map(lambda suite: dict(
-        started=suite.started.isoformat(),
-        ended=suite.ended if not suite.ended else suite.ended.isoformat(),
-        passed=suite.passed,
-        failed=suite.failed,
-        skipped=suite.skipped,
-        duration=suite.duration,
-        retried=suite.retried,
-        standing=suite.standing,
-        title=suite.title,
-        tests=suite.tests
-    ), suites)))
+
+@get_service.get("/tests")
+async def get_all_tests(request: Request) -> HTTPResponse:
+    test_id = request.args.get("test_id")
+    suites = await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.TEST)
+    mapped = {"@order": []}
+
+    # for test in tests:
+    #     _id = str(suite.suiteID)
+    #     mapped[]
 
 
 @get_service.get("/test-run-summary")

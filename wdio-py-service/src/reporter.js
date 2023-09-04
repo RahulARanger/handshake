@@ -117,7 +117,7 @@ export default class NeXtReporter extends ReporterEndpoints {
 
         const started = suiteOrTest.start.toISOString();
         const ended = suiteOrTest?.end ? suiteOrTest.end.toISOString() : new Date().toISOString();
-        const standing = (suiteOrTest.uid.includes('test') ? (suiteOrTest?.state || 'PENDING') : 'YET_TO_CALC').toUpperCase();
+        const standing = (suiteOrTest.type === 'test' ? (suiteOrTest?.state || 'PENDING') : 'YET_TO_CALC').toUpperCase();
         const { errors, error } = suiteOrTest;
 
         const payload = {
@@ -194,6 +194,15 @@ export default class NeXtReporter extends ReporterEndpoints {
      * meta data related to the test case that will be now executed
      */
     onTestEnd(test) {
+        this.markTestCompletion(test);
+    }
+
+    /**
+     *
+     * @param {TestStats} test
+     * meta data related to the test case that will be now executed
+     */
+    onTestPass(test) {
         this.markTestCompletion(test);
     }
 
