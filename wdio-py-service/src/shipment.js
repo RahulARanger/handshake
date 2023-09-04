@@ -45,7 +45,7 @@ export default class Shipment extends ContactList {
         this.pyProcess.stderr.on('data', (data) => this.logger.warn(data?.toString()));
 
         this.pyProcess.on('error', (err) => { throw new Error(String(err)); });
-        this.pyProcess.on('exit', (code) => { throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
+        this.pyProcess.on('exit', (code) => { if (code !== 0) throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
 
         this.logger.info(`Started py-process, running 🐰 at pid: ${this.pyProcess.pid}`);
         process.on('exit', async () => { await this.forceKill(); });

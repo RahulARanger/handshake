@@ -1,6 +1,6 @@
 {
 	"name": "wdio-py-service",
-	"version": "1.2.2",
+	"version": "1.2.3",
 	"type": "module",
 	"description": "Custom Service for connecting with the python reporter which generates the reports for the test cases",
 	"main": "src/glue.js",

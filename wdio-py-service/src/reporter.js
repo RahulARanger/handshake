@@ -59,7 +59,8 @@ export default class NeXtReporter extends ReporterEndpoints {
      * @returns {string} unique suite id
      */
     suiteID(suiteOrTest) {
-        return this.runnerStat.config.framework === 'cucumber' ? suiteOrTest.uid : returnSuiteID(suiteOrTest);
+        // wdio already provides uuid for cucumber based test case
+        return this.runnerStat.config.framework === 'cucumber' && suiteOrTest.type === 'test'? suiteOrTest.uid : returnSuiteID(suiteOrTest);
     }
 
     /**

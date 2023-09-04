@@ -9,7 +9,6 @@ class ConfigBase(Model):
     maxTestRuns = IntField(null=True, default=100, description="Max. Number of Test Runs to save")
     dynamic = BooleanField(default=False, description="Enable Dynamic Nature of report generation")
     version = CharField(default="1.0.0", null=True, description="Version of this db file", max_length=10)
-    lookupFreq = IntField(default=10, null=True)
     # maxDailyReports = fields.IntField(null=True, default=10, description="Max. Number of Daily Reports to save")
     # maxWeeklyReports = fields.IntField(null=True, default=10, description="Max. Number of Weekly Reports to save")
     # maxBiWeeklyReports = fields.IntField(null=True, default=10, description="Max. Number of BiWeekly Reports to save")
@@ -19,7 +18,7 @@ class ConfigBase(Model):
 class JobBase(Model):
     table = "JobBase"
     jobID = CharEnumField(JobType, null=False, description="Type of job we would like to run")
-    interval = IntField(null=True, default=15, description="Interval configured for the job triggered in intervals (s)")
+    interval = IntField(null=True, default=10, description="Interval configured for the job triggered in intervals (s)")
     instances = IntField(
         null=True, default=1, description="Number of parallel instances to run jobs triggered in intervals")
     name = CharField(max_length=30, description="Any name you wanted to use for a job")
