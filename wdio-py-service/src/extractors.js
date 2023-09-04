@@ -25,7 +25,7 @@ export default function extractSessionDetailsForRegistration(runnerStats) {
         browserName: runnerStats.capabilities.browserName,
         browserVersion: runnerStats.capabilities.browserVersion,
         specs: sanitizePaths(runnerStats.specs),
-        sanitizedCapabilities: runnerStats.sanitizedCapabilities,
+        simplified: runnerStats.sanitizedCapabilities,
         retried: runnerStats.retry,
         platformName: runnerStats.capabilities.platformName,
     };

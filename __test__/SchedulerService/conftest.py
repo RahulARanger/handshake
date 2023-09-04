@@ -1,7 +1,7 @@
 from pytest import fixture, mark
 from pathlib import Path
-from src.services.DBService.shared import db_path as shared_db_path
-from src.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from nextpyreports.services.DBService.shared import db_path as shared_db_path
+from nextpyreports.services.DBService.lifecycle import init_tortoise_orm, close_connection
 
 pytestmark = mark.asyncio
 

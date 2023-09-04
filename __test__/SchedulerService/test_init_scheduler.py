@@ -1,7 +1,7 @@
 import time
 from multiprocessing import Process
 from pytest import mark
-from src.services.SchedularService.center import init_scheduler
+from nextpyreports.services.SchedularService.center import init_scheduler
 
 
 # verifying if the scheduler is able to respond termination signals

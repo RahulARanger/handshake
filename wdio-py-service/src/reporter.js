@@ -54,6 +54,15 @@ export default class NeXtReporter extends ReporterEndpoints {
     }
 
     /**
+     *
+     * @param {SuiteStats | TestStats} suiteOrTest Selected Suite or Test
+     * @returns {string} unique suite id
+     */
+    suiteID(suiteOrTest) {
+        return this.runnerStat.config.framework === 'cucumber' ? suiteOrTest.uid : returnSuiteID(suiteOrTest);
+    }
+
+    /**
      * Returns the ID of the parent entity if found
      * @param {SuiteStats | TestStats} suiteOrTest test entity
      * @returns {string | ""} parent id of the requested entity
@@ -64,11 +73,11 @@ export default class NeXtReporter extends ReporterEndpoints {
             const expectedParent = suiteOrTest.parent;
             const fetchedParent = this.suites[expectedParent];
             if (!fetchedParent) return '';
-            return returnSuiteID(fetchedParent);
+            return this.suiteID(fetchedParent);
         }
         default: {
             const isSuite = suiteOrTest.uid.includes('suite');
-            return suiteOrTest.parent ? returnSuiteID(this.currentSuites.at(isSuite ? -2 : -1)) : '';
+            return suiteOrTest.parent ? this.suiteID(this.currentSuites.at(isSuite ? -2 : -1)) : '';
         }
         }
     }
@@ -91,7 +100,7 @@ export default class NeXtReporter extends ReporterEndpoints {
         const payload = {
             title,
             parent: this.fetchParent(suiteOrTest),
-            suiteID: `${started}-${suiteOrTest.uid}`,
+            suiteID: this.suiteID(suiteOrTest),
             fullTitle: fullTitle ?? '',
             description: description ?? '',
             file: sanitizePaths([file ?? this.currentSuites.at(-1).file]).at(0),
@@ -115,14 +124,13 @@ export default class NeXtReporter extends ReporterEndpoints {
             duration,
         } = suiteOrTest;
 
-        const started = suiteOrTest.start.toISOString();
         const ended = suiteOrTest?.end ? suiteOrTest.end.toISOString() : new Date().toISOString();
         const standing = (suiteOrTest.type === 'test' ? (suiteOrTest?.state || 'PENDING') : 'YET_TO_CALC').toUpperCase();
         const { errors, error } = suiteOrTest;
 
         const payload = {
             duration,
-            suiteID: `${started}-${suiteOrTest.uid}`,
+            suiteID: this.suiteID(suiteOrTest),
             ended,
             standing,
             errors,
@@ -237,14 +245,6 @@ export default class NeXtReporter extends ReporterEndpoints {
         return !this.lock.isBusy();
     }
 }
-
-/**
- * @typedef {object} RegisterSession
- * @property {string} title
- * @property {string} fullTitle
- * @property {string} description
- * @property {string} suiteID
- */
 
 /**
  * @typedef {"PENDING" | "PASSED" | "FAILED"} standing

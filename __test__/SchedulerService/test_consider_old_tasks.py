@@ -1,9 +1,9 @@
-from src.services.DBService.models.task_base import TaskBase
-from src.services.DBService.models.result_base import RunBase
-from src.services.SchedularService.center import init_jobs_connections
+from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.result_base import RunBase
+from nextpyreports.services.SchedularService.center import init_jobs_connections
 from pytest import mark
 from __test__.SchedulerService.dummy_scheduler import DummyScheduler
-from src.services.SchedularService.constants import JobType
+from nextpyreports.services.SchedularService.constants import JobType
 
 
 @mark.usefixtures("clean_close")

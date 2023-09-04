@@ -1,10 +1,10 @@
-from src.services.Endpoints.center import service_provider
-from src.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
-from src.services.DBService.shared import set_test_id, db_path
-from src.services.SchedularService.center import init_scheduler
+from nextpyreports.services.Endpoints.center import service_provider
+from nextpyreports.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
+from nextpyreports.services.DBService.shared import set_test_id, db_path
+from nextpyreports.services.SchedularService.center import init_scheduler
 from click import argument, option, Path
 from pathlib import Path as P_Path
-from src.handle_shipment import handle_cli
+from nextpyreports.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
 from sanic import Sanic

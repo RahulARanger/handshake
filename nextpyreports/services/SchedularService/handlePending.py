@@ -1,7 +1,7 @@
-from src.services.DBService.models.task_base import TaskBase
-from src.services.SchedularService.modifySuites import handleSuiteStatus
-from src.services.SchedularService.constants import JobType
-from src.services.SchedularService.completeTestRun import complete_test_run
+from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.SchedularService.modifySuites import handleSuiteStatus
+from nextpyreports.services.SchedularService.constants import JobType
+from nextpyreports.services.SchedularService.completeTestRun import complete_test_run
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 

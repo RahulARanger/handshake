@@ -1,4 +1,4 @@
-from src.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.task_base import TaskBase
 import logging
 
 

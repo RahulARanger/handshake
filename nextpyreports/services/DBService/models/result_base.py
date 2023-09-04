@@ -2,7 +2,7 @@ from tortoise.models import Model
 from tortoise.fields import DatetimeField, IntField, FloatField, JSONField, CharEnumField, UUIDField, CharField, \
     ReverseRelation, ForeignKeyField, ForeignKeyRelation, TextField
 from tortoise.contrib.pydantic import pydantic_model_creator
-from src.services.DBService.models.enums import Status, SuiteType, AttachmentType
+from nextpyreports.services.DBService.models.enums import Status, SuiteType, AttachmentType
 
 
 class CommandReportFields(Model):
@@ -57,6 +57,7 @@ class SessionBase(CommonDetailedFields):
     browserName = CharField(max_length=10, default="")
     browserVersion = CharField(max_length=20, default="")
     platformName = CharField(max_length=10, default="")
+    simplified = TextField(default="", description="browser name & version &/ platform name included")
     specs = JSONField(description="List of spec files", default=[])
     hooks = IntField(default=0, null=False, description="Number of hooks used")
 
@@ -75,6 +76,7 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
     title = TextField(max_length=225)
     fullTitle = TextField(null=True, default="", max_length=225)
     file = TextField(max_length=150, null=False, description="path to the spec file")
+    description = TextField(null=True, default="", description="Summary if provided for the test entity")
     parent = CharField(max_length=45, description="Parent Suite's ID", default="")
     tags = JSONField(description='list of all tags', default=[])
     modified = DatetimeField(auto_now=True, description='Modified timestamp', null=False)

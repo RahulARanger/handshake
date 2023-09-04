@@ -1,12 +1,12 @@
-from src.services.SchedularService.constants import JobType
-from src.services.SchedularService.handlePending import lookup_for_tasks
-from src.services.DBService.models.config_base import ConfigBase
-from src.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from nextpyreports.services.SchedularService.constants import JobType
+from nextpyreports.services.SchedularService.handlePending import lookup_for_tasks
+from nextpyreports.services.DBService.models.config_base import ConfigBase
+from nextpyreports.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from asyncio import get_event_loop, run
 from loguru import logger
 from datetime import datetime
-from src.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.task_base import TaskBase
 
 
 def init_scheduler(db_path: str):

@@ -1,6 +1,6 @@
 from tortoise.models import Model
 from tortoise.fields import IntField, BooleanField, CharField, CharEnumField
-from src.services.SchedularService.constants import JobType
+from nextpyreports.services.SchedularService.constants import JobType
 
 
 class ConfigBase(Model):

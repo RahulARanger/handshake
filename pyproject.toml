@@ -1,16 +1,13 @@
 [tool.poetry]
 name = "NeXtPyReports"
-version = "0.2.2"
+version = "0.2.4"
 description = "Next Dashboard for test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "src"}]
+packages = [{include = "nextpyreports"}]
 maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
-]
-include=[
-    {path="next-py-dashboard", format = ["sdist", "wheel"]}
 ]
 [tool.poetry.dependencies]
 python = "^3.8"
@@ -33,4 +30,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-next-py = "src.center:handle_cli"
+next-py = "nextpyreports.center:handle_cli"

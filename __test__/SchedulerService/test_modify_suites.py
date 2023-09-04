@@ -1,10 +1,10 @@
 import uuid
-from src.services.DBService.models.task_base import TaskBase
-from src.services.DBService.models.result_base import RunBase, SuiteBase, SessionBase
-from src.services.DBService.models.types import SuiteType, Status
-from src.services.SchedularService.modifySuites import handleSuiteStatus
+from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.result_base import RunBase, SuiteBase, SessionBase
+from nextpyreports.services.DBService.models.types import SuiteType, Status
+from nextpyreports.services.SchedularService.modifySuites import handleSuiteStatus
 from __test__.SchedulerService.dummy_scheduler import DummyScheduler
-from src.services.SchedularService.constants import JobType
+from nextpyreports.services.SchedularService.constants import JobType
 from datetime import datetime
 from pytest import mark, fixture
 

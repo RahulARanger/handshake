@@ -1,4 +1,4 @@
-from src.services.SchedularService.completeTestRun import simplify_file_paths
+from nextpyreports.services.SchedularService.completeTestRun import simplify_file_paths
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree

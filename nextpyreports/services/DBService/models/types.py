@@ -1,5 +1,5 @@
 from typing import Union, List, Dict, Optional, Literal
-from src.services.DBService.models.enums import Status, SuiteType
+from nextpyreports.services.DBService.models.enums import Status, SuiteType
 from pydantic import BaseModel, field_validator
 from datetime import datetime
 from typing_extensions import TypedDict
@@ -18,7 +18,7 @@ class RegisterSession(CommonRegisterCols):
     browserName: str
     browserVersion: str
     platformName: str
-    sanitizedCapabilities: str
+    simplified: str
     sessionID: str
     specs: List[str]
 
@@ -33,7 +33,7 @@ class RegisterSuite(CommonRegisterCols):
     file: str
     parent: str
     standing: Union[Literal[Status.YET_TO_CALCULATE], Literal[Status.PENDING], Literal[Status.SKIPPED]]
-    tags: Optional[List[str]] = []
+    tags: Optional[List] = {}
 
 
 class MarkSession(BaseModel):

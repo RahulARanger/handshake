@@ -1,9 +1,9 @@
-from src.services.DBService.models.result_base import SessionBase, SuiteBase
-from src.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
-from src.services.DBService.models.task_base import TaskBase, JobType
-from src.services.DBService.models.enums import Status, SuiteType
-from src.services.DBService.shared import get_test_id
-from src.services.SchedularService.modifySuites import fetch_key_from_status
+from nextpyreports.services.DBService.models.result_base import SessionBase, SuiteBase
+from nextpyreports.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
+from nextpyreports.services.DBService.models.task_base import TaskBase, JobType
+from nextpyreports.services.DBService.models.enums import Status, SuiteType
+from nextpyreports.services.DBService.shared import get_test_id
+from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text

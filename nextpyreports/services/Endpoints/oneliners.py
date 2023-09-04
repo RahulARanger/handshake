@@ -1,8 +1,8 @@
-from src.services.DBService.models.task_base import TaskBase
-from src.services.DBService.shared import get_test_id
-from src.services.DBService.lifecycle import close_connection
+from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.shared import get_test_id
+from nextpyreports.services.DBService.lifecycle import close_connection
 from sanic.blueprints import Blueprint
-from src.services.SchedularService.constants import JobType
+from nextpyreports.services.SchedularService.constants import JobType
 from sanic.response import HTTPResponse, text, JSONResponse, json
 from sanic.request import Request
 

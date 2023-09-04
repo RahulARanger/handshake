@@ -1,4 +1,7 @@
+@demo @simple
+
 Feature: The Internet Guinea Pig Website
+This feature checks the login functionality of the Internet Guinea Pig website
 
   Scenario Outline: As a user, I can log into the secure area
 

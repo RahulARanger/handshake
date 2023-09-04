@@ -4,3 +4,7 @@ test-mocha/*
 mocha-conf.js
 babel.config.js
 jsconfig.json
+features/*
+logs/*
+cucumber-conf.js
+.vscode/*

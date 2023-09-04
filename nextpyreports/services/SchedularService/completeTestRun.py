@@ -1,8 +1,8 @@
-from src.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
-from src.services.DBService.models.task_base import TaskBase
-from src.services.DBService.models.types import Status
-from src.services.SchedularService.types import PathTree, PathItem
-from src.services.SchedularService.modifySuites import fetch_key_from_status
+from nextpyreports.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
+from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.types import Status
+from nextpyreports.services.SchedularService.types import PathTree, PathItem
+from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum
 from datetime import datetime
 from typing import List

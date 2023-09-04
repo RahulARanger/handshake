@@ -1,6 +1,6 @@
-from src.services.DBService.models.result_base import SuiteBase
-from src.services.DBService.models.task_base import TaskBase
-from src.services.DBService.models.enums import Status
+from nextpyreports.services.DBService.models.result_base import SuiteBase
+from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.enums import Status
 from tortoise.expressions import Q
 from loguru import logger
 

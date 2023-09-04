@@ -1,8 +1,8 @@
 from tortoise.models import Model
 from tortoise.fields import CharField, DatetimeField, JSONField, CharEnumField, ForeignKeyField, ForeignKeyRelation, \
     BooleanField
-from src.services.SchedularService.constants import JobType
-from src.services.DBService.models.result_base import RunBase
+from nextpyreports.services.SchedularService.constants import JobType
+from nextpyreports.services.DBService.models.result_base import RunBase
 
 
 class TaskBase(Model):

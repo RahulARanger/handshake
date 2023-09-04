@@ -1,6 +1,6 @@
 from sanic import Sanic
 from pathlib import Path
-from src.services.DBService.sanic_free_shared import db_name
+from nextpyreports.services.DBService.sanic_free_shared import db_name
 from typing import Optional
 
 
