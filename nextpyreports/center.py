@@ -67,31 +67,3 @@ def run_app(
     logger.info("Serving at port: {}", port)
     Sanic.serve(primary=_app, app_loader=loader)
 
-
-@handle_cli.command()
-@argument("path", nargs=1, type=Path(exists=True, dir_okay=True), required=True)
-@option(
-    "-p", "--port", default=6969, show_default=True, help="Port for the Generating the report", type=int
-)
-def prepare_report(
-        path: str, port: int
-):
-    if not P_Path(path).is_dir():
-        raise NotADirectoryError(path)
-
-    @service_provider.main_process_start
-    async def get_me_started(app, loop):
-        service_provider.shared_ctx.ROOT = Array('c', str.encode(path))
-        await init_tortoise_orm()
-
-    @service_provider.main_process_stop
-    async def close_things(app, loop):
-        await close_connection()
-
-    _app, loader = prepare_loader()
-    _app.prepare(
-        port=port,
-        host="127.0.0.1"
-    )
-
-    Sanic.serve(primary=_app, app_loader=loader)

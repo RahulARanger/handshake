@@ -6,6 +6,8 @@ import {
 } from 'node:timers';
 // eslint-disable-next-line import/no-unresolved
 import logger from '@wdio/logger';
+import { mkdir } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import ContactList from './referenceUrls.js';
 
 export default class Shipment extends ContactList {
@@ -28,7 +30,10 @@ export default class Shipment extends ContactList {
         } = this.options;
 
         this.logger.info('Starting py-process 🚚...');
-        const command = `"${path}" && next-py run-app ${projectName} "${join(rootDir, collectionName)}" -p ${port} -w 2`;
+        const resultsDir = join(rootDir, collectionName);
+        if (!existsSync(resultsDir)) { mkdir(resultsDir); }
+
+        const command = `"${path}" && next-py run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
         this.pyProcess = spawn(
             command,
             // 'echo \'za warudo\'',
