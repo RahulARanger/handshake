@@ -1,5 +1,5 @@
 import React, { type ReactNode } from "react";
-import readDateForKey from "../helper";
+import readDateForKey, { getTestRun } from "@/Generators/helper";
 import Grid from "@mui/material/Grid";
 import CarouselComponent from "../carousel";
 import type DetailsOfRun from "@/types/testRun";
@@ -9,7 +9,7 @@ import TestEntities, { ImportantThings } from "../Table/TableEntities";
 import ProgressPieChart from "./overviewChart";
 
 export default function Overview(props: OverviewPageProps): ReactNode {
-    const { data } = useSWR<DetailsOfRun>(props.getTestRun);
+    const { data } = useSWR<DetailsOfRun>(getTestRun(props.test_id));
     if (data == null) return <>Report not found</>;
     return (
         <Grid
@@ -21,7 +21,7 @@ export default function Overview(props: OverviewPageProps): ReactNode {
         >
             <Grid item md={2} sm={3} minWidth={"250px"}>
                 <ProgressPieChart
-                    runSummary={props.runSummary}
+                    test_id={props.test_id}
                     startDate={readDateForKey(data.started)}
                 />
             </Grid>
@@ -29,10 +29,7 @@ export default function Overview(props: OverviewPageProps): ReactNode {
                 <CarouselComponent />
             </Grid>
             <Grid item md={3} sm={3}>
-                <TestEntities
-                    getSuites={props.getSuites}
-                    getTestRun={props.getTestRun}
-                />
+                <TestEntities test_id={props.test_id} />
             </Grid>
             <Grid item md={1.25} sm={3}>
                 <ImportantThings />

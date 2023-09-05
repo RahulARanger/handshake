@@ -7,14 +7,13 @@ export default interface DetailsOfRun {
     skipped: number;
     tests: number;
     duration: number;
-    label: string;
-    framework: string;
     started: string;
     ended: string;
     retried: number;
     tags: string[];
     suitesConfig: string[];
     specs: string[];
+    suiteSummary: string;
 }
 
 export interface TestRunSummary {

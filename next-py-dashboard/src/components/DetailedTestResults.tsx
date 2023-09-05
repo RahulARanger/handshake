@@ -9,7 +9,6 @@ import useEmblaCarousel from "embla-carousel-react";
 import { clsx } from "clsx";
 import { AppBar } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
-import ToggleButtonGroup from "@mui/material/ToggleButtonGroup";
 import StyledToggleButtonGroup from "./Overview/toggleButton";
 
 export function DetailedTestResults(props: OverviewPageProps): ReactNode {
@@ -41,11 +40,7 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                     )}
                 >
                     <div className={carouselStyles.slide}>
-                        <Overview
-                            getTestRun={props.getTestRun}
-                            getSuites={props.getSuites}
-                            runSummary={props.runSummary}
-                        />
+                        <Overview test_id={props.test_id} />
                     </div>
                     <div className={carouselStyles.slide}>
                         <>Hello There</>

@@ -20,15 +20,19 @@ import {
     Tooltip as ChartTip,
     Legend,
 } from "chart.js";
+import { getTestRunSummary } from "@/Generators/helper";
 
 ChartJS.register(ArcElement, ChartTip, Legend);
 
 export default function ProgressPieChart(props: {
-    runSummary: string;
+    test_id: string;
     startDate: dayjs.Dayjs;
 }): ReactNode {
     const [isTestCases, showTestCases] = useState(true);
-    const { data: runSummary } = useSWR<TestRunSummary>(props.runSummary);
+    const { data: runSummary } = useSWR<TestRunSummary>(
+        getTestRunSummary(props.test_id)
+    );
+
     if (runSummary === undefined) return <Skeleton width={150} height={150} />;
 
     const total = isTestCases

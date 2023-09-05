@@ -1,0 +1,7 @@
+.next
+.vscode
+.eslintrc.json
+.lintstagedrc.js
+.prettierrc
+next-env.d.ts
+.env

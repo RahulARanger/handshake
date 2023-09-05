@@ -1,20 +1,26 @@
-import { getRecentRun } from "@/components/helper";
 import { type GetStaticPropsResult } from "next";
 import React, { type ReactNode } from "react";
+import getConnection from "@/Generators/dbConnection";
+import { getLogger } from "log4js";
+import latestTestRun from "@/Generators/Queries/testRunRelated";
 
 export async function getStaticProps(): Promise<
     GetStaticPropsResult<{ redirect: { destination: string } }>
 > {
-    const resp = await fetch(getRecentRun(), {
-        method: "GET",
-    });
+    const logger = getLogger("Generate Test Run IDs");
+    logger.info("🔝 Fetching latest test run...");
+
+    const connection = await getConnection();
+    const testID = await latestTestRun(connection);
+    await connection.close();
+
+    if (testID.length > 0) logger.info("✅ Fetched latest run");
+
     return {
         redirect: {
             permanent: false,
             destination:
-                resp.status === 404
-                    ? "/RUNS/no-test-run-found"
-                    : `/RUNS/${await resp.text()}`,
+                testID === "" ? "/RUNS/no-test-run-found" : `/RUNS/${testID}`,
         },
     };
 }

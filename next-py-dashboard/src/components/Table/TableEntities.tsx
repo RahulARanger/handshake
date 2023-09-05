@@ -15,6 +15,7 @@ import RenderTimeRelativeToStart, {
 import type DetailsOfRun from "@/types/testRun";
 import dayjs from "dayjs";
 import tableCellStyles from "@/styles/table.module.css";
+import { getSuites, getTestRun } from "@/Generators/helper";
 
 export function ImportantThings(): ReactNode {
     const columnDefs: ColDef[] = [
@@ -30,12 +31,11 @@ export function ImportantThings(): ReactNode {
     );
 }
 
-export default function TestEntities(props: {
-    getSuites: string;
-    getTestRun: string;
-}): ReactNode {
-    const { data } = useSWRImmutable<SuiteDetails>(props.getSuites);
-    const { data: testRun } = useSWRImmutable<DetailsOfRun>(props.getTestRun);
+export default function TestEntities(props: { test_id: string }): ReactNode {
+    const { data } = useSWRImmutable<SuiteDetails>(getSuites(props.test_id));
+    const { data: testRun } = useSWRImmutable<DetailsOfRun>(
+        getTestRun(props.test_id)
+    );
     if (data == null || testRun == null)
         return <Skeleton width={200} height={150} />;
     const testStartedAt = dayjs(testRun.started);

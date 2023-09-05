@@ -5,6 +5,12 @@ import Relatively from "dayjs/plugin/relativeTime";
 dayjs.extend(ParseFormat);
 dayjs.extend(Relatively);
 
+let port: undefined | string;
+
+if (process?.env != null) {
+    port = process.env?.PY_PORT;
+}
+
 export default function readDateForKey(date: string): dayjs.Dayjs {
     return dayjs(date);
 }
@@ -14,15 +20,7 @@ export function fromNow(date: dayjs.Dayjs): string {
 }
 
 export function serverURL(): string {
-    return `http://127.0.0.1:${process.env?.PY_PORT ?? 6969}`;
-}
-
-export function getRecentRun(): string {
-    return `${serverURL()}/get/latest-run-id`;
-}
-
-export function getTestRuns(): string {
-    return `${serverURL()}/get/runs`;
+    return `http://127.0.0.1:${port ?? "1.2"}`;
 }
 
 export function getTestRun(testID: string): string {

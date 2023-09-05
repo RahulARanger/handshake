@@ -1,6 +1,6 @@
 import { AppBar, Stack, Typography, Tooltip, Skeleton } from "@mui/material";
 import React, { type ReactNode } from "react";
-import { fetcher } from "./helper";
+import { fetcher, getTestRun } from "@/Generators/helper";
 import { type OverviewPageProps } from "@/types/detailedTestRunPage";
 import useSWRImmutable from "swr/immutable";
 import type DetailsOfRun from "@/types/testRun";
@@ -11,7 +11,7 @@ import HeaderBarStyles from "@/styles/header.module.css";
 
 export default function TestRunHeader(props: OverviewPageProps): ReactNode {
     const { data, isLoading } = useSWRImmutable<DetailsOfRun>(
-        props.getTestRun,
+        getTestRun(props.test_id),
         fetcher
     );
     if (data == null || isLoading)

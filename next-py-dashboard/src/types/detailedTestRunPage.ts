@@ -1,14 +1,12 @@
 import type DetailsOfRun from "./testRun";
+import { type TestRunSummary } from "./testRun";
 
 export interface ShareToOtherPages {
-    getTestRun: string;
-    getSuites: string;
-    runSummary: string;
+    test_id: string;
 }
 
 export interface DetailedTestRunPageProps extends ShareToOtherPages {
-    test_id: string;
-    fallback: Record<string, DetailsOfRun>;
+    fallback: Record<string, DetailsOfRun | TestRunSummary | SuiteDetails>;
 }
 
 export interface OverviewPageProps extends ShareToOtherPages {}
@@ -30,5 +28,4 @@ export interface SuiteRecordDetails {
     tests: number;
 }
 
-export type SuiteDetails =
-    | Record<string, SuiteRecordDetails> & { "@order": string[] };
+export type SuiteDetails = Record<string, string[] | SuiteRecordDetails>;
