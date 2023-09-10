@@ -1,6 +1,6 @@
 from nextpyreports.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
 from nextpyreports.services.DBService.models.task_base import TaskBase
-from nextpyreports.services.DBService.models.types import Status
+from nextpyreports.services.DBService.models.types import Status, SuiteType
 from nextpyreports.services.SchedularService.types import PathTree, PathItem
 from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum
@@ -119,14 +119,13 @@ async def complete_test_run(test_id: str, current_test_id: str):
     failed = test_result.get("total_failed", 0)
     skipped = test_result.get("total_skipped", 0)
 
-    summary = (await SuiteBase.filter(session__test_id=test_id, parent="").group_by("session__test_id").annotate(
-        passed=Sum("passed"),
-        failed=Sum("failed"),
-        skipped=Sum("skipped"),
-        count=Sum("tests"),
-    ).values(
-        "passed", "failed", "skipped", "count"
-    ))[-1]
+    filtered_suites = SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
+    summary = dict(
+        passed=await filtered_suites.filter(standing=Status.PASSED).count(),
+        failed=await filtered_suites.filter(standing=Status.FAILED).count(),
+        skipped=await filtered_suites.filter(standing=Status.SKIPPED).count(),
+        count=await filtered_suites.count(),
+    )
 
     await test_run.update_from_dict(dict(
         ended=datetime.utcnow(),

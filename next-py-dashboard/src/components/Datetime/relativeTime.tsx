@@ -16,7 +16,7 @@ export default function RelativeTime(props: {
     const [emblaRef] = useEmblaCarousel({ loop: true }, [
         Autoplay({ stopOnInteraction: false }),
     ]);
-    const formatter = () =>
+    const formatter = (): string =>
         props.wrt != null
             ? props.dateTime.from(props.wrt)
             : props.dateTime.fromNow();
@@ -43,7 +43,7 @@ export default function RelativeTime(props: {
                             setFormatted(formatter());
                         }}
                     >
-                        {formatted}
+                        <>{formatted}</>
                     </Tooltip>
                 </Typography>
             </div>

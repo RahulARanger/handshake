@@ -1,9 +1,7 @@
 import RelativeTime from "../Datetime/relativeTime";
 import { type TestRunSummary } from "@/types/testRun";
-import { Skeleton } from "@mui/material";
+import Skeleton from "@mui/material/Skeleton";
 import Counter from "./counter";
-import { Doughnut } from "react-chartjs-2";
-import { type ChartOptions, type ChartData } from "chart.js";
 import useSWR from "swr";
 import GraphCard from "../graphCard";
 import type dayjs from "dayjs";
@@ -13,26 +11,26 @@ import Stack from "@mui/material/Stack";
 import Android12Switch from "../switch";
 import React, { useState, type ReactNode } from "react";
 import Grid from "@mui/material/Grid";
-import Badge from "@mui/material/Badge";
-import {
-    Chart as ChartJS,
-    ArcElement,
-    Tooltip as ChartTip,
-    Legend,
-} from "chart.js";
 import { getTestRunSummary } from "@/Generators/helper";
+import Highcharts from "highcharts";
+import HighchartsExporting from "highcharts/modules/exporting";
+import HighchartsReact from "highcharts-react-official";
+import Highcharts3d from "highcharts/highcharts-3d";
 
-ChartJS.register(ArcElement, ChartTip, Legend);
+if (typeof Highcharts === "object") {
+    Highcharts3d(Highcharts);
+    HighchartsExporting(Highcharts);
+}
 
 export default function ProgressPieChart(props: {
     test_id: string;
     startDate: dayjs.Dayjs;
+    port: string;
 }): ReactNode {
-    const [isTestCases, showTestCases] = useState(true);
+    const [isTestCases, showTestCases] = useState<boolean>(true);
     const { data: runSummary } = useSWR<TestRunSummary>(
-        getTestRunSummary(props.test_id)
+        getTestRunSummary(props.port, props.test_id)
     );
-
     if (runSummary === undefined) return <Skeleton width={150} height={150} />;
 
     const total = isTestCases
@@ -44,110 +42,131 @@ export default function ProgressPieChart(props: {
         total;
     const passPercent = Number.isNaN(_overallPassed) ? 0 : _overallPassed;
 
-    const data: ChartData<"doughnut"> = {
-        labels: ["Passed", "Failed", "Skipped"],
-        datasets: [
+    const options = {
+        credits: { enabled: false, text: "link-to-docs-in-future" },
+        chart: {
+            type: "pie",
+            options3d: {
+                enabled: true,
+                alpha: 45,
+                beta: 0,
+                fitToPlot: true,
+            },
+            backgroundColor: "transparent",
+            height: 155,
+        },
+
+        title: {
+            text: `${(passPercent * 100).toFixed(2)}%`,
+            verticalAlign: "middle",
+            style: {
+                fontSize: 12,
+                color: "white",
+            },
+        },
+        subtitle: {
+            text: undefined,
+        },
+        plotOptions: {
+            pie: {
+                innerSize: 69,
+                depth: 15,
+                colors: ["green", "#FC4349", "#2C3E50"],
+            },
+        },
+        series: [
             {
-                data: isTestCases
-                    ? [
-                          runSummary.TESTS.passed,
-                          runSummary.TESTS.failed,
-                          runSummary.TESTS.skipped,
-                      ]
-                    : [
-                          runSummary.SUITES.passed,
-                          runSummary.SUITES.failed,
-                          runSummary.SUITES.skipped,
-                      ],
-                backgroundColor: ["green", "#FC4349", "#2C3E50"],
-                borderWidth: 0.2,
+                type: "pie",
+                name: !isTestCases ? "Suite Entities" : "Test Entities",
+                data: [
+                    [
+                        "Passed",
+                        isTestCases
+                            ? runSummary.TESTS.passed
+                            : runSummary.SUITES.passed,
+                    ],
+                    [
+                        "Failed",
+                        isTestCases
+                            ? runSummary.TESTS.failed
+                            : runSummary.SUITES.failed,
+                    ],
+                    [
+                        "Skipped",
+                        isTestCases
+                            ? runSummary.TESTS.skipped
+                            : runSummary.SUITES.skipped,
+                    ],
+                ],
+                dataLabels: {
+                    style: {
+                        textOutline: "0px",
+                        color: "white",
+                    },
+                    alignTo: "center",
+                    distance: 10,
+                },
             },
         ],
     };
-    const options: ChartOptions<"doughnut"> = {
-        plugins: {
-            legend: {
-                align: "center",
-                display: true,
-                position: "right",
-            },
-            title: {
-                display: false,
-            },
-        },
-        borderColor: "#D7DADB",
-        layout: {
-            padding: 6,
-        },
-        responsive: true,
-        maintainAspectRatio: false,
-        cutout: 45,
-    };
+
     return (
-        <Badge
-            badgeContent={
-                <Counter end={passPercent * 1e2} suffix="%" decimalPoints={1} />
-            }
-            color="primary"
-            showZero={true}
+        <GraphCard
+            sx={{
+                flexShrink: 1,
+                p: "6px",
+                gap: "10px",
+            }}
         >
-            <GraphCard
-                sx={{
-                    flexShrink: 1,
-                    p: "6px",
-                    gap: "10px",
-                }}
-            >
-                <Grid container columns={4} gap={1} sx={{ flexWrap: "nowrap" }}>
-                    <Grid item md={1.5} sm={3}>
-                        &nbsp;
-                        <Typography variant="caption">Executed,</Typography>
-                        <br />
-                        <Stack
-                            flexDirection="row"
-                            flexWrap={"nowrap"}
-                            alignItems={"center"}
-                            columnGap={"5px"}
-                            ml="10px"
-                        >
-                            <b>
-                                <Counter end={total} />
-                            </b>
-                            <Typography variant="subtitle1">
-                                {!isTestCases ? "Test Suites" : "Test Cases"}
-                            </Typography>
-                        </Stack>
-                        <RelativeTime
-                            dateTime={props.startDate}
-                            style={{ marginLeft: "10px" }}
+            <Grid container columns={4} gap={1} sx={{ flexWrap: "nowrap" }}>
+                <Grid item md={1.5} sm={3}>
+                    &nbsp;
+                    <Typography variant="caption">Executed,</Typography>
+                    <br />
+                    <Stack
+                        flexDirection="row"
+                        flexWrap={"nowrap"}
+                        alignItems={"center"}
+                        columnGap={"5px"}
+                        ml="10px"
+                    >
+                        <b>
+                            <Counter end={total} />
+                        </b>
+                        <Typography variant="subtitle1">
+                            {!isTestCases ? "Test Suites" : "Test Cases"}
+                        </Typography>
+                    </Stack>
+                    <RelativeTime
+                        dateTime={props.startDate}
+                        style={{ marginLeft: "10px" }}
+                    />
+                    <br />
+                    <Divider />
+                    <Stack
+                        flexDirection="row"
+                        alignItems={"center"}
+                        justifyContent={"flex-start"}
+                        columnGap={"5px"}
+                        sx={{ m: "3px", mt: "10px" }}
+                    >
+                        <Typography>Suites</Typography>
+                        <Android12Switch
+                            onChange={(_, isChecked: boolean) => {
+                                showTestCases(isChecked);
+                            }}
+                            checked={isTestCases}
                         />
-                        <br />
-                        <Divider />
-                        <Stack
-                            flexDirection="row"
-                            alignItems={"center"}
-                            justifyContent={"flex-start"}
-                            columnGap={"5px"}
-                            sx={{ m: "3px", mt: "10px" }}
-                        >
-                            <Typography>Suites</Typography>
-                            <Android12Switch
-                                onChange={(_, isChecked: boolean) => {
-                                    showTestCases(isChecked);
-                                }}
-                                checked={isTestCases}
-                            />
-                            <Typography>Tests</Typography>
-                        </Stack>
-                    </Grid>
-                    <Grid item md={1.5} sm={3} sx={{ minWidth: "260px" }}>
-                        <Doughnut data={data} options={options} />
-                    </Grid>
-                    {/* <Grid md={1.2}>
-                    <OverviewOfFeatures features={props.features} />
-                </Grid> */}
+                        <Typography>Tests</Typography>
+                    </Stack>
                 </Grid>
-            </GraphCard>
-        </Badge>
+                <Grid item md={1.5} sm={3} sx={{ minWidth: "260px" }}>
+                    <HighchartsReact
+                        highcharts={Highcharts}
+                        options={options}
+                    />
+                </Grid>
+            </Grid>
+        </GraphCard>
     );
 }

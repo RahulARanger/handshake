@@ -1,4 +1,9 @@
-import { getSuites, getTestRun, getTestRunSummary } from "@/Generators/helper";
+import {
+    getSuites,
+    getTestRun,
+    getTestRunSummary,
+    getTests,
+} from "@/Generators/helper";
 import { type DetailedTestRunPageProps } from "@/types/detailedTestRunPage";
 import React from "react";
 import { type GetStaticPathsResult, type GetStaticPropsResult } from "next";
@@ -13,7 +18,9 @@ import {
     getAllTestRuns,
     getDetailsOfTestRun,
 } from "@/Generators/Queries/testRunRelated";
-import getAllSuites from "@/Generators/Queries/testEntityRelated";
+import getAllSuites, {
+    getAllTests,
+} from "@/Generators/Queries/testEntityRelated";
 
 const logger = getLogger("TestRunRelated");
 
@@ -51,16 +58,22 @@ export async function getStaticProps(prepareProps: {
         };
     }
     const suites = await getAllSuites(connection, testID);
+    const tests = await getAllTests(connection, testID);
+
     await connection.close();
+    const port = process.env.NEXT_PUBLIC_PY_PORT ?? "1212";
 
     return {
         props: {
             fallback: {
-                [getTestRun(testID)]: details,
-                [getSuites(testID)]: suites,
-                [getTestRunSummary(testID)]: generateTestRunSummary(details),
+                [getTestRun(port, testID)]: details,
+                [getSuites(port, testID)]: suites,
+                [getTestRunSummary(port, testID)]:
+                    generateTestRunSummary(details),
+                [getTests(port, testID)]: tests,
             },
             test_id: testID,
+            port,
         },
     };
 }
@@ -71,8 +84,8 @@ export default function TestRunResults(
     const fallback = props.fallback;
     return (
         <SWRConfig value={{ fallback }}>
-            <TestRunHeader test_id={props.test_id} />
-            <DetailedTestResults test_id={props.test_id} />
+            <TestRunHeader port={props.port} test_id={props.test_id} />
+            <DetailedTestResults test_id={props.test_id} port={props.port} />
         </SWRConfig>
     );
 }

@@ -11,7 +11,7 @@ import HeaderBarStyles from "@/styles/header.module.css";
 
 export default function TestRunHeader(props: OverviewPageProps): ReactNode {
     const { data, isLoading } = useSWRImmutable<DetailsOfRun>(
-        getTestRun(props.test_id),
+        getTestRun(props.port, props.test_id),
         fetcher
     );
     if (data == null || isLoading)
@@ -37,7 +37,7 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
             >
                 <Typography variant="h6" sx={{ letterSpacing: ".2rem" }}>
                     {data.projectName}
-                    <sub>
+                    {/* <sub>
                         {data.label !== null ? (
                             <Tooltip title="Label">
                                 <Chip
@@ -57,7 +57,7 @@ export default function TestRunHeader(props: OverviewPageProps): ReactNode {
                                 color="primary"
                             />
                         </Tooltip>
-                    </sub>
+                    </sub> */}
                 </Typography>
                 <Stack flexDirection="row" columnGap={2} alignItems={"center"}>
                     <RelativeTime dateTime={finishedAt} />

@@ -9,9 +9,9 @@ import "ag-grid-community/styles/ag-theme-alpine.css";
 import { type ColDef } from "ag-grid-community";
 import RenderTimeRelativeToStart, {
     RenderDuration,
-    RenderPassedRate,
     RenderStatus,
-} from "./renderers";
+} from "@/components/Table/renderers";
+import { RenderPassedRate } from "@/components/Table/stackedBarChart";
 import type DetailsOfRun from "@/types/testRun";
 import dayjs from "dayjs";
 import tableCellStyles from "@/styles/table.module.css";
@@ -31,13 +31,20 @@ export function ImportantThings(): ReactNode {
     );
 }
 
-export default function TestEntities(props: { test_id: string }): ReactNode {
-    const { data } = useSWRImmutable<SuiteDetails>(getSuites(props.test_id));
-    const { data: testRun } = useSWRImmutable<DetailsOfRun>(
-        getTestRun(props.test_id)
+export default function TestEntities(props: {
+    port: string;
+    test_id: string;
+}): ReactNode {
+    const { data } = useSWRImmutable<SuiteDetails>(
+        getSuites(props.port, props.test_id)
     );
+    const { data: testRun } = useSWRImmutable<DetailsOfRun>(
+        getTestRun(props.port, props.test_id)
+    );
+
     if (data == null || testRun == null)
         return <Skeleton width={200} height={150} />;
+
     const testStartedAt = dayjs(testRun.started);
     const sliced = data["@order"]
         .slice(-10, data["@order"].length)
@@ -84,7 +91,11 @@ export default function TestEntities(props: { test_id: string }): ReactNode {
     ];
     return (
         <div className="ag-theme-alpine-dark" style={{ height: 270 }}>
-            <AgGridReact rowData={sliced} columnDefs={columnDefs}></AgGridReact>
+            <AgGridReact
+                rowData={sliced}
+                columnDefs={columnDefs}
+                scrollbarWidth={1}
+            ></AgGridReact>
         </div>
     );
 }

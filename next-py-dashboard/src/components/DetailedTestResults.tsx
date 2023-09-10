@@ -10,6 +10,11 @@ import { clsx } from "clsx";
 import { AppBar } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import StyledToggleButtonGroup from "./Overview/toggleButton";
+import dynamic from "next/dynamic";
+const OverAllTestEntities = dynamic(
+    async () => await import("@/components/GridView/OverallTestEntities"),
+    { ssr: false }
+);
 
 export function DetailedTestResults(props: OverviewPageProps): ReactNode {
     const overview = 0;
@@ -40,10 +45,13 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                     )}
                 >
                     <div className={carouselStyles.slide}>
-                        <Overview test_id={props.test_id} />
+                        <Overview port={props.port} test_id={props.test_id} />
                     </div>
                     <div className={carouselStyles.slide}>
-                        <>Hello There</>
+                        <OverAllTestEntities
+                            port={props.port}
+                            test_id={props.test_id}
+                        />
                     </div>
                 </div>
             </div>

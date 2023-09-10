@@ -17,6 +17,12 @@ export interface QuickPreviewForScenarios {
     Tests: number;
 }
 
+export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
+    File: string;
+    Retried: number;
+    Description: string;
+}
+
 export default function parseTestEntity(
     testORSuite: SuiteRecordDetails,
     testStartedAt: Dayjs
@@ -33,6 +39,25 @@ export default function parseTestEntity(
     };
 }
 
+export function parseDetailedTestEntity(
+    testORSuite: SuiteRecordDetails,
+    testStartedAt: Dayjs
+): PreviewForDetailedEntities {
+    return {
+        Started: [dayjs(testORSuite.started), testStartedAt],
+        Ended: [dayjs(testORSuite.ended), testStartedAt],
+        Status: testORSuite.standing,
+        Title: testORSuite.title,
+        FullTitle: testORSuite.fullTitle,
+        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
+        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
+        Tests: testORSuite.tests,
+        File: testORSuite.file,
+        Retried: testORSuite.retried,
+        Description: testORSuite.description,
+    };
+}
+
 export function formatDateTime(dateTime: Dayjs): string {
     return dateTime?.format("MMM DD, YYYY hh:mm A") ?? "Not Specified";
 }
@@ -41,9 +66,4 @@ export function formatTime(dateTime: Dayjs): string {
     return dateTime?.format("hh:mm:ss A") ?? "Not Specified";
 }
 
-export const statusColors: { passed: string; failed: string; skipped: string } =
-    {
-        passed: "green",
-        failed: "#FC4349",
-        skipped: "#2C3E50",
-    };
+export const statusColors = ["green", "#FC4349", "#2C3E50"];

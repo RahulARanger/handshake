@@ -3,10 +3,14 @@ import { type TestRunSummary } from "./testRun";
 
 export interface ShareToOtherPages {
     test_id: string;
+    port: string;
 }
 
 export interface DetailedTestRunPageProps extends ShareToOtherPages {
-    fallback: Record<string, DetailsOfRun | TestRunSummary | SuiteDetails>;
+    fallback: Record<
+        string,
+        DetailsOfRun | TestRunSummary | SuiteDetails | TestDetails
+    >;
 }
 
 export interface OverviewPageProps extends ShareToOtherPages {}
@@ -26,6 +30,18 @@ export interface SuiteRecordDetails {
     retried: number;
     standing: statusOfEntity;
     tests: number;
+    description: string;
+    file: string;
+    parent: string;
+    suiteType: "SUITE" | "TEST";
+    error: Error;
+    errors: Error[];
 }
 
-export type SuiteDetails = Record<string, string[] | SuiteRecordDetails>;
+interface Order {
+    "@order": string[];
+}
+
+export type SuiteDetails = Order & Record<string, SuiteRecordDetails>;
+
+export type TestDetails = Record<string, SuiteRecordDetails[]>;
