@@ -11,6 +11,7 @@ import { AppBar } from "@mui/material";
 import ToggleButton from "@mui/material/ToggleButton";
 import StyledToggleButtonGroup from "./Overview/toggleButton";
 import dynamic from "next/dynamic";
+import GanttChart from "./GridView/ganttChart";
 const OverAllTestEntities = dynamic(
     async () => await import("@/components/GridView/OverallTestEntities"),
     { ssr: false }
@@ -19,6 +20,8 @@ const OverAllTestEntities = dynamic(
 export function DetailedTestResults(props: OverviewPageProps): ReactNode {
     const overview = 0;
     const grid = 1;
+    const gantt = 2;
+
     const [selectedTab, setSelectedTab] = useState(overview);
     const [emblaRef, emblaApi] = useEmblaCarousel({
         watchDrag: false,
@@ -53,6 +56,9 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                             test_id={props.test_id}
                         />
                     </div>
+                    <div className={carouselStyles.slide}>
+                        <GanttChart port={props.port} test_id={props.test_id} />
+                    </div>
                 </div>
             </div>
             <AppBar
@@ -75,6 +81,9 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                         <HomeIcon />
                     </ToggleButton>
                     <ToggleButton value={grid}>
+                        <GridOnIcon />
+                    </ToggleButton>
+                    <ToggleButton value={gantt}>
                         <GridOnIcon />
                     </ToggleButton>
                 </StyledToggleButtonGroup>

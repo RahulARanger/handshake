@@ -3,13 +3,17 @@ import { getSuites, getTestRun } from "@/Generators/helper";
 import { type SuiteDetails } from "@/types/detailedTestRunPage";
 import type DetailsOfRun from "@/types/testRun";
 import useSWR from "swr";
-import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-// import HighchartsMore from "highcharts/highcharts-more";
+import HighChartsAccessibility from "highcharts/modules/accessibility";
+import HighChartsForGantt from "highcharts/highcharts-gantt";
 import HighchartsGantt from "highcharts/modules/gantt";
 
-if (typeof Highcharts === "object") {
-    HighchartsGantt(Highcharts);
+import dayjs from "dayjs";
+import "@/styles/highChartExternal.module.css";
+
+if (typeof HighChartsForGantt === "object") {
+    HighchartsGantt(HighChartsForGantt);
+    HighChartsAccessibility(HighChartsForGantt);
 }
 
 export default function GanttChart(props: {
@@ -22,30 +26,43 @@ export default function GanttChart(props: {
     const { data: testRun } = useSWR<DetailsOfRun>(
         getTestRun(props.port, props.test_id)
     );
-    const today = new Date();
-    const day = 1000 * 60 * 60 * 24;
 
-    // Set to 00:00:00:000 today
-    today.setUTCHours(0);
-    today.setUTCMinutes(0);
-    today.setUTCSeconds(0);
-    today.setUTCMilliseconds(0);
+    if (testRun == null || suites == null) {
+        return <></>;
+    }
+    const started = dayjs(testRun.started);
+    const ended = dayjs(testRun.ended);
+
+    const data: HighChartsForGantt.GanttPointOptionsObject[] = suites[
+        "@order"
+    ].map((suiteID) => {
+        return {
+            name: suites[suiteID].title,
+            description: suites[suiteID].description,
+            parent: suites[suiteID].parent,
+            id: suiteID,
+            start: dayjs(suites[suiteID].started).valueOf(),
+            end: dayjs(suites[suiteID].ended).valueOf(),
+        };
+    });
 
     // THE CHART
     const options: Highcharts.Options = {
         chart: {
-            styledMode: true,
             type: "gantt",
+            plotShadow: true,
+            className: "highcharts-dark",
         },
+        credits: { enabled: false },
         title: {
-            text: "Highcharts Gantt in Styled Mode",
+            text: `${testRun.projectName}::Gantt Chart`,
         },
         subtitle: {
-            text: "Purely CSS-driven design",
+            text: "Plotted with your Suite",
         },
         xAxis: {
-            min: today.getTime() - 2 * day,
-            max: today.getTime() + 32 * day,
+            // min: started.subtract(21, "minutes").valueOf(),
+            // max: ended.add(2, "hour").valueOf(),
         },
         accessibility: {
             keyboardNavigation: {
@@ -58,80 +75,20 @@ export default function GanttChart(props: {
                     "{yCategory}. Start {x:%Y-%m-%d}, end {x2:%Y-%m-%d}.",
             },
         },
-        lang: {
-            accessibility: {
-                axis: {
-                    xAxisDescriptionPlural:
-                        "The chart has a two-part X axis showing time in both week numbers and days.",
-                },
-            },
-        },
         series: [
             {
                 type: "gantt",
-                name: "Project 1",
-                data: [
-                    {
-                        name: "Planning",
-                        id: "planning",
-                        start: today.getTime(),
-                        end: today.getTime() + 20 * day,
-                    },
-                    {
-                        name: "Requirements",
-                        id: "requirements",
-                        parent: "planning",
-                        start: today.getTime(),
-                        end: today.getTime() + 5 * day,
-                    },
-                    {
-                        name: "Design",
-                        id: "design",
-                        dependency: "requirements",
-                        parent: "planning",
-                        start: today.getTime() + 3 * day,
-                        end: today.getTime() + 20 * day,
-                    },
-                    {
-                        name: "Layout",
-                        id: "layout",
-                        parent: "design",
-                        start: today.getTime() + 3 * day,
-                        end: today.getTime() + 10 * day,
-                    },
-                    {
-                        name: "Graphics",
-                        parent: "design",
-                        dependency: "layout",
-                        start: today.getTime() + 10 * day,
-                        end: today.getTime() + 20 * day,
-                    },
-                    {
-                        name: "Develop",
-                        id: "develop",
-                        start: today.getTime() + 5 * day,
-                        end: today.getTime() + 30 * day,
-                    },
-                    {
-                        name: "Create unit tests",
-                        id: "unit_tests",
-                        dependency: "requirements",
-                        parent: "develop",
-                        start: today.getTime() + 5 * day,
-                        end: today.getTime() + 8 * day,
-                    },
-                    {
-                        name: "Implement",
-                        id: "implement",
-                        dependency: "unit_tests",
-                        parent: "develop",
-                        start: today.getTime() + 8 * day,
-                        end: today.getTime() + 30 * day,
-                    },
-                ],
+                name: testRun.projectName,
+                data,
             },
         ],
     };
 
-    return <HighchartsReact highcharts={Highcharts} options={options} />;
+    return (
+        <HighchartsReact
+            highcharts={HighChartsForGantt}
+            options={options}
+            constructorType="ganttChart"
+        />
+    );
 }

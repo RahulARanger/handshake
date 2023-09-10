@@ -128,7 +128,7 @@ async def complete_test_run(test_id: str, current_test_id: str):
     )
 
     await test_run.update_from_dict(dict(
-        ended=datetime.utcnow(),
+        ended=datetime.now(),
         tests=test_result.get("total_tests", 0),
         passed=passed,
         failed=failed,

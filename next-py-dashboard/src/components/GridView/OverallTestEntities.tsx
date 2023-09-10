@@ -14,27 +14,13 @@ import {
 } from "../parseUtils";
 import type DetailsOfRun from "@/types/testRun";
 import dayjs from "dayjs";
-import Stack from "@mui/material/Stack";
 import { registerAllModules } from "handsontable/registry";
 import { HotColumn, HotTable } from "@handsontable/react";
 import "handsontable/dist/handsontable.full.min.css";
-import GanttChart from "./ganttChart";
 
 registerAllModules();
 
 export default function OverAllTestEntities(props: {
-    port: string;
-    test_id: string;
-}): ReactNode {
-    return (
-        <Stack display="flex" flexDirection="column">
-            <OverAllDetailsFromGrid {...props} />
-            <GanttChart {...props} />
-        </Stack>
-    );
-}
-
-export function OverAllDetailsFromGrid(props: {
     port: string;
     test_id: string;
 }): ReactNode {

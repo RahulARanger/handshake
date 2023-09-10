@@ -10,7 +10,7 @@ export default async function getAllSuites(
     testID: string
 ): Promise<SuiteDetails> {
     const suites = await connection.all<SuiteRecordDetails[]>(
-        "select * from suitebase where suiteType = 'SUITE' and session_id = (select sessionID from sessionbase where test_id = ?)",
+        "select * from suitebase where suiteType = 'SUITE' and session_id in (select sessionID from sessionbase where test_id = ?)",
         testID
     );
 
@@ -31,7 +31,7 @@ export async function getAllTests(
     testID: string
 ): Promise<TestDetails> {
     const tests = await connection.all<SuiteRecordDetails[]>(
-        "select * from suitebase where suiteType = 'TEST' and session_id = (select sessionID from sessionbase where test_id = ?)",
+        "select * from suitebase where suiteType = 'TEST' and session_id in (select sessionID from sessionbase where test_id = ?)",
         testID
     );
     const response: TestDetails = {};
