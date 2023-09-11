@@ -1,0 +1,26 @@
+.handsontableClass td {
+    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+        rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+    text-align: right !important;
+    color: white !important;
+    background: #201f1f !important;
+    vertical-align: center !important;
+    border: 1px solid black !important;
+}
+
+.handsontableClass th {
+    transition: all 0.5s ease !important;
+    box-shadow: rgba(9, 30, 66, 0.25) 0px 4px 8px -2px,
+        rgba(9, 30, 66, 0.08) 0px 0px 0px 1px;
+    background: #201f1f !important;
+    color: white !important;
+    border: 2px groove black !important;
+    font-weight: bolder;
+}
+
+.handsontableClass td:hover {
+    background-color: rgb(40, 39, 39) !important;
+    border: 1px solid orangered !important;
+    box-shadow: rgba(60, 64, 67, 0.3) 0px 1px 2px 0px,
+        rgba(60, 64, 67, 0.15) 0px 2px 6px 2px;
+}

@@ -19,6 +19,7 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
     const gantt = 2;
 
     const [selectedTab, setSelectedTab] = useState(overview);
+    const marginStyle = { margin: "10px", marginTop: "15px" };
 
     return (
         <>
@@ -27,6 +28,7 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                 hidden={overview !== selectedTab}
                 id={`vertical-tabpanel-${selectedTab}`}
                 aria-labelledby={`vertical-tab-${selectedTab}`}
+                style={marginStyle}
             >
                 {overview === selectedTab && (
                     <Overview port={props.port} test_id={props.test_id} />
@@ -37,6 +39,7 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                 hidden={grid !== selectedTab}
                 id={`vertical-tabpanel-${selectedTab}`}
                 aria-labelledby={`vertical-tab-${selectedTab}`}
+                style={marginStyle}
             >
                 {grid === selectedTab && (
                     <OverAllTestEntities
@@ -50,6 +53,7 @@ export function DetailedTestResults(props: OverviewPageProps): ReactNode {
                 hidden={gantt !== selectedTab}
                 id={`vertical-tabpanel-${selectedTab}`}
                 aria-labelledby={`vertical-tab-${selectedTab}`}
+                style={marginStyle}
             >
                 {gantt === selectedTab && (
                     <GanttChart port={props.port} test_id={props.test_id} />

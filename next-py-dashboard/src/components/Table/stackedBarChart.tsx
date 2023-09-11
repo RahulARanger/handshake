@@ -1,7 +1,6 @@
 import Highcharts from "highcharts";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
-import Highcharts3d from "highcharts/highcharts-3d";
 import React, { type ReactNode } from "react";
 import { Skeleton } from "@mui/material";
 import { statusColors } from "../parseUtils";
@@ -20,6 +19,7 @@ export function RenderPassedRate(props: {
             type: "bar",
             height: 40,
             margin: 2,
+            backgroundColor: "transparent",
         },
 
         credits: { enabled: false },
@@ -49,7 +49,11 @@ export function RenderPassedRate(props: {
             series: {
                 stacking: "percent",
                 crisp: true,
-                shadow: true,
+                dataLabels: {
+                    enabled: true,
+                    borderRadius: 0,
+                    color: "white",
+                },
             },
         },
         exporting: { enabled: false },

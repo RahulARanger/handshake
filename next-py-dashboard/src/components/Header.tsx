@@ -4,7 +4,6 @@ import { fetcher, getTestRun } from "@/Generators/helper";
 import { type OverviewPageProps } from "@/types/detailedTestRunPage";
 import useSWRImmutable from "swr/immutable";
 import type DetailsOfRun from "@/types/testRun";
-import Chip from "@mui/material/Chip";
 import dayjs from "dayjs";
 import RelativeTime from "./Datetime/relativeTime";
 import HeaderBarStyles from "@/styles/header.module.css";

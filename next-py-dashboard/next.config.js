@@ -4,7 +4,8 @@ const nextConfig = {
   output: "export",
   env: {
     NEXT_PY_PORT: process.env.NEXT_PY_PORT
-  }
+  },
+  distDir: "dist"
 }
 
 module.exports = nextConfig

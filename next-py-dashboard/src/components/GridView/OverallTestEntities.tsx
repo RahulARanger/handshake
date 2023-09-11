@@ -17,6 +17,7 @@ import dayjs from "dayjs";
 import { registerAllModules } from "handsontable/registry";
 import { HotColumn, HotTable } from "@handsontable/react";
 import "handsontable/dist/handsontable.full.min.css";
+import handsometable from "@/styles/handsome.module.css";
 
 registerAllModules();
 
@@ -53,6 +54,10 @@ export default function OverAllTestEntities(props: {
             contextMenu={true}
             rowHeights={45}
             dropdownMenu={true}
+            tableClassName={handsometable.handsontableClass}
+            style={{
+                transition: "all 0.5s ease",
+            }}
         >
             <HotColumn data={"Status"} title="Status">
                 <RenderStatus hot-renderer />

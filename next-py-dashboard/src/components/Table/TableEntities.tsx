@@ -14,7 +14,6 @@ import RenderTimeRelativeToStart, {
 import { RenderPassedRate } from "@/components/Table/stackedBarChart";
 import type DetailsOfRun from "@/types/testRun";
 import dayjs from "dayjs";
-import tableCellStyles from "@/styles/table.module.css";
 import { getSuites, getTestRun } from "@/Generators/helper";
 
 export function ImportantThings(): ReactNode {
@@ -57,7 +56,7 @@ export default function TestEntities(props: {
         {
             field: "Status",
             cellRenderer: RenderStatus,
-            cellClass: tableCellStyles.centerRenderedCell,
+
             width: 75,
             pinned: true,
         },
@@ -66,13 +65,12 @@ export default function TestEntities(props: {
             field: "Duration",
             cellRenderer: RenderDuration,
             width: 120,
-            cellClass: tableCellStyles.centerRenderedCell,
         },
         {
             field: "Rate",
             cellRenderer: RenderPassedRate,
             width: 100,
-            cellClass: tableCellStyles.centerRenderedCell,
+
             cellStyle: { alignItems: "flex-end" },
         },
         { field: "Tests", width: 70 },
@@ -80,13 +78,11 @@ export default function TestEntities(props: {
             field: "Started",
             cellRenderer: RenderTimeRelativeToStart,
             width: 142,
-            cellClass: tableCellStyles.centerRenderedCell,
         },
         {
             field: "Ended",
             cellRenderer: RenderTimeRelativeToStart,
             width: 142,
-            cellClass: tableCellStyles.centerRenderedCell,
         },
     ];
     return (

@@ -12,7 +12,7 @@
     background-color: transparent !important;
     background: none;
     position: sticky;
-    bottom: 0px;
+    bottom: 0%;
     display: flex !important;
     align-items: flex-end;
 }

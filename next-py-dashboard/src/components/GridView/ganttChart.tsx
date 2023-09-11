@@ -30,12 +30,21 @@ export default function GanttChart(props: {
     if (testRun == null || suites == null) {
         return <></>;
     }
-    const started = dayjs(testRun.started);
-    const ended = dayjs(testRun.ended);
 
     const data: HighChartsForGantt.GanttPointOptionsObject[] = suites[
         "@order"
-    ].map((suiteID) => {
+    ].map((suiteID, index) => {
+        let dependentOn;
+
+        if (index > 0) {
+            const previous = suites[suites["@order"][index - 1]];
+            if (
+                suites[suiteID].parent !== "" &&
+                previous.parent === suites[suiteID].parent
+            )
+                dependentOn = previous.suiteID;
+        }
+
         return {
             name: suites[suiteID].title,
             description: suites[suiteID].description,
@@ -43,6 +52,7 @@ export default function GanttChart(props: {
             id: suiteID,
             start: dayjs(suites[suiteID].started).valueOf(),
             end: dayjs(suites[suiteID].ended).valueOf(),
+            dependency: dependentOn ?? suites[suiteID].parent,
         };
     });
 
