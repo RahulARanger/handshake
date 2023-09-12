@@ -3,7 +3,7 @@ from nextpyreports.services.DBService.models.task_base import TaskBase
 from nextpyreports.services.DBService.models.types import Status, SuiteType
 from nextpyreports.services.SchedularService.types import PathTree, PathItem
 from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
-from tortoise.functions import Sum
+from tortoise.functions import Sum, Max, Min
 from datetime import datetime
 from typing import List
 from pathlib import Path
@@ -111,9 +111,11 @@ async def complete_test_run(test_id: str, current_test_id: str):
         total_skipped=Sum("skipped"),
         total_retried=Sum("retried"),
         total_tests=Sum("tests"),
-        duration=Sum("duration"),
+        actual_end=Max("ended"),
+        actual_start=Min("started")
     ).first().values(
-        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests", "duration"
+        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests",
+        "actual_end", "actual_start"
     )
     passed = test_result.get("total_passed", 0)
     failed = test_result.get("total_failed", 0)
@@ -127,13 +129,19 @@ async def complete_test_run(test_id: str, current_test_id: str):
         count=await filtered_suites.count(),
     )
 
+    ended = test_result.get("actual_end", datetime.now())
+    # start date was initially when we start the shipment
+    # now it is when the first session starts
+    start_date = test_result.get("actual_start", test_run.started)
+
     await test_run.update_from_dict(dict(
-        ended=datetime.now(),
+        ended=ended,
+        started=start_date,
         tests=test_result.get("total_tests", 0),
         passed=passed,
         failed=failed,
         skipped=skipped,
-        duration=test_result.get("duration", 0.0),
+        duration=(ended - start_date).total_seconds() * 1e3,
         retried=test_result.get("total_retried", 0),
         specStructure=simplify_file_paths([
             path
