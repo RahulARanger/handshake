@@ -30,6 +30,12 @@ export async function getDetailsOfTestRun(
     );
 }
 
+export async function getAllTestRunDetails(
+    connection: dbConnection
+): Promise<DetailsOfRun[] | undefined> {
+    return await connection.all<DetailsOfRun[]>("SELECT * from runbase");
+}
+
 export function generateTestRunSummary(
     _testDetails: DetailsOfRun
 ): TestRunSummary {

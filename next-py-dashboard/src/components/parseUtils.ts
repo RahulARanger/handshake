@@ -2,19 +2,28 @@ import {
     type statusOfEntity,
     type SuiteRecordDetails,
 } from "@/types/detailedTestRunPage";
+import type DetailsOfRun from "@/types/testRun";
 import dayjs, { type Dayjs } from "dayjs";
 import duration from "dayjs/plugin/duration";
 dayjs.extend(duration);
 
-export interface QuickPreviewForScenarios {
+interface BasicDetails {
     Started: [Dayjs, Dayjs];
     Ended: [Dayjs, Dayjs];
     Status: statusOfEntity;
     Title: string;
-    FullTitle: string;
     Duration: duration.Duration;
     Rate: [number, number, number];
     Tests: number;
+}
+
+export interface QuickPreviewForTestRun extends BasicDetails {
+    SuitesSummary: [number, number, number];
+    Suites: number;
+}
+
+export interface QuickPreviewForScenarios extends BasicDetails {
+    FullTitle: string;
 }
 
 export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
@@ -55,6 +64,28 @@ export function parseDetailedTestEntity(
         File: testORSuite.file,
         Retried: testORSuite.retried,
         Description: testORSuite.description,
+    };
+}
+
+export function parseDetailedTestRun(
+    testRun: DetailsOfRun
+): QuickPreviewForTestRun {
+    const summary: {
+        passed: number;
+        failed: number;
+        count: number;
+        skipped: number;
+    } = JSON.parse(testRun.suiteSummary);
+    return {
+        Started: [dayjs(testRun.started), dayjs()],
+        Ended: [dayjs(testRun.ended), dayjs()],
+        Title: testRun.projectName,
+        Status: testRun.standing,
+        Rate: [testRun.passed, testRun.failed, testRun.skipped],
+        Duration: dayjs.duration({ milliseconds: testRun.duration }),
+        Tests: testRun.tests,
+        SuitesSummary: [summary.passed, summary.failed, summary.skipped],
+        Suites: summary.count,
     };
 }
 

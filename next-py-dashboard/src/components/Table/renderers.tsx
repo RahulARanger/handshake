@@ -7,6 +7,7 @@ import ErrorIcon from "@mui/icons-material/Error";
 import PendingIcon from "@mui/icons-material/Pending";
 import { type statusOfEntity } from "@/types/detailedTestRunPage";
 import TurnSlightLeftIcon from "@mui/icons-material/TurnSlightLeft";
+import Link from "next/link";
 
 export default function RenderTimeRelativeToStart(props: {
     "hot-renderer": true;
@@ -41,4 +42,15 @@ export function RenderStatus(props: {
             return <TurnSlightLeftIcon color="warning" titleAccess="Skipped" />;
         }
     }
+}
+
+export function RenderLinkForTestRun(props: {
+    test_id?: string;
+    "hot-renderer": true;
+}): ReactNode {
+    return (
+        <Link href={`/RUNS/${props.test_id ?? "unknown"}`}>
+            {props.test_id}
+        </Link>
+    );
 }

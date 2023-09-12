@@ -37,3 +37,4 @@ next-env.d.ts
 **/.pytest_cache/*
 
 check.py
+next-py-dashboard/dist/*

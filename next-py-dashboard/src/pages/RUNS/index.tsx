@@ -2,29 +2,34 @@ import { type GetStaticPropsResult } from "next";
 import React, { type ReactNode } from "react";
 import getConnection from "@/Generators/dbConnection";
 import { getLogger } from "log4js";
-import latestTestRun from "@/Generators/Queries/testRunRelated";
+import { getAllTestRunDetails } from "@/Generators/Queries/testRunRelated";
+import type DetailsOfRun from "@/types/testRun";
+import dynamic from "next/dynamic";
+const GridOfRuns = dynamic(
+    async () => await import("@/components/GridView/gridOfRuns"),
+    { ssr: false }
+);
 
-export async function getStaticProps(): Promise<
-    GetStaticPropsResult<{ redirect: { destination: string } }>
-> {
-    const logger = getLogger("Generate Test Run IDs");
-    logger.info("🔝 Fetching latest test run...");
+const logger = getLogger("Run-Page");
+
+export async function getStaticProps(prepareProps: {
+    params: {
+        id: string;
+    };
+}): Promise<GetStaticPropsResult<{ runs: DetailsOfRun[] }>> {
+    logger.info("Generating Cards for all Runs");
 
     const connection = await getConnection();
-    const testID = await latestTestRun(connection);
+    const allRuns = await getAllTestRunDetails(connection);
     await connection.close();
 
-    if (testID.length > 0) logger.info("✅ Fetched latest run");
-
     return {
-        redirect: {
-            permanent: false,
-            destination:
-                testID === "" ? "/RUNS/no-test-run-found" : `/RUNS/${testID}`,
-        },
+        props: { runs: allRuns ?? [] },
     };
 }
 
-export default function PageThatWeWontSee(props: unknown): ReactNode {
-    return <>{props}</>;
+export default function AllTestRunsDisplayedHere(props: {
+    runs: DetailsOfRun[];
+}): ReactNode {
+    return <GridOfRuns runs={props.runs} />;
 }

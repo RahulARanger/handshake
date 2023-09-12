@@ -1,7 +1,9 @@
+import { type statusOfEntity } from "./detailedTestRunPage";
+
 export default interface DetailsOfRun {
     projectName: string;
     testID: string;
-    standing: string;
+    standing: statusOfEntity;
     passed: number;
     failed: number;
     skipped: number;
