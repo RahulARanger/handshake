@@ -41,7 +41,7 @@ class RunBase(CommonDetailedFields):
     testID = UUIDField(pk=True)
     sessions = ReverseRelation["SessionBase"]
     tasks = ReverseRelation["TaskBase"]
-    started = DatetimeField(null=False, auto_now=True)
+    started = DatetimeField(null=False, auto_now_add=True)
     projectName = CharField(max_length=30, null=False, description="Name of the project")
     specStructure = JSONField(description="file structure of spec files", default=dict())
     suiteSummary = JSONField(description="summary of the suites", default=dict(count=0, passed=0, failed=0, skipped=0))

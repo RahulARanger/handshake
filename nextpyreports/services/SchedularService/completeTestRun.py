@@ -1,7 +1,7 @@
 from nextpyreports.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
 from nextpyreports.services.DBService.models.task_base import TaskBase
 from nextpyreports.services.DBService.models.types import Status, SuiteType
-from nextpyreports.services.SchedularService.types import PathTree, PathItem
+from nextpyreports.services.SchedularService.refer_types import PathTree, PathItem
 from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum, Max, Min
 from datetime import datetime
@@ -129,19 +129,19 @@ async def complete_test_run(test_id: str, current_test_id: str):
         count=await filtered_suites.count(),
     )
 
-    ended = test_result.get("actual_end", datetime.now())
     # start date was initially when we start the shipment
     # now it is when the first session starts
-    start_date = test_result.get("actual_start", test_run.started)
+    started = test_result.get("actual_start", test_run.started)
+    ended = test_result.get("actual_end", datetime.now())
 
     await test_run.update_from_dict(dict(
+        started=started,
         ended=ended,
-        started=start_date,
         tests=test_result.get("total_tests", 0),
         passed=passed,
         failed=failed,
         skipped=skipped,
-        duration=(ended - start_date).total_seconds() * 1e3,
+        duration=(ended - started).total_seconds() * 1000,
         retried=test_result.get("total_retried", 0),
         specStructure=simplify_file_paths([
             path

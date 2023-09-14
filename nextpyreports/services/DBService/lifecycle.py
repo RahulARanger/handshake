@@ -47,6 +47,11 @@ async def create_or_update_jobs():
         name="complete-test-run"
     )
 
+    await JobBase.update_or_create(
+        jobID=JobType.EXECUTOR,
+        name='execute-scheduler'
+    )
+
 
 async def close_connection():
     await connections.close_all()

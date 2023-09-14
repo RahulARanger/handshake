@@ -36,7 +36,6 @@ export default class Shipment extends ContactList {
         const command = `"${path}" && next-py run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
         this.pyProcess = spawn(
             command,
-            // 'echo \'za warudo\'',
             { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
             { cwd: rootDir },
         );
@@ -102,20 +101,16 @@ export default class Shipment extends ContactList {
         return new Promise((resolve, reject) => {
             // 5 seconds buffer
             const bomb = setTimeout(() => { reject(explain); }, this.options.timeout + 5e3);
+            clearInterval(bomb);
+            resolve();
 
-            const timer = setInterval(() => {
-                this.logger.warn('→ Waiting for the py-process to complete ⏲️...');
+            // const timer = setInterval(() => {
+            //     this.logger.warn('→ Waiting for the py-process to complete ⏲️...');
 
-                fetch(`${this.url}/isItDone`).then((data) => data.json()).then(
-                    (data) => {
-                        if (!data.done) { this.logger.warn(`→ Pending Tasks ⚒️: ${data.message}`); return; }
-
-                        clearTimeout(bomb);
-                        clearInterval(timer);
-                        resolve();
-                    },
-                );
-            }, 1e3);
+            //     clearTimeout(bomb);
+            //             clearInterval(timer);
+            //             resolve();
+            // }, 1e3);
         })
             .catch(this.sayBye.bind(this))
             .then(this.sayBye.bind(this));

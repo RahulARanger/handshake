@@ -7,6 +7,7 @@ from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import HTTPResponse, text
+from loguru import logger
 
 service = Blueprint("DBService", url_prefix="/save")
 
@@ -15,11 +16,13 @@ service = Blueprint("DBService", url_prefix="/save")
 async def register_session(_: Request) -> HTTPResponse:
     try:
         session = RegisterSession.model_validate(_.json)
-        created = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
-        await created.save()
+        session_record = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
+        await session_record.save()
     except Exception as error:
+        print(get_test_id(), "HERE", error)
+        logger.exception("FAILED")
         return text(str(error), status=404)
-    return text(f"Registered Session: {created.sessionID}", status=201)
+    return text(f"Registered Session: {session_record.sessionID}", status=201)
 
 
 @service.put("/registerSuite")

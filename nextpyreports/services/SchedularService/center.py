@@ -1,52 +1,39 @@
 from nextpyreports.services.SchedularService.constants import JobType
-from nextpyreports.services.SchedularService.handlePending import lookup_for_tasks
+from nextpyreports.services.SchedularService.handlePending import add_lookup_task
 from nextpyreports.services.DBService.models.config_base import ConfigBase, JobBase
-from nextpyreports.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from nextpyreports.services.DBService.lifecycle import init_tortoise_orm
+from nextpyreports.services.SchedularService.lifecycle import verify_pending_jobs
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from asyncio import get_event_loop, run
 from loguru import logger
 from datetime import datetime
 from nextpyreports.services.DBService.models.task_base import TaskBase
+from apscheduler.events import EVENT_JOB_EXECUTED
+from pathlib import Path
 
 
-def init_scheduler(db_path: str):
+def start_service(db_path: Path) -> AsyncIOScheduler:
     logger.info("Starting the scheduler service...")
     __scheduler = AsyncIOScheduler({"logger": logger})
-
     __scheduler.add_job(
         init_jobs_connections, id=JobType.INIT_CONNECTION_JOBS,
         args=(db_path, __scheduler), next_run_time=datetime.now()
     )
+    __scheduler.add_listener(lambda _: verify_pending_jobs(__scheduler), EVENT_JOB_EXECUTED)
     __scheduler.start()
-    logger.info("Scheduler service is now online")
+    return __scheduler
 
-    loop = get_event_loop()
-    try:
-        loop.run_forever()
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("as per request, we will not pick new tasks, hence completing the pending ones")
-        # __scheduler.shutdown(wait=True)
-        logger.info("Requested for the service termination, request accepted.")
-        # loop.run(
-        #     close_connection()
-        # )
-    finally:
-        logger.info("as per request, we will not pick new tasks, hence completing the pending ones")
-        loop.close()
+
+async def pick_previous_tasks():
+    prev_picked_tasks = await TaskBase.filter(picked=True).all()
+    for task in prev_picked_tasks:
+        logger.info("scheduling old task {} for this iteration", task.ticketID)
+        task.picked = False
+    await TaskBase.bulk_update(prev_picked_tasks, ("picked",), 100)
 
 
 async def init_jobs_connections(db_path: str, _scheduler: AsyncIOScheduler):
     await init_tortoise_orm(db_path)
     logger.info("DB Services are now online 🌍")
+    await pick_previous_tasks()
 
-    prev_picked_tasks = await TaskBase.filter(picked=True).all()
-    for task in prev_picked_tasks:
-        logger.info("scheduling old task {} for this iteration", task.ticketID)
-        task.picked = False
-    await TaskBase.bulk_update(prev_picked_tasks, ("picked", ), 100)
-
-    look_up = await JobBase.filter(jobID=JobType.LOOKUP_JOB).first()
-    _scheduler.add_job(
-        lookup_for_tasks, "interval", seconds=look_up.interval, id=JobType.LOOKUP_JOB,
-        name="clearing up the pending tasks if present", args=(_scheduler, ), max_instances=look_up.instances
-    )
+    add_lookup_task(_scheduler)

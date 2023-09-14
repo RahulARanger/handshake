@@ -10,5 +10,4 @@ class JobType(StrEnum):
     LOOKUP_JOB = "pending-tasks"
     MODIFY_SUITE = "fix-suite"
     MODIFY_TEST_RUN = "fix-test-run"
-
-
+    EXECUTOR = 'executor'

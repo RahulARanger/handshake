@@ -3,7 +3,7 @@ from nextpyreports.services.DBService.shared import get_test_id
 from nextpyreports.services.DBService.lifecycle import close_connection
 from sanic.blueprints import Blueprint
 from nextpyreports.services.SchedularService.constants import JobType
-from sanic.response import HTTPResponse, text, JSONResponse, json
+from sanic.response import HTTPResponse, text
 from sanic.request import Request
 
 one_liners = Blueprint(name="one_liners", url_prefix="/")
@@ -23,17 +23,6 @@ async def set_done(request: Request) -> HTTPResponse:
         test_id=get_test_id(), ticketID=get_test_id()
     )
     return text(task.ticketID)
-
-
-@one_liners.get("/isItDone")
-async def isItDone(_: Request) -> JSONResponse:
-    pending_tasks = await TaskBase.filter(test_id=get_test_id()).count()
-    return json(
-        dict(
-            done=pending_tasks == 0,
-            message=f"{pending_tasks} tasks are pending" if pending_tasks else "Completed"
-        )
-    )
 
 
 # bye is core request, so make sure to handle it carefully
