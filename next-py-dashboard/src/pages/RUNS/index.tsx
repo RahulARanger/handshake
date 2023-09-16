@@ -4,11 +4,7 @@ import getConnection from "@/Generators/dbConnection";
 import { getLogger } from "log4js";
 import { getAllTestRunDetails } from "@/Generators/Queries/testRunRelated";
 import type DetailsOfRun from "@/types/testRun";
-import dynamic from "next/dynamic";
-const GridOfRuns = dynamic(
-    async () => await import("@/components/GridView/gridOfRuns"),
-    { ssr: false }
-);
+import GridOfRuns from "@/components/GridView/gridOfRuns";
 
 const logger = getLogger("Run-Page");
 

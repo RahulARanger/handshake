@@ -1,12 +1,15 @@
 import { Tooltip, Typography } from "@mui/material";
-import { type Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import React, { useState, type CSSProperties, type ReactNode } from "react";
 import { formatTime } from "../parseUtils";
 import useEmblaCarousel from "embla-carousel-react";
 import carouselStyles from "@/styles/carousel.module.css";
 import Autoplay from "embla-carousel-autoplay";
-
+import relativeTime from "dayjs/plugin/relativeTime";
+import duration from "dayjs/plugin/duration";
 import { type Duration } from "dayjs/plugin/duration";
+dayjs.extend(relativeTime);
+dayjs.extend(duration);
 
 export default function RelativeTime(props: {
     dateTime: Dayjs;

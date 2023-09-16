@@ -1,7 +1,6 @@
 {
     "name": "next-py-dashboard",
     "version": "0.3.0",
-    "private": true,
     "scripts": {
         "dev": "next dev",
         "build": "next build",
@@ -10,6 +9,7 @@
         "export": "next export"
     },
     "dependencies": {
+        "@ant-design/happy-work-theme": "^1.0.0",
         "@emotion/react": "^11.11.1",
         "@emotion/styled": "^11.11.0",
         "@handsontable/react": "^13.1.0",
@@ -20,6 +20,7 @@
         "@types/react-dom": "18.2.7",
         "ag-grid-community": "^30.1.0",
         "ag-grid-react": "^30.1.0",
+        "antd": "^5.9.1",
         "clsx": "^2.0.0",
         "dayjs": "^1.11.9",
         "embla-carousel-autoplay": "^8.0.0-rc12",

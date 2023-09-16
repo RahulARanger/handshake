@@ -90,6 +90,8 @@ export default class Shipment extends ContactList {
 
                     this.logger.info('Server is online! 😀');
                     resolve();
+                }).catch(() => {
+                this.logger.warn("😓 Server has not started yet...")
                 });
             }, 3e3);
         }).catch(this.sayBye.bind(this));

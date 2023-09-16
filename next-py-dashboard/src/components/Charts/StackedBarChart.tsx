@@ -2,24 +2,27 @@ import Highcharts from "highcharts";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 import React, { type ReactNode } from "react";
-import { Skeleton } from "@mui/material";
 import { statusColors } from "../parseUtils";
+import darkUnica from "highcharts/themes/dark-unica";
 
 if (typeof Highcharts === "object") {
     HighchartsExporting(Highcharts);
+    darkUnica(Highcharts);
 }
 
-export function RenderPassedRate(props: {
-    value?: [number, number, number];
-    "hot-renderer": true;
+export default function RenderPassedRate(props: {
+    value: [number, number, number];
 }): ReactNode {
-    if (props.value == null) return <Skeleton width={50} height={30} />;
     const options: Highcharts.Options = {
         chart: {
             type: "bar",
             height: 40,
+            width: 220,
             margin: 2,
             backgroundColor: "transparent",
+            style: {
+                padding: "1px",
+            },
         },
 
         credits: { enabled: false },
@@ -48,10 +51,8 @@ export function RenderPassedRate(props: {
         plotOptions: {
             series: {
                 stacking: "percent",
-                crisp: true,
                 dataLabels: {
                     enabled: true,
-                    borderRadius: 0,
                     color: "white",
                 },
             },

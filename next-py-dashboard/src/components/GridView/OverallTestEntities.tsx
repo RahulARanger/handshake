@@ -7,7 +7,7 @@ import RenderTimeRelativeToStart, {
     RenderDuration,
     RenderStatus,
 } from "@/components/Table/renderers";
-import { RenderPassedRate } from "@/components/Table/stackedBarChart";
+import RenderPassedRate from "@/components/Charts/StackedBarChart";
 import {
     type PreviewForDetailedEntities,
     parseDetailedTestEntity,

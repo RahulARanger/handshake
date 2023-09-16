@@ -1,0 +1,6 @@
+.centerCard {
+    width: max(50%, 150px) !important;
+    position: absolute;
+    top: 30%;
+    left: 23%;
+}

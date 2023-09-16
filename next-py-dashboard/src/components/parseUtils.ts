@@ -1,3 +1,4 @@
+import runLink from "@/Generators/linkProviders";
 import {
     type statusOfEntity,
     type SuiteRecordDetails,
@@ -20,6 +21,7 @@ interface BasicDetails {
 export interface QuickPreviewForTestRun extends BasicDetails {
     SuitesSummary: [number, number, number];
     Suites: number;
+    Link: string;
 }
 
 export interface QuickPreviewForScenarios extends BasicDetails {
@@ -86,6 +88,7 @@ export function parseDetailedTestRun(
         Tests: testRun.tests,
         SuitesSummary: [summary.passed, summary.failed, summary.skipped],
         Suites: summary.count,
+        Link: runLink(testRun.testID),
     };
 }
 

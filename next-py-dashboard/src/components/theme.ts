@@ -1,27 +1,12 @@
-import { createTheme } from "@mui/material/styles";
+import { type ThemeConfig } from "antd/lib/config-provider";
+import theme from "antd/lib/theme";
 
-// Create a theme instance.
-const theme = createTheme({
-    palette: {
-        mode: "dark",
-        primary: {
-            main: "#e85403",
-        },
-        secondary: {
-            main: "#ff6d00",
-        },
-        info: {
-            main: "#03a9f4",
-        },
-        success: {
-            main: "#4caf50",
-        },
-        error: {
-            main: "#f71505",
-        },
-        warning: {
-            main: "#ffb300",
-        },
+const customTheme: ThemeConfig = {
+    token: {
+        colorPrimary: "#f66a00",
+        colorInfo: "#f66a00",
     },
-});
-export default theme;
+    algorithm: theme.darkAlgorithm,
+};
+
+export default customTheme;
