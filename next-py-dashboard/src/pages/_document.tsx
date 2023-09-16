@@ -20,7 +20,7 @@ Document.getInitialProps = async (ctx: DocumentContext) => {
         await originalRenderPage({
             enhanceApp: (App) => (props) =>
                 (
-                    <StyleProvider cache={cache}>
+                    <StyleProvider hashPriority="high" ssrInline cache={cache}>
                         <App {...props} />
                     </StyleProvider>
                 ),

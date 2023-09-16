@@ -16,9 +16,9 @@ export default function RenderPassedRate(props: {
     const options: Highcharts.Options = {
         chart: {
             type: "bar",
-            height: 40,
+            height: 30,
             width: 220,
-            margin: 2,
+            margin: 0,
             backgroundColor: "transparent",
             style: {
                 padding: "1px",

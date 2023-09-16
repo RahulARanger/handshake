@@ -151,6 +151,7 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
         <Card
             title="Test Runs"
             bordered={true}
+            size="small"
             extra={
                 <Switch
                     defaultChecked
@@ -168,7 +169,7 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
     );
 
     const durationChart = (
-        <Card title="Duration Plot" bordered={true}>
+        <Card title="Duration Plot" bordered={true} size="small">
             <HistogramForDuration runs={props.runs} />
         </Card>
     );
@@ -214,7 +215,7 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
                 />
             </Layout.Header>
             <Layout hasSider style={{ margin: "6px" }}>
-                <Layout.Sider width={350} theme={"light"} collapsible={true}>
+                <Layout.Sider width={350} theme={"light"}>
                     <ListOfRuns runs={props.runs} />
                 </Layout.Sider>
                 <Layout.Content style={{ margin: "6px" }}>

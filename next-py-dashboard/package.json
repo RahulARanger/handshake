@@ -6,16 +6,18 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "export": "next export"
+        "export": "next export",
+        "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx",
+        "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx"
     },
     "dependencies": {
         "@ant-design/happy-work-theme": "^1.0.0",
         "@emotion/react": "^11.11.1",
         "@emotion/styled": "^11.11.0",
         "@handsontable/react": "^13.1.0",
-        "@mui/icons-material": "^5.14.7",
-        "@mui/material": "^5.14.7",
-        "@types/node": "20.5.9",
+        "@mui/icons-material": "^5.14.9",
+        "@mui/material": "^5.14.9",
+        "@types/node": "20.6.2",
         "@types/react": "18.2.21",
         "@types/react-dom": "18.2.7",
         "ag-grid-community": "^30.1.0",
@@ -23,8 +25,8 @@
         "antd": "^5.9.1",
         "clsx": "^2.0.0",
         "dayjs": "^1.11.9",
-        "embla-carousel-autoplay": "^8.0.0-rc12",
-        "embla-carousel-react": "^8.0.0-rc12",
+        "embla-carousel-autoplay": "^8.0.0-rc13",
+        "embla-carousel-react": "^8.0.0-rc13",
         "handsontable": "^13.1.0",
         "highcharts": "^11.1.0",
         "highcharts-react-official": "^3.2.1",
@@ -39,16 +41,20 @@
         "typescript": "^5.2.2"
     },
     "devDependencies": {
+        "@ant-design/static-style-extract": "~1.0.2",
         "@next/eslint-plugin-next": "^13.4.19",
-        "@typescript-eslint/eslint-plugin": "^5.62.0",
-        "@typescript-eslint/parser": "^5.62.0",
-        "eslint": "^8.48.0",
+        "@typescript-eslint/eslint-plugin": "^6.7.0",
+        "@typescript-eslint/parser": "^6.7.0",
+        "cross-env": "^7.0.3",
+        "eslint": "^8.49.0",
         "eslint-config-next": "13.4.19",
         "eslint-config-prettier": "^9.0.0",
-        "eslint-config-standard-with-typescript": "^37.0.0",
+        "eslint-config-standard-with-typescript": "^39.0.0",
         "eslint-plugin-import": "^2.28.1",
-        "eslint-plugin-n": "^16.0.2",
+        "eslint-plugin-n": "^16.1.0",
         "eslint-plugin-promise": "^6.1.1",
-        "eslint-plugin-react": "^7.33.2"
+        "eslint-plugin-react": "^7.33.2",
+        "ts-node": "^10.9.1",
+        "tslib": "^2.6.2"
     }
 }

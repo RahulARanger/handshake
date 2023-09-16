@@ -6,9 +6,12 @@ import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
 import { statusColors } from "@/components/parseUtils";
 import darkUnica from "highcharts/themes/dark-unica";
-import timezone from "dayjs/plugin/timezone";
 
-dayjs.extend(timezone);
+import DayJSUtc from "dayjs/plugin/utc";
+import DayJSTimezone from "dayjs/plugin/timezone";
+
+dayjs.extend(DayJSUtc);
+dayjs.extend(DayJSTimezone);
 
 if (typeof Highcharts === "object") {
     HighchartsExporting(Highcharts);
@@ -20,9 +23,11 @@ export default function AreaChartsForRuns(props: {
     showTest: boolean;
 }): ReactNode {
     const text = props.showTest ? "Tests" : "Suites";
+
     const options: Highcharts.Options = {
         chart: {
             type: "area",
+            plotShadow: true,
         },
         colors: statusColors,
         title: {
@@ -38,29 +43,25 @@ export default function AreaChartsForRuns(props: {
         },
         xAxis: {
             type: "datetime",
-            dateTimeLabelFormats: {
-                second: "%H:%M:%S",
-                minute: "%H:%M",
-                hour: "%H:%M",
-                day: "%e %b",
-                week: "%e %b",
-                month: "%b %Y",
-                year: "%Y",
+            labels: {
+                format: "{value:%m-%d_%H:%M}",
             },
             title: {
-                text: "Date",
+                useHTML: true,
+                text: "Start Date_Time (<em>%m-%d_%H:%M</em>)",
             },
             tickInterval: 1000 * 60 * 60,
         },
         yAxis: {
             title: {
-                text: undefined,
+                text: "Freq.",
             },
         },
         tooltip: {
             enabled: true,
-            shadow: true,
-            animation: true,
+            shared: true,
+            pointFormat:
+                '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
         },
         plotOptions: {
             area: {
@@ -74,12 +75,13 @@ export default function AreaChartsForRuns(props: {
                 },
             },
         },
+        credits: { enabled: false },
         series: [
             {
                 type: "area",
                 name: "Passed",
                 data: props.runs.map((run) => [
-                    dayjs(run.started).valueOf(),
+                    dayjs.utc(run.started).utcOffset(0, true).valueOf(),
                     props.showTest
                         ? run.passed
                         : JSON.parse(run.suiteSummary).passed,
@@ -89,17 +91,17 @@ export default function AreaChartsForRuns(props: {
                 type: "area",
                 name: "Failed",
                 data: props.runs.map((run) => [
-                    dayjs(run.started).valueOf(),
-                    -(props.showTest
+                    dayjs.utc(run.started).utcOffset(0, true).valueOf(),
+                    props.showTest
                         ? run.failed
-                        : JSON.parse(run.suiteSummary).failed),
+                        : JSON.parse(run.suiteSummary).failed,
                 ]),
             },
             {
                 type: "area",
                 name: "Skipped",
                 data: props.runs.map((run) => [
-                    dayjs(run.started).valueOf(),
+                    dayjs.utc(run.started).utcOffset(0, true).valueOf(),
                     props.showTest
                         ? run.skipped
                         : JSON.parse(run.suiteSummary).skippeds,
