@@ -20,6 +20,7 @@ import {
 } from "@/types/detailedTestRunPage";
 import { RenderStatus } from "../Table/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
+import CarouselComponent from "../carousel";
 
 function TopSuites(props: { startedAt: Dayjs }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -37,7 +38,7 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
             size="small"
             bordered
             pagination={false}
-            scroll={{ y: 180, x: 250 }}
+            scroll={{ y: 180, x: "200px" }}
             footer={() => (
                 <Space>
                     <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
@@ -129,7 +130,7 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                     extra={
                         <RelativeTime
                             dateTime={startedAt}
-                            style={{ marginLeft: "30px" }}
+                            style={{ marginLeft: "30px", maxWidth: "75px" }}
                         />
                     }
                     size="small"
@@ -138,6 +139,11 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                 </Card>
                 <Card size="small" bordered>
                     <TopSuites startedAt={startedAt} />
+                </Card>
+            </Space>
+            <Space>
+                <Card size="small" bordered>
+                    <CarouselComponent />
                 </Card>
             </Space>
         </Space>

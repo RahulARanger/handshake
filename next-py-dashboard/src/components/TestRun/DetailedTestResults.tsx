@@ -46,15 +46,19 @@ export default function DetailedTestRun(): ReactNode {
     ];
 
     return (
-        <Layout style={{ margin: "6px", overflow: "hidden", height: "98vh" }}>
-            <Layout.Header className={HeaderStyles.header} spellCheck>
+        <Layout style={{ overflow: "hidden", height: "98vh" }}>
+            <Layout.Header
+                className={HeaderStyles.header}
+                spellCheck
+                style={{ padding: "6px" }}
+            >
                 <Space
                     align="baseline"
                     size="large"
                     style={{
                         width: "100%",
                         justifyContent: "space-between",
-                        marginTop: "6px",
+                        marginTop: "2px",
                     }}
                 >
                     <BreadCrumb items={crumbsForRun(data.projectName)} />
@@ -65,31 +69,14 @@ export default function DetailedTestRun(): ReactNode {
             </Layout.Header>
             <Layout.Content
                 style={{
-                    marginLeft: "12px",
-                    overflow: "auto",
+                    margin: "12px",
+                    marginTop: "2px",
+                    overflowY: "auto",
+                    overflowX: "hidden",
                 }}
             >
                 <Tabs items={items} size="small" />
             </Layout.Content>
         </Layout>
     );
-    // return (
-    //     <Grid
-    //         container
-    //         gap={6}
-    //         columns={4.5}
-    //         spacing={2}
-    //         sx={{ bgColor: "background.default", flexGrow: 1 }}
-    //     >
-    //         <Grid item md={2} sm={2} minWidth={"250px"}>
-    //             <CarouselComponent />
-    //         </Grid>
-    //         <Grid item md={3} sm={3}>
-    //             <TestEntities port={props.port} test_id={props.test_id} />
-    //         </Grid>
-    //         <Grid item md={1.25} sm={3}>
-    //             <ImportantThings />
-    //         </Grid>
-    //     </Grid>
-    // );
 }
