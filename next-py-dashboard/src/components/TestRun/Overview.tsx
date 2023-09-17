@@ -38,7 +38,8 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
             size="small"
             bordered
             pagination={false}
-            scroll={{ y: 180, x: "200px" }}
+            style={{ flexShrink: 1, minWidth: "300px" }}
+            scroll={{ y: 180, x: "max-content" }}
             footer={() => (
                 <Space>
                     <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
@@ -54,18 +55,19 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
         >
             <Table.Column
                 title="Status"
-                width={40}
+                width={50}
                 align="center"
                 dataIndex="standing"
                 render={(value: statusOfEntity) => (
                     <RenderStatus value={value} />
                 )}
+                fixed="left"
             />
             <Table.Column title="Name" dataIndex="title" width={120} />
             <Table.Column
                 title="Rate"
                 dataIndex="Passed"
-                width={130}
+                width={100}
                 render={(_: number, record: SuiteRecordDetails) => (
                     <RenderPassedRate
                         value={[record.passed, record.failed, record.skipped]}
@@ -77,17 +79,17 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
                 title="Tests"
                 align="center"
                 dataIndex="tests"
-                width={60}
+                width={50}
             />
             <Table.Column
                 dataIndex="started"
                 title="Started"
-                width={100}
+                width={120}
                 render={(value: string) => dayjs(value).format(dateTimeFormat)}
             />
             <Table.Column
                 title="Ended"
-                width={100}
+                width={120}
                 dataIndex="ended"
                 render={(value: string) => dayjs(value).format(dateTimeFormat)}
             />
@@ -122,7 +124,10 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                                         setTest(checked);
                                     }}
                                     checked={isTest}
-                                    style={{ marginBottom: "2px" }}
+                                    style={{
+                                        marginBottom: "2px",
+                                        marginRight: "5px",
+                                    }}
                                 />
                             </Typography>
                         </Space>
@@ -130,7 +135,7 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                     extra={
                         <RelativeTime
                             dateTime={startedAt}
-                            style={{ marginLeft: "30px", maxWidth: "75px" }}
+                            style={{ marginLeft: "30px", maxWidth: "110px" }}
                         />
                     }
                     size="small"

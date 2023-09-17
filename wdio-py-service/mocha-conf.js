@@ -11,7 +11,7 @@ export const config = attachNeXtReporter({
         './test-mocha/specs/test.e2e.js',
         './test-mocha/specs/package-version.e2e.js',
     ],
-    maxInstances: 1,
+    maxInstances: 10,
     //
     capabilities: [{
         browserName: 'chrome',

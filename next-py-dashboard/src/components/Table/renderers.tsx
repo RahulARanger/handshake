@@ -1,5 +1,5 @@
 import { type Dayjs } from "dayjs";
-import React, { type ReactNode } from "react";
+import React, { type CSSProperties, type ReactNode } from "react";
 import RelativeTime, { HumanizeDuration } from "../Datetime/relativeTime";
 import { type Duration } from "dayjs/plugin/duration";
 import { type statusOfEntity } from "@/types/detailedTestRunPage";
@@ -10,9 +10,16 @@ import LoadingOutlined from "@ant-design/icons/LoadingOutlined";
 
 export default function RenderTimeRelativeToStart(props: {
     value?: [Dayjs, Dayjs];
+    style?: CSSProperties;
 }): ReactNode {
     if (props.value == null) return <></>;
-    return <RelativeTime dateTime={props.value[0]} wrt={props.value[1]} />;
+    return (
+        <RelativeTime
+            dateTime={props.value[0]}
+            wrt={props.value[1]}
+            style={props.style}
+        />
+    );
 }
 
 export function RenderDuration(props: { value: Duration }): ReactNode {

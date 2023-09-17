@@ -77,8 +77,14 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                                 />
                             }
                         >
-                            <RenderTimeRelativeToStart value={item.Started} />
-                            <RenderTimeRelativeToStart value={item.Ended} />
+                            <RenderTimeRelativeToStart
+                                value={item.Started}
+                                style={{ maxWidth: "100px" }}
+                            />
+                            <RenderTimeRelativeToStart
+                                value={item.Ended}
+                                style={{ maxWidth: "100px" }}
+                            />
                             <RenderDuration value={item.Duration} />
                         </Space>
                     </Tooltip>

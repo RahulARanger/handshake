@@ -1,10 +1,12 @@
-import { Tooltip, Typography } from "@mui/material";
+import Typography from "antd/lib/typography/Typography";
+import Tooltip from "antd/lib/tooltip/index";
 import dayjs, { type Dayjs } from "dayjs";
 import React, { useState, type CSSProperties, type ReactNode } from "react";
 import { formatTime } from "../parseUtils";
 import useEmblaCarousel from "embla-carousel-react";
 import carouselStyles from "@/styles/carousel.module.css";
 import Autoplay from "embla-carousel-autoplay";
+import Button from "antd/lib/button/button";
 import relativeTime from "dayjs/plugin/relativeTime";
 import duration from "dayjs/plugin/duration";
 import { type Duration } from "dayjs/plugin/duration";
@@ -29,26 +31,30 @@ export default function RelativeTime(props: {
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: "80px", ...(props.style ?? {}) }}
+            style={{ maxWidth: "120px", ...(props.style ?? {}) }}
         >
             <div className={carouselStyles.container}>
-                <Typography className={carouselStyles.slide} variant="caption">
+                <Typography className={carouselStyles.slide}>
                     {formatTime(props.dateTime)}
                 </Typography>
-                <Typography className={carouselStyles.slide} variant="caption">
-                    <Tooltip
-                        title={
-                            props.wrt != null
-                                ? `Relative to ${formatTime(props.wrt)}`
-                                : "Click me to update!"
-                        }
+                <Tooltip
+                    title={
+                        props.wrt != null
+                            ? `Relative to ${formatTime(props.wrt)}`
+                            : "Click me to update!"
+                    }
+                    className={carouselStyles.slide}
+                >
+                    <Button
                         onClick={() => {
                             setFormatted(formatter());
                         }}
+                        size="small"
+                        type="text"
                     >
-                        <>{formatted}</>
-                    </Tooltip>
-                </Typography>
+                        {formatted}
+                    </Button>
+                </Tooltip>
             </div>
         </div>
     );
@@ -65,10 +71,10 @@ export function HumanizeDuration(props: { duration?: Duration }): ReactNode {
             style={{ maxWidth: "150px", minWidth: "100px" }}
         >
             <div className={carouselStyles.container}>
-                <Typography className={carouselStyles.slide} variant="caption">
+                <Typography className={carouselStyles.slide}>
                     {`${props?.duration?.asSeconds() ?? "--"} s`}
                 </Typography>
-                <Typography className={carouselStyles.slide} variant="caption">
+                <Typography className={carouselStyles.slide}>
                     {props?.duration?.humanize() ?? "--"}
                 </Typography>
             </div>

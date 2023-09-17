@@ -3,7 +3,6 @@ import { getTestRun } from "@/Generators/helper";
 import type DetailsOfRun from "@/types/testRun";
 import useSWR from "swr";
 import Layout from "antd/lib/layout/index";
-import HeaderStyles from "@/styles/header.module.css";
 import Empty from "antd/lib/empty/index";
 import Space from "antd/lib/space";
 import Tabs from "antd/lib/tabs/index";
@@ -19,6 +18,7 @@ import HomeOutlined from "@ant-design/icons/HomeOutlined";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import Tooltip from "antd/lib/tooltip/index";
+import TestEntities from "../Table/TestEntites";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -41,6 +41,8 @@ export default function DetailedTestRun(): ReactNode {
             </Layout>
         );
     }
+
+    const startDate = dayjs(data.started);
 
     const items: Tab[] = [
         {
@@ -65,6 +67,7 @@ export default function DetailedTestRun(): ReactNode {
                 </Tooltip>
             ),
             key: "testEntities",
+            children: <TestEntities startDate={startDate} />,
         },
         {
             label: "Gantt Chart",
@@ -106,7 +109,12 @@ export default function DetailedTestRun(): ReactNode {
                                 items={crumbsForRun(data.projectName)}
                             />
                         ),
-                        right: <RelativeTime dateTime={dayjs(data.ended)} />,
+                        right: (
+                            <RelativeTime
+                                dateTime={dayjs(data.ended)}
+                                style={{ maxWidth: "120px" }}
+                            />
+                        ),
                     }}
                 />
             </Layout.Content>
