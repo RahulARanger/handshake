@@ -3,11 +3,10 @@ import React, { useState, type ReactNode } from "react";
 import {
     type QuickPreviewForTestRun,
     parseDetailedTestRun,
-} from "../parseUtils";
+} from "@/components/parseUtils";
 import RenderTimeRelativeToStart, {
     RenderDuration,
-    RenderStatus,
-} from "../Table/renderers";
+} from "@/components/Table/renderers";
 import RenderPassedRate from "@/components/Charts/StackedBarChart";
 import Switch from "antd/lib/switch";
 import List from "antd/lib/list";
@@ -26,7 +25,7 @@ import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import HistogramForDuration from "@/components/Charts/HistogramForDuration";
 import DatePicker from "antd/lib/date-picker/index";
 import FilterOutlined from "@ant-design/icons/FilterOutlined";
-import crumbs from "./Items";
+import crumbs from "@/components/GridView/Items";
 
 function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
     const formatForDate = "MMM, ddd DD YYYY  ";
@@ -55,13 +54,6 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                     />
                 </Space>,
             ]}
-            // extra={
-            //   <img
-            //     width={272}
-            //     alt="logo"
-            //     src="https://gw.alipayobjects.com/zos/rmsportal/mqaQswcyDLcXyDKnZfES.png"
-            //   />
-            // }
         >
             <List.Item.Meta
                 title={
@@ -77,14 +69,17 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                         arrow
                     >
                         <Space
-                            style={{ maxWidth: "100px" }}
                             size="small"
                             align="baseline"
+                            split={
+                                <Divider
+                                    type="vertical"
+                                    style={{ margin: "0px" }}
+                                />
+                            }
                         >
                             <RenderTimeRelativeToStart value={item.Started} />
-                            <Divider type="vertical" />
                             <RenderTimeRelativeToStart value={item.Ended} />
-                            <Divider type="vertical" />
                             <RenderDuration value={item.Duration} />
                         </Space>
                     </Tooltip>

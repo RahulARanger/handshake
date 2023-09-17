@@ -12,12 +12,13 @@ if (typeof Highcharts === "object") {
 
 export default function RenderPassedRate(props: {
     value: [number, number, number];
+    width?: number;
 }): ReactNode {
     const options: Highcharts.Options = {
         chart: {
             type: "bar",
             height: 30,
-            width: 220,
+            width: props.width ?? 220,
             margin: 0,
             backgroundColor: "transparent",
             style: {

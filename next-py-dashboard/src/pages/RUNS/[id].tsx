@@ -9,8 +9,6 @@ import React from "react";
 import { type GetStaticPathsResult, type GetStaticPropsResult } from "next";
 import { type ReactNode } from "react";
 import { SWRConfig } from "swr";
-import TestRunHeader from "@/components/Header";
-import { DetailedTestResults } from "@/components/DetailedTestResults";
 import { getLogger } from "log4js";
 import getConnection from "@/Generators/dbConnection";
 import {
@@ -21,6 +19,8 @@ import {
 import getAllSuites, {
     getAllTests,
 } from "@/Generators/Queries/testEntityRelated";
+import DetailedTestRun from "@/components/TestRun/DetailedTestResults";
+import MetaCallContext from "@/components/TestRun/context";
 
 const logger = getLogger("TestRunRelated");
 
@@ -84,8 +84,11 @@ export default function TestRunResults(
     const fallback = props.fallback;
     return (
         <SWRConfig value={{ fallback }}>
-            <TestRunHeader port={props.port} test_id={props.test_id} />
-            <DetailedTestResults test_id={props.test_id} port={props.port} />
+            <MetaCallContext.Provider
+                value={{ port: props.port, testID: props.test_id }}
+            >
+                <DetailedTestRun />
+            </MetaCallContext.Provider>
         </SWRConfig>
     );
 }

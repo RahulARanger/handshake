@@ -3,16 +3,22 @@ import {
     type BreadcrumbItemType,
 } from "antd/lib/breadcrumb/Breadcrumb";
 
-export default function crumbs(): Array<
-    Partial<BreadcrumbItemType & BreadcrumbSeparatorType>
-> {
+type crumbItems = Array<Partial<BreadcrumbItemType & BreadcrumbSeparatorType>>;
+
+export default function crumbs(allowHref?: boolean): crumbItems {
     return [
         {
             title: "Next-Py",
         },
         {
             title: "Runs",
-            // href: "/RUNS/",
+            href: allowHref != null ? "/RUNS/" : undefined,
         },
     ];
+}
+
+export function crumbsForRun(projectName: string): crumbItems {
+    const prevItems = crumbs(true);
+    prevItems.push({ title: projectName });
+    return prevItems;
 }

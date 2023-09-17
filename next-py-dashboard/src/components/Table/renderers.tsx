@@ -2,12 +2,11 @@ import { type Dayjs } from "dayjs";
 import React, { type ReactNode } from "react";
 import RelativeTime, { HumanizeDuration } from "../Datetime/relativeTime";
 import { type Duration } from "dayjs/plugin/duration";
-import CheckIcon from "@mui/icons-material/Check";
-import ErrorIcon from "@mui/icons-material/Error";
-import PendingIcon from "@mui/icons-material/Pending";
 import { type statusOfEntity } from "@/types/detailedTestRunPage";
-import TurnSlightLeftIcon from "@mui/icons-material/TurnSlightLeft";
-import { type AlertColor } from "@mui/material";
+import CheckCircleFilled from "@ant-design/icons/CheckCircleFilled";
+import CloseOutlined from "@ant-design/icons/CloseOutlined";
+import WarningFilled from "@ant-design/icons/WarningFilled";
+import LoadingOutlined from "@ant-design/icons/LoadingOutlined";
 
 export default function RenderTimeRelativeToStart(props: {
     value?: [Dayjs, Dayjs];
@@ -23,29 +22,38 @@ export function RenderDuration(props: { value: Duration }): ReactNode {
 export function RenderStatus(props: { value: statusOfEntity }): ReactNode {
     switch (props.value) {
         case "PASSED": {
-            return <CheckIcon color="success" titleAccess="Passed" />;
+            return (
+                <CheckCircleFilled
+                    style={{ fontSize: "16px", color: "green" }}
+                    title="Passed"
+                />
+            );
         }
         case "FAILED": {
-            return <ErrorIcon color="error" titleAccess="Failed" />;
-        }
-        case "PENDING": {
-            return <PendingIcon color="warning" titleAccess="Pending" />;
+            return (
+                <CloseOutlined
+                    spin
+                    style={{ fontSize: "16px", color: "red" }}
+                    title="Failed"
+                />
+            );
         }
         case "SKIPPED": {
-            return <TurnSlightLeftIcon color="warning" titleAccess="Skipped" />;
+            return (
+                <WarningFilled
+                    style={{ fontSize: "16px", color: "yellow" }}
+                    spin
+                    title="Skipped"
+                />
+            );
         }
-    }
-}
-
-export function fetchAlertStatus(status: statusOfEntity): AlertColor {
-    switch (status) {
-        case "FAILED":
-            return "error";
-        case "PASSED":
-            return "success";
-        case "SKIPPED":
-            return "info";
-        case "PENDING":
-            return "warning";
+        case "PENDING": {
+            return (
+                <LoadingOutlined
+                    style={{ fontSize: "16px", color: "yellow" }}
+                    title="Pending"
+                />
+            );
+        }
     }
 }

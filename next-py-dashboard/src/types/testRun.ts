@@ -18,6 +18,13 @@ export default interface DetailsOfRun {
     suiteSummary: string;
 }
 
+export interface SuiteSummary {
+    passed: number;
+    skipped: number;
+    count: number;
+    failed: number;
+}
+
 export interface TestRunSummary {
     TESTS: {
         passed: number;

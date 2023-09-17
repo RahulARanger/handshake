@@ -29,7 +29,7 @@ export default function RelativeTime(props: {
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: "150px", ...(props.style ?? {}) }}
+            style={{ maxWidth: "80px", ...(props.style ?? {}) }}
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide} variant="caption">
@@ -62,7 +62,7 @@ export function HumanizeDuration(props: { duration?: Duration }): ReactNode {
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: "150px" }}
+            style={{ maxWidth: "150px", minWidth: "100px" }}
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide} variant="caption">
