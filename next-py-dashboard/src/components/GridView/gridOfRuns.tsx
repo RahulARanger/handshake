@@ -22,7 +22,11 @@ import Empty from "antd/lib/empty/index";
 import Tooltip from "antd/lib/tooltip/index";
 import Divider from "antd/lib/divider/index";
 import Select from "antd/lib/select/index";
-import HistogramForDuration from "../Charts/HistogramForDuration";
+import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
+import HistogramForDuration from "@/components/Charts/HistogramForDuration";
+import DatePicker from "antd/lib/date-picker/index";
+import FilterOutlined from "@ant-design/icons/FilterOutlined";
+import crumbs from "./Items";
 
 function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
     const formatForDate = "MMM, ddd DD YYYY  ";
@@ -183,7 +187,15 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
 }
 
 export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
-    if (props.runs.length === 0) {
+    const [selectedProjectName, filterProjectName] = useState<string>();
+    const filteredRuns = props.runs.filter((run) => {
+        return (
+            selectedProjectName == null ||
+            run.projectName === selectedProjectName
+        );
+    });
+
+    if (filteredRuns.length === 0) {
         return (
             <Layout style={{ height: "100%" }}>
                 <Space
@@ -192,7 +204,11 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
                 >
                     <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description="No Runs Found!, Please run your test suite"
+                        description={
+                            props.runs.length === 0
+                                ? "No Runs Found!, Please run your test suite"
+                                : "No Filtered Results found"
+                        }
                     />
                 </Space>
             </Layout>
@@ -204,22 +220,50 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     ).map((projectName) => ({ label: projectName, value: projectName }));
 
     return (
-        <Layout style={{ margin: "6px" }}>
+        <Layout style={{ margin: "6px", overflow: "hidden", height: "98vh" }}>
             <Layout.Header className={HeaderStyles.header} spellCheck>
-                <Select
-                    mode="multiple"
-                    options={projectNames}
-                    allowClear
-                    placeholder="Select Project Name"
-                    style={{ minWidth: "180px" }}
-                />
+                <Space
+                    align="baseline"
+                    size="large"
+                    style={{ marginTop: "3px" }}
+                >
+                    <BreadCrumb items={crumbs()} />
+                    <Divider type="vertical" />
+                    <Tooltip title="Filters are on the right">
+                        <FilterOutlined />
+                    </Tooltip>
+                    <Select
+                        options={projectNames}
+                        allowClear
+                        value={selectedProjectName}
+                        placeholder="Select Project Name"
+                        style={{ minWidth: "180px" }}
+                        onChange={(selected) => {
+                            filterProjectName(selected);
+                        }}
+                    />
+                    <DatePicker.RangePicker />
+                </Space>
             </Layout.Header>
-            <Layout hasSider style={{ margin: "6px" }}>
-                <Layout.Sider width={350} theme={"light"}>
-                    <ListOfRuns runs={props.runs} />
+            <Layout hasSider>
+                <Layout.Sider
+                    width={350}
+                    theme={"light"}
+                    style={{
+                        margin: "6px",
+                        overflow: "auto",
+                    }}
+                >
+                    <ListOfRuns runs={filteredRuns} />
                 </Layout.Sider>
-                <Layout.Content style={{ margin: "6px" }}>
-                    <ListOfCharts runs={props.runs} />
+                <Layout.Content
+                    style={{
+                        margin: "6px",
+                        overflow: "auto",
+                        paddingBottom: "13px",
+                    }}
+                >
+                    <ListOfCharts runs={filteredRuns} />
                 </Layout.Content>
             </Layout>
         </Layout>
