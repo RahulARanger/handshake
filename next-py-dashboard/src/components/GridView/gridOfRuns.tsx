@@ -22,7 +22,6 @@ import Tooltip from "antd/lib/tooltip/index";
 import Divider from "antd/lib/divider/index";
 import Select from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
-import HistogramForDuration from "@/components/Charts/HistogramForDuration";
 import DatePicker from "antd/lib/date-picker/index";
 import FilterOutlined from "@ant-design/icons/FilterOutlined";
 import crumbs from "@/components/GridView/Items";
@@ -167,16 +166,9 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
         </Card>
     );
 
-    const durationChart = (
-        <Card title="Duration Plot" bordered={true} size="small">
-            <HistogramForDuration runs={props.runs} />
-        </Card>
-    );
-
     return (
         <Space direction="vertical" style={{ width: "100%" }}>
             {areaChart}
-            {durationChart}
         </Space>
     );
 }

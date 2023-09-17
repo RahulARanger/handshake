@@ -14,6 +14,11 @@ import { crumbsForRun } from "../GridView/Items";
 import type { Tab } from "rc-tabs/lib/interface";
 import Overview from "./Overview";
 import MetaCallContext from "./context";
+import GanttChart from "../Charts/GanttChartForTestSuites";
+import HomeOutlined from "@ant-design/icons/HomeOutlined";
+import TableOutlined from "@ant-design/icons/TableOutlined";
+import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
+import Tooltip from "antd/lib/tooltip/index";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -39,34 +44,48 @@ export default function DetailedTestRun(): ReactNode {
 
     const items: Tab[] = [
         {
-            label: "Overview",
+            label: (
+                <Tooltip title="Overview">
+                    <span>
+                        <HomeOutlined />
+                        Overview
+                    </span>
+                </Tooltip>
+            ),
             children: <Overview run={data} />,
             key: "overview",
+        },
+        {
+            label: (
+                <Tooltip title="Test Entities">
+                    <span>
+                        <TableOutlined />
+                        Test Entities
+                    </span>
+                </Tooltip>
+            ),
+            key: "testEntities",
+        },
+        {
+            label: "Gantt Chart",
+            key: "GanttChart",
+            children: <GanttChart />,
+        },
+        {
+            label: (
+                <Tooltip title="Structure">
+                    <span>
+                        <PartitionOutlined />
+                        Structure
+                    </span>
+                </Tooltip>
+            ),
+            key: "structure",
         },
     ];
 
     return (
         <Layout style={{ overflow: "hidden", height: "98vh" }}>
-            <Layout.Header
-                className={HeaderStyles.header}
-                spellCheck
-                style={{ padding: "6px" }}
-            >
-                <Space
-                    align="baseline"
-                    size="large"
-                    style={{
-                        width: "100%",
-                        justifyContent: "space-between",
-                        marginTop: "2px",
-                    }}
-                >
-                    <BreadCrumb items={crumbsForRun(data.projectName)} />
-                    <Space>
-                        <RelativeTime dateTime={dayjs(data.ended)} />
-                    </Space>
-                </Space>
-            </Layout.Header>
             <Layout.Content
                 style={{
                     margin: "12px",
@@ -75,7 +94,21 @@ export default function DetailedTestRun(): ReactNode {
                     overflowX: "hidden",
                 }}
             >
-                <Tabs items={items} size="small" />
+                <Tabs
+                    items={items}
+                    size="small"
+                    animated
+                    centered
+                    // type="card"
+                    tabBarExtraContent={{
+                        left: (
+                            <BreadCrumb
+                                items={crumbsForRun(data.projectName)}
+                            />
+                        ),
+                        right: <RelativeTime dateTime={dayjs(data.ended)} />,
+                    }}
+                />
             </Layout.Content>
         </Layout>
     );

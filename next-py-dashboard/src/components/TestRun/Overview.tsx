@@ -137,9 +137,7 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                 >
                     <ProgressPieChart run={props.run} isTestCases={isTest} />
                 </Card>
-                <Card size="small" bordered>
-                    <TopSuites startedAt={startedAt} />
-                </Card>
+                <TopSuites startedAt={startedAt} />
             </Space>
             <Space>
                 <Card size="small" bordered>
