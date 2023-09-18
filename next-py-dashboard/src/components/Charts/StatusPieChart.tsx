@@ -5,10 +5,12 @@ import Highcharts from "highcharts";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 import Highcharts3d from "highcharts/highcharts-3d";
+import brandDark from "highcharts/themes/brand-dark";
 
 if (typeof Highcharts === "object") {
     Highcharts3d(Highcharts);
     HighchartsExporting(Highcharts);
+    brandDark(Highcharts);
 }
 
 export default function ProgressPieChart(props: {
@@ -32,7 +34,7 @@ export default function ProgressPieChart(props: {
                 beta: 0,
                 fitToPlot: true,
             },
-            backgroundColor: "transparent",
+            backgroundColor: "#141414",
             height: 205,
         },
 

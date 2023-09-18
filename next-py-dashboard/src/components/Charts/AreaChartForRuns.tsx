@@ -5,8 +5,7 @@ import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 import dayjs from "dayjs";
 import { statusColors } from "@/components/parseUtils";
-import darkUnica from "highcharts/themes/dark-unica";
-
+import brandDark from "highcharts/themes/brand-dark";
 import DayJSUtc from "dayjs/plugin/utc";
 import DayJSTimezone from "dayjs/plugin/timezone";
 
@@ -15,7 +14,7 @@ dayjs.extend(DayJSTimezone);
 
 if (typeof Highcharts === "object") {
     HighchartsExporting(Highcharts);
-    darkUnica(Highcharts);
+    brandDark(Highcharts);
 }
 
 export default function AreaChartsForRuns(props: {
@@ -28,6 +27,7 @@ export default function AreaChartsForRuns(props: {
         chart: {
             type: "area",
             plotShadow: true,
+            backgroundColor: "#141414",
         },
         colors: statusColors,
         title: {

@@ -7,7 +7,7 @@ import HighchartsReact from "highcharts-react-official";
 import HighChartsAccessibility from "highcharts/modules/accessibility";
 import HighChartsForGantt from "highcharts/highcharts-gantt";
 import HighchartsGantt from "highcharts/modules/gantt";
-import darkUnica from "highcharts/themes/dark-unica";
+import brandDark from "highcharts/themes/brand-dark";
 
 import dayjs from "dayjs";
 import "@/styles/highChartExternal.module.css";
@@ -15,11 +15,11 @@ import MetaCallContext from "../TestRun/context";
 
 if (typeof HighChartsForGantt === "object") {
     HighchartsGantt(HighChartsForGantt);
-    darkUnica(HighChartsForGantt);
+    brandDark(HighChartsForGantt);
     HighChartsAccessibility(HighChartsForGantt);
 }
 
-export default function GanttChart(): ReactNode {
+export default function GanttChartForTestEntities(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: testRun } = useSWR<DetailsOfRun>(getTestRun(port, testID));
@@ -59,17 +59,25 @@ export default function GanttChart(): ReactNode {
             type: "gantt",
             plotShadow: true,
             className: "highcharts-dark",
+            backgroundColor: "#141414",
+            style: {
+                padding: "9px",
+            },
         },
         credits: { enabled: false },
         title: {
             text: `${testRun.projectName}::Gantt Chart`,
+            align: "left",
+            style: {
+                fontSize: "1.35rem",
+            },
         },
         subtitle: {
-            text: "Plotted with your Suite",
-        },
-        xAxis: {
-            // min: started.subtract(21, "minutes").valueOf(),
-            // max: ended.add(2, "hour").valueOf(),
+            text: "<small>Please find your suites here</small>",
+            align: "left",
+            style: {
+                fontSize: ".89rem",
+            },
         },
         accessibility: {
             keyboardNavigation: {

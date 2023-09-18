@@ -3,11 +3,11 @@ import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
 import React, { type ReactNode } from "react";
 import { statusColors } from "../parseUtils";
-import darkUnica from "highcharts/themes/dark-unica";
+import brandDark from "highcharts/themes/brand-dark";
 
 if (typeof Highcharts === "object") {
     HighchartsExporting(Highcharts);
-    darkUnica(Highcharts);
+    brandDark(Highcharts);
 }
 
 export default function RenderPassedRate(props: {
@@ -20,7 +20,7 @@ export default function RenderPassedRate(props: {
             height: 30,
             width: props.width ?? 220,
             margin: 0,
-            backgroundColor: "transparent",
+            backgroundColor: "#141414",
             style: {
                 padding: "1px",
             },

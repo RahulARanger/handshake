@@ -13,12 +13,13 @@ import { crumbsForRun } from "../GridView/Items";
 import type { Tab } from "rc-tabs/lib/interface";
 import Overview from "./Overview";
 import MetaCallContext from "./context";
-import GanttChart from "../Charts/GanttChartForTestSuites";
+import GanttChartForTestEntities from "../Charts/GanttChartForTestSuites";
 import HomeOutlined from "@ant-design/icons/HomeOutlined";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import Tooltip from "antd/lib/tooltip/index";
 import TestEntities from "../Table/TestEntites";
+import Card from "antd/lib/card/Card";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -72,7 +73,17 @@ export default function DetailedTestRun(): ReactNode {
         {
             label: "Gantt Chart",
             key: "GanttChart",
-            children: <GanttChart />,
+            children: (
+                <Card
+                    style={{
+                        marginLeft: "20px",
+                        marginRight: "20px",
+                    }}
+                    size="small"
+                >
+                    <GanttChartForTestEntities />
+                </Card>
+            ),
         },
         {
             label: (
