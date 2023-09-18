@@ -23,7 +23,7 @@ async def create_run(projectName: str) -> str:
     await create_or_update_jobs()
 
     default_config: ValueForTestRunConfigBase = dict(
-        dynamic=False, maxTestRuns=100, platformName=uname().machine,
+        maxTestRuns=100, platformName=uname().machine,
         version=__version__
     )
     test_id = str((await RunBase.create(

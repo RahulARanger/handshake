@@ -129,7 +129,6 @@ export default class Shipment extends ContactList {
             method: 'PUT',
             body: JSON.stringify(
                 {
-                    dynamic: false,
                     maxTestRuns: 100,
                     platformName: config.capabilities.platformName,
                 },

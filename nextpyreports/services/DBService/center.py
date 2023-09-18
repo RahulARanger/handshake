@@ -95,10 +95,14 @@ async def update_misc(request: Request):
 @service.put("/currentRun")
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
+
     config = await TestConfigBase.filter(test_id=get_test_id()).first()
     if not config:
         return text(get_test_id() + " || Test Run not found", status=404)
 
-    await config.update_from_dict(dict(attachmentValue=run_config))
+    updated_value = config.attachmentValue
+    updated_value.update(run_config)
+
+    await config.update_from_dict(dict(attachmentValue=updated_value))
     await config.save()
     return text(config.test)

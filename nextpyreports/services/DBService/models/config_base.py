@@ -33,7 +33,6 @@ class TestConfigBase(AttachmentFields):
 
 
 class ValueForTestRunConfigBase(TypedDict):
-    dynamic: bool
     version: str
     maxTestRuns: int
     platformName: str
