@@ -1,5 +1,5 @@
 import uuid
-from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase
 from nextpyreports.services.DBService.models.result_base import RunBase, SuiteBase, SessionBase
 from nextpyreports.services.DBService.models.types import SuiteType, Status
 from nextpyreports.services.SchedularService.modifySuites import handleSuiteStatus

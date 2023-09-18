@@ -1,5 +1,5 @@
 from nextpyreports.services.DBService.models.result_base import SuiteBase
-from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase
 from nextpyreports.services.DBService.models.enums import Status
 from nextpyreports.services.SchedularService.shared import drop_task
 from tortoise.expressions import Q

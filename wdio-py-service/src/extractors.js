@@ -27,7 +27,6 @@ export default function extractSessionDetailsForRegistration(runnerStats) {
         specs: sanitizePaths(runnerStats.specs),
         simplified: runnerStats.sanitizedCapabilities,
         retried: runnerStats.retry,
-        platformName: runnerStats.capabilities.platformName,
     };
 }
 
@@ -62,7 +61,6 @@ export function returnSuiteID(suiteOrTest) {
  * @property {string} browserName name of the browser used
  * @property {string} browserVersion version of the browser attached
  * @property {string[]} specs list of spec files
- * @property {string} platformName name of the platform used
  * @property {string} sanitizedCapabilities summary of the capability used
  * @property {number} retried number of retries this session was attempted before this session
  */

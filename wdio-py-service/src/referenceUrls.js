@@ -25,6 +25,10 @@ export default class ContactList {
     get url() {
         return `http://127.0.0.1:${this.options.port}`;
     }
+
+    get updateRunConfig() {
+        return `${this.url}/save/currentRun`;
+    }
 }
 
 export class ReporterEndpoints extends WDIOReporter {

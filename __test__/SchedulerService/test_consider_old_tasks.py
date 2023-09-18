@@ -1,4 +1,4 @@
-from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase
 from nextpyreports.services.DBService.models.result_base import RunBase
 from nextpyreports.services.SchedularService.center import init_jobs_connections
 from pytest import mark

@@ -91,7 +91,7 @@ export default class NeXtReporter extends ReporterEndpoints {
      */
     extractRegistrationPayloadForTestEntity(suiteOrTest) {
         const {
-            title, fullTitle, file, tags,
+            title, file, tags,
             description,
             //  rule,
             // above commented keys are for the Gherkin Files
@@ -102,7 +102,6 @@ export default class NeXtReporter extends ReporterEndpoints {
             title,
             parent: this.fetchParent(suiteOrTest),
             suiteID: this.suiteID(suiteOrTest),
-            fullTitle: fullTitle ?? '',
             description: description ?? '',
             file: sanitizePaths([file ?? this.currentSuites.at(-1).file]).at(0),
             standing: suiteOrTest?.state?.toUpperCase() ?? 'YET_TO_CALC',

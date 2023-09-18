@@ -1,6 +1,7 @@
 from nextpyreports.services.DBService.models.result_base import SessionBase, SuiteBase
 from nextpyreports.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
-from nextpyreports.services.DBService.models.task_base import TaskBase, JobType
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase, JobType
+from nextpyreports.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, TestConfigBase
 from nextpyreports.services.DBService.models.enums import Status, SuiteType
 from nextpyreports.services.DBService.shared import get_test_id
 from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
@@ -13,9 +14,9 @@ service = Blueprint("DBService", url_prefix="/save")
 
 
 @service.put("/registerSession")
-async def register_session(_: Request) -> HTTPResponse:
+async def register_session(request: Request) -> HTTPResponse:
     try:
-        session = RegisterSession.model_validate(_.json)
+        session = RegisterSession.model_validate(request.json)
         session_record = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
         await session_record.save()
     except Exception as error:
@@ -26,8 +27,8 @@ async def register_session(_: Request) -> HTTPResponse:
 
 
 @service.put("/registerSuite")
-async def register_suite(_: Request) -> HTTPResponse:
-    suite = RegisterSuite.model_validate(_.json)
+async def register_suite(request: Request) -> HTTPResponse:
+    suite = RegisterSuite.model_validate(request.json)
 
     if suite.parent == suite.suiteID:
         return text("Failed to register the suite as the parent id is same as that of its id", status=402)
@@ -44,8 +45,8 @@ async def register_suite(_: Request) -> HTTPResponse:
 
 
 @service.put("/updateSuite")
-async def updateSuite(_: Request) -> HTTPResponse:
-    suite = MarkSuite.model_validate(_.json)
+async def updateSuite(request: Request) -> HTTPResponse:
+    suite = MarkSuite.model_validate(request.json)
 
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
     if not suite_record:
@@ -75,8 +76,8 @@ async def updateSuite(_: Request) -> HTTPResponse:
 
 
 @service.put("/updateSession")
-async def update_session(_: Request) -> HTTPResponse:
-    session = MarkSession.model_validate(_.json)
+async def update_session(request: Request) -> HTTPResponse:
+    session = MarkSession.model_validate(request.json)
     test_session = await SessionBase.filter(sessionID=session.sessionID).first()
     if not test_session:
         return text(session.sessionID + " || Session not found", status=404)
@@ -89,3 +90,15 @@ async def update_session(_: Request) -> HTTPResponse:
 @service.put("/addMisc")
 async def update_misc(request: Request):
     ...
+
+
+@service.put("/currentRun")
+async def update_run_config(request: Request) -> HTTPResponse:
+    run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
+    config = await TestConfigBase.filter(test_id=get_test_id()).first()
+    if not config:
+        return text(get_test_id() + " || Test Run not found", status=404)
+
+    await config.update_from_dict(dict(attachmentValue=run_config))
+    await config.save()
+    return text(config.test)

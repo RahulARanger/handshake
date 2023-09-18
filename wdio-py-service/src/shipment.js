@@ -91,7 +91,7 @@ export default class Shipment extends ContactList {
                     this.logger.info('Server is online! 😀');
                     resolve();
                 }).catch(() => {
-                this.logger.warn("😓 Server has not started yet...")
+                    this.logger.warn('😓 Server has not started yet...');
                 });
             }, 3e3);
         }).catch(this.sayBye.bind(this));
@@ -118,7 +118,24 @@ export default class Shipment extends ContactList {
             .then(this.sayBye.bind(this));
     }
 
-    async onComplete() {
+    /**
+     *
+     * @param {any} _ exitCode
+     * @param {import("@wdio/types").Options.WebdriverIO} config WebdriverIO config
+     * @returns {Promise<any>} wait for promise
+     */
+    async onComplete(_, config) {
+        await fetch(this.updateRunConfig, {
+            method: 'PUT',
+            body: JSON.stringify(
+                {
+                    dynamic: false,
+                    maxTestRuns: 100,
+                    platformName: config.capabilities.platformName,
+                },
+            ),
+        });
+        this.logger.info('Updated config 🐰 for the test run');
         const completed = this.pyProcess.killed;
         if (completed) return this.pyProcess.exitCode === 0;
         await fetch(`${this.url}/done`, { method: 'PUT' }).then(async (data) => this.logger.info(await data.text()));

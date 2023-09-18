@@ -1,4 +1,4 @@
-from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase
 from nextpyreports.services.DBService.shared import get_test_id
 from nextpyreports.services.DBService.lifecycle import close_connection
 from sanic.blueprints import Blueprint

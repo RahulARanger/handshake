@@ -1,5 +1,5 @@
 from nextpyreports.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
-from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase
 from nextpyreports.services.DBService.models.types import Status, SuiteType
 from nextpyreports.services.SchedularService.refer_types import PathTree, PathItem
 from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status

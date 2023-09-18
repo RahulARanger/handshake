@@ -1,12 +1,11 @@
 from nextpyreports.services.SchedularService.constants import JobType
 from nextpyreports.services.SchedularService.handlePending import add_lookup_task
-from nextpyreports.services.DBService.models.config_base import ConfigBase, JobBase
 from nextpyreports.services.DBService.lifecycle import init_tortoise_orm
 from nextpyreports.services.SchedularService.lifecycle import verify_pending_jobs
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from datetime import datetime
-from nextpyreports.services.DBService.models.task_base import TaskBase
+from nextpyreports.services.DBService.models.dynamic_base import TaskBase
 from apscheduler.events import EVENT_JOB_EXECUTED
 from pathlib import Path
 

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "NeXtPyReports"
-version = "0.3.0"
+version = "0.4.0"
 description = "Next Dashboard for test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"

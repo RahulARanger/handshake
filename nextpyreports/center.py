@@ -1,7 +1,6 @@
 from nextpyreports.services.Endpoints.center import service_provider
 from nextpyreports.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
 from nextpyreports.services.DBService.shared import set_test_id
-from nextpyreports.services.SchedularService.center import start_service
 from click import argument, option, Path
 from pathlib import Path as P_Path
 from nextpyreports.handle_shipment import handle_cli

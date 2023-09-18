@@ -19,3 +19,5 @@ class AttachmentType(StrEnum):
     LABEL = "LABEL"
     ENV = "ENV"
     IMAGE = "IMAGE"
+    CONFIG = "CONFIG"
+    VIDEO = "VIDEO"
