@@ -26,6 +26,7 @@ export function neXtReporter(
         timeout: options.timeout || 60e3,
         reportLabel: options.reportLabel || undefined,
         projectName: options.projectName,
+        patchPackage: options.patchPackage || true,
     };
 
     return {

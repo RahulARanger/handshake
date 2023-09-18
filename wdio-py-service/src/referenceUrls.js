@@ -4,6 +4,7 @@ import WDIOReporter from '@wdio/reporter';
 /**
  * @typedef {{port?:number, root?: string,
  *  timeout?:number, collectionName?:string, reportLabel?: string,
+ *  patchPackage?:boolean,
  *  projectName:string}
  * } ShipmentOptions Options to be utilized for the Service
  */

@@ -43,4 +43,5 @@ export const config = attachNeXtReporter({
     port: 6969,
     root: dirname(process.cwd()),
     projectName: 'NeXtReport:Mocha',
+    patchPackage: false,
 });

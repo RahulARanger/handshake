@@ -18,22 +18,29 @@ export default class Shipment extends ContactList {
      */
     pyProcess;
 
+    get resultsDir() {
+        return join(this.options.root, this.options.collectionName);
+    }
+
+    get venv() {
+        return join('venv', 'Scripts', 'activate');
+    }
+
     /**
      *
     //  * @param {import("@wdio/types").Options.WebdriverIO} _
      * Config used for the webdriverIO tests
      */
     async onPrepare() {
-        const path = join('venv', 'Scripts', 'activate');
         const {
-            root: rootDir, port, collectionName, projectName,
+            root: rootDir, port, projectName,
         } = this.options;
 
         this.logger.info('Starting py-process 🚚...');
-        const resultsDir = join(rootDir, collectionName);
+        const { resultsDir } = this;
         if (!existsSync(resultsDir)) { mkdir(resultsDir); }
 
-        const command = `"${path}" && next-py run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
+        const command = `"${this.venv}" && next-py run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
         this.pyProcess = spawn(
             command,
             { cwd: rootDir, shell: true, stdio: ['ignore', 'pipe', 'pipe'] },
@@ -98,26 +105,29 @@ export default class Shipment extends ContactList {
     }
 
     async flagToPyThatsItsDone() {
-        // const explain = new Error('→ There were some pending
-        //  tasks that was not completed on time 😓,
-        // try increasing the timeout or job related spec');
+        // closing next-py server for now.
+        await this.sayBye();
 
-        return new Promise((resolve) => {
-            // 5 seconds buffer
-            // const bomb = setTimeout(() => { reject(explain); }, this.options.timeout + 5e3);
-            // clearInterval(bomb);
-            resolve();
+        const reportError = new Error('Failed to generate Report on time 😢, please note the errors if any seen.');
+        const patcher = spawn(`"${this.venv}" && next-py patch "${this.resultsDir}"`, { shell: true, cwd: this.options.root, stdio: ['ignore', 'pipe', 'pipe'] });
 
-            // const timer = setInterval(() => {
-            //     this.logger.warn('→ Waiting for the py-process to complete ⏲️...');
+        return new Promise((resolve, reject) => {
+            const bomb = setTimeout(
+                () => reject(reportError),
+                this.options.timeout,
+            );
+            patcher.on('exit', (exitCode) => {
+                clearTimeout(bomb);
 
-            //     clearTimeout(bomb);
-            //             clearInterval(timer);
-            //             resolve();
-            // }, 1e3);
-        })
-            .catch(this.sayBye.bind(this))
-            .then(this.sayBye.bind(this));
+                if (exitCode !== 0) {
+                    this.logger.warn(patcher.stdout.read()?.toString());
+                    this.logger.error(patcher.stderr.read()?.toString());
+                    return reject(reportError);
+                }
+                this.logger.info('Results are patched 🤩. Now we are ready to export it.');
+                return resolve();
+            });
+        });
     }
 
     /**
