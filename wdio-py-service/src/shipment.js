@@ -72,11 +72,12 @@ export default class Shipment extends ContactList {
 
     async sayBye() {
         if (this.pyProcess.killed) return;
-        this.logger.warn('→ See you later py-process 👋');
         try {
+            this.logger.warn('→ See you later py-process 👋');
             await fetch(`${this.url}/bye`, { method: 'POST' });
+            this.logger.info('→ Py Process was closed 😪');
         } catch {
-            this.logger.info('→ Server is offline as expected. 😪');
+            this.logger.warn('→ Server was already closed. 😫');
         }
     }
 
