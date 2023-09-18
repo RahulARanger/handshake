@@ -1,3 +1,5 @@
+import json
+
 from nextpyreports.services.DBService.models.result_base import SessionBase, SuiteBase
 from nextpyreports.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
 from nextpyreports.services.DBService.models.dynamic_base import TaskBase, JobType
@@ -105,4 +107,4 @@ async def update_run_config(request: Request) -> HTTPResponse:
 
     await config.update_from_dict(dict(attachmentValue=updated_value))
     await config.save()
-    return text(config.test)
+    return text(json.dumps(updated_value), status=201)

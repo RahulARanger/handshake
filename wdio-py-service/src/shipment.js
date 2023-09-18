@@ -98,12 +98,14 @@ export default class Shipment extends ContactList {
     }
 
     async flagToPyThatsItsDone() {
-        const explain = new Error('→ There were some pending tasks that was not completed on time 😓, try increasing the timeout or job related spec');
+        // const explain = new Error('→ There were some pending
+        //  tasks that was not completed on time 😓,
+        // try increasing the timeout or job related spec');
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             // 5 seconds buffer
-            const bomb = setTimeout(() => { reject(explain); }, this.options.timeout + 5e3);
-            clearInterval(bomb);
+            // const bomb = setTimeout(() => { reject(explain); }, this.options.timeout + 5e3);
+            // clearInterval(bomb);
             resolve();
 
             // const timer = setInterval(() => {
@@ -125,7 +127,7 @@ export default class Shipment extends ContactList {
      * @returns {Promise<any>} wait for promise
      */
     async onComplete(_, config) {
-        await fetch(this.updateRunConfig, {
+        const resp = await fetch(this.updateRunConfig, {
             method: 'PUT',
             body: JSON.stringify(
                 {
@@ -134,7 +136,7 @@ export default class Shipment extends ContactList {
                 },
             ),
         });
-        this.logger.info('Updated config 🐰 for the test run');
+        this.logger.info(`Updated config 🐰 for the test run: ${await resp.text()}`);
         const completed = this.pyProcess.killed;
         if (completed) return this.pyProcess.exitCode === 0;
         await fetch(`${this.url}/done`, { method: 'PUT' }).then(async (data) => this.logger.info(await data.text()));

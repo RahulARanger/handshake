@@ -39,7 +39,6 @@ class ValueForTestRunConfigBase(TypedDict):
 
 
 class PydanticModalForTestRunConfigBase(BaseModel):
-    dynamic: bool
     maxTestRuns: Optional[int]
     platformName: str
 
