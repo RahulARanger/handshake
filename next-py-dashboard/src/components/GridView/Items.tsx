@@ -5,13 +5,16 @@ import {
 
 type crumbItems = Array<Partial<BreadcrumbItemType & BreadcrumbSeparatorType>>;
 
-export default function crumbs(allowHref?: boolean): crumbItems {
+export default function crumbs(
+    allowHref?: boolean,
+    length?: number
+): crumbItems {
     return [
         {
             title: "Next-Py",
         },
         {
-            title: "Runs",
+            title: length == null ? "Runs" : `Runs (${length})`,
             href: allowHref != null ? "/RUNS/" : undefined,
         },
     ];

@@ -60,7 +60,10 @@ export default function RelativeTime(props: {
     );
 }
 
-export function HumanizeDuration(props: { duration?: Duration }): ReactNode {
+export function HumanizeDuration(props: {
+    duration?: Duration;
+    style?: CSSProperties;
+}): ReactNode {
     const [emblaRef] = useEmblaCarousel({ loop: true }, [
         Autoplay({ stopOnInteraction: false }),
     ]);
@@ -68,7 +71,11 @@ export function HumanizeDuration(props: { duration?: Duration }): ReactNode {
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: "150px", minWidth: "100px" }}
+            style={{
+                maxWidth: "150px",
+                minWidth: "100px",
+                ...(props.style ?? {}),
+            }}
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>

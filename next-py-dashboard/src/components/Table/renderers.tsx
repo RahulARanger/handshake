@@ -22,8 +22,11 @@ export default function RenderTimeRelativeToStart(props: {
     );
 }
 
-export function RenderDuration(props: { value: Duration }): ReactNode {
-    return <HumanizeDuration duration={props.value} />;
+export function RenderDuration(props: {
+    value: Duration;
+    style?: CSSProperties;
+}): ReactNode {
+    return <HumanizeDuration duration={props.value} style={props.style} />;
 }
 
 export function RenderStatus(props: { value: statusOfEntity }): ReactNode {

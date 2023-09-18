@@ -25,6 +25,7 @@ import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import DatePicker from "antd/lib/date-picker/index";
 import FilterOutlined from "@ant-design/icons/FilterOutlined";
 import crumbs from "@/components/GridView/Items";
+import Text from "antd/lib/typography/Text";
 
 function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
     const formatForDate = "MMM, ddd DD YYYY  ";
@@ -85,7 +86,13 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                                 value={item.Ended}
                                 style={{ maxWidth: "100px" }}
                             />
-                            <RenderDuration value={item.Duration} />
+                            <RenderDuration
+                                value={item.Duration}
+                                style={{
+                                    minWidth: "80px",
+                                    maxWidth: "80px",
+                                }}
+                            />
                         </Space>
                     </Tooltip>
                 }
@@ -116,16 +123,37 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             run.Started[0].isBefore(yesterday, "date")
     );
 
+    const thisMonth = yesterday.set("date", 1);
+    const forThisMonth = chronological.filter(
+        (run) =>
+            run.Started[0].isAfter(thisMonth.subtract(1, "day"), "date") &&
+            run.Started[0].isBefore(thisWeek, "date")
+    );
+
     const data = [
         { items: [firstRun], label: "Latest Run" },
-        { items: forToday, label: "Today" },
-        { items: forYesterday, label: "Yesterday" },
-        { items: forThisWeek, label: "This Week" },
+        {
+            items: forToday,
+            label: "Today",
+        },
+        {
+            items: forYesterday,
+            label: "Yesterday",
+        },
+        {
+            items: forThisWeek,
+            label: "This Week",
+        },
+        {
+            items: forThisMonth,
+            label: "This Month",
+        },
     ]
         .filter((item) => item.items.length > 0)
         .map((item) => ({
             key: item.label,
             label: item.label,
+            extra: <Text type="secondary">{`(${item.items.length})`}</Text>,
             children: (
                 <List
                     bordered
@@ -145,6 +173,7 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             accordion
             items={data}
             defaultActiveKey={["Latest Run"]}
+            bordered
         />
     );
 }
@@ -220,7 +249,7 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
                     size="large"
                     style={{ marginTop: "3px" }}
                 >
-                    <BreadCrumb items={crumbs()} />
+                    <BreadCrumb items={crumbs(false, filteredRuns.length)} />
                     <Divider type="vertical" />
                     <Tooltip title="Filters are on the right">
                         <FilterOutlined />
