@@ -47,7 +47,7 @@ export default class NeXtReporter extends ReporterEndpoints {
                 done(resp.ok ? undefined : new Error(resp.statusText), await resp.text());
             },
             (er, text) => {
-                if (er) this.logger.error(`💔 ${feedURL} - ${er.message} || ${text}`);
+                if (er) this.logger.error(`💔 ${feedURL} - ${JSON.stringify(feedJSON)} | ${er.message} || ${text}`);
                 else this.logger.info(`🗳️ - ${text}`);
             },
         );

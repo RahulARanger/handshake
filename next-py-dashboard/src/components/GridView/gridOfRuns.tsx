@@ -13,7 +13,7 @@ import List from "antd/lib/list";
 import Space from "antd/lib/space";
 import Collapse from "antd/lib/collapse/Collapse";
 import Card from "antd/lib/card/Card";
-import dayjs from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import Layout from "antd/lib/layout/index";
 import AreaChartForRuns from "@/components/Charts/AreaChartForRuns";
 import HeaderStyles from "@/styles/header.module.css";
@@ -26,6 +26,10 @@ import DatePicker from "antd/lib/date-picker/index";
 import FilterOutlined from "@ant-design/icons/FilterOutlined";
 import crumbs from "@/components/GridView/Items";
 import Text from "antd/lib/typography/Text";
+import isBetween from "dayjs/plugin/isBetween";
+import Button from "antd/lib/button/button";
+
+dayjs.extend(isBetween);
 
 function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
     const formatForDate = "MMM, ddd DD YYYY  ";
@@ -101,6 +105,39 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
     );
 }
 
+function RawList(props: {
+    dataSource: Array<undefined | QuickPreviewForTestRun>;
+}): ReactNode {
+    const [showMax, setShowMax] = useState<number>(10);
+    const items = props.dataSource?.slice(0, showMax);
+    return (
+        <List
+            bordered
+            itemLayout="vertical"
+            size="small"
+            dataSource={items}
+            renderItem={(item) =>
+                item != null ? <RunCard run={item} /> : <></>
+            }
+            loadMore={
+                props.dataSource.length > showMax ? (
+                    <Button
+                        size="middle"
+                        style={{ width: "100%", marginTop: "1px" }}
+                        onClick={() => {
+                            setShowMax(showMax + 10);
+                        }}
+                    >
+                        Load More
+                    </Button>
+                ) : (
+                    <></>
+                )
+            }
+        />
+    );
+}
+
 function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     const details = props.runs.map(parseDetailedTestRun).reverse();
     const firstRun = details.at(0);
@@ -154,17 +191,7 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             key: item.label,
             label: item.label,
             extra: <Text type="secondary">{`(${item.items.length})`}</Text>,
-            children: (
-                <List
-                    bordered
-                    itemLayout="vertical"
-                    size="small"
-                    dataSource={item.items}
-                    renderItem={(item) =>
-                        item != null ? <RunCard run={item} /> : <></>
-                    }
-                />
-            ),
+            children: <RawList dataSource={item.items} />,
         }));
 
     return (
@@ -210,14 +237,21 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
 
 export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();
+    const [dateRange, setDateRange] = useState<
+        null | [null | Dayjs, null | Dayjs]
+    >();
+
     const filteredRuns = props.runs.filter((run) => {
+        const started = dayjs(run.started);
         return (
-            selectedProjectName == null ||
-            run.projectName === selectedProjectName
+            (selectedProjectName == null ||
+                run.projectName === selectedProjectName) &&
+            (dateRange == null ||
+                started.isBetween(dateRange[0], dateRange[1], "date", "[]"))
         );
     });
 
-    if (filteredRuns.length === 0) {
+    if (props.runs.length === 0) {
         return (
             <Layout style={{ height: "100%" }}>
                 <Space
@@ -227,12 +261,50 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
                     <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                         description={
-                            props.runs.length === 0
-                                ? "No Runs Found!, Please run your test suite"
-                                : "No Filtered Results found"
+                            "No Runs Found!, Please run your test suite"
                         }
                     />
                 </Space>
+            </Layout>
+        );
+    }
+
+    let body;
+
+    if (filteredRuns.length === 0) {
+        body = (
+            <Space
+                direction="horizontal"
+                style={{ height: "100%", justifyContent: "center" }}
+            >
+                <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description={"No Filtered Results found"}
+                />
+            </Space>
+        );
+    } else {
+        body = (
+            <Layout hasSider>
+                <Layout.Sider
+                    width={350}
+                    theme={"light"}
+                    style={{
+                        margin: "6px",
+                        overflow: "auto",
+                    }}
+                >
+                    <ListOfRuns runs={filteredRuns} />
+                </Layout.Sider>
+                <Layout.Content
+                    style={{
+                        margin: "6px",
+                        overflow: "auto",
+                        paddingBottom: "13px",
+                    }}
+                >
+                    <ListOfCharts runs={filteredRuns} />
+                </Layout.Content>
             </Layout>
         );
     }
@@ -264,30 +336,15 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
                             filterProjectName(selected);
                         }}
                     />
-                    <DatePicker.RangePicker />
+                    <DatePicker.RangePicker
+                        value={dateRange}
+                        onChange={(values) => {
+                            setDateRange(values);
+                        }}
+                    />
                 </Space>
             </Layout.Header>
-            <Layout hasSider>
-                <Layout.Sider
-                    width={350}
-                    theme={"light"}
-                    style={{
-                        margin: "6px",
-                        overflow: "auto",
-                    }}
-                >
-                    <ListOfRuns runs={filteredRuns} />
-                </Layout.Sider>
-                <Layout.Content
-                    style={{
-                        margin: "6px",
-                        overflow: "auto",
-                        paddingBottom: "13px",
-                    }}
-                >
-                    <ListOfCharts runs={filteredRuns} />
-                </Layout.Content>
-            </Layout>
+            {body}
         </Layout>
     );
 }

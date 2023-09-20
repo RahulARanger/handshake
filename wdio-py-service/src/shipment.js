@@ -22,6 +22,7 @@ export default class Shipment extends ContactList {
         return join(this.options.root, this.options.collectionName);
     }
 
+    // eslint-disable-next-line class-methods-use-this
     get venv() {
         return join('venv', 'Scripts', 'activate');
     }
@@ -54,7 +55,7 @@ export default class Shipment extends ContactList {
         this.pyProcess.on('exit', (code) => { if (code !== 0) throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
 
         this.logger.info(`Started py-process, running 🐰 at pid: ${this.pyProcess.pid}`);
-        process.on('exit', async () => { await this.forceKill(); });
+        process.on('exit', async () => { await this.sayBye(); });
     }
 
     async onWorkerStart() {
@@ -74,7 +75,7 @@ export default class Shipment extends ContactList {
         if (this.pyProcess.killed) return;
         try {
             this.logger.info('→ Pinging once 📞');
-            await fetch(`${this.url}/`);
+            await fetch(`${this.url}/`, { signal: AbortSignal.timeout(5e3) });
             this.logger.warn('→ Server is alive closing it 👋');
             await fetch(`${this.url}/bye`, { method: 'POST' });
             this.logger.info('→ Py Process was closed 😪');
