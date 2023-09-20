@@ -241,16 +241,6 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
         null | [null | Dayjs, null | Dayjs]
     >();
 
-    const filteredRuns = props.runs.filter((run) => {
-        const started = dayjs(run.started);
-        return (
-            (selectedProjectName == null ||
-                run.projectName === selectedProjectName) &&
-            (dateRange == null ||
-                started.isBetween(dateRange[0], dateRange[1], "date", "[]"))
-        );
-    });
-
     if (props.runs.length === 0) {
         return (
             <Layout style={{ height: "100%" }}>
@@ -268,6 +258,16 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             </Layout>
         );
     }
+
+    const filteredRuns = props.runs.filter((run) => {
+        const started = dayjs(run.started);
+        return (
+            (selectedProjectName == null ||
+                run.projectName === selectedProjectName) &&
+            (dateRange == null ||
+                started.isBetween(dateRange[0], dateRange[1], "date", "[]"))
+        );
+    });
 
     let body;
 

@@ -52,7 +52,7 @@ export default class Shipment extends ContactList {
         this.pyProcess.stderr.on('data', (data) => this.logger.warn(data?.toString()));
 
         this.pyProcess.on('error', (err) => { throw new Error(String(err)); });
-        this.pyProcess.on('exit', (code) => { if (code !== 0) throw new Error(`→ Failed to generate the report, Error Code: ${code}`); });
+        this.pyProcess.on('exit', (code) => { if (code !== 0) this.logger.error(`next-py-server was force closed 😫, found exit code: ${code}`); });
 
         this.logger.info(`Started py-process, running 🐰 at pid: ${this.pyProcess.pid}`);
         process.on('exit', async () => { await this.sayBye(); });
@@ -72,16 +72,19 @@ export default class Shipment extends ContactList {
     }
 
     async sayBye() {
-        if (this.pyProcess.killed) return;
-        try {
-            this.logger.info('→ Pinging once 📞');
-            await fetch(`${this.url}/`, { signal: AbortSignal.timeout(5e3) });
-            this.logger.warn('→ Server is alive closing it 👋');
-            await fetch(`${this.url}/bye`, { method: 'POST' });
-            this.logger.info('→ Py Process was closed 😪');
-        } catch {
-            this.logger.warn('→ Server was already closed. 😫');
+        if (this.pyProcess.killed) {
+            this.logger.warn('🙀 next-py-process was already terminated.');
+            return;
         }
+
+        const results = [];
+        for (let worker = 0; worker < 2; worker += 1) {
+            this.logger.info('📞 Requesting for worker termination');
+            results.push(fetch(`${this.url}/bye`, { method: 'POST' }).catch(() => this.logger.info('Terminated.')));
+        }
+        await Promise.all(results);
+
+        this.logger.info('→ Py Process was closed 😪');
     }
 
     async waitUntilItsReady() {
