@@ -54,7 +54,7 @@ class SessionBase(CommonDetailedFields):
         "models.RunBase", related_name="sessions", to_field="testID"
     )
     suites = ReverseRelation["SuiteBase"]
-    sessionID = CharField(max_length=45, pk=True)
+    sessionID = UUIDField(pk=True)
     browserName = CharField(max_length=10, default="")
     browserVersion = CharField(max_length=20, default="")
     simplified = TextField(default="", description="browser name & version &/ platform name included")
@@ -70,7 +70,7 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
         "models.SessionBase", related_name="suites", to_field="sessionID"
     )
     attachments = ReverseRelation["AttachmentBase"]
-    suiteID = CharField(max_length=45, pk=True)
+    suiteID = UUIDField(pk=True)
     suiteType = CharEnumField(
         SuiteType, description="Specifies whether if it is a test suite or test case", null=False
     )

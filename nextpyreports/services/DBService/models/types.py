@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing_extensions import TypedDict
 
+
 def understand_js_date(utc_date_string: str) -> datetime:
     return datetime.strptime(utc_date_string, "%a, %d %b %Y %H:%M:%S %Z")
 
@@ -17,14 +18,12 @@ class RegisterSession(CommonRegisterCols):
     browserName: str
     browserVersion: str
     simplified: str
-    sessionID: str
     specs: List[str]
 
 
 class RegisterSuite(CommonRegisterCols):
     title: str
     description: Optional[str] = ""
-    suiteID: str
     suiteType: SuiteType
     session_id: str
     file: str
@@ -57,4 +56,3 @@ class MarkSuite(BaseModel):
     error: Optional[Error] = None
     errors: Optional[List[Error]] = []
     standing: Optional[Status] = Status.SKIPPED
-

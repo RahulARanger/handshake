@@ -22,18 +22,14 @@ async def register_session(request: Request) -> HTTPResponse:
         session_record = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
         await session_record.save()
     except Exception as error:
-        print(get_test_id(), "HERE", error)
-        logger.exception("FAILED")
+        logger.error("Failed to create a session due to exception: {}", str(error))
         return text(str(error), status=404)
-    return text(f"Registered Session: {session_record.sessionID}", status=201)
+    return text(str(session_record.sessionID), status=201)
 
 
 @service.put("/registerSuite")
 async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
-
-    if suite.parent == suite.suiteID:
-        return text("Failed to register the suite as the parent id is same as that of its id", status=402)
 
     if await SuiteBase.exists(suiteID=suite.suiteID, session_id=suite.session_id):
         return text(suite.started.isoformat() + " || Existing", status=208)
@@ -41,7 +37,7 @@ async def register_suite(request: Request) -> HTTPResponse:
     suite_record = await SuiteBase.create(**suite.model_dump())
     await suite_record.save()
     return text(
-        f"Registered {suite_record.suiteType.capitalize()}: {suite_record.title} || {suite_record.suiteID}",
+        suite_record.suiteID,
         status=201
     )
 
