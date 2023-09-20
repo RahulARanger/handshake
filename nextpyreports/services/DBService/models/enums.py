@@ -21,3 +21,7 @@ class AttachmentType(StrEnum):
     IMAGE = "IMAGE"
     CONFIG = "CONFIG"
     VIDEO = "VIDEO"
+
+
+class PrunedRecords(StrEnum):
+    RUN = "RUN"

@@ -1,4 +1,4 @@
-import { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter';
+import { RunnerStats } from '@wdio/reporter';
 import { relative } from 'node:path';
 
 /**
@@ -21,7 +21,6 @@ export function sanitizePaths(specs) {
 export default function extractSessionDetailsForRegistration(runnerStats) {
     return {
         started: runnerStats.start.toISOString(),
-        sessionID: runnerStats.sessionId,
         browserName: runnerStats.capabilities.browserName,
         browserVersion: runnerStats.capabilities.browserVersion,
         specs: sanitizePaths(runnerStats.specs),
@@ -33,31 +32,20 @@ export default function extractSessionDetailsForRegistration(runnerStats) {
 /**
  * Extracting the Required information for registering a session
  * @param {RunnerStats} runnerStats stats attached to a runner
+ * @param {string} sessionID session ID given by the server
  * @returns {CompletionSessionPayload} payload for updating the session status
  */
-export function extractSessionDetailsForCompletion(
-    runnerStats,
-) {
+export function extractSessionDetailsForCompletion(runnerStats, sessionID) {
     return {
         ended: runnerStats?.end?.toISOString() ?? new Date().toISOString(),
         duration: runnerStats.duration,
-        sessionID: runnerStats.sessionId,
+        sessionID,
     };
-}
-
-/**
- * generate the suite id from the start date and its uid
- * @param {SuiteStats | TestStats} suiteOrTest suite or test for which we would need its id
- * @returns {string} id generated for the requested entity
- */
-export function returnSuiteID(suiteOrTest) {
-    return `${suiteOrTest.start.toISOString()}-${suiteOrTest.uid}`;
 }
 
 /**
  * @typedef {object} RegisterSessionPayload
  * @property {string} started ISO String of session's start date-time
- * @property {string} sessionID uuid attached to the session
  * @property {string} browserName name of the browser used
  * @property {string} browserVersion version of the browser attached
  * @property {string[]} specs list of spec files

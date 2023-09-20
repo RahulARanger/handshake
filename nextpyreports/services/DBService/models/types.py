@@ -1,3 +1,4 @@
+import uuid
 from typing import Union, List, Optional, Literal
 from nextpyreports.services.DBService.models.enums import Status, SuiteType
 from pydantic import BaseModel
@@ -25,7 +26,7 @@ class RegisterSuite(CommonRegisterCols):
     title: str
     description: Optional[str] = ""
     suiteType: SuiteType
-    session_id: str
+    session_id: uuid.UUID
     file: str
     parent: str
     standing: Union[Literal[Status.YET_TO_CALCULATE], Literal[Status.PENDING], Literal[Status.SKIPPED]]
@@ -40,7 +41,7 @@ class MarkSession(BaseModel):
     tests: int
     hooks: int
     ended: datetime
-    sessionID: str
+    sessionID: uuid.UUID
 
 
 class Error(TypedDict):
@@ -52,7 +53,7 @@ class Error(TypedDict):
 class MarkSuite(BaseModel):
     duration: float
     ended: datetime
-    suiteID: str
+    suiteID: uuid.UUID
     error: Optional[Error] = None
     errors: Optional[List[Error]] = []
     standing: Optional[Status] = Status.SKIPPED

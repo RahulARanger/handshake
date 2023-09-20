@@ -16,6 +16,7 @@ export interface DetailedTestRunPageProps extends ShareToOtherPages {
 export interface OverviewPageProps extends ShareToOtherPages {}
 
 export type statusOfEntity = "PASSED" | "FAILED" | "PENDING" | "SKIPPED";
+export type suiteType = "SUITE" | "TEST";
 
 export interface SuiteRecordDetails {
     title: string;
@@ -33,7 +34,7 @@ export interface SuiteRecordDetails {
     description: string;
     file: string;
     parent: string;
-    suiteType: "SUITE" | "TEST";
+    suiteType: suiteType;
     error: Error;
     errors: Error[];
 }
@@ -44,4 +45,4 @@ interface Order {
 
 export type SuiteDetails = Order & Record<string, SuiteRecordDetails>;
 
-export type TestDetails = Record<string, SuiteRecordDetails[]>;
+export type TestDetails = Record<string, SuiteRecordDetails>;

@@ -1,11 +1,11 @@
 from nextpyreports.services.DBService.models.config_base import AttachmentFields
 from nextpyreports.services.DBService.models.result_base import SuiteBase
-from typing import TypedDict
 from tortoise.models import Model
 from tortoise.fields import CharField, DatetimeField, JSONField, CharEnumField, ForeignKeyField, ForeignKeyRelation, \
-    BooleanField
+    BooleanField, TextField
 from nextpyreports.services.SchedularService.constants import JobType
 from nextpyreports.services.DBService.models.result_base import RunBase
+from nextpyreports.services.DBService.models.enums import PrunedRecords
 
 
 class TaskBase(Model):
@@ -28,4 +28,9 @@ class DynamicVideoBase(AttachmentFields):
         "models.SuiteBase", related_name="attachments", to_field="suiteID"
     )
 
-# class DynamicVideoBase(TypedDict):
+
+class PrunedBase:
+    prunedID = CharField(max_length=36, description="possibly uuid of length 36 that was pruned")
+    reason = TextField(description='Reason for its existence here')
+    details = JSONField(null=True, default={}, description="If any details were required")
+    type = CharEnumField(PrunedRecords, null=False)

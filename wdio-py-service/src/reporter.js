@@ -4,7 +4,7 @@ import logger from '@wdio/logger';
 import AsyncLock from 'async-lock';
 import fetch from 'node-fetch';
 import { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter';
-import extractSessionDetailsForRegistration, { extractSessionDetailsForCompletion, returnSuiteID, sanitizePaths } from './extractors.js';
+import extractSessionDetailsForRegistration, { extractSessionDetailsForCompletion, sanitizePaths } from './extractors.js';
 import { ReporterEndpoints } from './referenceUrls.js';
 
 /**
@@ -20,6 +20,9 @@ export default class NeXtReporter extends ReporterEndpoints {
 
     lock = new AsyncLock({ timeout: 60e3, maxExecutionTime: 60e3, maxPending: 1000 });
 
+    /** @type {{session: string} & Record<string, string>} */
+    idMapped = { session: null };
+
     /**
      *
      * @param {ReporterOptions} options Options for the reporter
@@ -33,63 +36,59 @@ export default class NeXtReporter extends ReporterEndpoints {
      *
      * @param {string} feedURL url to use for sending the request to
      * @param {any} feedJSON request body
+     * @param {undefined | string} keyToBeStored id to be stored
+     * @param {undefined | () => Record<string, string>} dynamicKeys sometimes
+     *  we would need to use the data that was given by previous response
      */
-    feed(feedURL, feedJSON) {
+    feed(feedURL, feedJSON, keyToBeStored, dynamicKeys) {
         this.lock.acquire(
             this.runnerStat.config.framework,
             async (done) => {
-                this.logger.info(`🚚 URL: ${feedURL} || 📃 payload: ${JSON.stringify(feedJSON)}`);
+                const payload = (feedJSON == null ? dynamicKeys() : feedJSON) ?? {};
+                this.logger.info(`🚚 URL: ${feedURL} || 📃 payload: ${JSON.stringify(payload)}`);
                 const resp = await fetch(
                     feedURL,
-                    { method: 'PUT', body: JSON.stringify(feedJSON), keepalive: true },
-                );
+                    {
+                        method: 'PUT',
+                        body: JSON.stringify(
+                            payload,
+                        ),
 
+                    },
+                );
                 done(resp.ok ? undefined : new Error(resp.statusText), await resp.text());
             },
             (er, text) => {
                 if (er) this.logger.error(`💔 ${feedURL} - ${JSON.stringify(feedJSON)} | ${er.message} || ${text}`);
-                else this.logger.info(`🗳️ - ${text}`);
+                else if (keyToBeStored) {
+                    this.logger.info(`Found 🤠 Key : ${keyToBeStored} | ${text}`);
+                    this.idMapped[keyToBeStored] = text;
+                } else this.logger.info(`🗳️ - ${text}`);
             },
         );
     }
 
     /**
-     *
-     * @param {SuiteStats | TestStats} suiteOrTest Selected Suite or Test
-     * @returns {string} unique suite id
-     */
-    suiteID(suiteOrTest) {
-        // wdio already provides uuid for cucumber based test case
-        return this.runnerStat.config.framework === 'cucumber' && suiteOrTest.type === 'test' ? suiteOrTest.uid : returnSuiteID(suiteOrTest);
-    }
-
-    /**
      * Returns the ID of the parent entity if found
      * @param {SuiteStats | TestStats} suiteOrTest test entity
-     * @returns {string | ""} parent id of the requested entity
+     * @returns {string} parent id of the requested entity
      */
     fetchParent(suiteOrTest) {
-        switch (this.runnerStat.config.framework) {
-        case 'cucumber': {
-            const expectedParent = suiteOrTest.parent;
-            const fetchedParent = this.suites[expectedParent];
-            if (!fetchedParent) return '';
-            return this.suiteID(fetchedParent);
-        }
-        default: {
-            const isSuite = suiteOrTest.uid.includes('suite');
-            return suiteOrTest.parent ? this.suiteID(this.currentSuites.at(isSuite ? -2 : -1)) : '';
-        }
-        }
+        const expectedParent = suiteOrTest.parent;
+        const fetchedParent = this.suites[expectedParent];
+        return this.idMapped[fetchedParent?.uid]
+        ?? this.idMapped[this.currentSuites.at(suiteOrTest.uid.includes('suite') ? -2 : -1)?.uid]
+         ?? '';
     }
 
     /**
      * extracts the required information for registering a test entity [suite / test]
      * @param {SuiteStats | TestStats} suiteOrTest Can either be a suite or a test
+     * @param {'SUITE' | 'TEST'} type is it suite or test
      * @returns {RegisterSuite} payload for registering a suite
      * returns the info that is crucial to the suite or test
      */
-    extractRegistrationPayloadForTestEntity(suiteOrTest) {
+    extractRegistrationPayloadForTestEntity(suiteOrTest, type) {
         const {
             title, file, tags,
             description,
@@ -100,14 +99,14 @@ export default class NeXtReporter extends ReporterEndpoints {
 
         const payload = {
             title,
-            parent: this.fetchParent(suiteOrTest),
-            suiteID: this.suiteID(suiteOrTest),
             description: description ?? '',
             file: sanitizePaths([file ?? this.currentSuites.at(-1).file]).at(0),
             standing: suiteOrTest?.state?.toUpperCase() ?? 'YET_TO_CALC',
             tags: tags ?? [],
             started,
-            session_id: this.runnerStat.sessionId,
+            suiteType: type,
+            parent: this.fetchParent(suiteOrTest),
+            session_id: this.idMapped.session,
             retried: this.runnerStat.retry,
         };
         return payload;
@@ -130,7 +129,7 @@ export default class NeXtReporter extends ReporterEndpoints {
 
         const payload = {
             duration,
-            suiteID: this.suiteID(suiteOrTest),
+            suiteID: this.idMapped[suiteOrTest.uid],
             ended,
             standing,
             errors,
@@ -144,7 +143,11 @@ export default class NeXtReporter extends ReporterEndpoints {
      * @param {RunnerStats} stats Stats when starting the Runner
      */
     onRunnerStart(stats) {
-        this.feed(this.registerSession, extractSessionDetailsForRegistration(stats));
+        this.feed(
+            this.registerSession,
+            extractSessionDetailsForRegistration(stats),
+            'session',
+        );
     }
 
     /**
@@ -152,18 +155,12 @@ export default class NeXtReporter extends ReporterEndpoints {
      * @param {SuiteStats} suite stats provided for a suite
      */
     onSuiteStart(suite) {
-        const payload = this.extractRegistrationPayloadForTestEntity(suite);
-        payload.suiteType = 'SUITE';
-        this.feed(this.registerSuite, payload);
-    }
-
-    /**
-     *
-     * @param {SuiteStats} suite stats provided for a suite
-     */
-    onSuiteEnd(suite) {
-        const payload = this.extractRequiredForEntityCompletion(suite);
-        this.feed(this.updateSuite, payload);
+        this.feed(
+            this.registerSuite,
+            null,
+            suite.uid,
+            () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'),
+        );
     }
 
     /**
@@ -172,9 +169,25 @@ export default class NeXtReporter extends ReporterEndpoints {
      * meta data related to the test case that will be now executed
      */
     addTest(test) {
-        const payload = this.extractRegistrationPayloadForTestEntity(test);
-        payload.suiteType = 'TEST';
-        this.feed(this.registerSuite, payload);
+        this.feed(
+            this.registerSuite,
+            null,
+            test.uid,
+            () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'),
+        );
+    }
+
+    /**
+     *
+     * @param {SuiteStats} suite stats provided for a suite
+     */
+    onSuiteEnd(suite) {
+        this.feed(
+            this.updateSuite,
+            null,
+            null,
+            () => this.extractRequiredForEntityCompletion(suite),
+        );
     }
 
     /**
@@ -192,8 +205,12 @@ export default class NeXtReporter extends ReporterEndpoints {
      * meta data related to the test case that will be now executed
      */
     markTestCompletion(test) {
-        const payload = this.extractRequiredForEntityCompletion(test);
-        this.feed(this.updateSuite, payload);
+        this.feed(
+            this.updateSuite,
+            null,
+            null,
+            () => this.extractRequiredForEntityCompletion(test),
+        );
     }
 
     /**
@@ -226,7 +243,7 @@ export default class NeXtReporter extends ReporterEndpoints {
      * info regarding the session, it is required for updating the registered session
      */
     onRunnerEnd(runner) {
-        const payload = extractSessionDetailsForCompletion(runner);
+        const payload = extractSessionDetailsForCompletion(runner, this.idMapped.session);
         payload.passed = this.counts.passes;
         payload.failed = this.counts.failures;
         payload.skipped = this.counts.skipping;

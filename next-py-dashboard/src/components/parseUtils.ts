@@ -32,6 +32,7 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
     File: string;
     Retried: number;
     Description: string;
+    id: string;
 }
 
 export default function parseTestEntity(
@@ -66,6 +67,7 @@ export function parseDetailedTestEntity(
         File: testORSuite.file,
         Retried: testORSuite.retried,
         Description: testORSuite.description,
+        id: testORSuite.suiteID,
     };
 }
 

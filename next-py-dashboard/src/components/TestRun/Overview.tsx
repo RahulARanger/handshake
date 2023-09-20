@@ -109,6 +109,7 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
             <Space>
                 <Card
                     bordered
+                    style={{ minHeight: "268px" }}
                     title={
                         <Space align="center">
                             <Typography>Executed</Typography>

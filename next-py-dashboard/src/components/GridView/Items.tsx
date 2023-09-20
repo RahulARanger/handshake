@@ -3,7 +3,9 @@ import {
     type BreadcrumbItemType,
 } from "antd/lib/breadcrumb/Breadcrumb";
 
-type crumbItems = Array<Partial<BreadcrumbItemType & BreadcrumbSeparatorType>>;
+export type crumbItems = Array<
+    Partial<BreadcrumbItemType & BreadcrumbSeparatorType>
+>;
 
 export default function crumbs(
     allowHref?: boolean,

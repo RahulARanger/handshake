@@ -37,8 +37,7 @@ export async function getAllTests(
     const response: TestDetails = {};
 
     tests.forEach((test) => {
-        if (response[test.parent] == null) response[test.parent] = [test];
-        else response[test.parent].push(test);
+        response[test.suiteID] = test;
     });
 
     return response;

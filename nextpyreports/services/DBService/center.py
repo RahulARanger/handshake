@@ -30,14 +30,10 @@ async def register_session(request: Request) -> HTTPResponse:
 @service.put("/registerSuite")
 async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
-
-    if await SuiteBase.exists(suiteID=suite.suiteID, session_id=suite.session_id):
-        return text(suite.started.isoformat() + " || Existing", status=208)
-
     suite_record = await SuiteBase.create(**suite.model_dump())
     await suite_record.save()
     return text(
-        suite_record.suiteID,
+        str(suite_record.suiteID),
         status=201
     )
 
@@ -48,7 +44,8 @@ async def updateSuite(request: Request) -> HTTPResponse:
 
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
     if not suite_record:
-        return text(suite.suiteID + " || Not Found", status=404)
+        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        return text(f'Suite {suite.suiteID} was not found', status=404)
 
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
@@ -78,11 +75,12 @@ async def update_session(request: Request) -> HTTPResponse:
     session = MarkSession.model_validate(request.json)
     test_session = await SessionBase.filter(sessionID=session.sessionID).first()
     if not test_session:
-        return text(session.sessionID + " || Session not found", status=404)
+        logger.error("Expected {} session was not found", str(session.sessionID))
+        return text(f"Session {session.sessionID} was not found", status=404)
 
     await test_session.update_from_dict(session.model_dump())
     await test_session.save()
-    return text(session.sessionID + " || Session updated", status=201)
+    return text(f"{session.sessionID} was updated", status=201)
 
 
 @service.put("/addMisc")
