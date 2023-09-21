@@ -20,6 +20,7 @@ dayjs.extend(advancedFormat);
 export default function RelativeTo(props: {
     dateTime: Dayjs;
     wrt?: Dayjs;
+    secondDateTime?: Dayjs;
     format?: string;
     style?: CSSProperties;
 }): ReactNode {
@@ -40,7 +41,15 @@ export default function RelativeTo(props: {
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>
-                    {props.dateTime.format(props.format ?? timeFormatUsed)}
+                    {`${props.dateTime.format(
+                        props.format ?? timeFormatUsed
+                    )} ${
+                        props.secondDateTime != null
+                            ? ` - ${props.secondDateTime.format(
+                                  props.format ?? timeFormatUsed
+                              )}`
+                            : ""
+                    }`}
                 </Typography>
                 <Tooltip
                     title={

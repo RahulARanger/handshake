@@ -2,11 +2,14 @@ import type DetailsOfRun from "@/types/testRun";
 import React, { useState, type ReactNode, useContext } from "react";
 import Space from "antd/lib/space";
 import Card from "antd/lib/card/Card";
+import Meta from "antd/lib/card/Meta";
 import Counter from "./counter";
 import ProgressPieChart from "../Charts/StatusPieChart";
 import Typography from "antd/lib/typography/Typography";
 import Switch from "antd/lib/switch";
 import RelativeTo from "../Datetime/relativeTime";
+import Tooltip from "antd/lib/tooltip/index";
+import Divider from "antd/lib/divider/index";
 import dayjs, { type Dayjs } from "dayjs";
 import Table from "antd/lib/table/Table";
 import MetaCallContext from "./context";
@@ -18,9 +21,10 @@ import {
     type statusOfEntity,
     type SuiteDetails,
 } from "@/types/detailedTestRunPage";
-import { RenderStatus } from "../Table/renderers";
+import { RenderDuration, RenderStatus } from "../Table/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import CarouselComponent from "../carousel";
+import { dateFormatUsed } from "../Datetime/format";
 
 function TopSuites(props: { startedAt: Dayjs }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -39,7 +43,7 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
             bordered
             pagination={false}
             style={{ flexShrink: 1, minWidth: "300px" }}
-            scroll={{ y: 180, x: "max-content" }}
+            scroll={{ y: 199, x: "max-content" }}
             footer={() => (
                 <Space>
                     <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
@@ -131,15 +135,46 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                                     }}
                                 />
                             </Typography>
+                            <Typography>
+                                {`On ${startedAt.format(dateFormatUsed)}`}
+                            </Typography>
                         </Space>
                     }
-                    extra={
-                        <RelativeTo
-                            dateTime={startedAt}
-                            style={{ marginLeft: "30px", maxWidth: "110px" }}
-                        />
-                    }
                     size="small"
+                    actions={[
+                        <Meta
+                            key="started"
+                            description={
+                                <Tooltip title="Time Range | Duration">
+                                    <Space
+                                        split={
+                                            <Divider
+                                                type="vertical"
+                                                style={{ margin: "0px" }}
+                                            />
+                                        }
+                                        align="baseline"
+                                    >
+                                        <RelativeTo
+                                            dateTime={startedAt}
+                                            style={{
+                                                marginLeft: "30px",
+                                                maxWidth: "180px",
+                                            }}
+                                            secondDateTime={dayjs(
+                                                props.run.ended
+                                            )}
+                                        />
+                                        <RenderDuration
+                                            value={dayjs.duration(
+                                                props.run.duration
+                                            )}
+                                        />
+                                    </Space>
+                                </Tooltip>
+                            }
+                        />,
+                    ]}
                 >
                     <ProgressPieChart run={props.run} isTestCases={isTest} />
                 </Card>

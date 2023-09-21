@@ -35,7 +35,7 @@ export default function ProgressPieChart(props: {
                 fitToPlot: true,
             },
             backgroundColor: "#141414",
-            height: 205,
+            height: 185,
         },
 
         title: {
