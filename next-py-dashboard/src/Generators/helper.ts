@@ -37,6 +37,10 @@ export function getTests(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/tests?test_id=${filler(testID)}`;
 }
 
+export function getSessions(port?: string, testID?: string): string {
+    return `${serverURL(port)}/get/sessions?test_id=${filler(testID)}`;
+}
+
 export async function fetcher<T>(url: string): Promise<T> {
     return await fetch(url).then(async (resp) => await resp.json());
 }

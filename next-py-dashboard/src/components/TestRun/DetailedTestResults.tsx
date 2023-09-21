@@ -7,7 +7,7 @@ import Empty from "antd/lib/empty/index";
 import Space from "antd/lib/space";
 import Tabs from "antd/lib/tabs/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
-import RelativeTime from "../Datetime/relativeTime";
+import RelativeTo from "../Datetime/relativeTime";
 import dayjs from "dayjs";
 import { crumbsForRun } from "../GridView/Items";
 import type { Tab } from "rc-tabs/lib/interface";
@@ -20,6 +20,7 @@ import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import Tooltip from "antd/lib/tooltip/index";
 import TestEntities from "../Table/TestEntites";
 import Card from "antd/lib/card/Card";
+import ProjectStructure from "../Table/Structure";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -72,7 +73,7 @@ export default function DetailedTestRun(): ReactNode {
         },
         {
             label: "Gantt Chart",
-            key: "GanttChart",
+            key: "Gantt-Chart",
             children: (
                 <Card
                     style={{
@@ -94,7 +95,8 @@ export default function DetailedTestRun(): ReactNode {
                     </span>
                 </Tooltip>
             ),
-            key: "structure",
+            key: "Structure",
+            children: <ProjectStructure />,
         },
     ];
 
@@ -121,7 +123,7 @@ export default function DetailedTestRun(): ReactNode {
                             />
                         ),
                         right: (
-                            <RelativeTime
+                            <RelativeTo
                                 dateTime={dayjs(data.ended)}
                                 style={{ maxWidth: "120px" }}
                             />

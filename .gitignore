@@ -39,3 +39,4 @@ next-env.d.ts
 
 check.py
 next-py-dashboard/dist/*
+next-py-dashboard/public/antd.min.css

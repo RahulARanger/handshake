@@ -1,3 +1,4 @@
+import type SessionRecordDetails from "./sessionRelated";
 import type DetailsOfRun from "./testRun";
 import { type TestRunSummary } from "./testRun";
 
@@ -9,7 +10,11 @@ export interface ShareToOtherPages {
 export interface DetailedTestRunPageProps extends ShareToOtherPages {
     fallback: Record<
         string,
-        DetailsOfRun | TestRunSummary | SuiteDetails | TestDetails
+        | DetailsOfRun
+        | TestRunSummary
+        | SuiteDetails
+        | TestDetails
+        | SessionDetails
     >;
 }
 
@@ -18,10 +23,7 @@ export interface OverviewPageProps extends ShareToOtherPages {}
 export type statusOfEntity = "PASSED" | "FAILED" | "PENDING" | "SKIPPED";
 export type suiteType = "SUITE" | "TEST";
 
-export interface SuiteRecordDetails {
-    title: string;
-    fullTitle: string;
-    suiteID: string;
+export interface RecurringFields {
     started: string;
     ended: string;
     passed: number;
@@ -31,12 +33,17 @@ export interface SuiteRecordDetails {
     retried: number;
     standing: statusOfEntity;
     tests: number;
+}
+
+export interface SuiteRecordDetails extends RecurringFields {
+    suiteID: string;
     description: string;
     file: string;
     parent: string;
     suiteType: suiteType;
     error: Error;
     errors: Error[];
+    title: string;
 }
 
 interface Order {
@@ -46,3 +53,5 @@ interface Order {
 export type SuiteDetails = Order & Record<string, SuiteRecordDetails>;
 
 export type TestDetails = Record<string, SuiteRecordDetails>;
+
+export type SessionDetails = Record<string, SessionRecordDetails>;

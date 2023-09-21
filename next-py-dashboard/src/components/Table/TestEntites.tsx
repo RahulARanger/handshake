@@ -4,10 +4,7 @@ import {
 } from "@/types/detailedTestRunPage";
 import Table from "antd/lib/table/Table";
 import React, { useContext, type ReactNode, useState } from "react";
-import {
-    type PreviewForDetailedEntities,
-    parseDetailedTestEntity,
-} from "../parseUtils";
+import { parseDetailedTestEntity } from "../parseUtils";
 import { type Dayjs } from "dayjs";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
 import Button from "antd/lib/button/button";
@@ -17,6 +14,7 @@ import RenderPassedRate from "../Charts/StackedBarChart";
 import MetaCallContext from "../TestRun/context";
 import useSWR from "swr";
 import TestEntityDrawer from "./TestEntity";
+import { type PreviewForDetailedEntities } from "@/types/testEntityRelated";
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];

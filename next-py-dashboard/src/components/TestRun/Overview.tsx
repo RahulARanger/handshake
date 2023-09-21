@@ -6,7 +6,7 @@ import Counter from "./counter";
 import ProgressPieChart from "../Charts/StatusPieChart";
 import Typography from "antd/lib/typography/Typography";
 import Switch from "antd/lib/switch";
-import RelativeTime from "../Datetime/relativeTime";
+import RelativeTo from "../Datetime/relativeTime";
 import dayjs, { type Dayjs } from "dayjs";
 import Table from "antd/lib/table/Table";
 import MetaCallContext from "./context";
@@ -134,7 +134,7 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                         </Space>
                     }
                     extra={
-                        <RelativeTime
+                        <RelativeTo
                             dateTime={startedAt}
                             style={{ marginLeft: "30px", maxWidth: "110px" }}
                         />

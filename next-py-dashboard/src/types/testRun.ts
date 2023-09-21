@@ -14,9 +14,13 @@ export default interface DetailsOfRun {
     retried: number;
     tags: string[];
     suitesConfig: string[];
-    specs: string[];
+    specStructure: string;
     suiteSummary: string;
 }
+
+export type specNode = {
+    "<path>": string;
+} & { [key: string]: specNode };
 
 export interface SuiteSummary {
     passed: number;

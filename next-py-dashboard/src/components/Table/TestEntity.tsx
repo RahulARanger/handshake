@@ -5,13 +5,9 @@ import {
 } from "@/types/detailedTestRunPage";
 import Table from "antd/lib/table/Table";
 import React, { useContext, type ReactNode, useState } from "react";
-import {
-    type PreviewForDetailedEntities,
-    parseDetailedTestEntity,
-} from "../parseUtils";
+import { parseTestCaseEntity } from "../parseUtils";
 import dayjs, { type Dayjs } from "dayjs";
-import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
-import Button from "antd/lib/button/button";
+import Ribbon from "antd/lib/badge/Ribbon";
 import Select from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import { getSuites, getTestRun, getTests } from "@/Generators/helper";
@@ -49,7 +45,7 @@ export default function TestEntityDrawer(props: {
     const started = dayjs(run.started);
     const dataSource = Object.values(tests)
         .filter((test) => test.parent === selectedSuiteDetails.suiteID)
-        .map((test) => parseDetailedTestEntity(test, started));
+        .map((test) => parseTestCaseEntity(test, started));
 
     const childSuites = Object.values(suites)
         .filter((suite) => suite.parent === selectedSuiteDetails.suiteID)
@@ -79,7 +75,10 @@ export default function TestEntityDrawer(props: {
             size="large"
             footer={
                 <Space
-                    style={{ justifyContent: "space-between", width: "100%" }}
+                    style={{
+                        justifyContent: "space-between",
+                        width: "100%",
+                    }}
                 >
                     <BreadCrumb
                         items={parentEntities(
@@ -145,7 +144,6 @@ export default function TestEntityDrawer(props: {
                     width={100}
                     dataIndex="Description"
                 />
-                <Table.Column dataIndex="File" title="File" width={100} />
             </Table>
         </Drawer>
     );

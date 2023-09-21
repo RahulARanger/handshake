@@ -10,12 +10,17 @@ import Button from "antd/lib/button/button";
 import relativeTime from "dayjs/plugin/relativeTime";
 import duration from "dayjs/plugin/duration";
 import { type Duration } from "dayjs/plugin/duration";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+import { timeFormatUsed } from "./format";
+
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
+dayjs.extend(advancedFormat);
 
-export default function RelativeTime(props: {
+export default function RelativeTo(props: {
     dateTime: Dayjs;
     wrt?: Dayjs;
+    format?: string;
     style?: CSSProperties;
 }): ReactNode {
     const [emblaRef] = useEmblaCarousel({ loop: true }, [
@@ -35,7 +40,7 @@ export default function RelativeTime(props: {
         >
             <div className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>
-                    {formatTime(props.dateTime)}
+                    {props.dateTime.format(props.format ?? timeFormatUsed)}
                 </Typography>
                 <Tooltip
                     title={

@@ -1,6 +1,6 @@
 import { type Dayjs } from "dayjs";
 import React, { type CSSProperties, type ReactNode } from "react";
-import RelativeTime, { HumanizeDuration } from "../Datetime/relativeTime";
+import RelativeTo, { HumanizeDuration } from "../Datetime/relativeTime";
 import { type Duration } from "dayjs/plugin/duration";
 import { type statusOfEntity } from "@/types/detailedTestRunPage";
 import CheckCircleFilled from "@ant-design/icons/CheckCircleFilled";
@@ -14,7 +14,7 @@ export default function RenderTimeRelativeToStart(props: {
 }): ReactNode {
     if (props.value == null) return <></>;
     return (
-        <RelativeTime
+        <RelativeTo
             dateTime={props.value[0]}
             wrt={props.value[1]}
             style={props.style}

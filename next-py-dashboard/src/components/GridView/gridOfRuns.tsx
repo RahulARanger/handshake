@@ -1,9 +1,6 @@
 import type DetailsOfRun from "@/types/testRun";
 import React, { useState, type ReactNode } from "react";
-import {
-    type QuickPreviewForTestRun,
-    parseDetailedTestRun,
-} from "@/components/parseUtils";
+import { parseDetailedTestRun } from "@/components/parseUtils";
 import RenderTimeRelativeToStart, {
     RenderDuration,
 } from "@/components/Table/renderers";
@@ -26,13 +23,15 @@ import DatePicker from "antd/lib/date-picker/index";
 import FilterOutlined from "@ant-design/icons/FilterOutlined";
 import crumbs from "@/components/GridView/Items";
 import Text from "antd/lib/typography/Text";
+import Link from "antd/lib/typography/Link";
 import isBetween from "dayjs/plugin/isBetween";
 import Button from "antd/lib/button/button";
+import { type QuickPreviewForTestRun } from "@/types/testEntityRelated";
+import { dateFormatUsed } from "../Datetime/format";
 
 dayjs.extend(isBetween);
 
 function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
-    const formatForDate = "MMM, ddd DD YYYY  ";
     const [isTest, showTest] = useState(true);
     const item = props.run;
 
@@ -61,9 +60,9 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
         >
             <List.Item.Meta
                 title={
-                    <a href={item.Link}>{`${item.Started[0].format(
-                        formatForDate
-                    )} - ${item.Title}`}</a>
+                    <Link href={item.Link}>{`${item.Started[0].format(
+                        dateFormatUsed
+                    )} - ${item.Title}`}</Link>
                 }
                 description={
                     <Tooltip
