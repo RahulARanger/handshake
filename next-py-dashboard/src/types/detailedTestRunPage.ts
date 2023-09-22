@@ -37,6 +37,7 @@ export interface RecurringFields {
 
 export interface SuiteRecordDetails extends RecurringFields {
     suiteID: string;
+    session_id: string;
     description: string;
     file: string;
     parent: string;
@@ -55,3 +56,6 @@ export type SuiteDetails = Order & Record<string, SuiteRecordDetails>;
 export type TestDetails = Record<string, SuiteRecordDetails>;
 
 export type SessionDetails = Record<string, SessionRecordDetails>;
+
+export const gridViewMode = "grid";
+export const treeViewMode = "tree";

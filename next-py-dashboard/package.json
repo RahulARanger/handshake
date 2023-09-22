@@ -38,6 +38,7 @@
     "devDependencies": {
         "@ant-design/static-style-extract": "~1.0.2",
         "@next/eslint-plugin-next": "^13.4.19",
+        "@svgr/webpack": "^8.1.0",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
         "cross-env": "^7.0.3",

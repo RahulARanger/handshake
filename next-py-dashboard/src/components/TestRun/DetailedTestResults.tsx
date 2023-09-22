@@ -1,4 +1,4 @@
-import React, { useContext, type ReactNode } from "react";
+import React, { useState, useContext, type ReactNode } from "react";
 import { getTestRun } from "@/Generators/helper";
 import type DetailsOfRun from "@/types/testRun";
 import useSWR from "swr";
@@ -20,11 +20,13 @@ import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import Tooltip from "antd/lib/tooltip/index";
 import TestEntities from "../Table/TestEntites";
 import Card from "antd/lib/card/Card";
-import ProjectStructure from "../Table/Structure";
+import { dateFormatUsed } from "../Datetime/format";
+import { gridViewMode } from "@/types/detailedTestRunPage";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<DetailsOfRun>(getTestRun(port, testID));
+    const [viewMode, setViewMode] = useState<string>(gridViewMode);
 
     if (data == null) {
         return (
@@ -63,13 +65,19 @@ export default function DetailedTestRun(): ReactNode {
             label: (
                 <Tooltip title="Test Entities">
                     <span>
-                        <TableOutlined />
+                        {viewMode === gridViewMode ? (
+                            <TableOutlined />
+                        ) : (
+                            <PartitionOutlined />
+                        )}
                         Test Entities
                     </span>
                 </Tooltip>
             ),
             key: "testEntities",
-            children: <TestEntities startDate={startDate} />,
+            children: (
+                <TestEntities startDate={startDate} setIcon={setViewMode} />
+            ),
         },
         {
             label: "Gantt Chart",
@@ -85,18 +93,6 @@ export default function DetailedTestRun(): ReactNode {
                     <GanttChartForTestEntities />
                 </Card>
             ),
-        },
-        {
-            label: (
-                <Tooltip title="Structure">
-                    <span>
-                        <PartitionOutlined />
-                        Structure
-                    </span>
-                </Tooltip>
-            ),
-            key: "Structure",
-            children: <ProjectStructure />,
         },
     ];
 
@@ -126,6 +122,7 @@ export default function DetailedTestRun(): ReactNode {
                             <RelativeTo
                                 dateTime={dayjs(data.ended)}
                                 style={{ maxWidth: "120px" }}
+                                format={dateFormatUsed}
                             />
                         ),
                     }}

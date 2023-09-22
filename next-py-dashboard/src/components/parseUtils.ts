@@ -1,5 +1,6 @@
 import runLink from "@/Generators/linkProviders";
 import { type SuiteRecordDetails } from "@/types/detailedTestRunPage";
+import type SessionRecordDetails from "@/types/sessionRelated";
 import {
     type PreviewForTests,
     type PreviewForDetailedEntities,
@@ -28,7 +29,8 @@ export default function parseTestEntity(
 
 export function parseDetailedTestEntity(
     testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs
+    testStartedAt: Dayjs,
+    session: SessionRecordDetails
 ): PreviewForDetailedEntities {
     return {
         Started: [dayjs(testORSuite.started), testStartedAt],
@@ -42,6 +44,8 @@ export function parseDetailedTestEntity(
         Retried: testORSuite.retried,
         Description: testORSuite.description,
         id: testORSuite.suiteID,
+        browserName: session.browserName,
+        browserVersion: session.browserVersion,
     };
 }
 

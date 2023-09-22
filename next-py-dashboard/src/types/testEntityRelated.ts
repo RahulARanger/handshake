@@ -33,4 +33,15 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
     Retried: number;
     Description: string;
     id: string;
+    browserName: string;
+    browserVersion: string;
 }
+
+// please note, following browsers were added based on the browsers supported by webdriverIO
+// we would add the names based on the request / requirement
+export type possibleBrowserNames =
+    | "chrome"
+    | "firefox"
+    | "safari"
+    | "edge"
+    | "others";

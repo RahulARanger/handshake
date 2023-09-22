@@ -6,7 +6,12 @@ import { type statusOfEntity } from "@/types/detailedTestRunPage";
 import CheckCircleFilled from "@ant-design/icons/CheckCircleFilled";
 import CloseOutlined from "@ant-design/icons/CloseOutlined";
 import WarningFilled from "@ant-design/icons/WarningFilled";
+import Icon from "@ant-design/icons";
 import LoadingOutlined from "@ant-design/icons/LoadingOutlined";
+import { type possibleBrowserNames } from "@/types/testEntityRelated";
+import Chrome from "../../../public/chrome.svg";
+import Firefox from "../../../public/firefox.svg";
+import QuestionOutlined from "@ant-design/icons/lib/icons/QuestionOutlined";
 
 export default function RenderTimeRelativeToStart(props: {
     value?: [Dayjs, Dayjs];
@@ -64,6 +69,22 @@ export function RenderStatus(props: { value: statusOfEntity }): ReactNode {
                     title="Pending"
                 />
             );
+        }
+    }
+}
+
+export function RenderBrowserType(props: {
+    browserName: possibleBrowserNames;
+}): ReactNode {
+    switch (props.browserName) {
+        case "chrome": {
+            return <Icon component={Chrome} />;
+        }
+        case "firefox": {
+            return <Icon component={Firefox} />;
+        }
+        default: {
+            return <QuestionOutlined />;
         }
     }
 }
