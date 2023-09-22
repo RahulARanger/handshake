@@ -20,13 +20,17 @@ import {
     type SuiteRecordDetails,
     type statusOfEntity,
     type SuiteDetails,
+    testEntitiesTab,
 } from "@/types/detailedTestRunPage";
 import { RenderDuration, RenderStatus } from "../Table/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import CarouselComponent from "../carousel";
 import { dateFormatUsed } from "../Datetime/format";
 
-function TopSuites(props: { startedAt: Dayjs }): ReactNode {
+function TopSuites(props: {
+    startedAt: Dayjs;
+    setTab: (tab: string) => void;
+}): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<SuiteDetails>(getSuites(port, testID));
     if (data == null) return <></>;
@@ -49,7 +53,13 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
                     <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
                     <Typography>
                         Click&nbsp;
-                        <Button type="link" style={{ padding: "0px" }}>
+                        <Button
+                            type="link"
+                            style={{ padding: "0px" }}
+                            onClick={() => {
+                                props.setTab(testEntitiesTab);
+                            }}
+                        >
                             here
                         </Button>
                         &nbsp;to know more
@@ -101,7 +111,10 @@ function TopSuites(props: { startedAt: Dayjs }): ReactNode {
     );
 }
 
-export default function Overview(props: { run: DetailsOfRun }): ReactNode {
+export default function Overview(props: {
+    run: DetailsOfRun;
+    onTabSelected: (tab: string) => void;
+}): ReactNode {
     const [isTest, setTest] = useState<boolean>(true);
     const startedAt = dayjs(props.run.started);
     const total = isTest
@@ -178,7 +191,7 @@ export default function Overview(props: { run: DetailsOfRun }): ReactNode {
                 >
                     <ProgressPieChart run={props.run} isTestCases={isTest} />
                 </Card>
-                <TopSuites startedAt={startedAt} />
+                <TopSuites startedAt={startedAt} setTab={props.onTabSelected} />
             </Space>
             <Space>
                 <Card size="small" bordered>

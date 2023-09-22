@@ -21,12 +21,18 @@ import Tooltip from "antd/lib/tooltip/index";
 import TestEntities from "../Table/TestEntites";
 import Card from "antd/lib/card/Card";
 import { dateFormatUsed } from "../Datetime/format";
-import { gridViewMode } from "@/types/detailedTestRunPage";
+import {
+    ganttChartTab,
+    gridViewMode,
+    overviewTab,
+    testEntitiesTab,
+} from "@/types/detailedTestRunPage";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<DetailsOfRun>(getTestRun(port, testID));
     const [viewMode, setViewMode] = useState<string>(gridViewMode);
+    const [tab, setTab] = useState<string>(overviewTab);
 
     if (data == null) {
         return (
@@ -58,8 +64,8 @@ export default function DetailedTestRun(): ReactNode {
                     </span>
                 </Tooltip>
             ),
-            children: <Overview run={data} />,
-            key: "overview",
+            children: <Overview run={data} onTabSelected={setTab} />,
+            key: overviewTab,
         },
         {
             label: (
@@ -74,14 +80,14 @@ export default function DetailedTestRun(): ReactNode {
                     </span>
                 </Tooltip>
             ),
-            key: "testEntities",
+            key: testEntitiesTab,
             children: (
                 <TestEntities startDate={startDate} setIcon={setViewMode} />
             ),
         },
         {
             label: "Gantt Chart",
-            key: "Gantt-Chart",
+            key: ganttChartTab,
             children: (
                 <Card
                     style={{
@@ -111,6 +117,10 @@ export default function DetailedTestRun(): ReactNode {
                     size="small"
                     animated
                     centered
+                    activeKey={tab}
+                    onChange={(activeKey) => {
+                        setTab(activeKey);
+                    }}
                     // type="card"
                     tabBarExtraContent={{
                         left: (
