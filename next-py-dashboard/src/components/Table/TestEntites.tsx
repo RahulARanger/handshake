@@ -31,6 +31,7 @@ import Segmented, {
 } from "antd/lib/segmented/index";
 import Space from "antd/lib/space/index";
 import ProjectStructure from "./Structure";
+import { JsxEmit } from "typescript";
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
@@ -89,6 +90,11 @@ export default function TestEntities(props: {
             icon: <PartitionOutlined />,
         },
     ];
+
+    const helperToSetTestID = (testID: string): void => {
+        setTestID(testID);
+        setShowEntity(true);
+    };
 
     return (
         <>
@@ -186,16 +192,14 @@ export default function TestEntities(props: {
                         />
                     </Table>
                 ) : (
-                    <ProjectStructure />
+                    <ProjectStructure setTestID={helperToSetTestID} />
                 )}
             </Space>
             <TestEntityDrawer
                 open={showEntity}
                 onClose={onClose}
                 testID={toShowTestID}
-                setTestID={(testID: string) => {
-                    setTestID(testID);
-                }}
+                setTestID={helperToSetTestID}
             />
         </>
     );

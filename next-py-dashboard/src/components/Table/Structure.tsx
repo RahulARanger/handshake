@@ -12,7 +12,10 @@ import Button from "antd/lib/button/button";
 import Select from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import { getSuites, getTestRun, getTests } from "@/Generators/helper";
-import RenderTimeRelativeToStart, { RenderStatus } from "./renderers";
+import RenderTimeRelativeToStart, {
+    RenderBrowserType,
+    RenderStatus,
+} from "./renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import MetaCallContext from "../TestRun/context";
 import useSWR from "swr";
@@ -25,12 +28,18 @@ import Sider from "antd/lib/layout/Sider";
 import type { DataNode } from "antd/es/tree";
 import parentEntities from "./items";
 import { type specNode } from "@/types/testRun";
+import Typography from "antd/lib/typography/Typography";
 
-function treeData(node: specNode, suites: SuiteDetails): DataNode[] {
+function treeData(
+    node: specNode,
+    suites: SuiteDetails,
+    setTestID: (testID: string) => void
+): DataNode[] {
     const root: DataNode = { title: "Root", key: "", children: [] };
     const structure: DataNode[] = [root];
     const pulled = new Set(suites["@order"]);
     const nodes = [{ node, childrenSpace: root.children }];
+    const treeNodes: Record<string, DataNode> = {};
 
     while (nodes.length > 0) {
         const result = nodes.pop();
@@ -42,6 +51,7 @@ function treeData(node: specNode, suites: SuiteDetails): DataNode[] {
         const childParts = new Set(Object.keys(node));
         childParts.delete("<path>");
 
+        // these are paths
         childParts.forEach((child) => {
             const childNode = {
                 key: child,
@@ -55,15 +65,43 @@ function treeData(node: specNode, suites: SuiteDetails): DataNode[] {
             });
         });
 
+        // these are suites
         pulled.forEach((suiteID) => {
             const suite = suites[suiteID];
             if (suite.file !== current) return;
-            childrenSpace.push({
+            const treeNode: DataNode = {
                 key: suiteID,
-                title: `📃 ${suite.title}`,
-                isLeaf: true,
-                icon: <></>,
-            });
+                title: (
+                    <Space direction="vertical">
+                        <Space align="center">
+                            <Typography>{suite.title}</Typography>
+                            <Button
+                                icon={<ExpandAltOutlined />}
+                                shape="circle"
+                                onClick={() => {
+                                    setTestID(suiteID);
+                                }}
+                                size="small"
+                            />
+                        </Space>
+                        <Space>
+                            <RenderPassedRate
+                                value={[
+                                    suite.passed,
+                                    suite.failed,
+                                    suite.skipped,
+                                ]}
+                            />
+                        </Space>
+                    </Space>
+                ),
+                icon: <RenderStatus value={suite.standing} />,
+                children: [],
+            };
+            treeNodes[suiteID] = treeNode;
+            if (suite.parent.length === 0) childrenSpace.push(treeNode);
+            else treeNodes[suite.parent].children?.push(treeNode);
+
             pulled.delete(suiteID);
         });
     }
@@ -71,7 +109,9 @@ function treeData(node: specNode, suites: SuiteDetails): DataNode[] {
     return structure;
 }
 
-export default function ProjectStructure(): ReactNode {
+export default function ProjectStructure(props: {
+    setTestID: (testID: string) => void;
+}): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: detailsOfTestRun } = useSWR<DetailsOfRun>(
@@ -81,20 +121,9 @@ export default function ProjectStructure(): ReactNode {
 
     const projectStructure: DataNode[] = treeData(
         JSON.parse(detailsOfTestRun.specStructure),
-        suites
+        suites,
+        props.setTestID
     );
 
-    return (
-        <Layout>
-            <Layout hasSider>
-                <Sider width={400} style={{ height: "100%" }}>
-                    <DirectoryTree
-                        treeData={projectStructure}
-                        showLine
-                        selectable
-                    />
-                </Sider>
-            </Layout>
-        </Layout>
-    );
+    return <DirectoryTree treeData={projectStructure} showLine selectable />;
 }
