@@ -2,7 +2,6 @@ import Typography from "antd/lib/typography/Typography";
 import Tooltip from "antd/lib/tooltip/index";
 import dayjs, { type Dayjs } from "dayjs";
 import React, { useState, type CSSProperties, type ReactNode } from "react";
-import { formatTime } from "../parseUtils";
 import useEmblaCarousel from "embla-carousel-react";
 import carouselStyles from "@/styles/carousel.module.css";
 import Autoplay from "embla-carousel-autoplay";
@@ -54,7 +53,9 @@ export default function RelativeTo(props: {
                 <Tooltip
                     title={
                         props.wrt != null
-                            ? `Relative to ${formatTime(props.wrt)}`
+                            ? `Relative to ${props.wrt.format(
+                                  props.format ?? timeFormatUsed
+                              )}`
                             : "Click me to update!"
                     }
                     className={carouselStyles.slide}

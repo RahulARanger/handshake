@@ -4,7 +4,7 @@ import getConnection from "@/Generators/dbConnection";
 import { getLogger } from "log4js";
 import { getAllTestRunDetails } from "@/Generators/Queries/testRunRelated";
 import type DetailsOfRun from "@/types/testRun";
-import GridOfRuns from "@/components/GridView/gridOfRuns";
+import GridOfRuns from "@/components/ListOfRuns/gridOfRuns";
 
 const logger = getLogger("Run-Page");
 

@@ -22,7 +22,7 @@ import {
     type SuiteDetails,
     testEntitiesTab,
 } from "@/types/detailedTestRunPage";
-import { RenderDuration, RenderStatus } from "../Table/renderers";
+import { RenderDuration, RenderStatus } from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import CarouselComponent from "../carousel";
 import { dateFormatUsed } from "../Datetime/format";

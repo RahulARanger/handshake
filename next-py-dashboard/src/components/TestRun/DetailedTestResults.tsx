@@ -9,7 +9,7 @@ import Tabs from "antd/lib/tabs/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import RelativeTo from "../Datetime/relativeTime";
 import dayjs from "dayjs";
-import { crumbsForRun } from "../GridView/Items";
+import { crumbsForRun } from "../ListOfRuns/Items";
 import type { Tab } from "rc-tabs/lib/interface";
 import Overview from "./Overview";
 import MetaCallContext from "./context";
@@ -18,7 +18,7 @@ import HomeOutlined from "@ant-design/icons/HomeOutlined";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import Tooltip from "antd/lib/tooltip/index";
-import TestEntities from "../Table/TestEntites";
+import TestEntities from "@/components/TestRun/TestEntites";
 import Card from "antd/lib/card/Card";
 import { dateFormatUsed } from "../Datetime/format";
 import {

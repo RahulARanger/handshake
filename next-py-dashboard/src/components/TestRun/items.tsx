@@ -1,5 +1,5 @@
 import { type SuiteDetails } from "@/types/detailedTestRunPage";
-import { type crumbItems } from "../GridView/Items";
+import { type crumbItems } from "../ListOfRuns/Items";
 import Button from "antd/lib/button/button";
 import React from "react";
 

@@ -3,7 +3,7 @@ import React, { useState, type ReactNode } from "react";
 import { parseDetailedTestRun } from "@/components/parseUtils";
 import RenderTimeRelativeToStart, {
     RenderDuration,
-} from "@/components/Table/renderers";
+} from "@/components/renderers";
 import RenderPassedRate from "@/components/Charts/StackedBarChart";
 import Switch from "antd/lib/switch";
 import List from "antd/lib/list";
@@ -21,7 +21,7 @@ import Select from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import DatePicker from "antd/lib/date-picker/index";
 import FilterOutlined from "@ant-design/icons/FilterOutlined";
-import crumbs from "@/components/GridView/Items";
+import crumbs from "@/components/ListOfRuns/Items";
 import Text from "antd/lib/typography/Text";
 import Link from "antd/lib/typography/Link";
 import isBetween from "dayjs/plugin/isBetween";

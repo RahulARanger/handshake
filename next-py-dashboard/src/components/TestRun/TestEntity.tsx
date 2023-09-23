@@ -28,7 +28,7 @@ import {
 import RenderTimeRelativeToStart, {
     RenderBrowserType,
     RenderStatus,
-} from "./renderers";
+} from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import MetaCallContext from "../TestRun/context";
 import Button from "antd/lib/button/button";

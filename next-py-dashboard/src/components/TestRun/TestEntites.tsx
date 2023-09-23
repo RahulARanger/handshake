@@ -15,7 +15,7 @@ import { getSessions, getSuites } from "@/Generators/helper";
 import RenderTimeRelativeToStart, {
     RenderBrowserType,
     RenderStatus,
-} from "./renderers";
+} from "@/components/renderers";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import RenderPassedRate from "../Charts/StackedBarChart";

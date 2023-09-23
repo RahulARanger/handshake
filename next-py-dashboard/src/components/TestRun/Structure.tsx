@@ -6,7 +6,7 @@ import { getSuites, getTestRun } from "@/Generators/helper";
 import RenderTimeRelativeToStart, {
     RenderBrowserType,
     RenderStatus,
-} from "./renderers";
+} from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import MetaCallContext from "../TestRun/context";
 import useSWR from "swr";

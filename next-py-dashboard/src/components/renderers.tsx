@@ -1,6 +1,8 @@
 import { type Dayjs } from "dayjs";
 import React, { type CSSProperties, type ReactNode } from "react";
-import RelativeTo, { HumanizeDuration } from "../Datetime/relativeTime";
+import RelativeTo, {
+    HumanizeDuration,
+} from "@/components/Datetime/relativeTime";
 import { type Duration } from "dayjs/plugin/duration";
 import { type statusOfEntity } from "@/types/detailedTestRunPage";
 import CheckCircleFilled from "@ant-design/icons/CheckCircleFilled";
@@ -9,8 +11,8 @@ import WarningFilled from "@ant-design/icons/WarningFilled";
 import Icon from "@ant-design/icons";
 import LoadingOutlined from "@ant-design/icons/LoadingOutlined";
 import { type possibleBrowserNames } from "@/types/testEntityRelated";
-import Chrome from "../../../public/chrome.svg";
-import Firefox from "../../../public/firefox.svg";
+import Chrome from "../../public/chrome.svg";
+import Firefox from "../../public/firefox.svg";
 import QuestionOutlined from "@ant-design/icons/lib/icons/QuestionOutlined";
 
 export default function RenderTimeRelativeToStart(props: {
