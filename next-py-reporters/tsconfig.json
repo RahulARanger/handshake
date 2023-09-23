@@ -1,6 +1,3 @@
 {
-  "extends": "./tsconfig.prod.json",
-  "compilerOptions": {
-    "inlineSourceMap": true
-  }
+  "extends": "tsconfig/base.json"
 }
