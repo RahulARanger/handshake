@@ -1,0 +1,30 @@
+{
+    "extends": "@tsconfig/node18/tsconfig.json",
+  
+    "compilerOptions": {
+      "strict": true,
+      "outDir": "./build",
+      "allowJs": true,
+      "declaration": true,
+      "declarationMap": true,
+      "resolveJsonModule": true,
+      "removeComments": false,
+      "strictFunctionTypes": false,
+      "experimentalDecorators": true,
+      "esModuleInterop": true,
+      "moduleResolution": "Node",
+      "module": "ESNext",
+      "lib": ["dom", "es2021"],
+      "types": ["node", "mocha"]
+    },
+  
+    "exclude": [
+      "node_modules",
+      "__mocks__",
+      "packages/**/node_modules",
+      "**/*.spec.ts",
+      "coverage",
+      "examples",
+      "/*.js"
+    ]
+  }

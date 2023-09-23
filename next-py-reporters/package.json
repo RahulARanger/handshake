@@ -1,0 +1,26 @@
+{
+  "name": "next-py-reporters",
+  "version": "0.0.1",
+  "workspaces": [
+    "packages/*"
+  ],
+  "type": "module",
+  "description": "Reporters made for the javascript based test frameworks",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "wdio-py-reports",
+    "webdriverio"
+  ],
+  "author": "RahulARanger",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.49.0",
+		"eslint-config-airbnb-base": "^15.0.0",
+		"eslint-plugin-import": "^2.28.1",
+		"eslint-plugin-jsdoc": "^46.8.1"
+  }
+}
