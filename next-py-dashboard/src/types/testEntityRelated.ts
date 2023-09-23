@@ -28,7 +28,7 @@ export interface QuickPreviewForScenarios extends BasicDetails {
 export interface PreviewForTests extends BasicDetails {
     Description: string;
     id: string;
-    Error: Error;
+    Errors: Error[];
     type: suiteType;
 }
 

@@ -20,7 +20,7 @@ import {
 import getAllSuites, {
     getAllTests,
 } from "@/Generators/Queries/testEntityRelated";
-import DetailedTestRun from "@/components/TestRun/DetailedTestResults";
+import DetailedTestRun from "@/components/TestRun";
 import MetaCallContext from "@/components/TestRun/context";
 import getAllSessions from "@/Generators/Queries/sessionRelated";
 

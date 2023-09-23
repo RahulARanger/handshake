@@ -3,7 +3,7 @@ import React, { useState, type ReactNode, useContext } from "react";
 import Space from "antd/lib/space";
 import Card from "antd/lib/card/Card";
 import Meta from "antd/lib/card/Meta";
-import Counter from "./counter";
+import Counter from "@/components/counter";
 import ProgressPieChart from "../Charts/StatusPieChart";
 import Typography from "antd/lib/typography/Typography";
 import Switch from "antd/lib/switch";

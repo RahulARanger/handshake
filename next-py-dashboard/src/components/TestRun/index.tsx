@@ -18,7 +18,7 @@ import HomeOutlined from "@ant-design/icons/HomeOutlined";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
 import Tooltip from "antd/lib/tooltip/index";
-import TestEntities from "@/components/TestRun/TestEntites";
+import TestEntities from "@/components/TestRun/TestEntities";
 import Card from "antd/lib/card/Card";
 import { dateFormatUsed } from "../Datetime/format";
 import {

@@ -7,7 +7,7 @@ import {
 } from "@/types/detailedTestRunPage";
 import Table from "antd/lib/table/Table";
 import React, { useContext, type ReactNode, useState } from "react";
-import { parseDetailedTestEntity } from "../parseUtils";
+import { parseDetailedTestEntity } from "@/components/parseUtils";
 import { type Dayjs } from "dayjs";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
 import Button from "antd/lib/button/button";
@@ -18,10 +18,10 @@ import RenderTimeRelativeToStart, {
 } from "@/components/renderers";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
-import RenderPassedRate from "../Charts/StackedBarChart";
-import MetaCallContext from "../TestRun/context";
+import RenderPassedRate from "@/components/Charts/StackedBarChart";
+import MetaCallContext from "@/components/TestRun/context";
 import useSWR from "swr";
-import TestEntityDrawer from "./TestEntity";
+import TestEntityDrawer from "@/components/TestRun/TestEntities/TestEntity";
 import {
     type possibleBrowserNames,
     type PreviewForDetailedEntities,
@@ -30,7 +30,7 @@ import Segmented, {
     type SegmentedLabeledOption,
 } from "antd/lib/segmented/index";
 import Space from "antd/lib/space/index";
-import ProjectStructure from "./Structure";
+import ProjectStructure from "@/components/TestRun/Structure";
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
     key: string;

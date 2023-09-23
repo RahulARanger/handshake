@@ -28,9 +28,6 @@ export const config = attachNeXtReporter({
     //
     // Default request retries count
     connectionRetryCount: 3,
-    services: [
-        'chromedriver',
-    ],
     framework: 'mocha',
     reporters: ['spec'],
     mochaOpts: {

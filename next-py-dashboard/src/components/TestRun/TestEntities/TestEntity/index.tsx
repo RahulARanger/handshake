@@ -7,13 +7,11 @@ import {
 } from "@/types/detailedTestRunPage";
 import Table from "antd/lib/table/Table";
 import React, { useContext, type ReactNode, useState } from "react";
-import { parseTestCaseEntity } from "../parseUtils";
+import { parseTestCaseEntity } from "@/components/parseUtils";
 import dayjs, { type Dayjs } from "dayjs";
-import Badge from "antd/lib/badge/index";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
 import Card from "antd/lib/card/Card";
 import Meta from "antd/lib/card/Meta";
-import Modal from "antd/lib/modal/Modal";
 import Space from "antd/lib/space";
 import Collapse, { CollapseProps } from "antd/lib/collapse/Collapse";
 import WarningFilled from "@ant-design/icons/lib/icons/WarningFilled";
@@ -27,10 +25,11 @@ import {
 } from "@/Generators/helper";
 import RenderTimeRelativeToStart, {
     RenderBrowserType,
+    RenderDuration,
     RenderStatus,
 } from "@/components/renderers";
-import RenderPassedRate from "../Charts/StackedBarChart";
-import MetaCallContext from "../TestRun/context";
+import RenderPassedRate from "@/components/Charts/StackedBarChart";
+import MetaCallContext from "@/components/TestRun/context";
 import Button from "antd/lib/button/button";
 import Description, {
     type DescriptionsProps,
@@ -40,65 +39,46 @@ import Drawer from "antd/lib/drawer/index";
 import type DetailsOfRun from "@/types/testRun";
 import parentEntities from "./items";
 import { type PreviewForTests } from "@/types/testEntityRelated";
-import RelativeTo from "../Datetime/relativeTime";
+import RelativeTo from "@/components/Datetime/relativeTime";
 import Typography from "antd/lib/typography/Typography";
-
-export function BadgeForSuiteType(props: { suiteType: suiteType }): ReactNode {
-    return (
-        <Badge
-            color={props.suiteType === "SUITE" ? "purple" : "magenta"}
-            count={props.suiteType}
-            style={{ fontWeight: "bold", color: "white" }}
-        />
-    );
-}
-
-function MoreDetailsOnEntity(props: {
-    item?: PreviewForTests;
-    open: boolean;
-    onClose: () => void;
-}): ReactNode {
-    if (props.item == null) return <></>;
-    return (
-        <Modal
-            title={
-                <Space>
-                    {props.item.Title}
-                    <BadgeForSuiteType suiteType={props.item.type} />
-                </Space>
-            }
-            open={props.open}
-            onCancel={props.onClose}
-            cancelText="Close"
-            closeIcon={<RenderStatus value={props.item.Status} />}
-            width={600}
-            okButtonProps={{
-                style: { display: "none" },
-            }}
-        >
-            <p>Some contents...</p>
-            <p>Some contents...</p>
-            <p>Some contents...</p>
-        </Modal>
-    );
-}
+import BadgeForSuiteType from "./Badge";
+import MoreDetailsOnEntity from "./DetailedModal";
 
 function EntityItem(props: { item: PreviewForTests }): ReactNode {
-    const entity = props.item;
+    const aboutSuite: DescriptionsProps["items"] = [
+        {
+            key: "started",
+            label: "Started",
+            children: <RenderTimeRelativeToStart value={props.item.Started} />,
+        },
+        {
+            key: "ended",
+            label: "Ended",
+            children: <RenderTimeRelativeToStart value={props.item.Ended} />,
+        },
+        {
+            key: "duration",
+            label: "Duration",
+            children: <RenderDuration value={props.item.Duration} />,
+        },
+    ];
+
+    // if (props.item.type === "SUITE") {
+    //     aboutSuite.push({
+    //         key: "rate",
+    //         label: "Rate",
+    //         children: <RenderPassedRate value={props.item.Rate} />,
+    //     });
+    // }
+
     return (
-        <Card bordered size="small">
-            <Space direction="vertical">
-                <Meta
-                    description={
-                        <RelativeTo
-                            dateTime={entity.Started[0]}
-                            secondDateTime={entity.Ended[1]}
-                            wrt={entity.Started[1]}
-                        />
-                    }
-                />
-            </Space>
-        </Card>
+        <Description
+            items={aboutSuite}
+            bordered
+            title={props.item.Description}
+            style={{ overflowX: "hidden" }}
+            size="small"
+        />
     );
 }
 
@@ -119,12 +99,6 @@ export default function TestEntityDrawer(props: {
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID)
     );
-
-    // const helperMethod = (toShowThisSuite: PreviewForTests): void => {
-    //     setSelectedSuite(toShowThisSuite);
-    //     setShowDetailedView(true);
-    // };
-
     if (
         props.testID == null ||
         sessions == null ||
@@ -232,6 +206,20 @@ export default function TestEntityDrawer(props: {
             label: "Status",
             children: <RenderStatus value={selectedSuiteDetails.standing} />,
         },
+        {
+            key: "tests",
+            label: "Count",
+            children: <>{selectedSuiteDetails.tests}</>,
+        },
+        {
+            key: "duration",
+            label: "Duration",
+            children: (
+                <RenderDuration
+                    value={dayjs.duration(selectedSuiteDetails.duration)}
+                />
+            ),
+        },
     ];
 
     return (
@@ -251,16 +239,18 @@ export default function TestEntityDrawer(props: {
                     />
                 }
             >
-                <Space direction="vertical">
+                <Space direction="vertical" style={{ width: "100%" }}>
                     <Description
                         items={aboutSuite}
                         bordered
                         style={{ overflowX: "hidden" }}
+                        size="small"
+                        title={selectedSuiteDetails.description}
                     />
                     <Collapse
-                        size="small"
                         defaultActiveKey={["Latest Run"]}
                         bordered
+                        size="small"
                         items={dataSource}
                     />
                 </Space>

@@ -4,6 +4,7 @@ from nextpyreports.services.DBService.models.enums import Status
 from nextpyreports.services.SchedularService.shared import drop_task
 from tortoise.expressions import Q
 from loguru import logger
+from itertools import chain
 
 
 async def handleSuiteStatus(suiteID: str, testID: str):
@@ -33,8 +34,13 @@ async def handleSuiteStatus(suiteID: str, testID: str):
     total = await filtered_suites.count()
     standing = fetch_key_from_status(passed, failed, skipped)
 
+    # rollup for the errors
+    errors = list(chain.from_iterable(
+        map(lambda suite_with_errors: suite_with_errors.errors, await filtered_suites.filter(~Q(errors='[]')).all())
+    ))
+
     await suite.update_from_dict(
-        dict(standing=standing, passed=passed, skipped=skipped, failed=failed, tests=total)
+        dict(standing=standing, passed=passed, skipped=skipped, failed=failed, tests=total, errors=errors)
     )
     await suite.save()
 

@@ -60,7 +60,7 @@ export function parseTestCaseEntity(
         Title: testORSuite.title,
         Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
         Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
-        Error: testORSuite.error,
+        Errors: JSON.parse(testORSuite.errors),
         Description: testORSuite.description,
         id: testORSuite.suiteID,
         type: testORSuite.suiteType,
