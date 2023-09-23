@@ -1,17 +1,8 @@
-import {
-    type SuiteDetails,
-    type statusOfEntity,
-    type TestDetails,
-} from "@/types/detailedTestRunPage";
-import Table from "antd/lib/table/Table";
+import { type SuiteDetails } from "@/types/detailedTestRunPage";
 import React, { useContext, type ReactNode, useState } from "react";
-import { parseTestCaseEntity } from "../parseUtils";
-import dayjs, { type Dayjs } from "dayjs";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
 import Button from "antd/lib/button/button";
-import Select from "antd/lib/select/index";
-import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
-import { getSuites, getTestRun, getTests } from "@/Generators/helper";
+import { getSuites, getTestRun } from "@/Generators/helper";
 import RenderTimeRelativeToStart, {
     RenderBrowserType,
     RenderStatus,
@@ -19,14 +10,10 @@ import RenderTimeRelativeToStart, {
 import RenderPassedRate from "../Charts/StackedBarChart";
 import MetaCallContext from "../TestRun/context";
 import useSWR from "swr";
-import Drawer from "antd/lib/drawer/index";
 import type DetailsOfRun from "@/types/testRun";
 import Space from "antd/lib/space";
-import DirectoryTree, { DirectoryTreeProps } from "antd/lib/tree/DirectoryTree";
-import Layout from "antd/lib/layout/layout";
-import Sider from "antd/lib/layout/Sider";
+import DirectoryTree from "antd/lib/tree/DirectoryTree";
 import type { DataNode } from "antd/es/tree";
-import parentEntities from "./items";
 import { type specNode } from "@/types/testRun";
 import Typography from "antd/lib/typography/Typography";
 

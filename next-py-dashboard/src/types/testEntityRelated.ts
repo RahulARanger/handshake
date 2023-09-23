@@ -1,6 +1,9 @@
 import { type Dayjs } from "dayjs";
 import type duration from "dayjs/plugin/duration";
-import { type statusOfEntity } from "@/types/detailedTestRunPage";
+import {
+    type suiteType,
+    type statusOfEntity,
+} from "@/types/detailedTestRunPage";
 
 interface BasicDetails {
     Started: [Dayjs, Dayjs];
@@ -26,6 +29,7 @@ export interface PreviewForTests extends BasicDetails {
     Description: string;
     id: string;
     Error: Error;
+    type: suiteType;
 }
 
 export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {

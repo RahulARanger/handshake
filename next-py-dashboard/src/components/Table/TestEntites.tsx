@@ -31,8 +31,6 @@ import Segmented, {
 } from "antd/lib/segmented/index";
 import Space from "antd/lib/space/index";
 import ProjectStructure from "./Structure";
-import { JsxEmit } from "typescript";
-
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
     key: string;
