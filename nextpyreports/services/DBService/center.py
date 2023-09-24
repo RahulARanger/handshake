@@ -1,18 +1,33 @@
 import json
-
 from nextpyreports.services.DBService.models.result_base import SessionBase, SuiteBase
 from nextpyreports.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
 from nextpyreports.services.DBService.models.dynamic_base import TaskBase, JobType
-from nextpyreports.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, TestConfigBase
+from nextpyreports.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, AttachmentType, TestConfigBase
 from nextpyreports.services.DBService.models.enums import Status, SuiteType
-from nextpyreports.services.DBService.shared import get_test_id
 from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
-from sanic.request import Request
 from sanic.blueprints import Blueprint
-from sanic.response import HTTPResponse, text
+from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
+from sanic.request import Request
+from nextpyreports.services.DBService.shared import get_test_id
 
 service = Blueprint("DBService", url_prefix="/save")
+
+
+@service.on_response
+async def handle_response(request: Request, response: JSONResponse):
+    if 200 <= response.status < 300:
+        return response
+
+    await TestConfigBase.create(
+        test_id=get_test_id(),
+        attachmentValue=dict(
+            url=request.url, payload=request.json, status=response.status,
+            reason=response.body.decode()
+        ),
+        type=AttachmentType.ERROR,
+        description=f'Failed to process the request at: {request.url}, will affect the test run'
+    )
 
 
 @service.put("/registerSession")
