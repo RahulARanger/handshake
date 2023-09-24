@@ -36,7 +36,8 @@ next-env.d.ts
 
 
 **/.pytest_cache/*
-
+**/dist/**
+**/build/**
 check.py
 next-py-dashboard/dist/*
 next-py-dashboard/public/antd.min.css
