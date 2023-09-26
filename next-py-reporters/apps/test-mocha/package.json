@@ -1,0 +1,22 @@
+{
+	"name": "test-mocha",
+	"version": "1.0.0",
+	"description": "",
+	"main": "babel.config.js",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"wdio": "wdio run ./wdio.conf.js",
+		"test:mocha": "wdio run ./wdio.conf.js"
+	},
+	"author": "",
+	"license": "ISC",
+	"devDependencies": {
+		"wdio-next-py-reporter": "*",
+		"wdio-py-service": "*",
+		"@wdio/local-runner": "^8.16.15",
+		"@wdio/mocha-framework": "^8.16.15",
+		"@wdio/spec-reporter": "^8.16.12"
+	}
+}

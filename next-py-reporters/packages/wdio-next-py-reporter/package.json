@@ -1,0 +1,28 @@
+{
+	"name": "wdio-next-py-reporter",
+	"version": "0.0.1",
+	"types": "./dist/index.d.ts",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"lint": "eslint src/**",
+		"build": "tsup src/index.ts --format cjs,esm --dts"
+	},
+	"exports": {
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
+	},
+	"dependencies": {
+		"@wdio/reporter": "^8.16.12",
+		"@wdio/types": "^8.16.12",
+		"async-lock": "^1.4.0",
+		"@wdio/logger": "^8.11.0",
+		"node-fetch": "^3.3.2",
+		"wdio-next-py-service": "*"
+	},
+	"devDependencies": {
+		"@types/async-lock": "^1.4.0",
+		"eslint-config-custom": "*",
+		"ts-custom-config": "*"
+	}
+}

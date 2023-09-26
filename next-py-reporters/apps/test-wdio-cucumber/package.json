@@ -1,0 +1,23 @@
+{
+	"name": "test-wdio-cucumber",
+	"version": "1.0.0",
+	"description": "",
+	"private": true,
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"test:cucumber": "wdio run ./wdio.conf.ts"
+	},
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"wdio-next-py-reporter": "*",
+		"wdio-py-service": "*",
+		"ts-custom-config": "*",
+		"@wdio/cucumber-framework": "^8.16.12",
+		"@wdio/local-runner": "^8.16.12",
+		"@wdio/spec-reporter": "^8.16.12",
+		"ts-node": "^10.9.1",
+		"typescript": "^5.2.2"
+	}
+}

@@ -1,9 +1,14 @@
 {
-  "name": "tsconfig",
+  "name": "ts-custom-config",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@tsconfig/node18": "^18.2.2",
+    "@types/node": "^20.6.5",
+		"typescript": "^5.2.2"
   }
 }

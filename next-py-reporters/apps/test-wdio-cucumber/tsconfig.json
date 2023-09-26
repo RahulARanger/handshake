@@ -1,0 +1,14 @@
+{
+    "extends": "ts-custom-config/base.json",
+    "compilerOptions": {
+        "moduleResolution": "node",
+        "module": "commonjs",
+        "types": [
+            "node",
+            "@wdio/globals/types",
+            "expect-webdriverio",
+            "@wdio/cucumber-framework"
+        ],
+        "target": "es2022"
+    }
+}
