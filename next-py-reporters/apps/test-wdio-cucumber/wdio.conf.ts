@@ -61,8 +61,10 @@ export const config: Options.Testrunner = {
 	//
 	capabilities: [
 		{
-			// capabilities for local browser web tests
-			browserName: "firefox", // or "firefox", "microsoftedge", "safari"
+			browserName: "firefox",
+			"moz:firefoxOptions": {
+				args: ["-headless"],
+			},
 		},
 	],
 	//
@@ -117,7 +119,7 @@ export const config: Options.Testrunner = {
 			"Next-Py",
 			{
 				collectionName: "TestResults",
-				projectName: "NeXtReporterCucumber",
+				projectName: "NeXtReporter:Cucumber",
 				port: 6969,
 				timeout: 30e3,
 				root: dirname(dirname(dirname(process.cwd()))),

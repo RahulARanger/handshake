@@ -5,17 +5,20 @@ import {
     type SessionDetails,
     type suiteType,
 } from "@/types/detailedTestRunPage";
-import Table from "antd/lib/table/Table";
-import React, { useContext, type ReactNode, useState } from "react";
+import Input from "antd/lib/input/Input";
+import React, {
+    useContext,
+    type ReactNode,
+    useState,
+    type ChangeEvent,
+} from "react";
 import { parseTestCaseEntity } from "@/components/parseUtils";
-import dayjs, { type Dayjs } from "dayjs";
+import dayjs from "dayjs";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
-import Card from "antd/lib/card/Card";
-import Meta from "antd/lib/card/Meta";
 import Space from "antd/lib/space";
-import Collapse, { CollapseProps } from "antd/lib/collapse/Collapse";
+import Collapse from "antd/lib/collapse/Collapse";
 import WarningFilled from "@ant-design/icons/lib/icons/WarningFilled";
-import Select from "antd/lib/select/index";
+import Select, { type SelectProps } from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import {
     getSessions,
@@ -28,7 +31,6 @@ import RenderTimeRelativeToStart, {
     RenderDuration,
     RenderStatus,
 } from "@/components/renderers";
-import RenderPassedRate from "@/components/Charts/StackedBarChart";
 import MetaCallContext from "@/components/TestRun/context";
 import Button from "antd/lib/button/button";
 import Description, {
@@ -39,7 +41,6 @@ import Drawer from "antd/lib/drawer/index";
 import type DetailsOfRun from "@/types/testRun";
 import parentEntities from "./items";
 import { type PreviewForTests } from "@/types/testEntityRelated";
-import RelativeTo from "@/components/Datetime/relativeTime";
 import Typography from "antd/lib/typography/Typography";
 import BadgeForSuiteType from "./Badge";
 import MoreDetailsOnEntity from "./DetailedModal";
@@ -99,6 +100,11 @@ export default function TestEntityDrawer(props: {
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID)
     );
+    const [filterStatus, setFilterStatus] = useState<null | statusOfEntity>(
+        null
+    );
+    const [filterText, setFilterText] = useState<null | string>(null);
+
     if (
         props.testID == null ||
         sessions == null ||
@@ -118,7 +124,12 @@ export default function TestEntityDrawer(props: {
     const started = dayjs(run.started);
 
     const dataSource = [...Object.values(tests), ...Object.values(suites)]
-        .filter((test) => test.parent === selectedSuiteDetails.suiteID)
+        .filter((test) => {
+            let result = test.parent === selectedSuiteDetails.suiteID;
+            result &&= filterStatus == null || test.standing === filterStatus;
+            result &&= filterText == null || test.title.includes(filterText);
+            return result;
+        })
         .map((test) => {
             const actions = [];
             const parsed = parseTestCaseEntity(test, started);
@@ -222,6 +233,20 @@ export default function TestEntityDrawer(props: {
         },
     ];
 
+    const statusOptions: SelectProps["options"] = [
+        "Passed",
+        "Failed",
+        "Skipped",
+    ].map((status) => ({
+        label: (
+            <Space>
+                {status}
+                <RenderStatus value={status.toUpperCase()} />
+            </Space>
+        ),
+        value: status.toUpperCase(),
+    }));
+
     return (
         <>
             <Drawer
@@ -237,6 +262,31 @@ export default function TestEntityDrawer(props: {
                             props.setTestID
                         )}
                     />
+                }
+                extra={
+                    <Space>
+                        <Input
+                            placeholder="Search"
+                            allowClear
+                            size="small"
+                            onChange={(
+                                event: ChangeEvent<HTMLInputElement>
+                            ) => {
+                                const value = event.target.value;
+                                setFilterText(value === "" ? null : value);
+                            }}
+                        />
+                        <Select
+                            options={statusOptions}
+                            placeholder="Select Status"
+                            allowClear
+                            size="small"
+                            value={filterStatus}
+                            onChange={(value) => {
+                                setFilterStatus(value);
+                            }}
+                        />
+                    </Space>
                 }
             >
                 <Space direction="vertical" style={{ width: "100%" }}>

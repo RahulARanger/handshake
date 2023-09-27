@@ -131,7 +131,7 @@ export default function DetailedTestRun(): ReactNode {
                         right: (
                             <RelativeTo
                                 dateTime={dayjs(data.ended)}
-                                style={{ maxWidth: "120px" }}
+                                style={{ maxWidth: "130px" }}
                                 format={dateFormatUsed}
                             />
                         ),

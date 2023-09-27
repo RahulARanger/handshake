@@ -36,8 +36,8 @@ export function RenderDuration(props: {
     return <HumanizeDuration duration={props.value} style={props.style} />;
 }
 
-export function RenderStatus(props: { value: statusOfEntity }): ReactNode {
-    switch (props.value) {
+export function RenderStatus(props: { value: string }): ReactNode {
+    switch (props.value as statusOfEntity) {
         case "PASSED": {
             return (
                 <CheckCircleFilled
@@ -78,15 +78,17 @@ export function RenderStatus(props: { value: statusOfEntity }): ReactNode {
 export function RenderBrowserType(props: {
     browserName: possibleBrowserNames;
 }): ReactNode {
+    const style = { fontSize: 20 };
+
     switch (props.browserName) {
         case "chrome": {
-            return <Icon component={Chrome} />;
+            return <Icon component={Chrome} style={style} />;
         }
         case "firefox": {
-            return <Icon component={Firefox} />;
+            return <Icon component={Firefox} style={style} />;
         }
         default: {
-            return <QuestionOutlined />;
+            return <>{props.browserName}</>;
         }
     }
 }
