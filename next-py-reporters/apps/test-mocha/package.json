@@ -6,8 +6,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"wdio": "wdio run ./wdio.conf.js",
+		"test": "npm run test:mocha",
 		"test:mocha": "wdio run ./wdio.conf.js"
 	},
 	"author": "",

@@ -3,6 +3,8 @@ next-py-dashboard/.next/*
 dist/*
 **/out/*
 **/node_modules/*
+**/.turbo/*
+**/dist/*
 *.pyc
 # testing
 results
@@ -40,4 +42,5 @@ next-env.d.ts
 **/build/**
 check.py
 next-py-dashboard/dist/*
+next-py-dashboard/public/antd.min.css
 next-py-dashboard/public/antd.min.css

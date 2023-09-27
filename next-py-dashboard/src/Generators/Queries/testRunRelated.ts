@@ -6,7 +6,7 @@ export default async function latestTestRun(
     connection: dbConnection
 ): Promise<string> {
     const result = await connection.get<{ testID: string }>(
-        "select testID from runbase where started = (select max(started) from runbase);"
+        "select testID from runbase where started = (select max(started) from runbase where ended <> '');"
     );
     return result?.testID ?? "";
 }
@@ -15,7 +15,7 @@ export async function getAllTestRuns(
     connection: dbConnection
 ): Promise<string[]> {
     const result = await connection.all<Array<{ testID: string }>>(
-        "select testID from runbase;"
+        "select testID, ended from runbase where ended <> '';"
     );
     return result.map((testRun) => testRun.testID);
 }
@@ -25,7 +25,7 @@ export async function getDetailsOfTestRun(
     testID: string
 ): Promise<DetailsOfRun | undefined> {
     return await connection.get<DetailsOfRun>(
-        "SELECT * from runbase where testID = ?",
+        "SELECT * from runbase where testID = ? AND ended <> '';",
         testID
     );
 }
@@ -33,7 +33,9 @@ export async function getDetailsOfTestRun(
 export async function getAllTestRunDetails(
     connection: dbConnection
 ): Promise<DetailsOfRun[] | undefined> {
-    return await connection.all<DetailsOfRun[]>("SELECT * from runbase");
+    return await connection.all<DetailsOfRun[]>(
+        "SELECT * from runbase where ended <> '';"
+    );
 }
 
 export function generateTestRunSummary(
