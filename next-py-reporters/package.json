@@ -20,8 +20,12 @@
     "@wdio/mocha-framework": "^8.16.15",
     "@wdio/spec-reporter": "^8.16.12",
     "prettier": "^3.0.3",
+    "rimraf": "^5.0.5",
     "tsconfig": "*",
     "tsup": "^7.2.0",
     "turbo": "1.10.14"
+  },
+  "dependencies": {
+    "@changesets/cli": "^2.26.2"
   }
 }

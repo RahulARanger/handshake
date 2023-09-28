@@ -5,3 +5,4 @@
 .prettierrc
 next-env.d.ts
 .env
+*.ps1

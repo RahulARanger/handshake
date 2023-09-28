@@ -1,6 +1,5 @@
 import type { ChildProcess } from "node:child_process";
 import { spawn } from "node:child_process";
-import type { Readable } from "node:stream";
 import { join } from "node:path";
 import {
 	clearInterval,
@@ -59,17 +58,17 @@ export default class NeXtPyService
 			cwd: rootDir,
 		});
 
-		const [stdout, stderr] = [
-			this.pyProcess.stdout,
-			this.pyProcess.stderr,
-		] as ReadableStream[];
+		const [stdout, stderr] = [this.pyProcess.stdout, this.pyProcess.stderr];
 
-		stdout.on("data", (data: Buffer) => {
-			this.logger.info(`ℹ️ - ${data.toString()}`);
-		});
-		stderr.on("data", (data: Buffer) => {
-			this.logger.warn(`${data.toString()}`);
-		});
+		if (stdout !== null)
+			stdout.on("data", (data: Buffer) => {
+				this.logger.info(`ℹ️ - ${data.toString()}`);
+			});
+		if (stderr !== null)
+			stderr.on("data", (data: Buffer) => {
+				this.logger.warn(`${data.toString()}`);
+			});
+
 		this.pyProcess.on("error", (err: Buffer) => {
 			throw new Error(String(err));
 		});
