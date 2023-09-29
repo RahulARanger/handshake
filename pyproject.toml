@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "graspit"
-version = "0.6.0"
+version = "0.7.0"
 description = "Aimed for preparing a neat dashboard for our test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "nextpyreports"}]
+packages = [{include = "graspit"}]
 maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
 ]

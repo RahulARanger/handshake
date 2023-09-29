@@ -1,10 +1,10 @@
-# NEXT-PY-REPORTER
+# Grasp-it
 
-Utilizes the data collected from the test execution and displays it in a Dashboard made with NextJS and material UI.
+Utilizes the data collected from the test execution does some processing and then displays it in the Dashboard.
 
 ## Architecture
 
-- First off, we initiate the next-py-dashboard
+- we initiate the Grasp-it-dashboard
   - this step would be skipped if these below steps were done previously, Note: it would be not skipped if it finds a new version of the dashboard
   - Copy the dashboard from `src`
   - downloads all the required npm modules
