@@ -1,5 +1,5 @@
 # dependencies
-next-py-dashboard/.next/*
+graspit-dashboard/.next/*
 dist/*
 **/out/*
 **/node_modules/*
@@ -41,6 +41,5 @@ next-env.d.ts
 **/dist/**
 **/build/**
 check.py
-next-py-dashboard/dist/*
-next-py-dashboard/public/antd.min.css
-next-py-dashboard/public/antd.min.css
+graspit-dashboard/dist/*
+graspit-dashboard/public/antd.min.css

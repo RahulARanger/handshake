@@ -8,6 +8,7 @@ from itertools import chain
 
 
 async def handleSuiteStatus(suiteID: str, testID: str):
+    # suiteID can also be treated as a ticketID
     task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
     logger.info("Modifying suite {} belonging to the test {}", suite.title, testID)

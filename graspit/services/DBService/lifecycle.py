@@ -4,7 +4,8 @@ from graspit.services.DBService.models.enums import AttachmentType
 from graspit.services.SchedularService.constants import JobType
 from tortoise import Tortoise, connections
 from graspit.services.DBService.shared import db_path
-from typing import Optional
+from pathlib import Path
+from typing import Optional, Union
 from graspit import __version__
 from platform import uname
 
@@ -12,7 +13,7 @@ from platform import uname
 models = ["graspit.services.DBService.models"]
 
 
-async def init_tortoise_orm(force_db_path: Optional[str] = None):
+async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
     await Tortoise.init(db_url=r"{}".format(f'sqlite://{force_db_path if force_db_path else db_path()}'), modules={
         "models": models
     })

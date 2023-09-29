@@ -1,14 +1,14 @@
 from sanic import Sanic
 from pathlib import Path
 from graspit.services.DBService.sanic_free_shared import db_name
-from typing import Optional
+from typing import Optional, Union
 
 
 def root_dir() -> Path:
     return Path(Sanic.get_app().shared_ctx.ROOT.value.decode('utf-8'))
 
 
-def db_path(given_root: Optional[str] = None) -> Path:
+def db_path(given_root: Optional[Union[str, Path]] = None) -> Path:
     if not given_root:
         return root_dir() / db_name()
 
