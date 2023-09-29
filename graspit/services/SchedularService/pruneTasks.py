@@ -1,6 +1,6 @@
-from nextpyreports.services.DBService.models.enums import AttachmentType
-from nextpyreports.services.DBService.models.config_base import TestConfigBase
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.DBService.models.enums import AttachmentType
+from graspit.services.DBService.models.config_base import TestConfigBase
+from graspit.services.DBService.models.dynamic_base import TaskBase
 
 
 async def pruneTasks():

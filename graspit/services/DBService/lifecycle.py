@@ -1,15 +1,15 @@
-from nextpyreports.services.DBService.models.config_base import TestConfigBase, JobBase, ValueForTestRunConfigBase
-from nextpyreports.services.DBService.models.result_base import RunBase
-from nextpyreports.services.DBService.models.enums import AttachmentType
-from nextpyreports.services.SchedularService.constants import JobType
+from graspit.services.DBService.models.config_base import TestConfigBase, JobBase, ValueForTestRunConfigBase
+from graspit.services.DBService.models.result_base import RunBase
+from graspit.services.DBService.models.enums import AttachmentType
+from graspit.services.SchedularService.constants import JobType
 from tortoise import Tortoise, connections
-from nextpyreports.services.DBService.shared import db_path
+from graspit.services.DBService.shared import db_path
 from typing import Optional
-from nextpyreports import __version__
+from graspit import __version__
 from platform import uname
 
 
-models = ["nextpyreports.services.DBService.models"]
+models = ["graspit.services.DBService.models"]
 
 
 async def init_tortoise_orm(force_db_path: Optional[str] = None):

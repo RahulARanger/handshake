@@ -2,7 +2,7 @@ from tortoise.models import Model
 from tortoise.fields import DatetimeField, IntField, FloatField, JSONField, CharEnumField, UUIDField, CharField, \
     ReverseRelation, ForeignKeyField, ForeignKeyRelation, TextField
 from tortoise.contrib.pydantic import pydantic_model_creator
-from nextpyreports.services.DBService.models.enums import Status, SuiteType
+from graspit.services.DBService.models.enums import Status, SuiteType
 
 
 class CommandReportFields(Model):

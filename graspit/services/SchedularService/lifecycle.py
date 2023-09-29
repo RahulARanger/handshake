@@ -1,9 +1,9 @@
 import sys
 from asyncio import get_event_loop
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase
-from nextpyreports.services.DBService.lifecycle import close_connection
-from nextpyreports.services.SchedularService.constants import JobType
+from graspit.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.DBService.lifecycle import close_connection
+from graspit.services.SchedularService.constants import JobType
 from datetime import datetime
 from loguru import logger
 

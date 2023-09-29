@@ -1,12 +1,12 @@
 from uuid import UUID
 from sanic import HTTPResponse
-from nextpyreports.services.DBService.models.result_base import SuiteBase, RunBase, RunBasePydanticModel, \
+from graspit.services.DBService.models.result_base import SuiteBase, RunBase, RunBasePydanticModel, \
     SuiteBasePydanticModel
 from sanic.request import Request
 from sanic.blueprints import Blueprint
 from sanic.response import json, JSONResponse, text
 from tortoise.functions import Max, Sum
-from nextpyreports.services.DBService.models.types import SuiteType
+from graspit.services.DBService.models.types import SuiteType
 
 get_service = Blueprint("GetService", url_prefix="/get")
 

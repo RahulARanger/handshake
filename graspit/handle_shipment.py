@@ -1,8 +1,8 @@
-from click import option, group, Path as C_Path, argument
+from click import group, Path as C_Path, argument
 from pathlib import Path
-from nextpyreports.services.SchedularService.center import start_service
-from nextpyreports.services.DBService.shared import db_path
-from nextpyreports.services.SchedularService.lifecycle import start_loop
+from graspit.services.SchedularService.center import start_service
+from graspit.services.DBService.shared import db_path
+from graspit.services.SchedularService.lifecycle import start_loop
 
 
 @group()

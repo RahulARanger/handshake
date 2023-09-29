@@ -1,11 +1,11 @@
-from nextpyreports.services.DBService.models.config_base import AttachmentFields
-from nextpyreports.services.DBService.models.result_base import SuiteBase
+from graspit.services.DBService.models.config_base import AttachmentFields
+from graspit.services.DBService.models.result_base import SuiteBase
 from tortoise.models import Model
 from tortoise.fields import CharField, DatetimeField, JSONField, CharEnumField, ForeignKeyField, ForeignKeyRelation, \
     BooleanField, TextField
-from nextpyreports.services.SchedularService.constants import JobType
-from nextpyreports.services.DBService.models.result_base import RunBase
-from nextpyreports.services.DBService.models.enums import PrunedRecords
+from graspit.services.SchedularService.constants import JobType
+from graspit.services.DBService.models.result_base import RunBase
+from graspit.services.DBService.models.enums import PrunedRecords
 
 
 class TaskBase(Model):

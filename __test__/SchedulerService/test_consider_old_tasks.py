@@ -1,9 +1,9 @@
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase
-from nextpyreports.services.DBService.models.result_base import RunBase
-from nextpyreports.services.SchedularService.center import init_jobs_connections
+from graspit.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.DBService.models.result_base import RunBase
+from graspit.services.SchedularService.center import init_jobs_connections
 from pytest import mark
 from __test__.SchedulerService.dummy_scheduler import DummyScheduler
-from nextpyreports.services.SchedularService.constants import JobType
+from graspit.services.SchedularService.constants import JobType
 
 
 @mark.usefixtures("clean_close")

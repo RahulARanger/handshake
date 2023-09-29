@@ -1,7 +1,7 @@
 from tortoise.models import Model
-from nextpyreports.services.SchedularService.constants import JobType
-from nextpyreports.services.DBService.models.enums import AttachmentType
-from nextpyreports.services.DBService.models.result_base import SuiteBase, RunBase
+from graspit.services.SchedularService.constants import JobType
+from graspit.services.DBService.models.enums import AttachmentType
+from graspit.services.DBService.models.result_base import SuiteBase, RunBase
 from tortoise.fields import IntField, JSONField, CharEnumField, CharField, \
     ForeignKeyField, ForeignKeyRelation, TextField
 from typing import TypedDict

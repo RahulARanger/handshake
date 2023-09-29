@@ -1,4 +1,4 @@
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.DBService.models.dynamic_base import TaskBase
 
 
 async def drop_task(ticket_id: str):

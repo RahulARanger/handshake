@@ -1,9 +1,9 @@
-from nextpyreports.services.Endpoints.center import service_provider
-from nextpyreports.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
-from nextpyreports.services.DBService.shared import set_test_id
+from graspit.services.Endpoints.center import service_provider
+from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
+from graspit.services.DBService.shared import set_test_id
 from click import argument, option, Path
 from pathlib import Path as P_Path
-from nextpyreports.handle_shipment import handle_cli
+from graspit.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
 from sanic import Sanic

@@ -1,8 +1,8 @@
-from nextpyreports.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase
-from nextpyreports.services.DBService.models.types import Status, SuiteType
-from nextpyreports.services.SchedularService.refer_types import PathTree, PathItem
-from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
+from graspit.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
+from graspit.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.DBService.models.types import Status, SuiteType
+from graspit.services.SchedularService.refer_types import PathTree, PathItem
+from graspit.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum, Max, Min
 from datetime import datetime
 from typing import List

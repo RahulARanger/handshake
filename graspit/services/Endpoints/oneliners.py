@@ -1,8 +1,8 @@
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase
-from nextpyreports.services.DBService.shared import get_test_id
-from nextpyreports.services.DBService.lifecycle import close_connection
+from graspit.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.DBService.shared import get_test_id
+from graspit.services.DBService.lifecycle import close_connection
 from sanic.blueprints import Blueprint
-from nextpyreports.services.SchedularService.constants import JobType
+from graspit.services.SchedularService.constants import JobType
 from sanic.response import HTTPResponse, text
 from sanic.request import Request
 

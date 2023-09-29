@@ -1,15 +1,15 @@
 import json
-from nextpyreports.services.DBService.models.result_base import SessionBase, SuiteBase
-from nextpyreports.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
-from nextpyreports.services.DBService.models.dynamic_base import TaskBase, JobType
-from nextpyreports.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, AttachmentType, TestConfigBase
-from nextpyreports.services.DBService.models.enums import Status, SuiteType
-from nextpyreports.services.SchedularService.modifySuites import fetch_key_from_status
+from graspit.services.DBService.models.result_base import SessionBase, SuiteBase
+from graspit.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
+from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
+from graspit.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, AttachmentType, TestConfigBase
+from graspit.services.DBService.models.enums import Status, SuiteType
+from graspit.services.SchedularService.modifySuites import fetch_key_from_status
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
 from sanic.request import Request
-from nextpyreports.services.DBService.shared import get_test_id
+from graspit.services.DBService.shared import get_test_id
 
 service = Blueprint("DBService", url_prefix="/save")
 

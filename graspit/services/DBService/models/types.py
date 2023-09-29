@@ -1,6 +1,6 @@
 import uuid
 from typing import Union, List, Optional, Literal
-from nextpyreports.services.DBService.models.enums import Status, SuiteType
+from graspit.services.DBService.models.enums import Status, SuiteType
 from pydantic import BaseModel
 from datetime import datetime
 from typing_extensions import TypedDict

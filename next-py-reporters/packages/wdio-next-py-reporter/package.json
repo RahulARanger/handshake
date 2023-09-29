@@ -1,5 +1,5 @@
 {
-	"name": "wdio-next-py-reporter",
+	"name": "graspit-reporter",
 	"version": "0.0.1",
 	"types": "./dist/index.d.ts",
 	"type": "module",
