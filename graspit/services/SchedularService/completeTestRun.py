@@ -3,7 +3,7 @@ from graspit.services.DBService.models.dynamic_base import TaskBase
 from graspit.services.DBService.models.types import Status, SuiteType
 from graspit.services.SchedularService.refer_types import PathTree, PathItem
 from graspit.services.SchedularService.modifySuites import fetch_key_from_status
-from tortoise.functions import Sum, Max, Min
+from tortoise.functions import Sum, Max, Min, Count, Lower
 from datetime import datetime
 from typing import List
 from pathlib import Path
@@ -121,13 +121,16 @@ async def complete_test_run(test_id: str, current_test_id: str):
     failed = test_result.get("total_failed", 0)
     skipped = test_result.get("total_skipped", 0)
 
-    filtered_suites = SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
-    summary = dict(
-        passed=await filtered_suites.filter(standing=Status.PASSED).count(),
-        failed=await filtered_suites.filter(standing=Status.FAILED).count(),
-        skipped=await filtered_suites.filter(standing=Status.SKIPPED).count(),
-        count=await filtered_suites.count(),
+    # we want to count the number of suites status
+    summary = dict(passed=0, failed=0, skipped=0)
+    summary.update(
+        await SuiteBase
+        .filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
+        .annotate(count=Count("suiteID"), status=Lower("standing"))
+        .group_by("standing")
+        .values_list("status", "count")
     )
+    summary["count"] = sum(summary.values())
 
     # start date was initially when we start the shipment
     # now it is when the first session starts

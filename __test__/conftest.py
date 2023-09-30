@@ -33,12 +33,12 @@ async def clean_close(db_path):
 
 @fixture()
 async def sample_test_run():
-    return await RunBase.create(projectName=testNames)
+    return await RunBase.create(projectName=testNames, started=datetime.utcnow())
 
 
 @fixture()
 async def sample_test_session(sample_test_run):
     return await SessionBase.create(
-        started=datetime.now(),
+        started=datetime.utcnow(),
         test_id=(await sample_test_run).testID
     )
