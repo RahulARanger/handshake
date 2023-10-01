@@ -1,0 +1,25 @@
+{
+	"name": "wdio-graspit-reporter",
+	"version": "0.0.1",
+	"types": "./dist/index.d.ts",
+	"main": "./dist/index.cjs",
+	"module": "./dist/index.js",
+	"type": "module",
+	"license": "MIT",
+	"scripts": {
+		"lint": "eslint src/**",
+		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts"
+	},
+	"dependencies": {
+		"@wdio/reporter": "^8.16.17",
+		"@wdio/types": "^8.16.12",
+		"async-lock": "^1.4.0",
+		"log4js": "^6.9.1",
+		"superagent": "^8.1.2"
+	},
+	"devDependencies": {
+		"@types/async-lock": "^1.4.0",
+		"@types/superagent": "^4.1.19",
+		"graspit-ts-config": "*"
+	}
+}

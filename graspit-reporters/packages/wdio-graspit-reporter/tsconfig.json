@@ -1,6 +1,6 @@
 {
-	"extends": "ts-custom-config/node.json",
+	"extends": "graspit-ts-config/node.json",
 	"compilerOptions": {
 		"types": ["@wdio/globals/types"]
-	}
+	},
 }

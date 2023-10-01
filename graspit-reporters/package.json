@@ -1,5 +1,5 @@
 {
-  "name": "next-py-reporters",
+  "name": "graspit-reporters",
   "packageManager": "npm@9.6.2",
   "type": "module",
   "workspaces": [
@@ -16,16 +16,19 @@
     "wdio": "wdio run ./apps\\test-mocha\\wdio.conf.js"
   },
   "devDependencies": {
-    "@wdio/local-runner": "^8.16.15",
-    "@wdio/mocha-framework": "^8.16.15",
-    "@wdio/spec-reporter": "^8.16.12",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.50.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^17.1.0",
     "prettier": "^3.0.3",
     "rimraf": "^5.0.5",
-    "tsconfig": "*",
+    "tsconfig": "7.0.0",
     "tsup": "^7.2.0",
     "turbo": "1.10.14"
   },
   "dependencies": {
-    "@changesets/cli": "^2.26.2"
+    "@changesets/cli": "^2.26.2",
+    "log4js": "^6.9.1"
   }
 }

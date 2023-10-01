@@ -12,10 +12,10 @@
 	"author": "",
 	"license": "ISC",
 	"devDependencies": {
-		"wdio-next-py-reporter": "*",
-		"wdio-py-service": "*",
-		"@wdio/local-runner": "^8.16.15",
-		"@wdio/mocha-framework": "^8.16.15",
-		"@wdio/spec-reporter": "^8.16.12"
+		"wdio-graspit-reporter": "*",
+		"wdio-graspit-service": "*",
+		"@wdio/local-runner": "^8.16.17",
+		"@wdio/mocha-framework": "^8.16.17",
+		"@wdio/spec-reporter": "^8.16.17"
 	}
 }
