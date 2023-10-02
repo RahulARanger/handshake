@@ -165,9 +165,13 @@ async def complete_test_run(test_id: str, current_test_id: str):
 
 
 async def mark_test_failure_if_required(test_id: str) -> bool:
-    suites = await SuiteBase.filter(
-        session__test_id=test_id).filter(
-        Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)).all().values_list('suiteID', flat=True)
+    suites = [
+        str(_) for _ in
+        await SuiteBase.filter(
+            session__test_id=test_id).filter(
+            Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)
+        ).all().values_list('suiteID', flat=True)
+    ]
 
     does_it_exist = await TaskBase.exists(ticketID__in=suites)
     if does_it_exist:
@@ -186,4 +190,3 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
     )
 
     await pruneTasks()
-

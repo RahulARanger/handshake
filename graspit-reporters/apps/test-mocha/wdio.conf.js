@@ -1,7 +1,8 @@
 import { dirname } from 'node:path';
+import { attachReporter } from "wdio-graspit-reporter"
 
 // eslint-disable-next-line import/prefer-default-export
-export const config = {
+const metaConfig = {
     reporterSyncTimeout: 40e3, // IMPORTANT
     runner: 'local',
     specs: [
@@ -9,19 +10,6 @@ export const config = {
         './test-mocha/specs/test.e2e.js',
         './test-mocha/specs/package-version.e2e.js',
     ],
-    services: [
-        [
-            "Next-Py",
-            {
-                collectionName: "TestResults",
-                projectName: "NeXtReporterMocha",
-                port: 6969,
-                timeout: 30e3,
-                root: dirname(dirname(dirname(process.cwd()))),
-            },
-        ],
-    ],
-    reporters: ["spec", ["Next-Py", { port: 6969 }]],
     maxInstances: 10,
     //
     capabilities: [{
@@ -45,3 +33,11 @@ export const config = {
         timeout: 60000,
     },
 }
+
+export const config = attachReporter(metaConfig, {
+    collectionName: "TestResults",
+    projectName: "NeXtReporterMocha",
+    port: 6969,
+    timeout: 30e3,
+    root: dirname(dirname(dirname(process.cwd()))),
+});

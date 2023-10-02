@@ -145,12 +145,13 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     const today = dayjs();
     const yesterday = today.subtract(1, "day");
     const startOfThisMonth = today.startOf("month");
+    const thisWeek = yesterday.subtract(yesterday.get("day") + 1, "days");
+    const thisMonth = yesterday.set("date", 1);
 
     const forPrevMonth = chronological.filter((run) =>
         run.Started[0].isBefore(startOfThisMonth)
     );
 
-    const thisMonth = yesterday.set("date", 1);
     const forThisMonth =
         forPrevMonth.length > 0
             ? chronological.filter(
@@ -162,7 +163,6 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
               )
             : [];
 
-    const thisWeek = yesterday.subtract(yesterday.get("day") + 1, "days");
     const forThisWeek =
         forThisMonth.length > 0
             ? chronological.filter(

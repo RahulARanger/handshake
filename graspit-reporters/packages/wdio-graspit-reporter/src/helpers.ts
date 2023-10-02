@@ -15,8 +15,11 @@ export function attachReporter(
   options: ReporterOptions & GraspItServiceOptions,
 ): Options.Testrunner {
   const port = options.port ?? 6969;
-
   const toModify = config;
+
+  toModify.reporters = toModify.reporters || [];
+  toModify.services = toModify.services || [];
+
   toModify.reporters?.push([
     'graspit', { port },
   ]);

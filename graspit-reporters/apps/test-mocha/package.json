@@ -11,10 +11,11 @@
 	},
 	"author": "",
 	"license": "ISC",
+	"dependencies": {
+		"wdio-graspit-reporter": "*"
+	},
 	"devDependencies": {
-		"wdio-graspit-reporter": "*",
-		"wdio-graspit-service": "*",
-		"@wdio/local-runner": "^8.16.17",
+		"@wdio/local-runner": "^8.16.18",
 		"@wdio/mocha-framework": "^8.16.17",
 		"@wdio/spec-reporter": "^8.16.17"
 	}
