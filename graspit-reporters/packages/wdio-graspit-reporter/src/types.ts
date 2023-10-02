@@ -2,6 +2,7 @@ import type { Tag } from '@wdio/reporter';
 
 export interface ReporterOptions {
   port?: number;
+  addScreenshots?:boolean;
 }
 
 export type SuiteType = 'SUITE' | 'TEST';

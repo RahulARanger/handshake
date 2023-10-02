@@ -152,39 +152,25 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
         run.Started[0].isBefore(startOfThisMonth)
     );
 
-    const forThisMonth =
-        forPrevMonth.length > 0
-            ? chronological.filter(
-                  (run) =>
-                      run.Started[0].isAfter(
-                          thisMonth.subtract(1, "day"),
-                          "date"
-                      ) && run.Started[0].isBefore(thisWeek, "date")
-              )
-            : [];
+    const forThisMonth = chronological.filter(
+        (run) =>
+            run.Started[0].isAfter(thisMonth.subtract(1, "day"), "date") &&
+            run.Started[0].isBefore(thisWeek, "date")
+    );
 
-    const forThisWeek =
-        forThisMonth.length > 0
-            ? chronological.filter(
-                  (run) =>
-                      run.Started[0].isAfter(thisWeek, "date") &&
-                      run.Started[0].isBefore(yesterday, "date")
-              )
-            : [];
+    const forThisWeek = chronological.filter(
+        (run) =>
+            run.Started[0].isAfter(thisWeek, "date") &&
+            run.Started[0].isBefore(yesterday, "date")
+    );
 
-    const forYesterday =
-        forThisWeek.length > 0
-            ? chronological.filter((run) =>
-                  run.Started[0].isSame(yesterday, "date")
-              )
-            : [];
+    const forYesterday = chronological.filter((run) =>
+        run.Started[0].isSame(yesterday, "date")
+    );
 
-    const forToday =
-        forYesterday.length > 0
-            ? chronological.filter((run) =>
-                  run.Started[0].isSame(today, "date")
-              )
-            : [];
+    const forToday = chronological.filter((run) =>
+        run.Started[0].isSame(today, "date")
+    );
 
     const data = [
         { items: [firstRun], label: "Latest Run" },

@@ -13,7 +13,7 @@ import LoadingOutlined from "@ant-design/icons/LoadingOutlined";
 import { type possibleBrowserNames } from "@/types/testEntityRelated";
 import Chrome from "../../public/chrome.svg";
 import Firefox from "../../public/firefox.svg";
-import QuestionOutlined from "@ant-design/icons/lib/icons/QuestionOutlined";
+import Edge from "../../public/edge.svg";
 
 export default function RenderTimeRelativeToStart(props: {
     value?: [Dayjs, Dayjs];
@@ -86,6 +86,9 @@ export function RenderBrowserType(props: {
         }
         case "firefox": {
             return <Icon component={Firefox} style={style} />;
+        }
+        case "edge": {
+            return <Icon component={Edge} style={style} />;
         }
         default: {
             return <>{props.browserName}</>;

@@ -1,4 +1,6 @@
-import type { RunnerStats, SuiteStats, TestStats } from '@wdio/reporter';
+import type {
+  BeforeCommandArgs, RunnerStats, SuiteStats, TestStats,
+} from '@wdio/reporter';
 import type { Capabilities } from '@wdio/types';
 import AsyncLock from 'async-lock';
 import superagent from 'superagent';
@@ -8,7 +10,7 @@ import type {
   SuiteType,
 } from './types';
 import ReporterContacts from './contacts';
-import sanitizePaths from './helpers';
+import sanitizePaths, { attachScreenshot, isScreenShot } from './helpers';
 
 export default class GraspItReporter extends ReporterContacts {
   lock = new AsyncLock({
@@ -201,5 +203,15 @@ export default class GraspItReporter extends ReporterContacts {
       tests: this.counts.tests,
     };
     this.feed(this.updateSession, payload);
+  }
+
+  async onBeforeCommand(commandArgs: BeforeCommandArgs): Promise<void> {
+    if (this.options.addScreenshots && isScreenShot(commandArgs)) {
+      // await attachScreenshot(
+      //   `Screenshot: ${}`,
+      //   Buffer.from(commandArgs.body ?? {}, "base64"),
+      //   commandArgs.
+      //   )
+    }
   }
 }

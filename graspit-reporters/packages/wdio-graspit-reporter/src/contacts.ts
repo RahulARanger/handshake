@@ -21,14 +21,20 @@ export default class ReporterContacts extends WDIOReporter {
     this.options = options;
     this.logger = log4js.getLogger('wdio-py-reporter');
     this.logger.level = 'debug';
+    port = options.port;
   }
 
-  get url(): string {
-    return `http://127.0.0.1:${this.options.port}`;
+  static get url(): string {
+    return `http://127.0.0.1:${port}`;
   }
 
-  get saveUrl(): string {
+  static get toSaveUrl(): string {
     return `${this.url}/save`;
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  get saveUrl(): string {
+    return ReporterContacts.toSaveUrl;
   }
 
   get addFeatureUrl(): string {
@@ -53,6 +59,10 @@ export default class ReporterContacts extends WDIOReporter {
 
   get updateSession(): string {
     return `${this.saveUrl}/updateSession`;
+  }
+
+  static get addAttachmentForEntity(): string {
+    return `${this.toSaveUrl}/addAttachmentForEntity`;
   }
 }
 

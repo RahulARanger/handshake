@@ -32,6 +32,12 @@ const metaConfig = {
         ui: 'bdd',
         timeout: 60000,
     },
+    beforeTest: async function () {
+        await browser.takeScreenshot();
+    },
+    afterTest: async function () {
+        await browser.takeScreenshot();
+    }
 }
 
 export const config = attachReporter(metaConfig, {
