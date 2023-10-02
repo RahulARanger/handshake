@@ -8,7 +8,7 @@
 	"license": "MIT",
 	"scripts": {
 		"lint": "eslint src/**",
-		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts"
+		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts && node build.cjs"
 	},
 	"dependencies": {
 		"@wdio/reporter": "^8.16.17",

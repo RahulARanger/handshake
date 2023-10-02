@@ -13,7 +13,7 @@ export default function crumbs(
 ): crumbItems {
     return [
         {
-            title: "Next-Py",
+            title: "Graspit",
         },
         {
             title: length == null ? "Runs" : `Runs (${length})`,

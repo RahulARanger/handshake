@@ -8,7 +8,6 @@ import {
   setInterval,
 } from 'node:timers';
 import { existsSync, mkdirSync } from 'node:fs';
-import log4js, { Logger } from 'log4js';
 import type { Capabilities, Options, Services } from '@wdio/types';
 import superagent from 'superagent';
 import type { GraspItServiceOptions } from './types';
@@ -19,13 +18,10 @@ export default class GraspItService
   implements Services.ServiceInstance {
   pyProcess?: ChildProcess;
 
-  logger: Logger;
-
   patcher?: ChildProcess;
 
   constructor(options: GraspItServiceOptions) {
-    super();
-    this.logger = log4js.getLogger('wdio-py-service');
+    super(options);
     this.options = options;
   }
 
@@ -52,7 +48,9 @@ export default class GraspItService
       mkdirSync(resultsDir);
     }
 
-    const command = `"${this.venv}" && next-py run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
+    const command = `"${this.venv}" && graspit run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
+    this.logger.warn(`Requesting a graspit server, command used: ${command}`);
+
     this.pyProcess = spawn(command, {
       shell: true,
       stdio: ['ignore', 'pipe', 'pipe'],
@@ -79,7 +77,7 @@ export default class GraspItService
     this.pyProcess.on('exit', (code) => {
       if (code !== 0) {
         this.logger.error(
-          `next-py-server was force closed 😫, found exit code: ${code}`,
+          `graspit was force closed 😫, found exit code: ${code}`,
         );
       }
     });
@@ -112,7 +110,7 @@ export default class GraspItService
 
   async sayBye(): Promise<unknown> {
     if (this.pyProcess?.killed) {
-      this.logger.warn('🙀 next-py-process was already terminated.');
+      this.logger.warn('🙀 graspit process was already terminated.');
       return;
     }
 
@@ -160,14 +158,14 @@ export default class GraspItService
   }
 
   async flagToPyThatsItsDone(): Promise<void> {
-    // closing next-py server for now.
+    // closing graspit server for now.
     await this.sayBye();
 
     const reportError = new Error(
       'Failed to generate Report on time 😢, please note the errors if any seen.',
     );
     this.patcher = spawn(
-      `"${this.venv}" && next-py patch "${this.resultsDir}"`,
+      `"${this.venv}" && graspit patch "${this.resultsDir}"`,
       {
         shell: true,
         cwd: this.options.root,

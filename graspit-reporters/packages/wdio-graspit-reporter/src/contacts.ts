@@ -6,6 +6,11 @@ import type { ReporterOptions, GraspItServiceOptions } from './types';
 // eslint-disable-next-line import/no-mutable-exports
 export let port: undefined | number;
 
+log4js.configure({
+  appenders: { console: { type: 'console' } },
+  categories: { default: { appenders: ['console'], level: 'info' } },
+});
+
 export default class ReporterContacts extends WDIOReporter {
   options: ReporterOptions = {};
 
@@ -15,7 +20,7 @@ export default class ReporterContacts extends WDIOReporter {
     super(options);
     this.options = options;
     this.logger = log4js.getLogger('wdio-py-reporter');
-    port = options.port;
+    this.logger.level = 'debug';
   }
 
   get url(): string {
@@ -53,6 +58,14 @@ export default class ReporterContacts extends WDIOReporter {
 
 export class ContactsForService {
   options: GraspItServiceOptions = {};
+
+  logger: Logger;
+
+  constructor(options: GraspItServiceOptions) {
+    this.logger = log4js.getLogger('wdio-py-service');
+    this.logger.level = 'debug';
+    this.options = options;
+  }
 
   get url(): string {
     return `http://127.0.0.1:${this.options.port}`;

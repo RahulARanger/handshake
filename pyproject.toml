@@ -30,4 +30,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-next-py = "graspit.center:handle_cli"
+graspit = "graspit.center:handle_cli"

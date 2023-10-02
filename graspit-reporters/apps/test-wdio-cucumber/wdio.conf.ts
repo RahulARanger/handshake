@@ -1,8 +1,9 @@
 import type { Options } from '@wdio/types';
 import { dirname } from 'node:path';
+import { attachReporter } from 'wdio-graspit-reporter';
 
 // eslint-disable-next-line import/prefer-default-export
-export const config: Options.Testrunner = {
+const metaConfig: Options.Testrunner = {
   //
   // ====================
   // Runner Configuration
@@ -115,18 +116,8 @@ export const config: Options.Testrunner = {
   // Services take over a specific job you don't want to take care of. They enhance
   // your test setup with almost no effort. Unlike plugins, they don't add new
   // commands. Instead, they hook themselves up into the test process.
-  // services: [
-  //   [
-  //     'graspit',
-  //     {
-  //       collectionName: 'TestResults',
-  //       projectName: 'NeXtReporter:Cucumber',
-  //       port: 6969,
-  //       timeout: 30e3,
-  //       root: dirname(dirname(dirname(process.cwd()))),
-  //     },
-  //   ],
-  // ],
+  services: [
+  ],
   //
   // Framework you want to run your specs with.
   // The following are supported: Mocha, Jasmine, and Cucumber
@@ -146,7 +137,7 @@ export const config: Options.Testrunner = {
   // Test reporter for stdout.
   // The only one supported by default is 'dot'
   // see also: https://webdriver.io/docs/dot-reporter
-  reporters: ['spec', ['graspit', { port: 6969 }]],
+  reporters: ['spec'],
 
   //
   // If you are using Cucumber you need to specify the location of your step definitions.
@@ -174,3 +165,12 @@ export const config: Options.Testrunner = {
   },
 
 };
+
+// eslint-disable-next-line import/prefer-default-export
+export const config = attachReporter(metaConfig, {
+  collectionName: 'TestResults',
+  projectName: 'NeXtReporter:Cucumber',
+  port: 6969,
+  timeout: 30e3,
+  root: dirname(dirname(dirname(process.cwd()))),
+});
