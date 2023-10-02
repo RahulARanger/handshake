@@ -1,10 +1,9 @@
 import { relative } from 'node:path';
 import type { Options } from '@wdio/types';
-import superagent from 'superagent';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
 import { GraspItServiceOptions, ReporterOptions } from './types';
 import GraspItService from './service';
-import ReporterContacts from './contacts';
+import { currentReporter, internalAttachScreenshot } from './contacts';
 
 export default function sanitizePaths(specs?: string[]): string[] {
   return (specs ?? []).map((spec) => relative(
@@ -45,15 +44,23 @@ export function attachReporter(
   return toModify;
 }
 
-// Thanks to https://github.com/webdriverio/webdriverio/blob/e83d38b292cc2aa4bede7e026ab2f9419a7c9d42/packages/wdio-browserstack-service/src/util.ts#L829
-export function isScreenShot(args: BeforeCommandArgs | AfterCommandArgs): boolean {
-  return (args.endpoint && args.endpoint.includes('/screenshot')) || false;
+// Thanks to https://github.com/webdriverio/webdriverio/blob/a8ae7be72d0c58c7afa7ff085d9c4f41c9aea724/packages/wdio-allure-reporter/src/utils.ts#L153
+export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boolean {
+  const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/;
+
+  return (
+    (command.endpoint && isScrenshotEndpoint.test(command.endpoint))
+        || command.command === 'takeScreenshot'
+  );
 }
 
-export async function attachScreenshot(title: string, content: string, entity_id: string) {
-  await superagent.post(
-    ReporterContacts.addAttachmentForEntity,
-  ).send({
-    description: title, value: content, type: 'PNG', entityID: entity_id,
-  });
+export function attachScreenshot(title: string, content: string, description?: string) {
+  if (currentReporter?.currentTestID == null) return;
+
+  internalAttachScreenshot(
+    title,
+    content,
+    currentReporter?.currentTestID,
+    description,
+  );
 }

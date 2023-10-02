@@ -1,15 +1,4 @@
-import {
-    type SuiteDetails,
-    type statusOfEntity,
-    type TestDetails,
-    type SessionDetails,
-    type suiteType,
-} from "@/types/detailedTestRunPage";
-import Table from "antd/lib/table/Table";
 import React, { useContext, type ReactNode, useState } from "react";
-import { parseTestCaseEntity } from "@/components/parseUtils";
-import dayjs, { type Dayjs } from "dayjs";
-import Badge from "antd/lib/badge/index";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
 import Card, { type CardProps } from "antd/lib/card/Card";
 import Meta from "antd/lib/card/Meta";
@@ -21,6 +10,8 @@ import { type PreviewForTests } from "@/types/testEntityRelated";
 import BadgeForSuiteType from "./Badge";
 import Alert from "antd/lib/alert/Alert";
 import Convert from "ansi-to-html";
+import { type Attachment } from "@/types/detailedTestRunPage";
+import ImagesWithThumbnail from "./ImagesWithThumbnails";
 
 function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
     return (
@@ -48,6 +39,7 @@ function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
 export default function MoreDetailsOnEntity(props: {
     item?: PreviewForTests;
     open: boolean;
+    items: Attachment[];
     onClose: () => void;
 }): ReactNode {
     if (props.item == null) return <></>;
@@ -55,7 +47,7 @@ export default function MoreDetailsOnEntity(props: {
 
     const tabList: CardProps["tabList"] = [];
 
-    if (props.item.Errors != null) {
+    if (props.item.Errors?.length > 0) {
         tabList.push({
             key: "errors",
             label: "Errors",
@@ -70,6 +62,15 @@ export default function MoreDetailsOnEntity(props: {
                     )}
                 />
             ),
+        });
+    }
+
+    const images = props.items?.filter((item) => item.type === "PNG");
+    if (images?.length > 0) {
+        tabList.push({
+            key: "images",
+            label: "Images",
+            children: <ImagesWithThumbnail images={images} />,
         });
     }
 

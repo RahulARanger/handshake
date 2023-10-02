@@ -1,6 +1,6 @@
 import uuid
-from typing import Union, List, Optional, Literal
-from graspit.services.DBService.models.enums import Status, SuiteType
+from typing import Union, List, Optional, Literal, Any
+from graspit.services.DBService.models.enums import Status, SuiteType, AttachmentType
 from pydantic import BaseModel
 from datetime import datetime
 from typing_extensions import TypedDict
@@ -57,3 +57,15 @@ class MarkSuite(BaseModel):
     error: Optional[Error] = None
     errors: Optional[List[Error]] = []
     standing: Optional[Status] = Status.SKIPPED
+
+
+class GeneralAttachment(TypedDict):
+    title: Optional[str]
+    value: Optional[Any]
+
+
+class AddAttachmentForEntity(BaseModel):
+    entityID: uuid.UUID
+    type: AttachmentType
+    description: Optional[str]
+    content: GeneralAttachment

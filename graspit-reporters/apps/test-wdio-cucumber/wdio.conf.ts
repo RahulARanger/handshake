@@ -1,6 +1,6 @@
 import type { Options } from '@wdio/types';
 import { dirname } from 'node:path';
-import { attachReporter } from 'wdio-graspit-reporter';
+import { attachScreenshot, attachReporter } from 'wdio-graspit-reporter';
 
 // eslint-disable-next-line import/prefer-default-export
 const metaConfig: Options.Testrunner = {
@@ -164,6 +164,13 @@ const metaConfig: Options.Testrunner = {
     ignoreUndefinedDefinitions: false,
   },
 
+  async afterStep(step) {
+    await attachScreenshot(`After Step: ${step.text}`, await browser.takeScreenshot(), step.type);
+  },
+  async beforeStep(step) {
+    await attachScreenshot(`Before Step: ${step.text}`, await browser.takeScreenshot(), step.type);
+  },
+
 };
 
 // eslint-disable-next-line import/prefer-default-export
@@ -173,4 +180,5 @@ export const config = attachReporter(metaConfig, {
   port: 6969,
   timeout: 30e3,
   root: dirname(dirname(dirname(process.cwd()))),
+  attachScreenshot: true,
 });

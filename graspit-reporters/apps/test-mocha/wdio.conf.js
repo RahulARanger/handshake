@@ -42,8 +42,9 @@ const metaConfig = {
 
 export const config = attachReporter(metaConfig, {
     collectionName: "TestResults",
-    projectName: "NeXtReporterMocha",
+    projectName: "NeXtReporter:Mocha",
     port: 6969,
     timeout: 30e3,
     root: dirname(dirname(dirname(process.cwd()))),
+    addScreenshots: true
 });

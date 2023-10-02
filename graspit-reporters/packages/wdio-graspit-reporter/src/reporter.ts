@@ -1,5 +1,6 @@
 import type {
-  BeforeCommandArgs, RunnerStats, SuiteStats, TestStats,
+  AfterCommandArgs,
+  RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
 import type { Capabilities } from '@wdio/types';
 import AsyncLock from 'async-lock';
@@ -9,8 +10,8 @@ import type {
   PayloadForRegisteringTestEntity,
   SuiteType,
 } from './types';
-import ReporterContacts from './contacts';
-import sanitizePaths, { attachScreenshot, isScreenShot } from './helpers';
+import ReporterContacts, { internalAttachScreenshot } from './contacts';
+import sanitizePaths, { isScreenShot } from './helpers';
 
 export default class GraspItReporter extends ReporterContacts {
   lock = new AsyncLock({
@@ -18,8 +19,6 @@ export default class GraspItReporter extends ReporterContacts {
     maxExecutionTime: 60e3,
     maxPending: 1000,
   });
-
-  idMapped: Record<string, string> & { session?: string } = {};
 
   feed(
     feedURL: string,
@@ -205,13 +204,19 @@ export default class GraspItReporter extends ReporterContacts {
     this.feed(this.updateSession, payload);
   }
 
-  async onBeforeCommand(commandArgs: BeforeCommandArgs): Promise<void> {
+  async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
     if (this.options.addScreenshots && isScreenShot(commandArgs)) {
-      // await attachScreenshot(
-      //   `Screenshot: ${}`,
-      //   Buffer.from(commandArgs.body ?? {}, "base64"),
-      //   commandArgs.
-      //   )
+      const attachedTest = this.currentTest;
+      if (!attachedTest) return;
+
+      const hasFailed = await internalAttachScreenshot(
+        `Screenshot: ${attachedTest.title}`,
+        commandArgs.result?.value ?? '',
+        this.idMapped[attachedTest.uid],
+        attachedTest.fullTitle,
+      );
+      if (!hasFailed) this.logger.info(`📸 save the attachment for the test: ${attachedTest.title}`);
+      else this.logger.error(`💔 Failed to add the attachment || FOOD: ${hasFailed}`);
     }
   }
 }

@@ -1,4 +1,5 @@
 import {
+    getEntityLevelAttachment,
     getSessions,
     getSuites,
     getTestRun,
@@ -23,6 +24,7 @@ import getAllSuites, {
 import DetailedTestRun from "@/components/TestRun";
 import MetaCallContext from "@/components/TestRun/context";
 import getAllSessions from "@/Generators/Queries/sessionRelated";
+import getAllEntityLevelAttachments from "@/Generators/Queries/attachmentRelated";
 
 const logger = getLogger("TestRunRelated");
 
@@ -62,6 +64,10 @@ export async function getStaticProps(prepareProps: {
     const suites = await getAllSuites(connection, testID);
     const tests = await getAllTests(connection, testID);
     const sessions = await getAllSessions(connection, testID);
+    const entityLevelAttachments = await getAllEntityLevelAttachments(
+        connection,
+        testID
+    );
 
     await connection.close();
     const port = process.env.NEXT_PUBLIC_PY_PORT ?? "1212";
@@ -75,6 +81,8 @@ export async function getStaticProps(prepareProps: {
                     generateTestRunSummary(details), // not a sql query
                 [getTests(port, testID)]: tests,
                 [getSessions(port, testID)]: sessions,
+                [getEntityLevelAttachment(port, testID)]:
+                    entityLevelAttachments,
             },
             test_id: testID,
             port,

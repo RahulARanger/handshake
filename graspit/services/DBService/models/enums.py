@@ -18,10 +18,10 @@ class SuiteType(StrEnum):
 class AttachmentType(StrEnum):
     LABEL = "LABEL"
     ENV = "ENV"
-    IMAGE = "IMAGE"
     CONFIG = "CONFIG"
     VIDEO = "VIDEO"
     ERROR = "ERROR"
+    PNG = "PNG"
 
 
 class PrunedRecords(StrEnum):

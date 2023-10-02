@@ -1,8 +1,10 @@
 import json
 from graspit.services.DBService.models.result_base import SessionBase, SuiteBase
-from graspit.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession
+from graspit.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession, \
+    AddAttachmentForEntity
 from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
-from graspit.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, AttachmentType, TestConfigBase
+from graspit.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, AttachmentType, \
+    TestConfigBase, AttachmentBase
 from graspit.services.DBService.models.enums import Status, SuiteType
 from graspit.services.SchedularService.modifySuites import fetch_key_from_status
 from sanic.blueprints import Blueprint
@@ -82,7 +84,7 @@ async def updateSuite(request: Request) -> HTTPResponse:
     else:
         task = "Updated"
 
-    return text(f'Updated Suite: {suite_record.title} || {suite_record.suiteID} || {task}', status=201)
+    return text(f'Updated Suite: {  suite_record.title} || {suite_record.suiteID} || {task}', status=201)
 
 
 @service.put("/updateSession")
@@ -98,9 +100,17 @@ async def update_session(request: Request) -> HTTPResponse:
     return text(f"{session.sessionID} was updated", status=201)
 
 
-@service.put("/addMisc")
-async def update_misc(request: Request):
-    ...
+@service.put("/addAttachmentForEntity")
+async def addAttachmentForEntity(request: Request) -> HTTPResponse:
+    attachment = AddAttachmentForEntity.model_validate(request.json)
+    await AttachmentBase.create(
+        entity_id=attachment.entityID,
+        description=attachment.description,
+        type=attachment.type,
+        attachmentValue=attachment.content
+    )
+
+    return text(f"Attachment added successfully for {attachment.entityID}", status=201)
 
 
 @service.put("/currentRun")

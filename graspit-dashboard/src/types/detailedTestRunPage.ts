@@ -15,6 +15,7 @@ export interface DetailedTestRunPageProps extends ShareToOtherPages {
         | SuiteDetails
         | TestDetails
         | SessionDetails
+        | AttachmentDetails
     >;
 }
 
@@ -47,6 +48,17 @@ export interface SuiteRecordDetails extends RecurringFields {
     title: string;
 }
 
+export interface Attachment {
+    attachmentValue: string;
+    type: string;
+    description: string;
+    entity_id: string;
+}
+
+export interface AttachmentContent {
+    title: string;
+    value: string;
+}
 interface Order {
     "@order": string[];
 }
@@ -56,6 +68,7 @@ export type SuiteDetails = Order & Record<string, SuiteRecordDetails>;
 export type TestDetails = Record<string, SuiteRecordDetails>;
 
 export type SessionDetails = Record<string, SessionRecordDetails>;
+export type AttachmentDetails = Record<string, Attachment[]>;
 
 export const gridViewMode = "grid";
 export const treeViewMode = "tree";

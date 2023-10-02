@@ -4,6 +4,7 @@ import {
     type TestDetails,
     type SessionDetails,
     type suiteType,
+    type AttachmentDetails,
 } from "@/types/detailedTestRunPage";
 import Input from "antd/lib/input/Input";
 import React, {
@@ -15,12 +16,14 @@ import React, {
 import { parseTestCaseEntity } from "@/components/parseUtils";
 import dayjs from "dayjs";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
+import PaperClipOutlined from "@ant-design/icons/PaperClipOutlined";
 import Space from "antd/lib/space";
 import Collapse from "antd/lib/collapse/Collapse";
 import WarningFilled from "@ant-design/icons/lib/icons/WarningFilled";
 import Select, { type SelectProps } from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
 import {
+    getEntityLevelAttachment,
     getSessions,
     getSuites,
     getTestRun,
@@ -90,16 +93,21 @@ export default function TestEntityDrawer(props: {
     setTestID: (testID: string) => void;
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
+
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: run } = useSWR<DetailsOfRun>(getTestRun(port, testID));
-    const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
-    const [selectedSuite, setSelectedSuite] = useState<
-        undefined | PreviewForTests
-    >(undefined);
     const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID)
     );
+    const { data: attachments } = useSWR<AttachmentDetails>(
+        getEntityLevelAttachment(port, testID)
+    );
+
+    const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
+    const [selectedSuite, setSelectedSuite] = useState<
+        undefined | PreviewForTests
+    >(undefined);
     const [filterStatus, setFilterStatus] = useState<null | statusOfEntity>(
         null
     );
@@ -110,7 +118,8 @@ export default function TestEntityDrawer(props: {
         sessions == null ||
         run == null ||
         suites == null ||
-        tests == null
+        tests == null ||
+        attachments == null
     )
         return (
             <Drawer
@@ -133,6 +142,10 @@ export default function TestEntityDrawer(props: {
         .map((test) => {
             const actions = [];
             const parsed = parseTestCaseEntity(test, started);
+            const openDetailedView = (): void => {
+                setSelectedSuite(parsed);
+                setShowDetailedView(true);
+            };
 
             if (test.suiteType === "SUITE") {
                 actions.push(
@@ -146,6 +159,18 @@ export default function TestEntityDrawer(props: {
                         }}
                     />
                 );
+            } else {
+                if (attachments[test.suiteID]?.length > 0) {
+                    actions.push(
+                        <Button
+                            key="attachments"
+                            shape="circle"
+                            size="small"
+                            icon={<PaperClipOutlined />}
+                            onClick={openDetailedView}
+                        />
+                    );
+                }
             }
 
             if (test.standing === "FAILED") {
@@ -160,10 +185,7 @@ export default function TestEntityDrawer(props: {
                             />
                         }
                         shape="round"
-                        onClick={() => {
-                            setSelectedSuite(parsed);
-                            setShowDetailedView(true);
-                        }}
+                        onClick={openDetailedView}
                     />
                 );
             }
@@ -311,6 +333,7 @@ export default function TestEntityDrawer(props: {
                     setShowDetailedView(false);
                 }}
                 item={selectedSuite}
+                items={attachments[selectedSuite?.id ?? ""]}
             />
         </>
     );
