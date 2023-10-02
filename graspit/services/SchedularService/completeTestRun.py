@@ -3,6 +3,8 @@ from graspit.services.DBService.models.dynamic_base import TaskBase
 from graspit.services.DBService.models.types import Status, SuiteType
 from graspit.services.SchedularService.refer_types import PathTree, PathItem
 from graspit.services.SchedularService.modifySuites import fetch_key_from_status
+from graspit.services.SchedularService.pruneTasks import pruneTasks
+from graspit.services.DBService.models.config_base import TestConfigBase, AttachmentType
 from tortoise.functions import Sum, Max, Min, Count, Lower
 from datetime import datetime
 from typing import List
@@ -96,6 +98,8 @@ async def complete_test_run(test_id: str, current_test_id: str):
         Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)).count()
 
     if pending_items > 0:
+        if await mark_test_failure_if_required(test_id):
+            return
         logger.warning("Fix test run: {} was picked but some of its test entities were not processed yet.", test_id)
         await task.update_from_dict(dict(picked=False))
         return await task.save()  # continue in the next run
@@ -158,3 +162,28 @@ async def complete_test_run(test_id: str, current_test_id: str):
     await test_run.save()
     logger.info("Completed the patch for test run | {}", test_id)
     return await task.delete()
+
+
+async def mark_test_failure_if_required(test_id: str) -> bool:
+    suites = await SuiteBase.filter(
+        session__test_id=test_id).filter(
+        Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)).all().values_list('suiteID', flat=True)
+
+    does_it_exist = await TaskBase.exists(ticketID__in=suites)
+    if does_it_exist:
+        # it means there are child tasks ensured to complete the child suites
+        return False
+
+    await TestConfigBase.create(
+        test_id=test_id,
+        attachmentValue=dict(
+            reason=f"Failed to process {test_id} because of incomplete child suites",
+            incomplete=suites,
+            test_id=test_id
+        ),
+        type=AttachmentType.ERROR,
+        description="Job Failed: Complete Test Run"
+    )
+
+    await pruneTasks()
+

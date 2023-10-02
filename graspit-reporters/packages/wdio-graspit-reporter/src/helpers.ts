@@ -27,6 +27,8 @@ export function attachReporter(
       projectName: options.projectName,
       results: options.results,
       timeout: options.timeout,
+      root: options.root,
+      collectionName: options.collectionName,
     },
   ]);
 
