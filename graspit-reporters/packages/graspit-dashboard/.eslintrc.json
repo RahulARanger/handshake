@@ -6,7 +6,6 @@
     "extends": [
         "standard-with-typescript",
         "plugin:react/recommended",
-        "next",
         "prettier",
         "plugin:@next/next/recommended",
         "plugin:@typescript-eslint/recommended"

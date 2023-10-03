@@ -1,4 +1,5 @@
 {
+    "extends": "./node.json",
     "compilerOptions": {
         "strictNullChecks": true,
         "module": "NodeNext",

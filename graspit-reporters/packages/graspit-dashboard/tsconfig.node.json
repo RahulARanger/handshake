@@ -1,0 +1,3 @@
+{
+    "extends": "graspit-ts-config/next-node.json",
+}

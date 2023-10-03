@@ -41,5 +41,4 @@ next-env.d.ts
 **/dist/**
 **/build/**
 check.py
-graspit-dashboard/dist/*
-graspit-dashboard/public/antd.min.css
+**/genAntdCss.tsx

@@ -6,7 +6,7 @@ const nextConfig = {
   env: {
     NEXT_PY_PORT: process.env.NEXT_PY_PORT
   },
-  distDir: "dist",
+  distDir: process.env.EXPORT_DIR ?? "dist",
 
   webpack(config) {
     const fileLoaderRule = config.module.rules.find((rule) =>

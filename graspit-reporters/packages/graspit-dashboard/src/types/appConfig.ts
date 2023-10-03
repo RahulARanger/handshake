@@ -1,4 +1,4 @@
-import type Suite from "./testRelated";
+import type Suite from "./testRun";
 
 type TestResults = Record<string, Suite>;
 
