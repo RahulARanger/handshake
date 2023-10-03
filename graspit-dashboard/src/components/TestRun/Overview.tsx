@@ -25,7 +25,6 @@ import {
 } from "@/types/detailedTestRunPage";
 import { RenderDuration, RenderStatus } from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
-import CarouselComponent from "../carousel";
 import { dateFormatUsed } from "../Datetime/format";
 import ImagesWithThumbnail from "./TestEntities/TestEntity/ImagesWithThumbnails";
 
@@ -56,6 +55,7 @@ function TopSuites(props: {
                     <Typography>
                         Click&nbsp;
                         <Button
+                            key="maria"
                             type="link"
                             style={{ padding: "0px" }}
                             onClick={() => {
@@ -187,7 +187,7 @@ export default function Overview(props: {
                                             dateTime={startedAt}
                                             style={{
                                                 marginLeft: "30px",
-                                                maxWidth: "180px",
+                                                maxWidth: "190px",
                                             }}
                                             secondDateTime={dayjs(
                                                 props.run.ended

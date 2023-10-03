@@ -40,7 +40,10 @@ export default function ImagesWithThumbnail(props: {
                         <Card
                             title={
                                 <Tooltip title={content.title}>
-                                    <Text style={{ maxWidth: "350px" }}>
+                                    <Text
+                                        style={{ maxWidth: "350px" }}
+                                        suppressHydrationWarning
+                                    >
                                         {content.title}
                                     </Text>
                                 </Tooltip>

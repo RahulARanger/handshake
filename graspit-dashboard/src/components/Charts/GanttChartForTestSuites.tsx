@@ -5,7 +5,9 @@ import type DetailsOfRun from "@/types/testRun";
 import useSWR from "swr";
 import HighchartsReact from "highcharts-react-official";
 import HighChartsAccessibility from "highcharts/modules/accessibility";
-import HighChartsForGantt from "highcharts/highcharts-gantt";
+import HighChartsForGantt, {
+    type PointClickEventObject,
+} from "highcharts/highcharts-gantt";
 import HighchartsGantt from "highcharts/modules/gantt";
 import brandDark from "highcharts/themes/brand-dark";
 
@@ -19,7 +21,9 @@ if (typeof HighChartsForGantt === "object") {
     HighChartsAccessibility(HighChartsForGantt);
 }
 
-export default function GanttChartForTestEntities(): ReactNode {
+export default function GanttChartForTestEntities(props: {
+    setOpenDrilldown: (id: string) => void;
+}): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: testRun } = useSWR<DetailsOfRun>(getTestRun(port, testID));
@@ -48,6 +52,7 @@ export default function GanttChartForTestEntities(): ReactNode {
             start: dayjs(current.started).valueOf(),
             end: dayjs(current.ended).valueOf(),
             dependency: dependentOn,
+            duration: current.duration / 1e3,
         };
     });
 
@@ -57,10 +62,7 @@ export default function GanttChartForTestEntities(): ReactNode {
             type: "gantt",
             plotShadow: true,
             className: "highcharts-dark",
-            backgroundColor: "#141414",
-            style: {
-                padding: "9px",
-            },
+            backgroundColor: "rgba(128,128,128,0.02)",
         },
         credits: { enabled: false },
         title: {
@@ -77,22 +79,11 @@ export default function GanttChartForTestEntities(): ReactNode {
                 fontSize: ".89rem",
             },
         },
-        accessibility: {
-            keyboardNavigation: {
-                seriesNavigation: {
-                    mode: "serialize",
-                },
-            },
-            point: {
-                descriptionFormat:
-                    "{yCategory}. Start {x:%Y-%m-%d}, end {x2:%Y-%m-%d}.",
-            },
-        },
+
         navigator: {
             enabled: true,
             series: {
                 type: "gantt",
-                pointPadding: 0.25,
                 accessibility: {
                     enabled: false,
                 },
@@ -104,11 +95,58 @@ export default function GanttChartForTestEntities(): ReactNode {
                 categories: [],
             },
         },
+        xAxis: [
+            {
+                currentDateIndicator: {
+                    color: "#2caffe",
+                    dashStyle: "ShortDot",
+                    width: 2,
+                    label: {
+                        format: "",
+                    },
+                },
+                dateTimeLabelFormats: {
+                    day: '%e<br><span style="opacity: 0.5; font-size: 0.7em">%a</span>',
+                },
+                grid: {
+                    borderWidth: 0,
+                },
+                gridLineWidth: 1,
+            },
+        ],
+        yAxis: {
+            grid: {
+                borderWidth: 0,
+            },
+            gridLineWidth: 0,
+            staticScale: 31,
+        },
+        tooltip: {
+            backgroundColor: "rgb(10, 10, 10)",
+            borderColor: "rgba(128,128,128,0.1)",
+            borderWidth: 1,
+            style: { color: "white" },
+            pointFormat:
+                '<span style="font-weight: bold;">{point.name}</span><br>' +
+                "{point.start:%M:%S}" +
+                "{#unless point.milestone} → {point.end:%M:%S}{/unless}" +
+                "&nbsp;({point.duration} s)<br>",
+        },
         series: [
             {
                 type: "gantt",
                 name: testRun.projectName,
                 data,
+                cursor: "pointer",
+                point: {
+                    events: {
+                        click: function (event: PointClickEventObject) {
+                            props.setOpenDrilldown(
+                                event.point.options.id ?? ""
+                            );
+                        },
+                    },
+                },
             },
         ],
     };

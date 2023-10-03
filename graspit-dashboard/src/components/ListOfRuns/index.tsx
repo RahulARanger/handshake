@@ -323,12 +323,17 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     ).map((projectName) => ({ label: projectName, value: projectName }));
 
     return (
-        <Layout style={{ margin: "6px", overflow: "hidden", height: "98vh" }}>
+        <Layout
+            style={{
+                overflow: "hidden",
+                height: "99.6vh",
+            }}
+        >
             <Layout.Header className={HeaderStyles.header} spellCheck>
                 <Space
                     align="baseline"
                     size="large"
-                    style={{ marginTop: "3px" }}
+                    style={{ marginTop: "6px" }}
                 >
                     <BreadCrumb items={crumbs(false, filteredRuns.length)} />
                     <Divider type="vertical" />

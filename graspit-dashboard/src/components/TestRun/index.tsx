@@ -27,12 +27,15 @@ import {
     overviewTab,
     testEntitiesTab,
 } from "@/types/detailedTestRunPage";
+import TestEntityDrawer from "./TestEntities/TestEntity";
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<DetailsOfRun>(getTestRun(port, testID));
     const [viewMode, setViewMode] = useState<string>(gridViewMode);
     const [tab, setTab] = useState<string>(overviewTab);
+    const [detailed, showDetailed] = useState<string>();
+    const [openDetailed, setOpenDetailed] = useState<boolean>(false);
 
     if (data == null) {
         return (
@@ -53,6 +56,10 @@ export default function DetailedTestRun(): ReactNode {
     }
 
     const startDate = dayjs(data.started);
+    const helper = (id: string): void => {
+        showDetailed(id);
+        setOpenDetailed(true);
+    };
 
     const items: Tab[] = [
         {
@@ -91,24 +98,32 @@ export default function DetailedTestRun(): ReactNode {
             children: (
                 <Card
                     style={{
-                        marginLeft: "20px",
-                        marginRight: "20px",
+                        padding: "3px",
                     }}
                     size="small"
                 >
-                    <GanttChartForTestEntities />
+                    <GanttChartForTestEntities setOpenDrilldown={helper} />
+                    <TestEntityDrawer
+                        open={openDetailed}
+                        testID={detailed}
+                        onClose={() => {
+                            setOpenDetailed(false);
+                        }}
+                        setTestID={helper}
+                    />
                 </Card>
             ),
         },
     ];
 
     return (
-        <Layout style={{ overflow: "hidden", height: "98vh" }}>
+        <Layout style={{ overflow: "hidden", height: "99.3vh" }}>
             <Layout.Content
                 style={{
                     marginLeft: "12px",
                     marginTop: "2px",
                     overflowY: "auto",
+                    marginBottom: "3px",
                     overflowX: "hidden",
                 }}
             >
