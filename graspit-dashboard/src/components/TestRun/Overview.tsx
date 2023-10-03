@@ -13,7 +13,7 @@ import Divider from "antd/lib/divider/index";
 import dayjs, { type Dayjs } from "dayjs";
 import Table from "antd/lib/table/Table";
 import MetaCallContext from "./context";
-import { getSuites } from "@/Generators/helper";
+import { getEntityLevelAttachment, getSuites } from "@/Generators/helper";
 import Button from "antd/lib/button/button";
 import useSWR from "swr";
 import {
@@ -21,11 +21,13 @@ import {
     type statusOfEntity,
     type SuiteDetails,
     testEntitiesTab,
+    type AttachmentDetails,
 } from "@/types/detailedTestRunPage";
 import { RenderDuration, RenderStatus } from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import CarouselComponent from "../carousel";
 import { dateFormatUsed } from "../Datetime/format";
+import ImagesWithThumbnail from "./TestEntities/TestEntity/ImagesWithThumbnails";
 
 function TopSuites(props: {
     startedAt: Dayjs;
@@ -115,7 +117,20 @@ export default function Overview(props: {
     run: DetailsOfRun;
     onTabSelected: (tab: string) => void;
 }): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
+    const { data: attachments } = useSWR<AttachmentDetails>(
+        getEntityLevelAttachment(port, testID)
+    );
     const [isTest, setTest] = useState<boolean>(true);
+
+    if (attachments == null) return <></>;
+
+    const images = Object.values(attachments)
+        .flat(1)
+        .filter((image) => image.type === "PNG")
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 6);
+
     const startedAt = dayjs(props.run.started);
     const total = isTest
         ? props.run.tests
@@ -194,8 +209,18 @@ export default function Overview(props: {
                 <TopSuites startedAt={startedAt} setTab={props.onTabSelected} />
             </Space>
             <Space>
-                <Card size="small" bordered>
-                    <CarouselComponent />
+                <Card
+                    size="small"
+                    title="Preview"
+                    bordered
+                    style={{ maxWidth: "500px" }}
+                >
+                    <ImagesWithThumbnail
+                        images={images}
+                        loop={true}
+                        maxHeight={"200px"}
+                        hideDesc={true}
+                    />
                 </Card>
             </Space>
         </Space>

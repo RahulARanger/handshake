@@ -2,7 +2,6 @@ import React, { type ReactNode } from "react";
 import carouselStyles from "@/styles/carousel.module.css";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
-import Alert from "antd/lib/alert/Alert";
 import {
     type Attachment,
     type AttachmentContent,
@@ -17,10 +16,18 @@ import Tooltip from "antd/lib/tooltip/index";
 
 export default function ImagesWithThumbnail(props: {
     images: Attachment[];
+    loop?: boolean;
+    maxHeight?: string;
+    hideDesc?: boolean;
 }): ReactNode {
-    const [emblaRef] = useEmblaCarousel({ loop: false }, [
-        Autoplay({ stopOnInteraction: true }),
-    ]);
+    const [emblaRef] = useEmblaCarousel(
+        {
+            loop: props.loop,
+            align: "center",
+            dragFree: true,
+        },
+        [Autoplay({})]
+    );
     return (
         <div className={carouselStyles.embla} ref={emblaRef}>
             <div className={carouselStyles.container}>
@@ -41,6 +48,7 @@ export default function ImagesWithThumbnail(props: {
                             key={content.title}
                             bordered
                             type="inner"
+                            size="small"
                             hoverable
                             style={{ margin: "6px" }}
                         >
@@ -51,7 +59,9 @@ export default function ImagesWithThumbnail(props: {
                             >
                                 <Image
                                     height={"95%"}
-                                    style={{ maxHeight: "250px" }}
+                                    style={{
+                                        maxHeight: props.maxHeight ?? "250px",
+                                    }}
                                     width={"95%"}
                                     alt="Screenshot attached"
                                     src={`data:image/${image.type.toLowerCase()};base64, ${
@@ -60,19 +70,23 @@ export default function ImagesWithThumbnail(props: {
                                 />
                             </Ribbon>
 
-                            <Meta
-                                style={{ marginTop: "4px" }}
-                                description={
-                                    <Paragraph
-                                        ellipsis={{
-                                            rows: 2,
-                                            expandable: true,
-                                        }}
-                                    >
-                                        {image.description}
-                                    </Paragraph>
-                                }
-                            />
+                            {props.hideDesc === true ? (
+                                <> </>
+                            ) : (
+                                <Meta
+                                    style={{ marginTop: "4px" }}
+                                    description={
+                                        <Paragraph
+                                            ellipsis={{
+                                                rows: 2,
+                                                expandable: true,
+                                            }}
+                                        >
+                                            {image.description}
+                                        </Paragraph>
+                                    }
+                                />
+                            )}
                         </Card>
                     );
                 })}

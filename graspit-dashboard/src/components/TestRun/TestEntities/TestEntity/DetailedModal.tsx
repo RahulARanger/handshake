@@ -1,7 +1,5 @@
-import React, { useContext, type ReactNode, useState } from "react";
-import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
+import React, { type ReactNode } from "react";
 import Card, { type CardProps } from "antd/lib/card/Card";
-import Meta from "antd/lib/card/Meta";
 import List from "antd/lib/list";
 import Modal from "antd/lib/modal/Modal";
 import Space from "antd/lib/space";
@@ -84,6 +82,7 @@ export default function MoreDetailsOnEntity(props: {
             }
             open={props.open}
             onCancel={props.onClose}
+            destroyOnClose
             cancelText="Close"
             closeIcon={<RenderStatus value={props.item.Status} />}
             width={600}

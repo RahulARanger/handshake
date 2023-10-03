@@ -30,26 +30,24 @@ export default function GanttChartForTestEntities(): ReactNode {
 
     const data: HighChartsForGantt.GanttPointOptionsObject[] = suites[
         "@order"
-    ].map((suiteID, index) => {
-        let dependentOn;
+    ].map((suiteID, index, reference) => {
+        const current = suites[suiteID];
+        let dependentOn = current.parent;
 
         if (index > 0) {
-            const previous = suites[suites["@order"][index - 1]];
-            if (
-                suites[suiteID].parent !== "" &&
-                previous.parent === suites[suiteID].parent
-            )
+            const previous = suites[reference[index - 1]];
+            if (current.parent !== "" && previous.parent === current.parent)
                 dependentOn = previous.suiteID;
         }
 
         return {
-            name: suites[suiteID].title,
-            description: suites[suiteID].description,
-            parent: suites[suiteID].parent,
+            name: current.title,
+            description: current.description,
+            parent: current.parent,
             id: suiteID,
-            start: dayjs(suites[suiteID].started).valueOf(),
-            end: dayjs(suites[suiteID].ended).valueOf(),
-            dependency: dependentOn ?? suites[suiteID].parent,
+            start: dayjs(current.started).valueOf(),
+            end: dayjs(current.ended).valueOf(),
+            dependency: dependentOn,
         };
     });
 

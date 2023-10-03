@@ -106,7 +106,7 @@ export default function DetailedTestRun(): ReactNode {
         <Layout style={{ overflow: "hidden", height: "98vh" }}>
             <Layout.Content
                 style={{
-                    margin: "12px",
+                    marginLeft: "12px",
                     marginTop: "2px",
                     overflowY: "auto",
                     overflowX: "hidden",
