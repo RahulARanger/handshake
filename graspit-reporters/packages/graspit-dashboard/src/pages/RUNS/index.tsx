@@ -6,13 +6,14 @@ import { getAllTestRunDetails } from "@/Generators/Queries/testRunRelated";
 import type DetailsOfRun from "@/types/testRun";
 import GridOfRuns from "@/components/ListOfRuns";
 
-const logger = getLogger("Run-Page");
-
 export async function getStaticProps(prepareProps: {
     params: {
         id: string;
     };
 }): Promise<GetStaticPropsResult<{ runs: DetailsOfRun[] }>> {
+    const logger = getLogger("Run-Page");
+    logger.level = "debug";
+
     logger.info("Generating Cards for all Runs");
 
     const connection = await getConnection();

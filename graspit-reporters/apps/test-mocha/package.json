@@ -7,7 +7,9 @@
 	"type": "module",
 	"scripts": {
 		"test": "npm run test:mocha",
-		"test:mocha": "wdio run ./wdio.conf.js"
+		"test:mocha": "wdio run ./wdio.conf.js",
+		"activate": ".\\\"../../../venv/scripts/activate\"",
+		"display": "npm run activate && graspit display ./dist"
 	},
 	"author": "",
 	"license": "ISC",

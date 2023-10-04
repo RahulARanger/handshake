@@ -164,12 +164,15 @@ export default class GraspItService
     const reportError = new Error(
       'Failed to generate Report on time 😢, please note the errors if any seen.',
     );
+
+    const script = `"${this.venv}" && graspit patch "${this.resultsDir}"`;
+
     this.patcher = spawn(
-      `"${this.venv}" && graspit patch "${this.resultsDir}"`,
+      `${script} && ${this.options.out ? `cd "${process.cwd()}" && graspit export "${this.resultsDir}" --out "${this.options.out}"` : ''}`,
       {
         shell: true,
         cwd: this.options.root,
-        stdio: ['ignore', 'pipe', 'pipe'],
+        stdio: ['inherit', 'inherit', 'inherit'],
       },
     );
 
@@ -185,14 +188,16 @@ export default class GraspItService
           const stdout = this.patcher?.stdout?.read() as Buffer;
           const stderr = this.patcher?.stderr?.read() as Buffer;
 
-          this.logger.warn(stdout.toString());
-          this.logger.error(stderr.toString());
+          this.logger.warn(stdout?.toString());
+          this.logger.error(stderr?.toString());
 
           reject(reportError);
           return;
         }
         this.logger.info(
-          'Results are patched 🤩. Now we are ready to export it.',
+          this.options.out
+            ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.out}"`
+            : 'Results are patched 🤩. Now we are ready to export it.',
         );
         resolve();
       });

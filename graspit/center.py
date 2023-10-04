@@ -1,18 +1,25 @@
 from graspit.services.Endpoints.center import service_provider
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection, create_run
 from graspit.services.DBService.shared import set_test_id
-from click import argument, option, Path
+from click import argument, option, Path, secho
 from pathlib import Path as P_Path
 from graspit.handle_shipment import handle_cli
 from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
 from sanic import Sanic
 from typing import Tuple
+from functools import partial
 from loguru import logger
+from graspit.services.Endpoints.static_server import static_provider
 
 
 def feed_app() -> Sanic:
     return service_provider
+
+
+def feed_static_provider(root: P_Path) -> Sanic:
+    static_provider.static("/", str(root), name="root", index=["index.html", "RUNS.html"])
+    return static_provider
 
 
 def prepare_loader() -> Tuple[Sanic, AppLoader]:
@@ -73,6 +80,20 @@ def run_app(
         debug: bool
 ):
     setup_app(projectname, path, port, workers, fast, debug)
+
+
+@handle_cli.command()
+@argument("static_path", nargs=1, required=True, type=Path(exists=True, dir_okay=True))
+def display(static_path):
+    root = P_Path.cwd() / P_Path(static_path)
+
+    if not root.exists():
+        raise NotADirectoryError(f"{static_path} does not exist")
+
+    loader = AppLoader(factory=partial(feed_static_provider, root))
+    _app = loader.load()
+    _app.prepare(host="127.0.0.1")
+    Sanic.serve(primary=_app, app_loader=loader)
 
 
 if __name__ == "__main__":

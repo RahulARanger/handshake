@@ -35,4 +35,5 @@ export interface GraspItServiceOptions {
   timeout?: number;
   results?: string;
   projectName?: string;
+  out?:string;
 }

@@ -26,9 +26,9 @@ import MetaCallContext from "@/components/TestRun/context";
 import getAllSessions from "@/Generators/Queries/sessionRelated";
 import getAllEntityLevelAttachments from "@/Generators/Queries/attachmentRelated";
 
-const logger = getLogger("TestRunRelated");
-
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
+    const logger = getLogger("TestRunRelated");
+    logger.level = "debug";
     logger.info("📃 Fetching list of test runs...");
     const connection = await getConnection();
     const paths = await getAllTestRuns(connection);
@@ -47,8 +47,6 @@ export async function getStaticProps(prepareProps: {
         id: string;
     };
 }): Promise<GetStaticPropsResult<DetailedTestRunPageProps>> {
-    logger.info("Generating Details for a test Run 💼");
-
     const testID = prepareProps.params.id;
 
     const connection = await getConnection();
@@ -66,7 +64,7 @@ export async function getStaticProps(prepareProps: {
     const sessions = await getAllSessions(connection, testID);
     const entityLevelAttachments = await getAllEntityLevelAttachments(
         connection,
-        testID
+        testID,
     );
 
     await connection.close();
@@ -91,7 +89,7 @@ export async function getStaticProps(prepareProps: {
 }
 
 export default function TestRunResults(
-    props: DetailedTestRunPageProps
+    props: DetailedTestRunPageProps,
 ): ReactNode {
     const fallback = props.fallback;
     return (

@@ -178,7 +178,9 @@ export const config = attachReporter(metaConfig, {
   collectionName: 'TestResults',
   projectName: 'NeXtReporter:Cucumber',
   port: 6969,
-  timeout: 30e3,
+  timeout: 120e3,
   root: dirname(dirname(dirname(process.cwd()))),
-  attachScreenshot: true,
+  addScreenshots: false,
+  // does not depend on this as we have explicitly mentioned when to add screenshots
+  out: './dist',
 });

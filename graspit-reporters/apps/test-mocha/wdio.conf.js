@@ -46,5 +46,6 @@ export const config = attachReporter(metaConfig, {
     port: 6969,
     timeout: 30e3,
     root: dirname(dirname(dirname(process.cwd()))),
-    addScreenshots: true
+    addScreenshots: true,
+    out: "./dist"
 });

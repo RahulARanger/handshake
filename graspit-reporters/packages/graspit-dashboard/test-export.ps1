@@ -1,1 +1,1 @@
-python -m http.server -d ./dist
+python -m http.server -d ./dist 

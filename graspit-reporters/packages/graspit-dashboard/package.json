@@ -6,7 +6,7 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "export": "next export",
+        "export": "next build --no-lint",
         "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx",
         "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx",
         "test-export": "cross-env EXPORT_DIR=output npm run build"

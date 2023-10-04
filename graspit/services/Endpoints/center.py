@@ -2,7 +2,7 @@ from graspit.services.Endpoints.oneliners import one_liners
 from graspit.services.DBService.center import service
 from graspit.services.DBService.getThings import get_service
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
-from graspit.services.DBService.shared import set_test_id
+from graspit.services.DBService.shared import set_test_id, app_name
 from graspit.services.Endpoints.errorHandling import handle_validation_error
 import asyncio
 from sanic import Sanic
@@ -10,7 +10,7 @@ from pydantic import ValidationError
 from loguru import logger
 from signal import signal, SIGTERM, SIGINT
 
-service_provider = Sanic("WDIO-PY")
+service_provider = Sanic(app_name)
 service_provider.blueprint(one_liners)
 service_provider.blueprint(service)
 service_provider.blueprint(get_service)
