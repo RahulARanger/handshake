@@ -26,14 +26,14 @@ export default function ImagesWithThumbnail(props: {
             align: "center",
             dragFree: true,
         },
-        [Autoplay({})]
+        [Autoplay({})],
     );
     return (
         <div className={carouselStyles.embla} ref={emblaRef}>
             <div className={carouselStyles.container}>
                 {props.images.map((image, index) => {
                     const content: AttachmentContent = JSON.parse(
-                        image.attachmentValue
+                        image.attachmentValue,
                     );
 
                     return (
@@ -48,7 +48,7 @@ export default function ImagesWithThumbnail(props: {
                                     </Text>
                                 </Tooltip>
                             }
-                            key={content.title}
+                            key={index}
                             bordered
                             type="inner"
                             size="small"

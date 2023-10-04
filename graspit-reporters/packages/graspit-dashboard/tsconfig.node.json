@@ -1,3 +1,10 @@
 {
-    "extends": "graspit-ts-config/next-node.json",
+    "extends": "@tsconfig/node18/tsconfig.json",
+    "compilerOptions": {
+        "strictNullChecks": true,
+        "module": "NodeNext",
+        "jsx": "react",
+        "esModuleInterop": true
+    },
+    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"]
 }

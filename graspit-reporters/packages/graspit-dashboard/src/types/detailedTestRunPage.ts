@@ -46,6 +46,7 @@ export interface SuiteRecordDetails extends RecurringFields {
     error: string;
     errors: string;
     title: string;
+    tags: string;
 }
 
 export interface Attachment {

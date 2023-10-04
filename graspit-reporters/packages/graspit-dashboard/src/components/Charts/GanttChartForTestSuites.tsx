@@ -53,6 +53,9 @@ export default function GanttChartForTestEntities(props: {
             end: dayjs(current.ended).valueOf(),
             dependency: dependentOn,
             duration: current.duration / 1e3,
+            completed: {
+                amount: Number((current.passed / current.tests).toFixed(2)),
+            },
         };
     });
 
@@ -142,7 +145,7 @@ export default function GanttChartForTestEntities(props: {
                     events: {
                         click: function (event: PointClickEventObject) {
                             props.setOpenDrilldown(
-                                event.point.options.id ?? ""
+                                event.point.options.id ?? "",
                             );
                         },
                     },

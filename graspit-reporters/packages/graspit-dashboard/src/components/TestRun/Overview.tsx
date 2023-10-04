@@ -25,7 +25,7 @@ import {
 } from "@/types/detailedTestRunPage";
 import { RenderDuration, RenderStatus } from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
-import { dateFormatUsed } from "../Datetime/format";
+import { dateFormatUsed, dateTimeFormatUsed } from "../Datetime/format";
 import ImagesWithThumbnail from "./TestEntities/TestEntity/ImagesWithThumbnails";
 
 function TopSuites(props: {
@@ -35,11 +35,10 @@ function TopSuites(props: {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<SuiteDetails>(getSuites(port, testID));
     if (data == null) return <></>;
-    const dateTimeFormat = "HH:mm A DD-MM-YYYY";
 
     const top5Suites = data["@order"]
         .slice(-5, data?.["@order"].length)
-        .map((suite) => data[suite]);
+        .map((suite) => ({ key: data[suite].suiteID, ...data[suite] }));
 
     return (
         <Table
@@ -101,13 +100,17 @@ function TopSuites(props: {
                 dataIndex="started"
                 title="Started"
                 width={120}
-                render={(value: string) => dayjs(value).format(dateTimeFormat)}
+                render={(value: string) =>
+                    dayjs(value).format(dateTimeFormatUsed)
+                }
             />
             <Table.Column
                 title="Ended"
                 width={120}
                 dataIndex="ended"
-                render={(value: string) => dayjs(value).format(dateTimeFormat)}
+                render={(value: string) =>
+                    dayjs(value).format(dateTimeFormatUsed)
+                }
             />
         </Table>
     );
@@ -119,7 +122,7 @@ export default function Overview(props: {
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: attachments } = useSWR<AttachmentDetails>(
-        getEntityLevelAttachment(port, testID)
+        getEntityLevelAttachment(port, testID),
     );
     const [isTest, setTest] = useState<boolean>(true);
 
@@ -190,12 +193,12 @@ export default function Overview(props: {
                                                 maxWidth: "190px",
                                             }}
                                             secondDateTime={dayjs(
-                                                props.run.ended
+                                                props.run.ended,
                                             )}
                                         />
                                         <RenderDuration
                                             value={dayjs.duration(
-                                                props.run.duration
+                                                props.run.duration,
                                             )}
                                         />
                                     </Space>

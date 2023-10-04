@@ -22,6 +22,7 @@ import Collapse from "antd/lib/collapse/Collapse";
 import WarningFilled from "@ant-design/icons/lib/icons/WarningFilled";
 import Select, { type SelectProps } from "antd/lib/select/index";
 import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
+import Tag from "antd/lib/tag/index";
 import {
     getEntityLevelAttachment,
     getSessions,
@@ -43,7 +44,10 @@ import useSWR from "swr";
 import Drawer from "antd/lib/drawer/index";
 import type DetailsOfRun from "@/types/testRun";
 import parentEntities from "./items";
-import { type PreviewForTests } from "@/types/testEntityRelated";
+import {
+    type Tag as SuiteTag,
+    type PreviewForTests,
+} from "@/types/testEntityRelated";
 import Typography from "antd/lib/typography/Typography";
 import BadgeForSuiteType from "./Badge";
 import MoreDetailsOnEntity from "./DetailedModal";
@@ -98,10 +102,10 @@ export default function TestEntityDrawer(props: {
     const { data: run } = useSWR<DetailsOfRun>(getTestRun(port, testID));
     const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
-        getSessions(port, testID)
+        getSessions(port, testID),
     );
     const { data: attachments } = useSWR<AttachmentDetails>(
-        getEntityLevelAttachment(port, testID)
+        getEntityLevelAttachment(port, testID),
     );
 
     const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
@@ -109,7 +113,7 @@ export default function TestEntityDrawer(props: {
         undefined | PreviewForTests
     >(undefined);
     const [filterStatus, setFilterStatus] = useState<null | statusOfEntity>(
-        null
+        null,
     );
     const [filterText, setFilterText] = useState<null | string>(null);
 
@@ -157,7 +161,7 @@ export default function TestEntityDrawer(props: {
                         onClick={() => {
                             props.setTestID(test.suiteID);
                         }}
-                    />
+                    />,
                 );
             } else {
                 if (attachments[test.suiteID]?.length > 0) {
@@ -168,7 +172,7 @@ export default function TestEntityDrawer(props: {
                             size="small"
                             icon={<PaperClipOutlined />}
                             onClick={openDetailedView}
-                        />
+                        />,
                     );
                 }
             }
@@ -186,7 +190,7 @@ export default function TestEntityDrawer(props: {
                         }
                         shape="round"
                         onClick={openDetailedView}
-                    />
+                    />,
                 );
             }
 
@@ -269,6 +273,14 @@ export default function TestEntityDrawer(props: {
         value: status.toUpperCase(),
     }));
 
+    const tags = JSON.parse(selectedSuiteDetails.tags).map((tag: SuiteTag) => {
+        return (
+            <Tag key={tag.astNodeId} color="orange">
+                {tag.name}
+            </Tag>
+        );
+    });
+
     return (
         <>
             <Drawer
@@ -281,7 +293,7 @@ export default function TestEntityDrawer(props: {
                         items={parentEntities(
                             suites,
                             props.testID,
-                            props.setTestID
+                            props.setTestID,
                         )}
                     />
                 }
@@ -292,7 +304,7 @@ export default function TestEntityDrawer(props: {
                             allowClear
                             size="small"
                             onChange={(
-                                event: ChangeEvent<HTMLInputElement>
+                                event: ChangeEvent<HTMLInputElement>,
                             ) => {
                                 const value = event.target.value;
                                 setFilterText(value === "" ? null : value);
@@ -317,8 +329,25 @@ export default function TestEntityDrawer(props: {
                         bordered
                         style={{ overflowX: "hidden" }}
                         size="small"
-                        title={selectedSuiteDetails.description}
+                        title={
+                            selectedSuiteDetails.description == null ||
+                            tags.length > 0 ? (
+                                <>
+                                    {tags.length === 0 ? (
+                                        <>{selectedSuiteDetails.description} </>
+                                    ) : (
+                                        <Space direction="vertical">
+                                            {selectedSuiteDetails.description}
+                                            <Space direction="horizontal">
+                                                {tags}
+                                            </Space>
+                                        </Space>
+                                    )}
+                                </>
+                            ) : undefined
+                        }
                     />
+
                     <Collapse
                         defaultActiveKey={["Latest Run"]}
                         bordered

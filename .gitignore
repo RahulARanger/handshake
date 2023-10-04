@@ -42,3 +42,4 @@ next-env.d.ts
 **/build/**
 check.py
 **/genAntdCss.tsx
+graspit-reporters/packages/graspit-dashboard/public/antd.min.css

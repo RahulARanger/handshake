@@ -49,3 +49,10 @@ export type possibleBrowserNames =
     | "safari"
     | "edge"
     | "others";
+
+export interface Tag {
+    name: string;
+    id: string;
+    location: { line: number; column: number };
+    astNodeId: string;
+}
