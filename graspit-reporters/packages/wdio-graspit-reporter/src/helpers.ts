@@ -3,7 +3,6 @@ import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
 import { GraspItServiceOptions, ReporterOptions } from './types';
 import GraspItService from './service';
-import { currentReporter, internalAttachScreenshot } from './contacts';
 
 export default function sanitizePaths(specs?: string[]): string[] {
   return (specs ?? []).map((spec) => relative(
@@ -52,16 +51,5 @@ export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boo
   return (
     (command.endpoint && isScrenshotEndpoint.test(command.endpoint))
         || command.command === 'takeScreenshot'
-  );
-}
-
-export function attachScreenshot(title: string, content: string, description?: string) {
-  if (currentReporter?.currentTestID == null) return;
-
-  internalAttachScreenshot(
-    title,
-    content,
-    currentReporter?.currentTestID,
-    description,
   );
 }

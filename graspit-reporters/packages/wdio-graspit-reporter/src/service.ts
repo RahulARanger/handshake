@@ -1,16 +1,16 @@
 import type { ChildProcess } from 'node:child_process';
-import { spawn } from 'node:child_process';
 import { join } from 'node:path';
 import {
-  clearInterval,
   setTimeout,
   clearTimeout,
-  setInterval,
 } from 'node:timers';
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Capabilities, Options, Services } from '@wdio/types';
-import superagent from 'superagent';
-import type { GraspItServiceOptions } from './types';
+import {
+  ping, startService, isServerTerminated, terminateServer,
+  updateRunConfig, generateReport,
+  markTestRunCompletion,
+} from 'graspit-commons';
 import { ContactsForService } from './contacts';
 
 export default class GraspItService
@@ -19,11 +19,6 @@ export default class GraspItService
   pyProcess?: ChildProcess;
 
   patcher?: ChildProcess;
-
-  constructor(options: GraspItServiceOptions) {
-    super(options);
-    this.options = options;
-  }
 
   get resultsDir(): string {
     return join(
@@ -37,9 +32,9 @@ export default class GraspItService
     return join('venv', 'Scripts', 'activate');
   }
 
-  onPrepare() // config: Options.Testrunner,
+  onPrepare(options: Options.Testrunner)
   // capabilities: Capabilities.RemoteCapabilities
-  : void {
+    : void {
     const { root: rootDir, port, projectName } = this.options;
     this.logger.info('Starting py-process 🚚...');
     const { resultsDir } = this;
@@ -48,42 +43,11 @@ export default class GraspItService
       mkdirSync(resultsDir);
     }
 
-    const command = `"${this.venv}" && graspit run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
-    this.logger.warn(`Requesting a graspit server, command used: ${command}`);
-
-    this.pyProcess = spawn(command, {
-      shell: true,
-      stdio: ['ignore', 'pipe', 'pipe'],
-      cwd: rootDir,
-    });
-
-    const [stdout, stderr] = [this.pyProcess.stdout, this.pyProcess.stderr];
-
-    if (stdout !== null) {
-      stdout.on('data', (data: Buffer) => {
-        this.logger.info(`ℹ️ - ${data.toString()}`);
-      });
-    }
-    if (stderr !== null) {
-      stderr.on('data', (data: Buffer) => {
-        this.logger.warn(`${data.toString()}`);
-      });
-    }
-
-    this.pyProcess.on('error', (err: Buffer) => {
-      throw new Error(String(err));
-    });
-
-    this.pyProcess.on('exit', (code) => {
-      if (code !== 0) {
-        this.logger.error(
-          `graspit was force closed 😫, found exit code: ${code}`,
-        );
-      }
-    });
-
-    this.logger.info(
-      `Started py-process, running 🐰 at pid: ${this.pyProcess.pid}`,
+    this.pyProcess = startService(
+      projectName ?? options.framework ?? 'unknown',
+      resultsDir,
+      rootDir ?? process.cwd(),
+      port ?? 6969,
     );
 
     // important for avoiding zombie py server
@@ -101,7 +65,7 @@ export default class GraspItService
 
   async forceKill(): Promise<unknown> {
     if (this.pyProcess?.killed) return;
-    if ((await superagent.get(`${this.url}/`)).status === 200) {
+    if (await isServerTerminated()) {
       await this.sayBye();
       this.pyProcess?.kill('SIGINT');
       this.logger.warn('→ Had to 🗡️ the py-process.');
@@ -114,47 +78,13 @@ export default class GraspItService
       return;
     }
 
-    const results = [];
-    for (let worker = 0; worker < 2; worker += 1) {
-      this.logger.info('📞 Requesting for worker termination');
-      results.push(
-        superagent.post(`${this.url}/bye`).retry(2).catch(() => {
-          this.logger.info('Terminated.');
-        }),
-      );
-    }
-    await Promise.all(results);
+    await terminateServer();
 
     this.logger.info('→ Py Process was closed 😪');
   }
 
   async waitUntilItsReady(): Promise<unknown> {
-    const waitingForTheServer = new Error(
-      'Not able to connect with server within 10 seconds 😢, please try again later',
-    );
-
-    return new Promise((resolve, reject) => {
-      const bomb = setTimeout(() => {
-        reject(waitingForTheServer);
-      }, 10e3);
-
-      const timer = setInterval(() => {
-        this.logger.warn('pinging py-server 👆...');
-
-        superagent.get(`${this.url}/`)
-          .then((resp) => {
-            if (resp.status !== 200) return;
-            clearTimeout(bomb);
-            clearInterval(timer);
-
-            this.logger.info('Server is online! 😀');
-            resolve({});
-          })
-          .catch(() => {
-            this.logger.warn('😓 Server has not started yet...');
-          });
-      }, 3e3);
-    }).catch(this.sayBye.bind(this));
+    return ping().catch(this.sayBye.bind(this));
   }
 
   async flagToPyThatsItsDone(): Promise<void> {
@@ -165,15 +95,10 @@ export default class GraspItService
       'Failed to generate Report on time 😢, please note the errors if any seen.',
     );
 
-    const script = `"${this.venv}" && graspit patch "${this.resultsDir}"`;
-
-    this.patcher = spawn(
-      `${script} && ${this.options.out ? `cd "${process.cwd()}" && graspit export "${this.resultsDir}" --out "${this.options.out}"` : ''}`,
-      {
-        shell: true,
-        cwd: this.options.root,
-        stdio: ['inherit', 'inherit', 'inherit'],
-      },
+    this.patcher = await generateReport(
+      this.resultsDir,
+      this.options.root || process.cwd(),
+      this.options.out,
     );
 
     return new Promise((resolve, reject) => {
@@ -181,25 +106,18 @@ export default class GraspItService
         if (!this.patcher?.killed) this.patcher?.kill('SIGINT');
         reject(reportError);
       }, this.options.timeout);
+
       this.patcher?.on('exit', (exitCode) => {
         clearTimeout(bomb);
 
-        if (exitCode !== 0) {
-          const stdout = this.patcher?.stdout?.read() as Buffer;
-          const stderr = this.patcher?.stderr?.read() as Buffer;
+        if (exitCode !== 0) { return reject(reportError); }
 
-          this.logger.warn(stdout?.toString());
-          this.logger.error(stderr?.toString());
-
-          reject(reportError);
-          return;
-        }
         this.logger.info(
           this.options.out
             ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.out}"`
             : 'Results are patched 🤩. Now we are ready to export it.',
         );
-        resolve();
+        return resolve();
       });
     });
   }
@@ -212,21 +130,15 @@ export default class GraspItService
     const cap = config.capabilities as Capabilities.DesiredCapabilities;
     const platformName = String(cap.platformName);
 
-    const resp = await superagent.put(this.updateRunConfig).send(JSON.stringify({
+    await updateRunConfig({
       maxTestRuns: 100,
       platformName,
-    }));
-    this.logger.info(
-      `Updated config 🐰 for the test run: ${resp.text}`,
-    );
+    });
+
     const completed = this.pyProcess?.killed;
     if (completed) return this.pyProcess?.exitCode === 0;
 
-    await superagent.put(`${this.url}/done`).retry(3).then(
-      async (data) => {
-        this.logger.info(data.text);
-      },
-    );
+    await markTestRunCompletion();
     return this.flagToPyThatsItsDone();
   }
 }

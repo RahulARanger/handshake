@@ -3,83 +3,25 @@ import type {
   RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
 import type { Capabilities } from '@wdio/types';
-import AsyncLock from 'async-lock';
-import superagent from 'superagent';
+import ReporterDialPad, { feed } from 'graspit-commons';
 import type {
   PayloadForMarkingTestEntityCompletion,
   PayloadForRegisteringTestEntity,
   SuiteType,
 } from './types';
-import ReporterContacts, { internalAttachScreenshot } from './contacts';
+import ReporterContacts from './contacts';
 import sanitizePaths, { isScreenShot } from './helpers';
 
 export default class GraspItReporter extends ReporterContacts {
-  lock = new AsyncLock({
-    timeout: 60e3,
-    maxExecutionTime: 60e3,
-    maxPending: 1000,
-  });
-
-  feed(
-    feedURL: string,
-    feedJSON: object | null,
-    keyToBeStored?: null | string,
-    dynamicKeys?: () => object,
-  ): void {
-    this.lock.acquire(
-      this.runnerStat?.config.framework ?? 'unknown-framework',
-      async (done) => {
-        if (
-          keyToBeStored !== 'session' && this.idMapped.session === undefined
-        ) {
-          this.logger.warn(
-            '💔 Did not find live session, would fail in the next iteration',
-          );
-        }
-
-        const payload = feedJSON || (dynamicKeys ? dynamicKeys() : {});
-        this.logger.info(
-          `🚚 URL: ${feedURL} || 📃 payload: ${JSON.stringify(
-            payload,
-          )}`,
-        );
-        const resp = await superagent.put(feedURL)
-          .send(JSON.stringify(payload))
-          .on('error', (err) => { throw new Error(err); });
-
-        done(
-          resp.ok ? undefined : new Error(`Found this status: ${resp.status} with body: ${resp.body}`),
-          resp.text,
-        );
-      },
-      (er, _text) => {
-        const text = String(_text);
-
-        if (er) {
-          this.logger.error(
-            `💔 URL: ${feedURL}, FOOD: ${JSON.stringify(
-              feedJSON,
-            )} | Message: ${er.message} || Response: ${text}`,
-          );
-        } else if (keyToBeStored) {
-          this.logger.info(
-            `Found 🤠 Key : ${keyToBeStored} | ${text}`,
-          );
-          this.idMapped[keyToBeStored] = String(text);
-        } else this.logger.info(`🗳️ - ${text}`);
-      },
-    );
-  }
-
   fetchParent(suiteOrTest: SuiteStats | TestStats): string {
     const expectedParent = suiteOrTest.parent ?? '';
-    const fetchedParent = this.idMapped[
+    const fetchedParent = ReporterDialPad.idMapped[
       (this.suites[expectedParent] as SuiteStats | undefined)?.uid ?? ''
     ] as string | undefined;
 
     return (
       fetchedParent
-      || this.idMapped[this.currentSuites.at(suiteOrTest.uid.includes('suite') ? -2 : -1)?.uid ?? '']
+      || ReporterDialPad.idMapped[this.currentSuites.at(suiteOrTest.uid.includes('suite') ? -2 : -1)?.uid ?? '']
       || ''
     );
   }
@@ -105,12 +47,13 @@ export default class GraspItReporter extends ReporterContacts {
       started,
       suiteType: type,
       parent: this.fetchParent(suiteOrTest),
-      session_id: this.idMapped.session ?? '',
+      session_id: ReporterDialPad.idMapped.session ?? '',
       retried: this.runnerStat?.retry ?? 0,
     };
     return payload;
   }
 
+  // eslint-disable-next-line class-methods-use-this
   extractRequiredForEntityCompletion(
     suiteOrTest: SuiteStats | TestStats,
   ): PayloadForMarkingTestEntityCompletion {
@@ -128,7 +71,7 @@ export default class GraspItReporter extends ReporterContacts {
 
     const payload = {
       duration,
-      suiteID: this.idMapped[suiteOrTest.uid],
+      suiteID: ReporterDialPad.idMapped[suiteOrTest.uid],
       ended,
       standing,
       errors: errors ?? [],
@@ -142,8 +85,8 @@ export default class GraspItReporter extends ReporterContacts {
     const caps = this.runnerStat
       ?.capabilities as Capabilities.DesiredCapabilities;
 
-    this.feed(
-      this.registerSession,
+    feed(
+      ReporterDialPad.registerSession,
       {
         started: runnerStats.start.toISOString(),
         browserName: caps.browserName,
@@ -157,15 +100,20 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onSuiteStart(suite: SuiteStats): void {
-    this.feed(this.registerSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
+    feed(ReporterDialPad.updateSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
   }
 
   addTest(test: TestStats): void {
-    this.feed(this.registerSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
+    feed(ReporterDialPad.updateSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
   }
 
   onSuiteEnd(suite: SuiteStats): void {
-    this.feed(this.updateSuite, null, null, () => this.extractRequiredForEntityCompletion(suite));
+    feed(
+      ReporterDialPad.updateSuite,
+      null,
+      null,
+      () => this.extractRequiredForEntityCompletion(suite),
+    );
   }
 
   onTestStart(test: TestStats): void {
@@ -173,7 +121,12 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   markTestCompletion(test: TestStats): void {
-    this.feed(this.updateSuite, null, null, () => this.extractRequiredForEntityCompletion(test));
+    feed(
+      ReporterDialPad.updateSuite,
+      null,
+      null,
+      () => this.extractRequiredForEntityCompletion(test),
+    );
   }
 
   onTestEnd(test: TestStats): void {
@@ -194,14 +147,14 @@ export default class GraspItReporter extends ReporterContacts {
     const payload = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
-      sessionID: this.idMapped.session ?? '',
+      sessionID: ReporterDialPad.idMapped.session ?? '',
       passed: this.counts.passes,
       failed: this.counts.failures,
       skipped: this.counts.skipping,
       hooks: this.counts.hooks,
       tests: this.counts.tests,
     };
-    this.feed(this.updateSession, payload);
+    feed(ReporterDialPad.updateSession, payload);
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
@@ -209,14 +162,12 @@ export default class GraspItReporter extends ReporterContacts {
       const attachedTest = this.currentTest;
       if (!attachedTest) return;
 
-      const hasFailed = await internalAttachScreenshot(
+      await ReporterDialPad.attachScreenshot(
         `Screenshot: ${attachedTest.title}`,
         commandArgs.result?.value ?? '',
-        this.idMapped[attachedTest.uid],
+        ReporterDialPad.idMapped[attachedTest.uid],
         attachedTest.fullTitle,
       );
-      if (!hasFailed) this.logger.info(`📸 save the attachment for the test: ${attachedTest.title}`);
-      else this.logger.error(`💔 Failed to add the attachment || FOOD: ${hasFailed}`);
     }
   }
 }

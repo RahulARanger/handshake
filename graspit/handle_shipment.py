@@ -44,12 +44,14 @@ def export(path, out):
     secho("Directory Found!", fg="blue")
     secho(f"Exporting results to {relpath(resolved, graspit)}", fg="yellow")
     secho(
-        f"Raising a request with command: \"npx cross-env EXPORT_DIR={relpath(resolved, graspit)} DB_PATH={relpath(saved_db_path, graspit)} npm run export\"",
+        f"Raising a request with command: \"npx cross-env EXPORT_DIR={relpath(resolved, graspit)}"
+        f" DB_PATH={relpath(saved_db_path, graspit)} npm run export\"",
         fg="blue"
     )
 
     call(
-        f"npx cross-env EXPORT_DIR={relpath(resolved, graspit)} DB_PATH={relpath(saved_db_path, graspit)} npm run export",
+        f"npx cross-env EXPORT_DIR={relpath(resolved, graspit)}"
+        f" DB_PATH={relpath(saved_db_path, graspit)} npm run export",
         cwd=graspit, shell=True
     )
 

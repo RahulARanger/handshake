@@ -92,7 +92,7 @@ def display(static_path):
 
     loader = AppLoader(factory=partial(feed_static_provider, root))
     _app = loader.load()
-    _app.prepare(host="127.0.0.1")
+    _app.prepare(host="127.0.0.1", fast=True)
     Sanic.serve(primary=_app, app_loader=loader)
 
 

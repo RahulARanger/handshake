@@ -1,5 +1,5 @@
 {
-	"name": "wdio-graspit-reporter",
+	"name": "graspit-commons",
 	"version": "0.1.0",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
@@ -8,18 +8,16 @@
 	"private": false,
 	"license": "MIT",
 	"readme": "../../README.md",
-	"description": "This package is a reporter that sends the test data from your webdriverIO test run to your local graspit server which is then displayed by our graspit-dashboard",
+	"description": "This package has some common functions or constants required for interacting with graspit-server",
 	"scripts": {
 		"lint": "eslint src/**",
-		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts && node build.cjs"
+		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts"
 	},
 	"dependencies": {
-		"@wdio/reporter": "^8.16.17",
-		"@wdio/types": "^8.16.21",
+		"async-lock": "^1.4.0",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit": "*",
-		"graspit-commons": "*"
+		"graspit": "*"
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.0",
