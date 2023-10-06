@@ -105,7 +105,13 @@ export class ServiceDialPad extends DialPad {
     resultsDir: string,
     rootDir: string,
     outDir?: string,
-  ): Promise<ChildProcess> {
+    skipPatch?: boolean,
+  ): Promise<ChildProcess | false> {
+    if (skipPatch) {
+      logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
+      return false;
+    }
+
     const patchScript = `"${this.venv}" && graspit patch "${resultsDir}"`;
     const script = outDir ? `${patchScript} && cd "${process.cwd()}" && graspit export "${resultsDir}" --out "${outDir}"` : patchScript;
 

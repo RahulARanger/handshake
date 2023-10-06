@@ -190,5 +190,5 @@ export const config = attachReporter(metaConfig, {
   root: dirname(dirname(dirname(process.cwd()))),
   addScreenshots: false,
   // does not depend on this as we have explicitly mentioned when to add screenshots
-  // out: './dist',
+  out: './dist',
 });
