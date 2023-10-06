@@ -106,10 +106,17 @@ export class ServiceDialPad extends DialPad {
     rootDir: string,
     outDir?: string,
   ): Promise<ChildProcess> {
-    const script = `"${this.venv}" && graspit patch "${resultsDir}"`;
+    const patchScript = `"${this.venv}" && graspit patch "${resultsDir}"`;
+    const script = outDir ? `${patchScript} && cd "${process.cwd()}" && graspit export "${resultsDir}" --out "${outDir}"` : patchScript;
+
+    if (outDir == null) {
+      logger.info(`Patching the results ⛑️, passing the command ${script}`);
+    } else {
+      logger.info(`Generating Report 📃, passing the command: ${script}`);
+    }
 
     const patcher = spawn(
-      `${script} && ${outDir ? `cd "${process.cwd()}" && graspit export "${resultsDir}" --out "${outDir}"` : ''}`,
+      script,
       {
         shell: true,
         cwd: rootDir,

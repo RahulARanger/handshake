@@ -119,7 +119,7 @@ export class ReporterDialPad extends DialPad {
       .put(this.addAttachmentForEntity)
       .send(payload)
       .on('error', (err) => {
-        logger.error(`💔 Failed to addd description, requested: ${payload}, response: ${resp.text}, because of ${err}`);
+        logger.error(`💔 Failed to attach screenshot, requested: ${payload}, because of ${err}`);
       });
     return resp.statusCode === 200;
   }
@@ -140,7 +140,7 @@ export class ReporterDialPad extends DialPad {
       .put(this.addAttachmentForEntity)
       .send(payload)
       .on('error', (err) => {
-        logger.error(`💔 Failed to addd description, requested: ${payload}, response: ${resp.text}, because of ${err}`);
+        logger.error(`💔 Failed to set description, requested: ${payload}, because of ${err}`);
       });
     return resp.statusCode === 200;
   }

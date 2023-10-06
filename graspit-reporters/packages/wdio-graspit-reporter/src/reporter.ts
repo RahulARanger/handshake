@@ -99,11 +99,11 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onSuiteStart(suite: SuiteStats): void {
-    this.supporter.feed(this.supporter.updateSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
+    this.supporter.feed(this.supporter.registerSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
   }
 
   addTest(test: TestStats): void {
-    this.supporter.feed(this.supporter.updateSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
+    this.supporter.feed(this.supporter.registerSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
   }
 
   onSuiteEnd(suite: SuiteStats): void {
