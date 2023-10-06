@@ -1,7 +1,7 @@
 from graspit.services.DBService.models.dynamic_base import TaskBase
-from graspit.services.SchedularService.modifySuites import handleSuiteStatus
+from graspit.services.SchedularService.modifySuites import patchTestSuite
 from graspit.services.SchedularService.constants import JobType
-from graspit.services.SchedularService.completeTestRun import complete_test_run
+from graspit.services.SchedularService.completeTestRun import patchTestRun
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from tortoise.expressions import Q
@@ -30,10 +30,10 @@ async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
 
     match task.type:
         case JobType.MODIFY_SUITE:
-            await handleSuiteStatus(task.ticketID, task.test_id)
+            await patchTestSuite(task.ticketID, task.test_id)
 
         case JobType.MODIFY_TEST_RUN:
-            await complete_test_run(task.ticketID, task.test_id)
+            await patchTestRun(task.ticketID, task.test_id)
         case _:
             print("Not Implemented yet..")
 

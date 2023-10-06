@@ -7,7 +7,7 @@ from loguru import logger
 from itertools import chain
 
 
-async def handleSuiteStatus(suiteID: str, testID: str):
+async def patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
     task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()

@@ -81,7 +81,7 @@ def simplify_file_paths(paths: List[str]):
     return tree
 
 
-async def complete_test_run(test_id: str, current_test_id: str):
+async def patchTestRun(test_id: str, current_test_id: str):
     logger.info("Patching up the test run... {}", test_id)
 
     test_run = await RunBase.filter(testID=test_id).first()

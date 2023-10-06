@@ -59,13 +59,10 @@ class MarkSuite(BaseModel):
     standing: Optional[Status] = Status.SKIPPED
 
 
-class GeneralAttachment(TypedDict):
-    title: Optional[str]
-    value: Optional[Any]
-
-
 class AddAttachmentForEntity(BaseModel):
     entityID: uuid.UUID
     type: AttachmentType
-    description: Optional[str]
-    content: GeneralAttachment
+    description: Optional[str] = ''
+    value: str
+    color: Optional[str] = ''
+    title: Optional[str] = ''

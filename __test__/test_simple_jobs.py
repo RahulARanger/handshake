@@ -1,8 +1,8 @@
 from pytest import mark, fixture
 from graspit.services.DBService.models import TaskBase, SuiteBase, RunBase, JobBase, SessionBase
 from graspit.services.SchedularService.constants import JobType
-from graspit.services.SchedularService.modifySuites import handleSuiteStatus
-from graspit.services.SchedularService.completeTestRun import complete_test_run
+from graspit.services.SchedularService.modifySuites import patchTestSuite
+from graspit.services.SchedularService.completeTestRun import patchTestRun
 from graspit.services.DBService.models.types import SuiteType, Status
 from datetime import datetime, timedelta
 from tortoise.functions import Count, Lower
@@ -80,7 +80,7 @@ class TestHandleSuiteStatus:
         )
 
         for suite in suites:
-            await handleSuiteStatus(
+            await patchTestSuite(
                 suite.suiteID, session.test
             )
 
@@ -145,15 +145,15 @@ class TestHandleSuiteStatus:
         await before_parent_tasks.update_from_dict(dict(picked=True))
         await before_parent_tasks.save()
 
-        await handleSuiteStatus(parent_suite.suiteID, session.test)
+        await patchTestSuite(parent_suite.suiteID, session.test)
 
         parent_task = await TaskBase.filter(ticketID=parent_suite.suiteID).first()
         assert not parent_task.picked, "Task still exists and is ready to get picked"
 
-        await handleSuiteStatus(child_suite.suiteID, session.test)
+        await patchTestSuite(child_suite.suiteID, session.test)
         assert not await TaskBase.exists(ticketID=child_suite.suiteID), "Child Task is now processed"
 
-        await handleSuiteStatus(parent_suite.suiteID, session.test)
+        await patchTestSuite(parent_suite.suiteID, session.test)
         assert not await TaskBase.exists(ticketID=parent_suite.suiteID)
 
     async def test_rollup_errors(self, sample_test_session):
@@ -197,7 +197,7 @@ class TestHandleSuiteStatus:
             )
 
         for suiteIndex in reversed(range(3)):
-            await handleSuiteStatus(suites[suiteIndex].suiteID, session.test)
+            await patchTestSuite(suites[suiteIndex].suiteID, session.test)
 
             parent_suite = await SuiteBase.filter(suiteID=suites[suiteIndex].suiteID).first()
             expected = [*parent_suite.errors]
@@ -222,7 +222,7 @@ class TestCompleteTestRun:
             type=JobType.MODIFY_TEST_RUN,
             test_id=test.testID, picked=True
         )
-        await complete_test_run(test.testID, test.testID)
+        await patchTestRun(test.testID, test.testID)
 
         test_run = await RunBase.filter(testID=test.testID).first()
         # status of each of its tests (not the suites)
@@ -268,7 +268,7 @@ class TestCompleteTestRun:
             type=JobType.MODIFY_TEST_RUN,
             test_id=test.testID, picked=True
         )
-        await complete_test_run(test.testID, test.testID)
+        await patchTestRun(test.testID, test.testID)
 
         test_run = await RunBase.filter(testID=test.testID).first()
         assert test_run.suiteSummary == dict(count=6, passed=2, skipped=2, failed=2)
