@@ -3,8 +3,8 @@ import {
     type statusOfEntity,
     type TestDetails,
     type SessionDetails,
-    type suiteType,
     type AttachmentDetails,
+    type Attachment,
 } from "@/types/detailedTestRunPage";
 import Input from "antd/lib/input/Input";
 import React, {
@@ -37,6 +37,7 @@ import RenderTimeRelativeToStart, {
 } from "@/components/renderers";
 import MetaCallContext from "@/components/TestRun/context";
 import Button from "antd/lib/button/button";
+import Paragraph from "antd/lib/typography/Paragraph";
 import Description, {
     type DescriptionsProps,
 } from "antd/lib/descriptions/index";
@@ -52,7 +53,10 @@ import Typography from "antd/lib/typography/Typography";
 import BadgeForSuiteType from "./Badge";
 import MoreDetailsOnEntity from "./DetailedModal";
 
-function EntityItem(props: { item: PreviewForTests }): ReactNode {
+function EntityItem(props: {
+    item: PreviewForTests;
+    attachmentsForDescription?: Attachment[];
+}): ReactNode {
     const aboutSuite: DescriptionsProps["items"] = [
         {
             key: "started",
@@ -80,13 +84,20 @@ function EntityItem(props: { item: PreviewForTests }): ReactNode {
     // }
 
     return (
-        <Description
-            items={aboutSuite}
-            bordered
-            title={props.item.Description}
-            style={{ overflowX: "hidden" }}
-            size="small"
-        />
+        <>
+            {props.attachmentsForDescription?.map((desc, index) => (
+                <Paragraph key={index}>
+                    {JSON.parse(desc.attachmentValue).value}
+                </Paragraph>
+            ))}
+            <Description
+                items={aboutSuite}
+                bordered
+                title={props.item.Description}
+                style={{ overflowX: "hidden" }}
+                size="small"
+            />
+        </>
     );
 }
 
@@ -151,6 +162,10 @@ export default function TestEntityDrawer(props: {
                 setShowDetailedView(true);
             };
 
+            const hasRequiredAttachment = attachments[test.suiteID]?.find(
+                (attachment) => attachment.type === "PNG",
+            );
+
             if (test.suiteType === "SUITE") {
                 actions.push(
                     <Button
@@ -164,7 +179,7 @@ export default function TestEntityDrawer(props: {
                     />,
                 );
             } else {
-                if (attachments[test.suiteID]?.length > 0) {
+                if (hasRequiredAttachment != null) {
                     actions.push(
                         <Button
                             key="attachments"
@@ -203,7 +218,14 @@ export default function TestEntityDrawer(props: {
                         <BadgeForSuiteType suiteType={test.suiteType} />
                     </Space>
                 ),
-                children: <EntityItem item={parsed} />,
+                children: (
+                    <EntityItem
+                        item={parsed}
+                        attachmentsForDescription={attachments[
+                            parsed.id
+                        ]?.filter((item) => item.type === "DESC")}
+                    />
+                ),
                 extra: <Space>{actions}</Space>,
             };
         });

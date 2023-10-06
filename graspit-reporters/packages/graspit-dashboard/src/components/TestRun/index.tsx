@@ -17,7 +17,6 @@ import GanttChartForTestEntities from "../Charts/GanttChartForTestSuites";
 import HomeOutlined from "@ant-design/icons/HomeOutlined";
 import TableOutlined from "@ant-design/icons/TableOutlined";
 import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
-import Tooltip from "antd/lib/tooltip/index";
 import TestEntities from "@/components/TestRun/TestEntities";
 import Card from "antd/lib/card/Card";
 import { dateFormatUsed } from "../Datetime/format";
@@ -64,28 +63,24 @@ export default function DetailedTestRun(): ReactNode {
     const items: Tab[] = [
         {
             label: (
-                <Tooltip title="Overview">
-                    <span>
-                        <HomeOutlined />
-                        Overview
-                    </span>
-                </Tooltip>
+                <span>
+                    <HomeOutlined />
+                    Overview
+                </span>
             ),
             children: <Overview run={data} onTabSelected={setTab} />,
             key: overviewTab,
         },
         {
             label: (
-                <Tooltip title="Test Entities">
-                    <span>
-                        {viewMode === gridViewMode ? (
-                            <TableOutlined />
-                        ) : (
-                            <PartitionOutlined />
-                        )}
-                        Test Entities
-                    </span>
-                </Tooltip>
+                <span>
+                    {viewMode === gridViewMode ? (
+                        <TableOutlined />
+                    ) : (
+                        <PartitionOutlined />
+                    )}
+                    Test Entities
+                </span>
             ),
             key: testEntitiesTab,
             children: (

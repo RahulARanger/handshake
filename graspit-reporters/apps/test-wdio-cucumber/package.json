@@ -10,7 +10,8 @@
 		"lint": "eslint features/**/*.ts wdio.conf.ts",
 		"wdio": "wdio run ./wdio.conf.ts",
 		"activate": ".\\\"../../../venv/scripts/activate\"",
-		"display": "npm run activate && graspit display ./dist"
+		"display": "npm run activate && graspit display ./dist",
+		"test-display": "npm run activate && python -m http.server -d ./dist"
 	},
 	"author": "",
 	"license": "ISC",

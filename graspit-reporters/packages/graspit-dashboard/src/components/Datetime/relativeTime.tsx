@@ -39,13 +39,16 @@ export default function RelativeTo(props: {
             style={{ maxWidth: "120px", ...(props.style ?? {}) }}
         >
             <div className={carouselStyles.container}>
-                <Typography className={carouselStyles.slide}>
+                <Typography
+                    suppressHydrationWarning
+                    className={carouselStyles.slide}
+                >
                     {`${props.dateTime.format(
-                        props.format ?? timeFormatUsed
+                        props.format ?? timeFormatUsed,
                     )} ${
                         props.secondDateTime != null
                             ? ` - ${props.secondDateTime.format(
-                                  props.format ?? timeFormatUsed
+                                  props.format ?? timeFormatUsed,
                               )}`
                             : ""
                     }`}
@@ -54,7 +57,7 @@ export default function RelativeTo(props: {
                     title={
                         props.wrt != null
                             ? `Relative to ${props.wrt.format(
-                                  props.format ?? timeFormatUsed
+                                  props.format ?? timeFormatUsed,
                               )}`
                             : "Click me to update!"
                     }
@@ -64,6 +67,7 @@ export default function RelativeTo(props: {
                         onClick={() => {
                             setFormatted(formatter());
                         }}
+                        suppressHydrationWarning
                         size="small"
                         type="text"
                     >
@@ -93,10 +97,16 @@ export function HumanizeDuration(props: {
             }}
         >
             <div className={carouselStyles.container}>
-                <Typography className={carouselStyles.slide}>
+                <Typography
+                    suppressHydrationWarning
+                    className={carouselStyles.slide}
+                >
                     {`${props?.duration?.asSeconds() ?? "--"} s`}
                 </Typography>
-                <Typography className={carouselStyles.slide}>
+                <Typography
+                    suppressHydrationWarning
+                    className={carouselStyles.slide}
+                >
                     {props?.duration?.humanize() ?? "--"}
                 </Typography>
             </div>

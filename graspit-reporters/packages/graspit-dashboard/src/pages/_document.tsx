@@ -1,7 +1,12 @@
-import Document, { Html, Head, Main, NextScript } from "next/document";
+import Document, {
+    Html,
+    Head,
+    Main,
+    NextScript,
+    type DocumentContext,
+} from "next/document";
 import React, { type ReactNode } from "react";
-import { createCache, extractStyle, StyleProvider } from "@ant-design/cssinjs";
-import type { DocumentContext } from "next/document";
+import { StyleProvider, createCache, extractStyle } from "@ant-design/cssinjs";
 
 const MyDocument = (): ReactNode => (
     <Html lang="en">
@@ -13,27 +18,28 @@ const MyDocument = (): ReactNode => (
     </Html>
 );
 
-Document.getInitialProps = async (ctx: DocumentContext) => {
+MyDocument.getInitialProps = async (ctx: DocumentContext) => {
     const cache = createCache();
     const originalRenderPage = ctx.renderPage;
     ctx.renderPage = async () =>
         await originalRenderPage({
-            enhanceApp: (App) => (props) =>
-                (
-                    <StyleProvider hashPriority="high" ssrInline cache={cache}>
-                        <App {...props} />
-                    </StyleProvider>
-                ),
+            enhanceApp: (App) => (props) => (
+                <StyleProvider cache={cache}>
+                    <App {...props} />
+                </StyleProvider>
+            ),
         });
 
     const initialProps = await Document.getInitialProps(ctx);
+    // 1.1 extract style which had been used
     const style = extractStyle(cache, true);
     return {
         ...initialProps,
         styles: (
             <>
                 {initialProps.styles}
-                <style dangerouslySetInnerHTML={{ __html: style }} />
+                {/* 1.2 inject css */}
+                <style dangerouslySetInnerHTML={{ __html: style }}></style>
             </>
         ),
     };

@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['antd'],
+  transpilePackages: [],
   output: "export",
   env: {
     NEXT_PY_PORT: process.env.NEXT_PY_PORT
