@@ -38,11 +38,8 @@ export default function RelativeTo(props: {
             ref={emblaRef}
             style={{ maxWidth: "120px", ...(props.style ?? {}) }}
         >
-            <div className={carouselStyles.container}>
-                <Typography
-                    suppressHydrationWarning
-                    className={carouselStyles.slide}
-                >
+            <div suppressHydrationWarning className={carouselStyles.container}>
+                <Typography className={carouselStyles.slide}>
                     {`${props.dateTime.format(
                         props.format ?? timeFormatUsed,
                     )} ${
@@ -67,7 +64,6 @@ export default function RelativeTo(props: {
                         onClick={() => {
                             setFormatted(formatter());
                         }}
-                        suppressHydrationWarning
                         size="small"
                         type="text"
                     >
@@ -96,17 +92,11 @@ export function HumanizeDuration(props: {
                 ...(props.style ?? {}),
             }}
         >
-            <div className={carouselStyles.container}>
-                <Typography
-                    suppressHydrationWarning
-                    className={carouselStyles.slide}
-                >
+            <div suppressHydrationWarning className={carouselStyles.container}>
+                <Typography className={carouselStyles.slide}>
                     {`${props?.duration?.asSeconds() ?? "--"} s`}
                 </Typography>
-                <Typography
-                    suppressHydrationWarning
-                    className={carouselStyles.slide}
-                >
+                <Typography className={carouselStyles.slide}>
                     {props?.duration?.humanize() ?? "--"}
                 </Typography>
             </div>

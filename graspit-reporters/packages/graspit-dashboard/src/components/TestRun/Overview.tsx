@@ -190,7 +190,7 @@ export default function Overview(props: {
                                             dateTime={startedAt}
                                             style={{
                                                 marginLeft: "30px",
-                                                maxWidth: "190px",
+                                                maxWidth: "220px",
                                             }}
                                             secondDateTime={dayjs(
                                                 props.run.ended,
