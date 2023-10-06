@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import WDIOReporter, { TestStats } from '@wdio/reporter';
 import log4js, { Logger } from 'log4js';
-import ReporterDialPad from 'graspit-commons';
+import { ReporterDialPad, ServiceDialPad } from 'graspit-commons';
 import type { ReporterOptions, GraspItServiceOptions } from './types';
 
 // eslint-disable-next-line import/no-mutable-exports
@@ -13,7 +13,9 @@ log4js.configure({
 });
 
 export default class ReporterContacts extends WDIOReporter {
-  options: ReporterOptions = {};
+  options: ReporterOptions;
+
+  supporter: ReporterDialPad;
 
   logger: Logger;
 
@@ -24,8 +26,7 @@ export default class ReporterContacts extends WDIOReporter {
     this.logger = log4js.getLogger('wdio-py-reporter');
     this.logger.level = 'debug';
 
-    expect(this.options.port).not.toBeUndefined();
-    ReporterDialPad.port = this.options.port;
+    this.supporter = new ReporterDialPad(this.options.port);
     currentReporter = this;
   }
 
@@ -34,18 +35,21 @@ export default class ReporterContacts extends WDIOReporter {
   }
 
   get currentTestID(): string {
-    return ReporterDialPad.idMapped[this.currentTest?.uid ?? ''];
+    return this.supporter.idMapped[this.currentTest?.uid ?? ''];
   }
 }
 
 export class ContactsForService {
-  options: GraspItServiceOptions = {};
-
   logger: Logger;
+
+  supporter: ServiceDialPad;
+
+  options: GraspItServiceOptions;
 
   constructor(options: GraspItServiceOptions) {
     this.logger = log4js.getLogger('wdio-py-service');
     this.logger.level = 'debug';
-    ReporterDialPad.port = options.port;
+    this.options = options;
+    this.supporter = new ServiceDialPad(this.options.port);
   }
 }

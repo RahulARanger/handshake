@@ -3,6 +3,7 @@ import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
 import { GraspItServiceOptions, ReporterOptions } from './types';
 import GraspItService from './service';
+import { currentReporter } from './contacts';
 
 export default function sanitizePaths(specs?: string[]): string[] {
   return (specs ?? []).map((spec) => relative(
@@ -21,7 +22,7 @@ export function attachReporter(
   toModify.reporters = toModify.reporters || [];
   toModify.services = toModify.services || [];
 
-  toModify.reporters?.push([
+  toModify.reporters.push([
     'graspit',
     {
       port,
@@ -29,11 +30,10 @@ export function attachReporter(
     },
   ]);
 
-  toModify.services?.push([
+  toModify.services.push([
     GraspItService, {
       port,
       projectName: options.projectName,
-      results: options.results,
       timeout: options.timeout,
       root: options.root,
       collectionName: options.collectionName,
@@ -51,5 +51,21 @@ export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boo
   return (
     (command.endpoint && isScrenshotEndpoint.test(command.endpoint))
         || command.command === 'takeScreenshot'
+  );
+}
+
+export async function attachScreenshot(title: string, content: string, description?:string) {
+  await currentReporter?.supporter?.attachScreenshot(
+    title,
+    content,
+    currentReporter?.currentTestID ?? '',
+    description,
+  );
+}
+
+export async function addDescription(content: string) {
+  await currentReporter?.supporter?.addDescription(
+    content,
+    currentReporter?.currentTestID ?? '',
   );
 }

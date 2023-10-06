@@ -3,7 +3,6 @@ import type {
   RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
 import type { Capabilities } from '@wdio/types';
-import ReporterDialPad, { feed } from 'graspit-commons';
 import type {
   PayloadForMarkingTestEntityCompletion,
   PayloadForRegisteringTestEntity,
@@ -15,13 +14,13 @@ import sanitizePaths, { isScreenShot } from './helpers';
 export default class GraspItReporter extends ReporterContacts {
   fetchParent(suiteOrTest: SuiteStats | TestStats): string {
     const expectedParent = suiteOrTest.parent ?? '';
-    const fetchedParent = ReporterDialPad.idMapped[
+    const fetchedParent = this.supporter.idMapped[
       (this.suites[expectedParent] as SuiteStats | undefined)?.uid ?? ''
     ] as string | undefined;
 
     return (
       fetchedParent
-      || ReporterDialPad.idMapped[this.currentSuites.at(suiteOrTest.uid.includes('suite') ? -2 : -1)?.uid ?? '']
+      || this.supporter.idMapped[this.currentSuites.at(suiteOrTest.uid.includes('suite') ? -2 : -1)?.uid ?? '']
       || ''
     );
   }
@@ -47,7 +46,7 @@ export default class GraspItReporter extends ReporterContacts {
       started,
       suiteType: type,
       parent: this.fetchParent(suiteOrTest),
-      session_id: ReporterDialPad.idMapped.session ?? '',
+      session_id: this.supporter.idMapped.session ?? '',
       retried: this.runnerStat?.retry ?? 0,
     };
     return payload;
@@ -71,7 +70,7 @@ export default class GraspItReporter extends ReporterContacts {
 
     const payload = {
       duration,
-      suiteID: ReporterDialPad.idMapped[suiteOrTest.uid],
+      suiteID: this.supporter.idMapped[suiteOrTest.uid],
       ended,
       standing,
       errors: errors ?? [],
@@ -85,8 +84,8 @@ export default class GraspItReporter extends ReporterContacts {
     const caps = this.runnerStat
       ?.capabilities as Capabilities.DesiredCapabilities;
 
-    feed(
-      ReporterDialPad.registerSession,
+    this.supporter.feed(
+      this.supporter.registerSession,
       {
         started: runnerStats.start.toISOString(),
         browserName: caps.browserName,
@@ -100,16 +99,16 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onSuiteStart(suite: SuiteStats): void {
-    feed(ReporterDialPad.updateSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
+    this.supporter.feed(this.supporter.updateSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
   }
 
   addTest(test: TestStats): void {
-    feed(ReporterDialPad.updateSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
+    this.supporter.feed(this.supporter.updateSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
   }
 
   onSuiteEnd(suite: SuiteStats): void {
-    feed(
-      ReporterDialPad.updateSuite,
+    this.supporter.feed(
+      this.supporter.updateSuite,
       null,
       null,
       () => this.extractRequiredForEntityCompletion(suite),
@@ -121,8 +120,8 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   markTestCompletion(test: TestStats): void {
-    feed(
-      ReporterDialPad.updateSuite,
+    this.supporter.feed(
+      this.supporter.updateSuite,
       null,
       null,
       () => this.extractRequiredForEntityCompletion(test),
@@ -147,14 +146,14 @@ export default class GraspItReporter extends ReporterContacts {
     const payload = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
-      sessionID: ReporterDialPad.idMapped.session ?? '',
+      sessionID: this.supporter.idMapped.session ?? '',
       passed: this.counts.passes,
       failed: this.counts.failures,
       skipped: this.counts.skipping,
       hooks: this.counts.hooks,
       tests: this.counts.tests,
     };
-    feed(ReporterDialPad.updateSession, payload);
+    this.supporter.feed(this.supporter.updateSession, payload);
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
@@ -162,10 +161,10 @@ export default class GraspItReporter extends ReporterContacts {
       const attachedTest = this.currentTest;
       if (!attachedTest) return;
 
-      await ReporterDialPad.attachScreenshot(
+      await this.supporter.attachScreenshot(
         `Screenshot: ${attachedTest.title}`,
         commandArgs.result?.value ?? '',
-        ReporterDialPad.idMapped[attachedTest.uid],
+        this.supporter.idMapped[attachedTest.uid],
         attachedTest.fullTitle,
       );
     }

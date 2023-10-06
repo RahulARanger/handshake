@@ -2,15 +2,11 @@ import type { ChildProcess } from 'node:child_process';
 import { join } from 'node:path';
 import {
   setTimeout,
+  setInterval,
   clearTimeout,
 } from 'node:timers';
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Capabilities, Options, Services } from '@wdio/types';
-import {
-  ping, startService, isServerTerminated, terminateServer,
-  updateRunConfig, generateReport,
-  markTestRunCompletion,
-} from 'graspit-commons';
 import { ContactsForService } from './contacts';
 
 export default class GraspItService
@@ -43,10 +39,10 @@ export default class GraspItService
       mkdirSync(resultsDir);
     }
 
-    this.pyProcess = startService(
+    this.pyProcess = this.supporter.startService(
       projectName ?? options.framework ?? 'unknown',
       resultsDir,
-      rootDir ?? process.cwd(),
+      rootDir,
       port ?? 6969,
     );
 
@@ -65,7 +61,7 @@ export default class GraspItService
 
   async forceKill(): Promise<unknown> {
     if (this.pyProcess?.killed) return;
-    if (await isServerTerminated()) {
+    if (await this.supporter.isServerTerminated()) {
       await this.sayBye();
       this.pyProcess?.kill('SIGINT');
       this.logger.warn('→ Had to 🗡️ the py-process.');
@@ -78,13 +74,32 @@ export default class GraspItService
       return;
     }
 
-    await terminateServer();
+    await this.supporter.terminateServer();
 
     this.logger.info('→ Py Process was closed 😪');
   }
 
   async waitUntilItsReady(): Promise<unknown> {
-    return ping().catch(this.sayBye.bind(this));
+    const waitingForTheServer = new Error(
+      'Not able to connect with server within 10 seconds 😢, please try again later',
+    );
+    return new Promise((resolve, reject) => {
+      const bomb = setTimeout(() => {
+        reject(waitingForTheServer);
+      }, 10e3);
+
+      const timer = setInterval(async () => {
+        const isOnline = await this.supporter.ping();
+        if (isOnline) {
+          clearTimeout(bomb);
+          clearInterval(timer);
+
+          this.logger.info('Server is online! 😀');
+          resolve({});
+        }
+        this.logger.warn('Server seems to be lazy today 😓, pinging again...');
+      }, 3e3);
+    }).catch(this.sayBye.bind(this));
   }
 
   async flagToPyThatsItsDone(): Promise<void> {
@@ -95,7 +110,7 @@ export default class GraspItService
       'Failed to generate Report on time 😢, please note the errors if any seen.',
     );
 
-    this.patcher = await generateReport(
+    this.patcher = await this.supporter.generateReport(
       this.resultsDir,
       this.options.root || process.cwd(),
       this.options.out,
@@ -130,7 +145,7 @@ export default class GraspItService
     const cap = config.capabilities as Capabilities.DesiredCapabilities;
     const platformName = String(cap.platformName);
 
-    await updateRunConfig({
+    await this.supporter.updateRunConfig({
       maxTestRuns: 100,
       platformName,
     });
@@ -138,7 +153,7 @@ export default class GraspItService
     const completed = this.pyProcess?.killed;
     if (completed) return this.pyProcess?.exitCode === 0;
 
-    await markTestRunCompletion();
+    await this.supporter.markTestRunCompletion();
     return this.flagToPyThatsItsDone();
   }
 }

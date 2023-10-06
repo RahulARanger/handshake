@@ -1,7 +1,7 @@
 import type { Tag } from '@wdio/reporter';
 
 export interface ReporterOptions {
-  port?: number;
+  port: number;
   addScreenshots?:boolean;
 }
 
@@ -29,11 +29,10 @@ export interface PayloadForMarkingTestEntityCompletion {
 }
 
 export interface GraspItServiceOptions {
-  port?: number;
-  root?: string;
-  collectionName?: string;
+  port: number;
+  root: string;
+  collectionName: string;
   timeout?: number;
-  results?: string;
-  projectName?: string;
+  projectName: string;
   out?:string;
 }
