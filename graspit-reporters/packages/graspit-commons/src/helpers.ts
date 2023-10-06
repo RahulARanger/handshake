@@ -108,7 +108,8 @@ export class ReporterDialPad extends DialPad {
   ) {
     const payload = JSON.stringify({
       description,
-      content: { title, value: content },
+      title,
+      value: content,
       type: 'PNG',
       entityID: entity_id,
     });
@@ -129,7 +130,7 @@ export class ReporterDialPad extends DialPad {
     entity_id: string,
   ) {
     const payload = JSON.stringify({
-      content: { content },
+      value: content,
       type: 'DESC',
       entityID: entity_id,
     });
