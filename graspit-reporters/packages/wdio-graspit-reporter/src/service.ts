@@ -14,7 +14,7 @@ export default class GraspItService
   implements Services.ServiceInstance {
   pyProcess?: ChildProcess;
 
-  patcher?: ChildProcess;
+  patcher?: false | ChildProcess;
 
   get resultsDir(): string {
     return join(
@@ -49,7 +49,7 @@ export default class GraspItService
     // important for avoiding zombie py server
     // eslint-disable-next-line @typescript-eslint/no-misused-promises -- not sure how to solve this
     process.on('exit', async () => {
-      this.patcher?.kill('SIGINT');
+      if (this.patcher) this.patcher?.kill('SIGINT');
       await this.sayBye();
     });
   }
@@ -96,8 +96,9 @@ export default class GraspItService
 
           this.logger.info('Server is online! 😀');
           resolve({});
+        } else {
+          this.logger.warn('Server seems to be lazy today 😓, pinging again...');
         }
-        this.logger.warn('Server seems to be lazy today 😓, pinging again...');
       }, 3e3);
     }).catch(this.sayBye.bind(this));
   }
@@ -117,8 +118,12 @@ export default class GraspItService
     );
 
     return new Promise((resolve, reject) => {
+      if (!this.patcher) {
+        resolve();
+        return;
+      }
       const bomb = setTimeout(() => {
-        if (!this.patcher?.killed) this.patcher?.kill('SIGINT');
+        if (this.patcher && !this.patcher?.killed) this.patcher?.kill('SIGINT');
         reject(reportError);
       }, this.options.timeout);
 
