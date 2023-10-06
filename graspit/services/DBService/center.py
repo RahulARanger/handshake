@@ -107,7 +107,9 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
         entity_id=attachment.entityID,
         description=attachment.description,
         type=attachment.type,
-        attachmentValue=attachment.content
+        attachmentValue=dict(
+            color=attachment.color, value=attachment.value, title=attachment.title
+        )
     )
 
     return text(f"Attachment added successfully for {attachment.entityID}", status=201)
