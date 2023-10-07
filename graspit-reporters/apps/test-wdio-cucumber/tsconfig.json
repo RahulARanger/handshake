@@ -1,5 +1,5 @@
 {
-	"extends": "graspit-ts-config/base.json",
+	"extends": "graspit-commons/base.json",
 	"compilerOptions": {
 		"moduleResolution": "node",
 		"module": "commonjs",

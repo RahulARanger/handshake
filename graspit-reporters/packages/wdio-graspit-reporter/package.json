@@ -14,8 +14,8 @@
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts && node build.cjs"
 	},
 	"dependencies": {
-		"@wdio/reporter": "^8.16.17",
-		"@wdio/types": "^8.16.21",
+		"@wdio/reporter": "^8.16.22",
+		"@wdio/types": "^8.16.22",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
 		"graspit": "*",
@@ -23,7 +23,6 @@
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.0",
-		"@types/superagent": "^4.1.19",
-		"graspit-ts-config": "*"
+		"@types/superagent": "^4.1.19"
 	}
 }

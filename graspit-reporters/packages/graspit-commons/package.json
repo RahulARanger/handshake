@@ -22,6 +22,8 @@
 	"devDependencies": {
 		"@types/async-lock": "^1.4.0",
 		"@types/superagent": "^4.1.19",
-		"graspit-ts-config": "*"
+		"@tsconfig/node18": "^18.2.2",
+		"@types/node": "^20.8.3",
+		"typescript": "^5.2.2"
 	}
 }

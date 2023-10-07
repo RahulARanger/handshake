@@ -99,13 +99,13 @@ def export(path, runs, dynamic, out):
     secho(f"Exporting results to {relpath(resolved, graspit)}", fg="yellow")
     secho(
         f'Raising a request with command: "npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, graspit)}'
-        f' DB_PATH={relpath(saved_db_path, graspit)} npm run export"',
+        f' DB_PATH={relpath(saved_db_path, graspit)} npm run build"',
         fg="blue",
     )
 
     call(
         f"npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, graspit)}"
-        f" DB_PATH={relpath(saved_db_path, graspit)} npm run export",
+        f" DB_PATH={relpath(saved_db_path, graspit)} npm run build",
         cwd=graspit,
         shell=True,
     )

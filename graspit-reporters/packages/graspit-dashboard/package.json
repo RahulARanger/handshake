@@ -6,10 +6,8 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "export": "npm run predev && next build --no-lint",
         "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx",
-        "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx",
-        "test-export": "cross-env EXPORT_DIR=output npm run build"
+        "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.tsx"
     },
     "dependencies": {
         "@ant-design/icons": "^5.2.6",
@@ -41,9 +39,7 @@
         "swr": "^2.2.4",
         "ts-node": "^10.9.1",
         "tslib": "^2.6.2",
-        "typescript": "^5.2.2"
-    },
-    "devDependencies": {
+        "typescript": "^5.2.2",
         "@next/eslint-plugin-next": "^13.5.4",
         "@svgr/webpack": "^8.1.0",
         "@typescript-eslint/eslint-plugin": "^6.7.4",
