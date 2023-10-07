@@ -1,14 +1,15 @@
+import getConnection from 'src/Generators/dbConnection';
+import { getAllTestRunDetails } from 'src/Generators/Queries/testRunRelated';
+import currentExportConfig from 'src/Generators/Queries/exportConfig';
+import type TestRunRecord from 'src/types/testRunRecords';
+import GridOfRuns from 'src/components/core/ListOfRuns';
+
 import { type GetStaticPropsResult } from 'next';
 import React, { type ReactNode } from 'react';
-import getConnection from '@/Generators/dbConnection';
 import { getLogger } from 'log4js';
-import { getAllTestRunDetails } from '@/Generators/Queries/testRunRelated';
-import type DetailsOfRun from '@/types/testRun';
-import GridOfRuns from '@/components/ListOfRuns';
-import currentExportConfig from '@/Generators/Queries/exportConfig';
 
 export async function getStaticProps(): Promise<
-    GetStaticPropsResult<{ runs?: DetailsOfRun[] }>
+    GetStaticPropsResult<{ runs?: TestRunRecord[] }>
 > {
     const logger = getLogger('Run-Page');
     logger.level = 'debug';
@@ -36,7 +37,7 @@ export async function getStaticProps(): Promise<
 }
 
 export default function AllTestRunsDisplayedHere(props: {
-    runs?: DetailsOfRun[];
+    runs?: TestRunRecord[];
 }): ReactNode {
     if (props.runs == null) return <></>;
     return <GridOfRuns runs={props.runs} />;

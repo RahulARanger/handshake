@@ -5,39 +5,40 @@ import {
     getTestRun,
     getTestRunSummary,
     getTests,
-} from "@/Generators/helper";
-import { type DetailedTestRunPageProps } from "@/types/detailedTestRunPage";
-import React from "react";
-import { type GetStaticPathsResult, type GetStaticPropsResult } from "next";
-import { type ReactNode } from "react";
-import { SWRConfig } from "swr";
-import { getLogger } from "log4js";
-import getConnection from "@/Generators/dbConnection";
+} from 'src/Generators/helper';
+import type { DetailedTestRunPageProps } from 'src/types/generatedResponse';
 import {
     generateTestRunSummary,
     getAllTestRuns,
     getDetailsOfTestRun,
-} from "@/Generators/Queries/testRunRelated";
+} from 'src/Generators/Queries/testRunRelated';
 import getAllSuites, {
     getAllEntityLevelAttachments,
     getAllTests,
-} from "@/Generators/Queries/testEntityRelated";
-import DetailedTestRun from "@/components/TestRun";
-import MetaCallContext from "@/components/TestRun/context";
-import getAllSessions from "@/Generators/Queries/sessionRelated";
-import currentExportConfig from "@/Generators/Queries/exportConfig";
+} from 'src/Generators/Queries/testEntityRelated';
+import getAllSessions from 'src/Generators/Queries/sessionRelated';
+import getConnection from 'src/Generators/dbConnection';
+import MetaCallContext from 'src/components/core/TestRun/context';
+import currentExportConfig from 'src/Generators/Queries/exportConfig';
+import DetailedTestRun from 'src/components/core/TestRun';
+
+import React from 'react';
+import { type GetStaticPathsResult, type GetStaticPropsResult } from 'next';
+import { type ReactNode } from 'react';
+import { SWRConfig } from 'swr';
+import { getLogger } from 'log4js';
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
-    const logger = getLogger("TestRunRelated");
-    logger.level = "debug";
-    logger.info("📃 Fetching list of test runs...");
+    const logger = getLogger('TestRunRelated');
+    logger.level = 'debug';
+    logger.info('📃 Fetching list of test runs...');
     const connection = await getConnection();
 
     const exportConfig = await currentExportConfig(connection);
     const paths = await getAllTestRuns(connection, exportConfig?.maxTestRuns);
     await connection.close();
 
-    logger.info("✅ Test Runs generated");
+    logger.info('✅ Test Runs generated');
 
     return {
         paths: paths.map((path) => ({ params: { id: path } })),
@@ -59,7 +60,7 @@ export async function getStaticProps(prepareProps: {
         return {
             redirect: {
                 permanent: true,
-                destination: "/RUNS/no-test-run-found",
+                destination: '/RUNS/no-test-run-found',
             },
         };
     }
@@ -72,7 +73,7 @@ export async function getStaticProps(prepareProps: {
     );
 
     await connection.close();
-    const port = process.env.NEXT_PUBLIC_PY_PORT ?? "1212";
+    const port = process.env.NEXT_PUBLIC_PY_PORT ?? '1212';
 
     return {
         props: {

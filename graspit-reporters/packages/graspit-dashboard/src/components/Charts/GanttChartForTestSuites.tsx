@@ -12,7 +12,7 @@ import HighchartsGantt from 'highcharts/modules/gantt';
 import brandDark from 'highcharts/themes/brand-dark';
 
 import dayjs from 'dayjs';
-import '@/styles/highChartExternal.module.css';
+import 'src/styles/highChartExternal.module.css';
 import MetaCallContext from '../core/TestRun/context';
 
 if (typeof HighChartsForGantt === 'object') {

@@ -1,36 +1,38 @@
+import { getTestRun } from 'src/Generators/helper';
+import type TestRunRecord from 'src/types/testRunRecords';
+import RelativeTo from 'src/components/utils/Datetime/relativeTime';
+import GanttChartForTestEntities from 'src/components/charts/GanttChartForTestSuites';
+import TestEntities from '../testEntities';
+import { dateFormatUsed } from 'src/components/utils/Datetime/format';
+import {
+    ganttChartTab,
+    gridViewMode,
+    overviewTab,
+    testEntitiesTab,
+} from 'src/types/uiConstants';
+import TestEntityDrawer from '../TestEntity';
+
 import React, { useState, useContext, type ReactNode } from 'react';
-import { getTestRun } from '@/Generators/helper';
-import type DetailsOfRun from '@/types/testRun';
+
 import useSWR from 'swr';
 import Layout from 'antd/lib/layout/index';
 import Empty from 'antd/lib/empty/index';
 import Space from 'antd/lib/space';
 import Tabs from 'antd/lib/tabs/index';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import RelativeTo from '../utils/Datetime/relativeTime';
 import dayjs from 'dayjs';
 import { crumbsForRun } from '../ListOfRuns/Items';
 import type { Tab } from 'rc-tabs/lib/interface';
 import Overview from './Overview';
 import MetaCallContext from './context';
-import GanttChartForTestEntities from '../charts/GanttChartForTestSuites';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
-import TestEntities from '@/components/TestRun/TestEntities';
 import Card from 'antd/lib/card/Card';
-import { dateFormatUsed } from '../utils/Datetime/format';
-import {
-    ganttChartTab,
-    gridViewMode,
-    overviewTab,
-    testEntitiesTab,
-} from '@/types/detailedTestRunPage';
-import TestEntityDrawer from './TestEntities/TestEntity';
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
-    const { data } = useSWR<DetailsOfRun>(getTestRun(port, testID));
+    const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
     const [viewMode, setViewMode] = useState<string>(gridViewMode);
     const [tab, setTab] = useState<string>(overviewTab);
     const [detailed, showDetailed] = useState<string>();

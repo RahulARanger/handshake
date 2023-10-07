@@ -9,6 +9,7 @@ import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import crumbs from './Items';
 import type { QuickPreviewForTestRun } from 'src/types/parsedRecords';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
+import HeaderStyles from 'src/styles/header.module.css';
 
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
@@ -17,7 +18,6 @@ import Collapse from 'antd/lib/collapse/Collapse';
 import Card from 'antd/lib/card/Card';
 import dayjs, { type Dayjs } from 'dayjs';
 import Layout from 'antd/lib/layout/index';
-import HeaderStyles from '@/styles/header.module.css';
 import Empty from 'antd/lib/empty/index';
 import Tooltip from 'antd/lib/tooltip/index';
 import Divider from 'antd/lib/divider/index';

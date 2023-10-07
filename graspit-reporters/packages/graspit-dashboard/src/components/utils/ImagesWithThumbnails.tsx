@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import carouselStyles from '@/styles/carousel.module.css';
+import carouselStyles from 'src/styles/carousel.module.css';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import type {

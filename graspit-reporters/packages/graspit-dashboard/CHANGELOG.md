@@ -1,5 +1,11 @@
 # graspit
 
+## 1.1.0
+
+### Minor Changes
+
+- Improved the Import paths and types for the reporter for webdriverio
+
 ## 1.0.0
 
 ### Major Changes
