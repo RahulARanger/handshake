@@ -3,9 +3,9 @@ import Document, {
     Head,
     Main,
     NextScript,
-    DocumentContext,
-} from "next/document";
-import React, { ReactNode } from "react";
+    type DocumentContext,
+} from 'next/document';
+import React, { type ReactNode } from 'react';
 
 const MyDocument = (): ReactNode => (
     <Html lang="en">

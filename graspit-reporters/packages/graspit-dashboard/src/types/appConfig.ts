@@ -1,4 +1,4 @@
-import type Suite from "./testRun";
+import type Suite from './testRun';
 
 type TestResults = Record<string, Suite>;
 
@@ -26,6 +26,6 @@ export interface DetailedTestResult extends Suite {
 }
 
 interface Attachment {
-    type: "PICTURE" | "TEXT" | "JSON";
+    type: 'PICTURE' | 'TEXT' | 'JSON';
     attachedTo: string;
 }

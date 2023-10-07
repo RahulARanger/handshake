@@ -1,9 +1,9 @@
-import { type Dayjs } from "dayjs";
-import type duration from "dayjs/plugin/duration";
+import { type Dayjs } from 'dayjs';
+import type duration from 'dayjs/plugin/duration';
 import {
     type suiteType,
     type statusOfEntity,
-} from "@/types/detailedTestRunPage";
+} from '@/types/detailedTestRunPage';
 
 interface BasicDetails {
     Started: [Dayjs, Dayjs];
@@ -44,11 +44,11 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
 // please note, following browsers were added based on the browsers supported by webdriverIO
 // we would add the names based on the request / requirement
 export type possibleBrowserNames =
-    | "chrome"
-    | "firefox"
-    | "safari"
-    | "edge"
-    | "others";
+    | 'chrome'
+    | 'firefox'
+    | 'safari'
+    | 'edge'
+    | 'others';
 
 export interface Tag {
     name: string;
