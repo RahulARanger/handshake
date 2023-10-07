@@ -1,5 +1,5 @@
 import type DetailsOfRun from "@/types/testRun";
-import React, { Component, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import Highcharts from "highcharts";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";

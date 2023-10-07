@@ -114,7 +114,10 @@ export default class GraspItService
     this.patcher = await this.supporter.generateReport(
       this.resultsDir,
       this.options.root || process.cwd(),
-      this.options.out,
+      this.options?.export?.out,
+      this.options?.export?.isDynamic,
+      this.options?.export?.maxTestRuns,
+      this.options?.export?.skipPatch,
     );
 
     return new Promise((resolve, reject) => {
@@ -133,8 +136,8 @@ export default class GraspItService
         if (exitCode !== 0) { return reject(reportError); }
 
         this.logger.info(
-          this.options.out
-            ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.out}"`
+          this.options.export?.out
+            ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.export?.out}"`
             : 'Results are patched 🤩. Now we are ready to export it.',
         );
         return resolve();

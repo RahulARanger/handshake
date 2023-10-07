@@ -49,12 +49,17 @@ async def createExportTicket(
 
 @handle_cli.command()
 @argument("path", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True)
-@option("-r", "--runs", type=int, default=100)
+@option(
+    "-r",
+    "--runs",
+    type=int,
+    default=100,
+    help="Asks Sanic to set the use max. number of workers",
+)
 @option(
     "-d",
     "--dynamic",
     default=False,
-    help="Asks Sanic to set the use max. number of workers",
     is_flag=True,
     type=bool,
     show_default=True,
@@ -83,7 +88,7 @@ def export(path, runs, dynamic, out):
             "Please install graspit in your project, npm install graspit"
         )
 
-    secho("Given details are valid, creating export ticket", fg="green")
+    secho("Given details are valid, creating a export ticket", fg="green")
 
     ticket_i_ds = []
     run_async(createExportTicket(runs, dynamic, saved_db_path, ticket_i_ds))

@@ -50,7 +50,6 @@ class TestConfigBase(AttachmentFields):
 
 class ValueForTestRunConfigBase(TypedDict):
     version: str
-    maxTestRuns: int
     platformName: str
 
 
@@ -98,5 +97,5 @@ class ExportBase(Model):
         null=True, default=False, description="Export Dynamic pages only ?"
     )
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="config", to_field="testID"
+        "models.RunBase", related_name="exports", to_field="testID"
     )

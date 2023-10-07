@@ -5,18 +5,23 @@ import { getLogger } from "log4js";
 import { getAllTestRunDetails } from "@/Generators/Queries/testRunRelated";
 import type DetailsOfRun from "@/types/testRun";
 import GridOfRuns from "@/components/ListOfRuns";
+import currentExportConfig from "@/Generators/Queries/exportConfig";
 
 export async function getStaticProps(prepareProps: {
     params: {
         id: string;
     };
-}): Promise<GetStaticPropsResult<{ runs: DetailsOfRun[] }>> {
+}): Promise<GetStaticPropsResult<{ runs?: DetailsOfRun[] }>> {
     const logger = getLogger("Run-Page");
     logger.level = "debug";
 
     logger.info("Generating Cards for all Runs");
 
     const connection = await getConnection();
+    const exportConfig = await currentExportConfig(connection);
+
+    if (exportConfig?.isDynamic === true) return { props: { runs: undefined } };
+
     const allRuns = await getAllTestRunDetails(connection);
     await connection.close();
 
@@ -26,7 +31,8 @@ export async function getStaticProps(prepareProps: {
 }
 
 export default function AllTestRunsDisplayedHere(props: {
-    runs: DetailsOfRun[];
+    runs?: DetailsOfRun[];
 }): ReactNode {
+    if (props.runs == null) return <></>;
     return <GridOfRuns runs={props.runs} />;
 }

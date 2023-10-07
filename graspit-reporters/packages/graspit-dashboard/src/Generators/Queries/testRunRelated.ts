@@ -3,43 +3,47 @@ import type DetailsOfRun from "@/types/testRun";
 import { type TestRunSummary } from "@/types/testRun";
 
 export default async function latestTestRun(
-    connection: dbConnection
+    connection: dbConnection,
 ): Promise<string> {
     const result = await connection.get<{ testID: string }>(
-        "select testID from runbase where started = (select max(started) from runbase where ended <> '');"
+        "select testID from runbase where started = (select max(started) from runbase where ended <> '');",
     );
     return result?.testID ?? "";
 }
 
 export async function getAllTestRuns(
-    connection: dbConnection
+    connection: dbConnection,
+    maxTestRuns?: number,
 ): Promise<string[]> {
     const result = await connection.all<Array<{ testID: string }>>(
-        "select testID, ended from runbase where ended <> '';"
+        "select testID, ended from runbase where ended <> '' LIMIT ?;",
+        maxTestRuns ?? -1,
     );
     return result.map((testRun) => testRun.testID);
 }
 
 export async function getDetailsOfTestRun(
     connection: dbConnection,
-    testID: string
+    testID: string,
 ): Promise<DetailsOfRun | undefined> {
     return await connection.get<DetailsOfRun>(
         "SELECT * from runbase where testID = ? AND ended <> '';",
-        testID
+        testID,
     );
 }
 
 export async function getAllTestRunDetails(
-    connection: dbConnection
+    connection: dbConnection,
+    maxTestRuns?: number,
 ): Promise<DetailsOfRun[] | undefined> {
     return await connection.all<DetailsOfRun[]>(
-        "SELECT * from runbase where ended <> '';"
+        "SELECT * from runbase where ended <> '' LIMIT ?",
+        maxTestRuns ?? -1,
     );
 }
 
 export function generateTestRunSummary(
-    _testDetails: DetailsOfRun
+    _testDetails: DetailsOfRun,
 ): TestRunSummary {
     const testDetails = JSON.parse(_testDetails.suiteSummary);
     return {

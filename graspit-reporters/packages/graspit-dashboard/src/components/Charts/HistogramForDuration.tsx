@@ -3,7 +3,6 @@ import React, { type ReactNode } from "react";
 import HighchartsMore from "highcharts/highcharts-more";
 import HighchartsExporting from "highcharts/modules/exporting";
 import HighchartsReact from "highcharts-react-official";
-import { statusColors } from "@/components/parseUtils";
 import darkUnica from "highcharts/themes/dark-unica";
 import Highcharts from "highcharts";
 

@@ -25,13 +25,16 @@ import DetailedTestRun from "@/components/TestRun";
 import MetaCallContext from "@/components/TestRun/context";
 import getAllSessions from "@/Generators/Queries/sessionRelated";
 import getAllEntityLevelAttachments from "@/Generators/Queries/attachmentRelated";
+import currentExportConfig from "@/Generators/Queries/exportConfig";
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {
     const logger = getLogger("TestRunRelated");
     logger.level = "debug";
     logger.info("📃 Fetching list of test runs...");
     const connection = await getConnection();
-    const paths = await getAllTestRuns(connection);
+
+    const exportConfig = await currentExportConfig(connection);
+    const paths = await getAllTestRuns(connection, exportConfig?.maxTestRuns);
     await connection.close();
 
     logger.info("✅ Test Runs generated");
@@ -50,6 +53,7 @@ export async function getStaticProps(prepareProps: {
     const testID = prepareProps.params.id;
 
     const connection = await getConnection();
+
     const details = await getDetailsOfTestRun(connection, testID);
     if (details == null) {
         return {

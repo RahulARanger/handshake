@@ -28,8 +28,9 @@ async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
 
 async def create_run(projectName: str) -> str:
     await set_default_config()
+
     default_config_for_test_run: ValueForTestRunConfigBase = dict(
-        maxTestRuns=100, platformName=uname().system, version=__version__
+        platformName=uname().system, version=__version__
     )
     test_id = str((await RunBase.create(projectName=projectName)).testID)
 
@@ -44,7 +45,9 @@ async def create_run(projectName: str) -> str:
 
 
 async def set_default_config():
-    record, _ = await ConfigBase.update_or_create(key=ConfigKeys.maxRuns, value=100)
+    record, _ = await ConfigBase.update_or_create(
+        dict(key=ConfigKeys.maxRuns, value=100)
+    )
     await record.save()
 
 

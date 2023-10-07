@@ -1,12 +1,9 @@
 import { type SuiteDetails } from "@/types/detailedTestRunPage";
-import React, { useContext, type ReactNode, useState } from "react";
+import React, { useContext, type ReactNode } from "react";
 import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
 import Button from "antd/lib/button/button";
 import { getSuites, getTestRun } from "@/Generators/helper";
-import RenderTimeRelativeToStart, {
-    RenderBrowserType,
-    RenderStatus,
-} from "@/components/renderers";
+import { RenderStatus } from "@/components/renderers";
 import RenderPassedRate from "../Charts/StackedBarChart";
 import MetaCallContext from "../TestRun/context";
 import useSWR from "swr";
@@ -20,7 +17,7 @@ import Typography from "antd/lib/typography/Typography";
 function treeData(
     node: specNode,
     suites: SuiteDetails,
-    setTestID: (testID: string) => void
+    setTestID: (testID: string) => void,
 ): DataNode[] {
     const root: DataNode = { title: "Root", key: "", children: [] };
     const structure: DataNode[] = [root];
@@ -102,14 +99,14 @@ export default function ProjectStructure(props: {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: detailsOfTestRun } = useSWR<DetailsOfRun>(
-        getTestRun(port, testID)
+        getTestRun(port, testID),
     );
     if (detailsOfTestRun == null || suites == null) return <></>;
 
     const projectStructure: DataNode[] = treeData(
         JSON.parse(detailsOfTestRun.specStructure),
         suites,
-        props.setTestID
+        props.setTestID,
     );
 
     return <DirectoryTree treeData={projectStructure} showLine selectable />;

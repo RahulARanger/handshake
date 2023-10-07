@@ -34,5 +34,10 @@ export interface GraspItServiceOptions {
   collectionName: string;
   timeout?: number;
   projectName: string;
-  out?:string;
+  export?: {
+    out: string;
+    maxTestRuns: number;
+    isDynamic: boolean;
+    skipPatch: boolean;
+  }
 }
