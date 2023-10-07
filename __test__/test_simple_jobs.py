@@ -1,5 +1,5 @@
 from pytest import mark, fixture
-from graspit.services.DBService.models import TaskBase, SuiteBase, RunBase, JobBase, SessionBase
+from graspit.services.DBService.models import TaskBase, SuiteBase, RunBase, SessionBase
 from graspit.services.SchedularService.constants import JobType
 from graspit.services.SchedularService.modifySuites import patchTestSuite
 from graspit.services.SchedularService.completeTestRun import patchTestRun
@@ -26,67 +26,92 @@ class TestHandleSuiteStatus:
         for suiteIndex in range(3):
             suite = await SuiteBase.create(
                 started=datetime.now(),
-                title=f"sample-suite-{suiteIndex + 1}", session_id=session_id,
-                suiteType=SuiteType.SUITE, ended=datetime.now() + timedelta(seconds=10),
-                file="", parent="", standing=Status.YET_TO_CALCULATE
+                title=f"sample-suite-{suiteIndex + 1}",
+                session_id=session_id,
+                suiteType=SuiteType.SUITE,
+                ended=datetime.now() + timedelta(seconds=10),
+                file="",
+                parent="",
+                standing=Status.YET_TO_CALCULATE,
             )
             suites.append(suite)
             tasks.append(
                 await TaskBase.create(
                     ticketID=suite.suiteID,
                     type=JobType.MODIFY_SUITE,
-                    test_id=test.testID, picked=True
+                    test_id=test.testID,
+                    picked=True,
                 )
             )
 
         await SuiteBase.create(
-            started=datetime.now(), parent=suites[0].suiteID,
-            title="sample-test-1-1", session_id=session_id,
-            file='', suiteType=SuiteType.TEST,
-            standing=Status.SKIPPED
+            started=datetime.now(),
+            parent=suites[0].suiteID,
+            title="sample-test-1-1",
+            session_id=session_id,
+            file="",
+            suiteType=SuiteType.TEST,
+            standing=Status.SKIPPED,
         )
 
         await SuiteBase.create(
-            started=datetime.now(), parent=suites[1].suiteID,
-            title="sample-test-2-1", session_id=session_id,
-            file="", suiteType=SuiteType.TEST,
-            standing=Status.PASSED
+            started=datetime.now(),
+            parent=suites[1].suiteID,
+            title="sample-test-2-1",
+            session_id=session_id,
+            file="",
+            suiteType=SuiteType.TEST,
+            standing=Status.PASSED,
         )
 
         await SuiteBase.create(
-            started=datetime.now(), parent=suites[1].suiteID,
-            title="sample-test-2-2", session_id=session_id,
-            file="", suiteType=SuiteType.TEST,
-            standing=Status.FAILED
+            started=datetime.now(),
+            parent=suites[1].suiteID,
+            title="sample-test-2-2",
+            session_id=session_id,
+            file="",
+            suiteType=SuiteType.TEST,
+            standing=Status.FAILED,
         )
 
         await SuiteBase.create(
-            started=datetime.now(), parent=suites[2].suiteID,
-            title="sample-test-3-1", session_id=session_id,
-            file="", suiteType=SuiteType.TEST,
-            standing=Status.PASSED
+            started=datetime.now(),
+            parent=suites[2].suiteID,
+            title="sample-test-3-1",
+            session_id=session_id,
+            file="",
+            suiteType=SuiteType.TEST,
+            standing=Status.PASSED,
         )
         await SuiteBase.create(
-            started=datetime.now(), parent=suites[2].suiteID,
-            title="sample-test-3-2", session_id=session_id,
-            file="", suiteType=SuiteType.TEST, duration=1e3,
-            standing=Status.PASSED
+            started=datetime.now(),
+            parent=suites[2].suiteID,
+            title="sample-test-3-2",
+            session_id=session_id,
+            file="",
+            suiteType=SuiteType.TEST,
+            duration=1e3,
+            standing=Status.PASSED,
         )
         await SuiteBase.create(
-            started=datetime.now(), parent=suites[2].suiteID,
-            title="sample-test-3-3", session_id=session_id,
-            file="", suiteType=SuiteType.TEST, duration=1e3,
-            standing=Status.SKIPPED
+            started=datetime.now(),
+            parent=suites[2].suiteID,
+            title="sample-test-3-3",
+            session_id=session_id,
+            file="",
+            suiteType=SuiteType.TEST,
+            duration=1e3,
+            standing=Status.SKIPPED,
         )
 
         for suite in suites:
-            await patchTestSuite(
-                suite.suiteID, session.test
-            )
+            await patchTestSuite(suite.suiteID, session.test)
 
         first_suite = await SuiteBase.filter(suiteID=suites[0].suiteID).first()
         assert first_suite.standing == Status.SKIPPED
-        assert first_suite.ended == suites[0].ended, f"{JobType.MODIFY_SUITE} job does not touch end date"
+        assert (
+            first_suite.ended == suites[0].ended
+        ), f"{JobType.MODIFY_SUITE} job does not touch end date"
         assert first_suite.skipped == 1
         assert first_suite.passed == 0
         assert first_suite.failed == 0
@@ -107,7 +132,9 @@ class TestHandleSuiteStatus:
         assert third_suite.tests == 3
 
         for task in suites:
-            assert not await TaskBase.exists(ticketID=task.suiteID), "Ticket should be deleted"
+            assert not await TaskBase.exists(
+                ticketID=task.suiteID
+            ), "Ticket should be deleted"
 
     async def test_dependent_suites(self, sample_test_session):
         # we would have suite - 1 and suite - 2
@@ -123,16 +150,20 @@ class TestHandleSuiteStatus:
         for suiteIndex in range(2):
             suite = await SuiteBase.create(
                 started=datetime.now(),
-                title=f"sample-suite-{suiteIndex + 1}", session_id=session_id,
+                title=f"sample-suite-{suiteIndex + 1}",
+                session_id=session_id,
                 suiteType=SuiteType.SUITE,
-                file="", parent="", standing=Status.YET_TO_CALCULATE
+                file="",
+                parent="",
+                standing=Status.YET_TO_CALCULATE,
             )
             suites.append(suite)
             tasks.append(
                 await TaskBase.create(
                     ticketID=suite.suiteID,
                     type=JobType.MODIFY_SUITE,
-                    test_id=test.testID, picked=True
+                    test_id=test.testID,
+                    picked=True,
                 )
             )
 
@@ -151,7 +182,9 @@ class TestHandleSuiteStatus:
         assert not parent_task.picked, "Task still exists and is ready to get picked"
 
         await patchTestSuite(child_suite.suiteID, session.test)
-        assert not await TaskBase.exists(ticketID=child_suite.suiteID), "Child Task is now processed"
+        assert not await TaskBase.exists(
+            ticketID=child_suite.suiteID
+        ), "Child Task is now processed"
 
         await patchTestSuite(parent_suite.suiteID, session.test)
         assert not await TaskBase.exists(ticketID=parent_suite.suiteID)
@@ -164,42 +197,46 @@ class TestHandleSuiteStatus:
         suites = []
         tasks = []
 
-        flat_errors = [
-            dict(type="a"),
-            dict(type="b"),
-            dict(type="c")
-        ]
+        flat_errors = [dict(type="a"), dict(type="b"), dict(type="c")]
 
         for suiteIndex in range(3):
             suite = await SuiteBase.create(
                 started=datetime.now(),
-                title=f"sample-suite-{suiteIndex + 1}", session_id=session_id,
+                title=f"sample-suite-{suiteIndex + 1}",
+                session_id=session_id,
                 suiteType=SuiteType.SUITE,
-                file="", parent="" if suiteIndex < 1 else suites[suiteIndex - 1].suiteID,
-                standing=Status.YET_TO_CALCULATE
+                file="",
+                parent="" if suiteIndex < 1 else suites[suiteIndex - 1].suiteID,
+                standing=Status.YET_TO_CALCULATE,
             )
             suites.append(suite)
             tasks.append(
                 await TaskBase.create(
                     ticketID=suite.suiteID,
                     type=JobType.MODIFY_SUITE,
-                    test_id=test.testID, picked=True
+                    test_id=test.testID,
+                    picked=True,
                 )
             )
 
         for testIndex in range(3):
             await SuiteBase.create(
                 started=datetime.now(),
-                title=f"sample-test-{testIndex + 1}", session_id=session_id,
+                title=f"sample-test-{testIndex + 1}",
+                session_id=session_id,
                 suiteType=SuiteType.TEST,
-                file="", parent=suites[testIndex].suiteID,
-                standing=Status.FAILED, errors=[flat_errors[testIndex]]
+                file="",
+                parent=suites[testIndex].suiteID,
+                standing=Status.FAILED,
+                errors=[flat_errors[testIndex]],
             )
 
         for suiteIndex in reversed(range(3)):
             await patchTestSuite(suites[suiteIndex].suiteID, session.test)
 
-            parent_suite = await SuiteBase.filter(suiteID=suites[suiteIndex].suiteID).first()
+            parent_suite = await SuiteBase.filter(
+                suiteID=suites[suiteIndex].suiteID
+            ).first()
             expected = [*parent_suite.errors]
             for error in flat_errors[suiteIndex:]:
                 index = expected.index(error)  # raises ValueError if not found
@@ -220,7 +257,8 @@ class TestCompleteTestRun:
         await TaskBase.create(
             ticketID=test.testID,
             type=JobType.MODIFY_TEST_RUN,
-            test_id=test.testID, picked=True
+            test_id=test.testID,
+            picked=True,
         )
         await patchTestRun(test.testID, test.testID)
 
@@ -240,8 +278,12 @@ class TestCompleteTestRun:
         session = await sample_test_session
         test = await session.test
 
-        await TestHandleSuiteStatus().test_one_depth_independent_suites(sample_test_session)
-        _second_session = SessionBase.create(started=datetime.now(), test_id=test.testID)
+        await TestHandleSuiteStatus().test_one_depth_independent_suites(
+            sample_test_session
+        )
+        _second_session = SessionBase.create(
+            started=datetime.now(), test_id=test.testID
+        )
         await TestHandleSuiteStatus().test_one_depth_independent_suites(_second_session)
 
         session, second_session = await SessionBase.filter(test_id=test.testID).all()
@@ -250,13 +292,19 @@ class TestCompleteTestRun:
         await session.update_from_dict(
             dict(
                 ended=test.started + timedelta(seconds=30),
-                skipped=2, passed=3, failed=1, tests=6
+                skipped=2,
+                passed=3,
+                failed=1,
+                tests=6,
             )
         )
         await second_session.update_from_dict(
             dict(
                 ended=test.started + timedelta(seconds=45),
-                skipped=2, passed=3, failed=1, tests=6
+                skipped=2,
+                passed=3,
+                failed=1,
+                tests=6,
             )
         )
 
@@ -266,7 +314,8 @@ class TestCompleteTestRun:
         await TaskBase.create(
             ticketID=test.testID,
             type=JobType.MODIFY_TEST_RUN,
-            test_id=test.testID, picked=True
+            test_id=test.testID,
+            picked=True,
         )
         await patchTestRun(test.testID, test.testID)
 
@@ -280,7 +329,10 @@ class TestCompleteTestRun:
 
         assert test_run.ended == second_session.ended
         assert test_run.started == session.started
-        assert test_run.duration != 45e3, "we do not include the duration starting from the test run"
-        assert test_run.duration == (
-                second_session.ended - session.started
-        ).total_seconds() * 1e3, "but from the first session"
+        assert (
+            test_run.duration != 45e3
+        ), "we do not include the duration starting from the test run"
+        assert (
+            test_run.duration
+            == (second_session.ended - session.started).total_seconds() * 1e3
+        ), "but from the first session"

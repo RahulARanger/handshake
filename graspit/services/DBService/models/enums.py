@@ -6,7 +6,9 @@ class Status(StrEnum):
     SKIPPED = "SKIPPED"
     FAILED = "FAILED"
     PENDING = "PENDING"
-    YET_TO_CALCULATE = "YET_TO_CALC"  # needs to be updated by our server to either passed or failed
+    YET_TO_CALCULATE = (
+        "YET_TO_CALC"  # needs to be updated by our server to either passed or failed
+    )
     # yet_to_calc is mostly seen for the suite
 
 
@@ -27,3 +29,7 @@ class AttachmentType(StrEnum):
 
 class PrunedRecords(StrEnum):
     RUN = "RUN"
+
+
+class ConfigKeys(StrEnum):
+    maxRuns = "MAX_RUNS"

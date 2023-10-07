@@ -26,3 +26,5 @@ Utilizes the data collected from the test execution does some processing and the
 - Support Cucumber framework
 - Dynamic Report
 
+### Note
+* https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment
