@@ -19,12 +19,12 @@ import {
     getDetailsOfTestRun,
 } from "@/Generators/Queries/testRunRelated";
 import getAllSuites, {
+    getAllEntityLevelAttachments,
     getAllTests,
 } from "@/Generators/Queries/testEntityRelated";
 import DetailedTestRun from "@/components/TestRun";
 import MetaCallContext from "@/components/TestRun/context";
 import getAllSessions from "@/Generators/Queries/sessionRelated";
-import getAllEntityLevelAttachments from "@/Generators/Queries/attachmentRelated";
 import currentExportConfig from "@/Generators/Queries/exportConfig";
 
 export async function getStaticPaths(): Promise<GetStaticPathsResult> {

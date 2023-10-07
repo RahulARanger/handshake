@@ -16,7 +16,7 @@ export async function getAllTestRuns(
     maxTestRuns?: number,
 ): Promise<string[]> {
     const result = await connection.all<Array<{ testID: string }>>(
-        "select testID, ended from runbase where ended <> '' LIMIT ?;",
+        "select testID, ended from runbase where ended <> '' order by started desc limit ?;",
         maxTestRuns ?? -1,
     );
     return result.map((testRun) => testRun.testID);
@@ -37,7 +37,7 @@ export async function getAllTestRunDetails(
     maxTestRuns?: number,
 ): Promise<DetailsOfRun[] | undefined> {
     return await connection.all<DetailsOfRun[]>(
-        "SELECT * from runbase where ended <> '' LIMIT ?",
+        "SELECT * from runbase where ended <> '' order by started desc LIMIT ?",
         maxTestRuns ?? -1,
     );
 }

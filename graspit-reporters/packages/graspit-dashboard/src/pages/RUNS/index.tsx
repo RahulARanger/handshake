@@ -15,14 +15,18 @@ export async function getStaticProps(prepareProps: {
     const logger = getLogger("Run-Page");
     logger.level = "debug";
 
-    logger.info("Generating Cards for all Runs");
-
     const connection = await getConnection();
     const exportConfig = await currentExportConfig(connection);
 
-    if (exportConfig?.isDynamic === true) return { props: { runs: undefined } };
+    if (exportConfig?.isDynamic === true) {
+        logger.info("Skipping /RUNS route for the dynamic export");
+        return { props: { runs: undefined } };
+    }
 
     const allRuns = await getAllTestRunDetails(connection);
+    if ((allRuns?.length ?? 0) > 0)
+        logger.info("Found Test Runs, Generating page.");
+
     await connection.close();
 
     return {
