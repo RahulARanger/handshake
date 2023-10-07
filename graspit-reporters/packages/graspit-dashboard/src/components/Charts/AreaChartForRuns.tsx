@@ -1,13 +1,13 @@
-import type DetailsOfRun from '@/types/testRun';
+import type TestRunRecord from 'src/types/testRunRecords';
 import React, { type ReactNode } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsExporting from 'highcharts/modules/exporting';
 import HighchartsReact from 'highcharts-react-official';
 import dayjs from 'dayjs';
-import { statusColors } from '@/components/parseUtils';
 import brandDark from 'highcharts/themes/brand-dark';
 import DayJSUtc from 'dayjs/plugin/utc';
 import DayJSTimezone from 'dayjs/plugin/timezone';
+import { statusColors } from '../parseUtils';
 
 dayjs.extend(DayJSUtc);
 dayjs.extend(DayJSTimezone);
@@ -18,7 +18,7 @@ if (typeof Highcharts === 'object') {
 }
 
 export default function AreaChartsForRuns(props: {
-    runs: DetailsOfRun[];
+    runs: TestRunRecord[];
     showTest: boolean;
 }): ReactNode {
     const text = props.showTest ? 'Tests' : 'Suites';

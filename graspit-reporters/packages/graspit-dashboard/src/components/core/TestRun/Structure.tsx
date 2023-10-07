@@ -1,27 +1,28 @@
-import { type SuiteDetails } from "@/types/detailedTestRunPage";
-import React, { useContext, type ReactNode } from "react";
-import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
-import Button from "antd/lib/button/button";
-import { getSuites, getTestRun } from "@/Generators/helper";
-import { RenderStatus } from "@/components/renderers";
-import RenderPassedRate from "../Charts/StackedBarChart";
-import MetaCallContext from "../TestRun/context";
-import useSWR from "swr";
-import type DetailsOfRun from "@/types/testRun";
-import Space from "antd/lib/space";
-import DirectoryTree from "antd/lib/tree/DirectoryTree";
-import type { DataNode } from "antd/es/tree";
-import { type specNode } from "@/types/testRun";
-import Typography from "antd/lib/typography/Typography";
+import type TestRunRecord from 'src/types/testRunRecords';
+import type { SuiteDetails } from 'src/types/generatedResponse';
+import type { specNode } from 'src/types/testRunRecords';
+import { getSuites, getTestRun } from 'src/Generators/helper';
+import { RenderStatus } from 'src/components/utils/renderers';
+import RenderPassedRate from 'src/components/charts/StackedBarChart';
+import MetaCallContext from '../TestRun/context';
+
+import React, { useContext, type ReactNode } from 'react';
+import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
+import Button from 'antd/lib/button/button';
+import useSWR from 'swr';
+import Space from 'antd/lib/space';
+import DirectoryTree from 'antd/lib/tree/DirectoryTree';
+import type { DataNode } from 'antd/es/tree';
+import Typography from 'antd/lib/typography/Typography';
 
 function treeData(
     node: specNode,
     suites: SuiteDetails,
     setTestID: (testID: string) => void,
 ): DataNode[] {
-    const root: DataNode = { title: "Root", key: "", children: [] };
+    const root: DataNode = { title: 'Root', key: '', children: [] };
     const structure: DataNode[] = [root];
-    const pulled = new Set(suites["@order"]);
+    const pulled = new Set(suites['@order']);
     const nodes = [{ node, childrenSpace: root.children }];
     const treeNodes: Record<string, DataNode> = {};
 
@@ -30,10 +31,10 @@ function treeData(
         if (result?.node == null || result?.childrenSpace == null) continue;
         const { node, childrenSpace } = result;
 
-        const current = node["<path>"];
+        const current = node['<path>'];
 
         const childParts = new Set(Object.keys(node));
-        childParts.delete("<path>");
+        childParts.delete('<path>');
 
         // these are paths
         childParts.forEach((child) => {
@@ -98,7 +99,7 @@ export default function ProjectStructure(props: {
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: detailsOfTestRun } = useSWR<DetailsOfRun>(
+    const { data: detailsOfTestRun } = useSWR<TestRunRecord>(
         getTestRun(port, testID),
     );
     if (detailsOfTestRun == null || suites == null) return <></>;

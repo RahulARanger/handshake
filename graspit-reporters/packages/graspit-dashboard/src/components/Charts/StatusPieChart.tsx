@@ -1,20 +1,20 @@
-import { type SuiteSummary } from "@/types/testRun";
-import type DetailsOfRun from "@/types/testRun";
-import React, { type ReactNode } from "react";
-import Highcharts from "highcharts";
-import HighchartsExporting from "highcharts/modules/exporting";
-import HighchartsReact from "highcharts-react-official";
-import Highcharts3d from "highcharts/highcharts-3d";
-import brandDark from "highcharts/themes/brand-dark";
+import type TestRunRecord from 'src/types/testRunRecords';
+import type { SuiteSummary } from 'src/types/testRunRecords';
+import React, { type ReactNode } from 'react';
+import Highcharts from 'highcharts';
+import HighchartsExporting from 'highcharts/modules/exporting';
+import HighchartsReact from 'highcharts-react-official';
+import Highcharts3d from 'highcharts/highcharts-3d';
+import brandDark from 'highcharts/themes/brand-dark';
 
-if (typeof Highcharts === "object") {
+if (typeof Highcharts === 'object') {
     Highcharts3d(Highcharts);
     HighchartsExporting(Highcharts);
     brandDark(Highcharts);
 }
 
 export default function ProgressPieChart(props: {
-    run: DetailsOfRun;
+    run: TestRunRecord;
     isTestCases: boolean;
 }): ReactNode {
     const suite: SuiteSummary = JSON.parse(props.run.suiteSummary);
@@ -25,25 +25,25 @@ export default function ProgressPieChart(props: {
     const passPercent = Number.isNaN(_overallPassed) ? 0 : _overallPassed;
 
     const options = {
-        credits: { enabled: false, text: "link-to-docs-in-future" },
+        credits: { enabled: false, text: 'link-to-docs-in-future' },
         chart: {
-            type: "pie",
+            type: 'pie',
             options3d: {
                 enabled: true,
                 alpha: 45,
                 beta: 0,
                 fitToPlot: true,
             },
-            backgroundColor: "#141414",
+            backgroundColor: '#141414',
             height: 185,
         },
 
         title: {
             text: `${(passPercent * 100).toFixed(2)}%`,
-            verticalAlign: "middle",
+            verticalAlign: 'middle',
             style: {
                 fontSize: 12,
-                color: "white",
+                color: 'white',
             },
         },
         subtitle: {
@@ -53,33 +53,33 @@ export default function ProgressPieChart(props: {
             pie: {
                 innerSize: 90,
                 depth: 15,
-                colors: ["green", "#FC4349", "#2C3E50"],
+                colors: ['green', '#FC4349', '#2C3E50'],
             },
         },
         series: [
             {
-                type: "pie",
-                name: !props.isTestCases ? "Suite Entities" : "Test Entities",
+                type: 'pie',
+                name: !props.isTestCases ? 'Suite Entities' : 'Test Entities',
                 data: [
                     [
-                        "Passed",
+                        'Passed',
                         props.isTestCases ? props.run.passed : suite.passed,
                     ],
                     [
-                        "Failed",
+                        'Failed',
                         props.isTestCases ? props.run.failed : suite.failed,
                     ],
                     [
-                        "Skipped",
+                        'Skipped',
                         props.isTestCases ? props.run.skipped : suite.skipped,
                     ],
                 ],
                 dataLabels: {
                     style: {
-                        textOutline: "0px",
-                        color: "white",
+                        textOutline: '0px',
+                        color: 'white',
                     },
-                    alignTo: "center",
+                    alignTo: 'center',
                     distance: 10,
                 },
             },

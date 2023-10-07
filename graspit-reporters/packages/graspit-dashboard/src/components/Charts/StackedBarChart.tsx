@@ -1,11 +1,11 @@
-import Highcharts from "highcharts";
-import HighchartsExporting from "highcharts/modules/exporting";
-import HighchartsReact from "highcharts-react-official";
-import React, { type ReactNode } from "react";
-import { statusColors } from "../parseUtils";
-import brandDark from "highcharts/themes/brand-dark";
+import Highcharts from 'highcharts';
+import HighchartsExporting from 'highcharts/modules/exporting';
+import HighchartsReact from 'highcharts-react-official';
+import React, { type ReactNode } from 'react';
+import { statusColors } from '../parseUtils';
+import brandDark from 'highcharts/themes/brand-dark';
 
-if (typeof Highcharts === "object") {
+if (typeof Highcharts === 'object') {
     HighchartsExporting(Highcharts);
     brandDark(Highcharts);
 }
@@ -16,14 +16,14 @@ export default function RenderPassedRate(props: {
 }): ReactNode {
     const options: Highcharts.Options = {
         chart: {
-            type: "bar",
+            type: 'bar',
             height: 30,
             borderWidth: 0,
             width: props.width ?? 220,
             margin: 0,
-            backgroundColor: "transparent",
+            backgroundColor: 'transparent',
             style: {
-                padding: "1px",
+                padding: '1px',
             },
         },
 
@@ -33,7 +33,7 @@ export default function RenderPassedRate(props: {
         },
         colors: statusColors,
         xAxis: {
-            categories: ["Status"],
+            categories: ['Status'],
             visible: false,
         },
         tooltip: {
@@ -52,28 +52,28 @@ export default function RenderPassedRate(props: {
         },
         plotOptions: {
             series: {
-                stacking: "percent",
+                stacking: 'percent',
                 dataLabels: {
                     enabled: true,
-                    color: "white",
+                    color: 'white',
                 },
             },
         },
         exporting: { enabled: false },
         series: [
             {
-                type: "bar",
-                name: "Passed",
+                type: 'bar',
+                name: 'Passed',
                 data: [props.value[0]],
             },
             {
-                type: "bar",
-                name: "Failed",
+                type: 'bar',
+                name: 'Failed',
                 data: [props.value[1]],
             },
             {
-                type: "bar",
-                name: "Skipped",
+                type: 'bar',
+                name: 'Skipped',
                 data: [props.value[2]],
             },
         ],

@@ -1,21 +1,21 @@
-import React, { useContext, type ReactNode } from "react";
-import { getSuites, getTestRun } from "@/Generators/helper";
-import { type SuiteDetails } from "@/types/detailedTestRunPage";
-import type DetailsOfRun from "@/types/testRun";
-import useSWR from "swr";
-import HighchartsReact from "highcharts-react-official";
-import HighChartsAccessibility from "highcharts/modules/accessibility";
+import React, { useContext, type ReactNode } from 'react';
+import { getSuites, getTestRun } from 'src/Generators/helper';
+import type { SuiteDetails } from 'src/types/generatedResponse';
+import type TestRunRecord from 'src/types/testRunRecords';
+import useSWR from 'swr';
+import HighchartsReact from 'highcharts-react-official';
+import HighChartsAccessibility from 'highcharts/modules/accessibility';
 import HighChartsForGantt, {
     type PointClickEventObject,
-} from "highcharts/highcharts-gantt";
-import HighchartsGantt from "highcharts/modules/gantt";
-import brandDark from "highcharts/themes/brand-dark";
+} from 'highcharts/highcharts-gantt';
+import HighchartsGantt from 'highcharts/modules/gantt';
+import brandDark from 'highcharts/themes/brand-dark';
 
-import dayjs from "dayjs";
-import "@/styles/highChartExternal.module.css";
-import MetaCallContext from "../TestRun/context";
+import dayjs from 'dayjs';
+import '@/styles/highChartExternal.module.css';
+import MetaCallContext from '../core/TestRun/context';
 
-if (typeof HighChartsForGantt === "object") {
+if (typeof HighChartsForGantt === 'object') {
     HighchartsGantt(HighChartsForGantt);
     brandDark(HighChartsForGantt);
     HighChartsAccessibility(HighChartsForGantt);
@@ -26,21 +26,21 @@ export default function GanttChartForTestEntities(props: {
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: testRun } = useSWR<DetailsOfRun>(getTestRun(port, testID));
+    const { data: testRun } = useSWR<TestRunRecord>(getTestRun(port, testID));
 
     if (testRun == null || suites == null) {
         return <></>;
     }
 
     const data: HighChartsForGantt.GanttPointOptionsObject[] = suites[
-        "@order"
+        '@order'
     ].map((suiteID, index, reference) => {
         const current = suites[suiteID];
         let dependentOn = current.parent;
 
         if (index > 0) {
             const previous = suites[reference[index - 1]];
-            if (current.parent !== "" && previous.parent === current.parent)
+            if (current.parent !== '' && previous.parent === current.parent)
                 dependentOn = previous.suiteID;
         }
 
@@ -62,31 +62,31 @@ export default function GanttChartForTestEntities(props: {
     // THE CHART
     const options: Highcharts.Options = {
         chart: {
-            type: "gantt",
+            type: 'gantt',
             plotShadow: true,
-            className: "highcharts-dark",
-            backgroundColor: "rgba(128,128,128,0.02)",
+            className: 'highcharts-dark',
+            backgroundColor: 'rgba(128,128,128,0.02)',
         },
         credits: { enabled: false },
         title: {
             text: `${testRun.projectName}::Gantt Chart`,
-            align: "left",
+            align: 'left',
             style: {
-                fontSize: "1.35rem",
+                fontSize: '1.35rem',
             },
         },
         subtitle: {
-            text: "<small>Please find your suites here</small>",
-            align: "left",
+            text: '<small>Please find your suites here</small>',
+            align: 'left',
             style: {
-                fontSize: ".89rem",
+                fontSize: '.89rem',
             },
         },
 
         navigator: {
             enabled: true,
             series: {
-                type: "gantt",
+                type: 'gantt',
                 accessibility: {
                     enabled: false,
                 },
@@ -101,11 +101,11 @@ export default function GanttChartForTestEntities(props: {
         xAxis: [
             {
                 currentDateIndicator: {
-                    color: "#2caffe",
-                    dashStyle: "ShortDot",
+                    color: '#2caffe',
+                    dashStyle: 'ShortDot',
                     width: 2,
                     label: {
-                        format: "",
+                        format: '',
                     },
                 },
                 dateTimeLabelFormats: {
@@ -125,27 +125,27 @@ export default function GanttChartForTestEntities(props: {
             staticScale: 31,
         },
         tooltip: {
-            backgroundColor: "rgb(10, 10, 10)",
-            borderColor: "rgba(128,128,128,0.1)",
+            backgroundColor: 'rgb(10, 10, 10)',
+            borderColor: 'rgba(128,128,128,0.1)',
             borderWidth: 1,
-            style: { color: "white" },
+            style: { color: 'white' },
             pointFormat:
                 '<span style="font-weight: bold;">{point.name}</span><br>' +
-                "{point.start:%M:%S}" +
-                "{#unless point.milestone} → {point.end:%M:%S}{/unless}" +
-                "&nbsp;({point.duration} s)<br>",
+                '{point.start:%M:%S}' +
+                '{#unless point.milestone} → {point.end:%M:%S}{/unless}' +
+                '&nbsp;({point.duration} s)<br>',
         },
         series: [
             {
-                type: "gantt",
+                type: 'gantt',
                 name: testRun.projectName,
                 data,
-                cursor: "pointer",
+                cursor: 'pointer',
                 point: {
                     events: {
                         click: function (event: PointClickEventObject) {
                             props.setOpenDrilldown(
-                                event.point.options.id ?? "",
+                                event.point.options.id ?? '',
                             );
                         },
                     },

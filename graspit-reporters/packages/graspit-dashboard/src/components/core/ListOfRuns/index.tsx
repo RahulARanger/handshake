@@ -1,10 +1,15 @@
-import type DetailsOfRun from '@/types/testRun';
+import type TestRunRecord from 'src/types/testRunRecords';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun } from '@/components/parseUtils';
+import { parseDetailedTestRun } from 'src/components/parseUtils';
 import RenderTimeRelativeToStart, {
     RenderDuration,
-} from '@/components/renderers';
-import RenderPassedRate from '@/components/Charts/StackedBarChart';
+} from 'src/components/utils/renderers';
+import AreaChartForRuns from 'src/components/charts/AreaChartForRuns';
+import RenderPassedRate from 'src/components/charts/StackedBarChart';
+import crumbs from './Items';
+import type { QuickPreviewForTestRun } from 'src/types/parsedRecords';
+import { dateFormatUsed } from 'src/components/utils/Datetime/format';
+
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -12,7 +17,6 @@ import Collapse from 'antd/lib/collapse/Collapse';
 import Card from 'antd/lib/card/Card';
 import dayjs, { type Dayjs } from 'dayjs';
 import Layout from 'antd/lib/layout/index';
-import AreaChartForRuns from '@/components/Charts/AreaChartForRuns';
 import HeaderStyles from '@/styles/header.module.css';
 import Empty from 'antd/lib/empty/index';
 import Tooltip from 'antd/lib/tooltip/index';
@@ -21,13 +25,10 @@ import Select from 'antd/lib/select/index';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import DatePicker from 'antd/lib/date-picker/index';
 import FilterOutlined from '@ant-design/icons/FilterOutlined';
-import crumbs from '@/components/ListOfRuns/Items';
 import Text from 'antd/lib/typography/Text';
 import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import Button from 'antd/lib/button/button';
-import { type QuickPreviewForTestRun } from '@/types/testEntityRelated';
-import { dateFormatUsed } from '../utils/Datetime/format';
 
 dayjs.extend(isBetween);
 
@@ -137,7 +138,7 @@ function RawList(props: {
     );
 }
 
-function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
+function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
     const details = props.runs.map(parseDetailedTestRun).reverse();
     const firstRun = details.at(0);
     const chronological = details.slice(1);
@@ -214,7 +215,7 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     );
 }
 
-function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
+function ListOfCharts(props: { runs: TestRunRecord[] }): ReactNode {
     const [isTest, showTest] = useState(true);
     const areaChart = (
         <Card
@@ -244,7 +245,9 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
     );
 }
 
-export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
+export default function GridOfRuns(props: {
+    runs: TestRunRecord[];
+}): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();
     const [dateRange, setDateRange] = useState<
         null | [null | Dayjs, null | Dayjs]

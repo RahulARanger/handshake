@@ -1,76 +1,75 @@
+import type { SuiteDetails, SessionDetails } from 'src/types/generatedResponse';
+import type { statusOfEntity } from 'src/types/sessionRecords';
+import type {
+    TestDetails,
+    AttachmentDetails,
+} from 'src/types/generatedResponse';
+import type { Attachment } from 'src/types/testEntityRelated';
+import { parseTestCaseEntity } from 'src/components/parseUtils';
+import type TestRunRecord from 'src/types/testRunRecords';
 import {
-    type SuiteDetails,
-    type statusOfEntity,
-    type TestDetails,
-    type SessionDetails,
-    type AttachmentDetails,
-    type Attachment,
-} from "@/types/detailedTestRunPage";
-import Input from "antd/lib/input/Input";
+    getEntityLevelAttachment,
+    getSessions,
+    getTestRun,
+    getSuites,
+    getTests,
+} from 'src/Generators/helper';
+import BadgeForSuiteType from 'src/components/utils/Badge';
+import RenderTimeRelativeToStart, {
+    RenderBrowserType,
+    RenderStatus,
+    RenderDuration,
+} from 'src/components/utils/renderers';
+import MetaCallContext from '../TestRun/context';
+import type { Tag as SuiteTag } from 'src/types/testEntityRelated';
+import type { PreviewForTests } from 'src/types/parsedRecords';
+import MoreDetailsOnEntity from './DetailedModal';
+import parentEntities from './items';
+
+import Input from 'antd/lib/input/Input';
 import React, {
     useContext,
     type ReactNode,
     useState,
     type ChangeEvent,
-} from "react";
-import { parseTestCaseEntity } from "@/components/parseUtils";
-import dayjs from "dayjs";
-import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
-import PaperClipOutlined from "@ant-design/icons/PaperClipOutlined";
-import Space from "antd/lib/space";
-import Collapse from "antd/lib/collapse/Collapse";
-import WarningFilled from "@ant-design/icons/lib/icons/WarningFilled";
-import Select, { type SelectProps } from "antd/lib/select/index";
-import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
-import Tag from "antd/lib/tag/index";
-import {
-    getEntityLevelAttachment,
-    getSessions,
-    getSuites,
-    getTestRun,
-    getTests,
-} from "@/Generators/helper";
-import RenderTimeRelativeToStart, {
-    RenderBrowserType,
-    RenderDuration,
-    RenderStatus,
-} from "@/components/renderers";
-import MetaCallContext from "@/components/TestRun/context";
-import Button from "antd/lib/button/button";
-import Paragraph from "antd/lib/typography/Paragraph";
+} from 'react';
+import dayjs from 'dayjs';
+
+import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
+import PaperClipOutlined from '@ant-design/icons/PaperClipOutlined';
+import Space from 'antd/lib/space';
+import Collapse from 'antd/lib/collapse/Collapse';
+import WarningFilled from '@ant-design/icons/lib/icons/WarningFilled';
+import Select, { type SelectProps } from 'antd/lib/select/index';
+import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
+import Tag from 'antd/lib/tag/index';
+import Button from 'antd/lib/button/button';
+import Paragraph from 'antd/lib/typography/Paragraph';
 import Description, {
     type DescriptionsProps,
-} from "antd/lib/descriptions/index";
-import useSWR from "swr";
-import Drawer from "antd/lib/drawer/index";
-import type DetailsOfRun from "@/types/testRun";
-import parentEntities from "./items";
-import {
-    type Tag as SuiteTag,
-    type PreviewForTests,
-} from "@/types/testEntityRelated";
-import Typography from "antd/lib/typography/Typography";
-import BadgeForSuiteType from "./Badge";
-import MoreDetailsOnEntity from "./DetailedModal";
+} from 'antd/lib/descriptions/index';
+import useSWR from 'swr';
+import Drawer from 'antd/lib/drawer/index';
+import Typography from 'antd/lib/typography/Typography';
 
 function EntityItem(props: {
     item: PreviewForTests;
     attachmentsForDescription?: Attachment[];
 }): ReactNode {
-    const aboutSuite: DescriptionsProps["items"] = [
+    const aboutSuite: DescriptionsProps['items'] = [
         {
-            key: "started",
-            label: "Started",
+            key: 'started',
+            label: 'Started',
             children: <RenderTimeRelativeToStart value={props.item.Started} />,
         },
         {
-            key: "ended",
-            label: "Ended",
+            key: 'ended',
+            label: 'Ended',
             children: <RenderTimeRelativeToStart value={props.item.Ended} />,
         },
         {
-            key: "duration",
-            label: "Duration",
+            key: 'duration',
+            label: 'Duration',
             children: <RenderDuration value={props.item.Duration} />,
         },
     ];
@@ -94,7 +93,7 @@ function EntityItem(props: {
                 items={aboutSuite}
                 bordered
                 title={props.item.Description}
-                style={{ overflowX: "hidden" }}
+                style={{ overflowX: 'hidden' }}
                 size="small"
             />
         </>
@@ -110,7 +109,7 @@ export default function TestEntityDrawer(props: {
     const { port, testID } = useContext(MetaCallContext);
 
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: run } = useSWR<DetailsOfRun>(getTestRun(port, testID));
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
     const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
@@ -140,7 +139,7 @@ export default function TestEntityDrawer(props: {
             <Drawer
                 open={props.open}
                 onClose={props.onClose}
-                title={"Not Found"}
+                title={'Not Found'}
             ></Drawer>
         );
 
@@ -163,10 +162,10 @@ export default function TestEntityDrawer(props: {
             };
 
             const hasRequiredAttachment = attachments[test.suiteID]?.find(
-                (attachment) => attachment.type === "PNG",
+                (attachment) => attachment.type === 'PNG',
             );
 
-            if (test.suiteType === "SUITE") {
+            if (test.suiteType === 'SUITE') {
                 actions.push(
                     <Button
                         key="drill-down"
@@ -192,7 +191,7 @@ export default function TestEntityDrawer(props: {
                 }
             }
 
-            if (test.standing === "FAILED") {
+            if (test.standing === 'FAILED') {
                 actions.push(
                     <Button
                         size="small"
@@ -200,7 +199,7 @@ export default function TestEntityDrawer(props: {
                         type="text"
                         icon={
                             <WarningFilled
-                                style={{ fontSize: "16px", color: "firebrick" }}
+                                style={{ fontSize: '16px', color: 'firebrick' }}
                             />
                         }
                         shape="round"
@@ -215,7 +214,14 @@ export default function TestEntityDrawer(props: {
                     <Space align="end">
                         <RenderStatus value={test.standing} />
                         <Typography>{test.title}</Typography>
-                        <BadgeForSuiteType suiteType={test.suiteType} />
+                        <BadgeForSuiteType
+                            text={test.suiteType}
+                            color={
+                                test.suiteType === 'SUITE'
+                                    ? 'magenta'
+                                    : 'purple'
+                            }
+                        />
                     </Space>
                 ),
                 children: (
@@ -223,17 +229,17 @@ export default function TestEntityDrawer(props: {
                         item={parsed}
                         attachmentsForDescription={attachments[
                             parsed.id
-                        ]?.filter((item) => item.type === "DESC")}
+                        ]?.filter((item) => item.type === 'DESC')}
                     />
                 ),
                 extra: <Space>{actions}</Space>,
             };
         });
 
-    const aboutSuite: DescriptionsProps["items"] = [
+    const aboutSuite: DescriptionsProps['items'] = [
         {
-            key: "started",
-            label: "Started",
+            key: 'started',
+            label: 'Started',
             children: (
                 <RenderTimeRelativeToStart
                     value={[dayjs(selectedSuiteDetails.started), started]}
@@ -241,8 +247,8 @@ export default function TestEntityDrawer(props: {
             ),
         },
         {
-            key: "ended",
-            label: "Ended",
+            key: 'ended',
+            label: 'Ended',
             children: (
                 <RenderTimeRelativeToStart
                     value={[dayjs(selectedSuiteDetails.ended), started]}
@@ -250,8 +256,8 @@ export default function TestEntityDrawer(props: {
             ),
         },
         {
-            key: "browserName",
-            label: "Browser",
+            key: 'browserName',
+            label: 'Browser',
             children: (
                 <RenderBrowserType
                     browserName={
@@ -261,18 +267,18 @@ export default function TestEntityDrawer(props: {
             ),
         },
         {
-            key: "status",
-            label: "Status",
+            key: 'status',
+            label: 'Status',
             children: <RenderStatus value={selectedSuiteDetails.standing} />,
         },
         {
-            key: "tests",
-            label: "Count",
+            key: 'tests',
+            label: 'Count',
             children: <>{selectedSuiteDetails.tests}</>,
         },
         {
-            key: "duration",
-            label: "Duration",
+            key: 'duration',
+            label: 'Duration',
             children: (
                 <RenderDuration
                     value={dayjs.duration(selectedSuiteDetails.duration)}
@@ -281,10 +287,10 @@ export default function TestEntityDrawer(props: {
         },
     ];
 
-    const statusOptions: SelectProps["options"] = [
-        "Passed",
-        "Failed",
-        "Skipped",
+    const statusOptions: SelectProps['options'] = [
+        'Passed',
+        'Failed',
+        'Skipped',
     ].map((status) => ({
         label: (
             <Space>
@@ -329,7 +335,7 @@ export default function TestEntityDrawer(props: {
                                 event: ChangeEvent<HTMLInputElement>,
                             ) => {
                                 const value = event.target.value;
-                                setFilterText(value === "" ? null : value);
+                                setFilterText(value === '' ? null : value);
                             }}
                         />
                         <Select
@@ -345,11 +351,11 @@ export default function TestEntityDrawer(props: {
                     </Space>
                 }
             >
-                <Space direction="vertical" style={{ width: "100%" }}>
+                <Space direction="vertical" style={{ width: '100%' }}>
                     <Description
                         items={aboutSuite}
                         bordered
-                        style={{ overflowX: "hidden" }}
+                        style={{ overflowX: 'hidden' }}
                         size="small"
                         title={
                             selectedSuiteDetails.description == null ||
@@ -371,7 +377,7 @@ export default function TestEntityDrawer(props: {
                     />
 
                     <Collapse
-                        defaultActiveKey={["Latest Run"]}
+                        defaultActiveKey={['Latest Run']}
                         bordered
                         size="small"
                         items={dataSource}
@@ -384,7 +390,7 @@ export default function TestEntityDrawer(props: {
                     setShowDetailedView(false);
                 }}
                 item={selectedSuite}
-                items={attachments[selectedSuite?.id ?? ""]}
+                items={attachments[selectedSuite?.id ?? '']}
             />
         </>
     );

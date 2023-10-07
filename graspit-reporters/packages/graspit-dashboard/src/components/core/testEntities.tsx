@@ -1,36 +1,33 @@
-import {
-    gridViewMode,
-    type SessionDetails,
-    type SuiteDetails,
-    type statusOfEntity,
-    treeViewMode,
-} from "@/types/detailedTestRunPage";
-import Table from "antd/lib/table/Table";
-import React, { useContext, type ReactNode, useState } from "react";
-import { parseDetailedTestEntity } from "@/components/parseUtils";
-import { type Dayjs } from "dayjs";
-import ExpandAltOutlined from "@ant-design/icons/ExpandAltOutlined";
-import Button from "antd/lib/button/button";
-import { getSessions, getSuites } from "@/Generators/helper";
+import { gridViewMode, treeViewMode } from 'src/types/uiConstants';
+import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
+import type { statusOfEntity } from 'src/types/sessionRecords';
+import { parseDetailedTestEntity } from '../parseUtils';
+import { getSuites, getSessions } from 'src/Generators/helper';
+import type { possibleBrowserNames } from 'src/types/sessionRecords';
+import type { PreviewForDetailedEntities } from 'src/types/parsedRecords';
 import RenderTimeRelativeToStart, {
     RenderBrowserType,
     RenderStatus,
-} from "@/components/renderers";
-import TableOutlined from "@ant-design/icons/TableOutlined";
-import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
-import RenderPassedRate from "@/components/Charts/StackedBarChart";
-import MetaCallContext from "@/components/TestRun/context";
-import useSWR from "swr";
-import TestEntityDrawer from "@/components/TestRun/TestEntities/TestEntity";
-import {
-    type possibleBrowserNames,
-    type PreviewForDetailedEntities,
-} from "@/types/testEntityRelated";
+} from '../utils/renderers';
+import MetaCallContext from './TestRun/context';
+import RenderPassedRate from '../charts/StackedBarChart';
+import TestEntityDrawer from './TestEntity';
+import ProjectStructure from './TestRun/Structure';
+
+import React, { useContext, type ReactNode, useState } from 'react';
+import { type Dayjs } from 'dayjs';
+import useSWR from 'swr';
+
+import Table from 'antd/lib/table/Table';
+import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
+import Button from 'antd/lib/button/button';
+import TableOutlined from '@ant-design/icons/TableOutlined';
+import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
 import Segmented, {
     type SegmentedLabeledOption,
-} from "antd/lib/segmented/index";
-import Space from "antd/lib/space/index";
-import ProjectStructure from "@/components/TestRun/Structure";
+} from 'antd/lib/segmented/index';
+import Space from 'antd/lib/space/index';
+
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
     key: string;
@@ -40,9 +37,9 @@ function extractSuiteTree(
     suites: SuiteDetails,
     parent: string,
     startDate: Dayjs,
-    sessions: SessionDetails
+    sessions: SessionDetails,
 ): undefined | SuiteNode[] {
-    const result = suites["@order"]
+    const result = suites['@order']
         .filter((suiteID) => parent === suites[suiteID].parent)
         .map((suiteID) => ({
             children: extractSuiteTree(suites, suiteID, startDate, sessions),
@@ -50,7 +47,7 @@ function extractSuiteTree(
             ...parseDetailedTestEntity(
                 suites[suiteID],
                 startDate,
-                sessions[suites[suiteID].session_id]
+                sessions[suites[suiteID].session_id],
             ),
         }));
     return result.length > 0 ? result : undefined;
@@ -63,7 +60,7 @@ export default function TestEntities(props: {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
-        getSessions(port, testID)
+        getSessions(port, testID),
     );
     const [showEntity, setShowEntity] = useState<boolean>(false);
     const [toShowTestID, setTestID] = useState<string>();
@@ -75,15 +72,15 @@ export default function TestEntities(props: {
 
     if (suites == null || sessions == null) return <></>;
 
-    const data = extractSuiteTree(suites, "", props.startDate, sessions);
+    const data = extractSuiteTree(suites, '', props.startDate, sessions);
     const options: SegmentedLabeledOption[] = [
         {
-            label: "Grid",
+            label: 'Grid',
             value: gridViewMode,
             icon: <TableOutlined />,
         },
         {
-            label: "Tree",
+            label: 'Tree',
             value: treeViewMode,
             icon: <PartitionOutlined />,
         },
@@ -96,7 +93,7 @@ export default function TestEntities(props: {
 
     return (
         <>
-            <Space direction="vertical" style={{ width: "100%" }}>
+            <Space direction="vertical" style={{ width: '100%' }}>
                 <Segmented
                     options={options}
                     defaultValue={viewMode}
@@ -105,14 +102,14 @@ export default function TestEntities(props: {
                         setViewMode(selected);
                         props.setIcon(selected);
                     }}
-                    style={{ marginBottom: "10px" }}
+                    style={{ marginBottom: '10px' }}
                 />
                 {viewMode === gridViewMode ? (
                     <Table
                         dataSource={data}
                         size="small"
                         bordered
-                        scroll={{ x: "max-content" }}
+                        scroll={{ x: 'max-content' }}
                     >
                         <Table.Column
                             title="Status"

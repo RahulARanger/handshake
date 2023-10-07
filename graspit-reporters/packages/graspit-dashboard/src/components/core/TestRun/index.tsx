@@ -13,7 +13,7 @@ import { crumbsForRun } from '../ListOfRuns/Items';
 import type { Tab } from 'rc-tabs/lib/interface';
 import Overview from './Overview';
 import MetaCallContext from './context';
-import GanttChartForTestEntities from '../Charts/GanttChartForTestSuites';
+import GanttChartForTestEntities from '../charts/GanttChartForTestSuites';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';

@@ -1,32 +1,35 @@
-import type DetailsOfRun from '@/types/testRun';
+import type TestRunRecord from 'src/types/testRunRecords';
+import { getEntityLevelAttachment, getSuites } from 'src/Generators/helper';
+import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import type { statusOfEntity } from 'src/types/sessionRecords';
+import {
+    dateFormatUsed,
+    dateTimeFormatUsed,
+} from 'src/components/utils/Datetime/format';
+import Counter from 'src/components/utils/counter';
+import RelativeTo from 'src/components/utils/Datetime/relativeTime';
+import ProgressPieChart from 'src/components/charts/StatusPieChart';
+import { RenderDuration, RenderStatus } from 'src/components/utils/renderers';
+import RenderPassedRate from 'src/components/charts/StackedBarChart';
+import ImagesWithThumbnail from 'src/components/utils/ImagesWithThumbnails';
+import type { SuiteDetails } from 'src/types/generatedResponse';
+import type { AttachmentDetails } from 'src/types/generatedResponse';
+import { testEntitiesTab } from 'src/types/uiConstants';
+
 import React, { useState, type ReactNode, useContext } from 'react';
+import dayjs, { type Dayjs } from 'dayjs';
+
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
 import Meta from 'antd/lib/card/Meta';
-import Counter from '@/components/counter';
-import ProgressPieChart from '../Charts/StatusPieChart';
 import Typography from 'antd/lib/typography/Typography';
 import Switch from 'antd/lib/switch';
-import RelativeTo from '../utils/Datetime/relativeTime';
 import Tooltip from 'antd/lib/tooltip/index';
 import Divider from 'antd/lib/divider/index';
-import dayjs, { type Dayjs } from 'dayjs';
 import Table from 'antd/lib/table/Table';
 import MetaCallContext from './context';
-import { getEntityLevelAttachment, getSuites } from '@/Generators/helper';
 import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
-import {
-    type SuiteRecordDetails,
-    type statusOfEntity,
-    type SuiteDetails,
-    testEntitiesTab,
-    type AttachmentDetails,
-} from '@/types/detailedTestRunPage';
-import { RenderDuration, RenderStatus } from '@/components/renderers';
-import RenderPassedRate from '../Charts/StackedBarChart';
-import { dateFormatUsed, dateTimeFormatUsed } from '../utils/Datetime/format';
-import ImagesWithThumbnail from './TestEntities/TestEntity/ImagesWithThumbnails';
 
 function TopSuites(props: {
     startedAt: Dayjs;
@@ -117,7 +120,7 @@ function TopSuites(props: {
 }
 
 export default function Overview(props: {
-    run: DetailsOfRun;
+    run: TestRunRecord;
     onTabSelected: (tab: string) => void;
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);

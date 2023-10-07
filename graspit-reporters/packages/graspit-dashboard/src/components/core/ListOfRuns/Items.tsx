@@ -1,7 +1,7 @@
 import {
     type BreadcrumbSeparatorType,
     type BreadcrumbItemType,
-} from "antd/lib/breadcrumb/Breadcrumb";
+} from 'antd/lib/breadcrumb/Breadcrumb';
 
 export type crumbItems = Array<
     Partial<BreadcrumbItemType & BreadcrumbSeparatorType>
@@ -9,15 +9,15 @@ export type crumbItems = Array<
 
 export default function crumbs(
     allowHref?: boolean,
-    length?: number
+    length?: number,
 ): crumbItems {
     return [
         {
-            title: "Graspit",
+            title: 'Graspit',
         },
         {
-            title: length == null ? "Runs" : `Runs (${length})`,
-            href: allowHref != null ? "/RUNS/" : undefined,
+            title: length == null ? 'Runs' : `Runs (${length})`,
+            href: allowHref != null ? '/RUNS/' : undefined,
         },
     ];
 }
