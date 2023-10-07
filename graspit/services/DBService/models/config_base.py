@@ -89,9 +89,6 @@ class ConfigBase(Model):
 
 class ExportBase(Model):
     ticketID = UUIDField(pk=True)
-    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="config", to_field="testID"
-    )
     maxTestRuns = IntField(
         null=True,
         default=10,
@@ -99,4 +96,7 @@ class ExportBase(Model):
     )
     isDynamic = BooleanField(
         null=True, default=False, description="Export Dynamic pages only ?"
+    )
+    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
+        "models.RunBase", related_name="config", to_field="testID"
     )
