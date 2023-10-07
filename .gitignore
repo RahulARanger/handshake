@@ -33,14 +33,12 @@ venv/*
 .vercel
 
 # typescript
-*.tsbuildinfo
-next-env.d.ts
+*.tsbuildinfox
 
 
 **/.pytest_cache/*
 **/dist/**
 **/build/**
 check.py
-**/genAntdCss.tsx
 graspit-reporters/packages/graspit-dashboard/public/antd.min.css
 graspit-reporters/packages/graspit-dashboard/src/styles/antd.min.css
