@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
-import ParseFormat from "dayjs/plugin/customParseFormat";
-import Relatively from "dayjs/plugin/relativeTime";
+import dayjs from 'dayjs';
+import ParseFormat from 'dayjs/plugin/customParseFormat';
+import Relatively from 'dayjs/plugin/relativeTime';
 
 dayjs.extend(ParseFormat);
 dayjs.extend(Relatively);
@@ -14,7 +14,7 @@ export function fromNow(date: dayjs.Dayjs): string {
 }
 
 function filler(thing?: string): string {
-    return thing ?? "was-passed-empty";
+    return thing ?? 'was-passed-empty';
 }
 
 export function serverURL(port?: string): string {
@@ -43,10 +43,10 @@ export function getSessions(port?: string, testID?: string): string {
 
 export function getEntityLevelAttachment(
     port?: string,
-    testID?: string
+    testID?: string,
 ): string {
     return `${serverURL(port)}/get/allEntityLevelAttachments?test_id=${filler(
-        testID
+        testID,
     )}`;
 }
 

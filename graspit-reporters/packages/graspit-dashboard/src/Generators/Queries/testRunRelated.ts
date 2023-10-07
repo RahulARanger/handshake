@@ -1,6 +1,6 @@
-import { type dbConnection } from "@/Generators/dbConnection";
-import type DetailsOfRun from "@/types/testRun";
-import { type TestRunSummary } from "@/types/testRun";
+import type { dbConnection } from '../dbConnection';
+import type { TestRunSummary } from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/testRunRecords';
 
 export default async function latestTestRun(
     connection: dbConnection,
@@ -8,7 +8,7 @@ export default async function latestTestRun(
     const result = await connection.get<{ testID: string }>(
         "select testID from runbase where started = (select max(started) from runbase where ended <> '');",
     );
-    return result?.testID ?? "";
+    return result?.testID ?? '';
 }
 
 export async function getAllTestRuns(
@@ -25,8 +25,8 @@ export async function getAllTestRuns(
 export async function getDetailsOfTestRun(
     connection: dbConnection,
     testID: string,
-): Promise<DetailsOfRun | undefined> {
-    return await connection.get<DetailsOfRun>(
+): Promise<TestRunRecord | undefined> {
+    return await connection.get<TestRunRecord>(
         "SELECT * from runbase where testID = ? AND ended <> '';",
         testID,
     );
@@ -35,15 +35,15 @@ export async function getDetailsOfTestRun(
 export async function getAllTestRunDetails(
     connection: dbConnection,
     maxTestRuns?: number,
-): Promise<DetailsOfRun[] | undefined> {
-    return await connection.all<DetailsOfRun[]>(
+): Promise<TestRunRecord[] | undefined> {
+    return await connection.all<TestRunRecord[]>(
         "SELECT * from runbase where ended <> '' order by started desc LIMIT ?",
         maxTestRuns ?? -1,
     );
 }
 
 export function generateTestRunSummary(
-    _testDetails: DetailsOfRun,
+    _testDetails: TestRunRecord,
 ): TestRunSummary {
     const testDetails = JSON.parse(_testDetails.suiteSummary);
     return {

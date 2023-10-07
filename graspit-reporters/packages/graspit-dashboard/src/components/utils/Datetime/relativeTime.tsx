@@ -1,16 +1,16 @@
-import Typography from "antd/lib/typography/Typography";
-import Tooltip from "antd/lib/tooltip/index";
-import dayjs, { type Dayjs } from "dayjs";
-import React, { useState, type CSSProperties, type ReactNode } from "react";
-import useEmblaCarousel from "embla-carousel-react";
-import carouselStyles from "@/styles/carousel.module.css";
-import Autoplay from "embla-carousel-autoplay";
-import Button from "antd/lib/button/button";
-import relativeTime from "dayjs/plugin/relativeTime";
-import duration from "dayjs/plugin/duration";
-import { type Duration } from "dayjs/plugin/duration";
-import advancedFormat from "dayjs/plugin/advancedFormat";
-import { timeFormatUsed } from "./format";
+import Typography from 'antd/lib/typography/Typography';
+import Tooltip from 'antd/lib/tooltip/index';
+import dayjs, { type Dayjs } from 'dayjs';
+import React, { useState, type CSSProperties, type ReactNode } from 'react';
+import useEmblaCarousel from 'embla-carousel-react';
+import Autoplay from 'embla-carousel-autoplay';
+import Button from 'antd/lib/button/button';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import duration from 'dayjs/plugin/duration';
+import { type Duration } from 'dayjs/plugin/duration';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import { timeFormatUsed } from './format';
+import carouselStyles from 'src/styles/carousel.module.css';
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
@@ -36,7 +36,7 @@ export default function RelativeTo(props: {
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: "120px", ...(props.style ?? {}) }}
+            style={{ maxWidth: '120px', ...(props.style ?? {}) }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>
@@ -47,7 +47,7 @@ export default function RelativeTo(props: {
                             ? ` - ${props.secondDateTime.format(
                                   props.format ?? timeFormatUsed,
                               )}`
-                            : ""
+                            : ''
                     }`}
                 </Typography>
                 <Tooltip
@@ -56,7 +56,7 @@ export default function RelativeTo(props: {
                             ? `Relative to ${props.wrt.format(
                                   props.format ?? timeFormatUsed,
                               )}`
-                            : "Click me to update!"
+                            : 'Click me to update!'
                     }
                     className={carouselStyles.slide}
                 >
@@ -87,17 +87,17 @@ export function HumanizeDuration(props: {
             className={carouselStyles.embla}
             ref={emblaRef}
             style={{
-                maxWidth: "150px",
-                minWidth: "100px",
+                maxWidth: '150px',
+                minWidth: '100px',
                 ...(props.style ?? {}),
             }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>
-                    {`${props?.duration?.asSeconds() ?? "--"} s`}
+                    {`${props?.duration?.asSeconds() ?? '--'} s`}
                 </Typography>
                 <Typography className={carouselStyles.slide}>
-                    {props?.duration?.humanize() ?? "--"}
+                    {props?.duration?.humanize() ?? '--'}
                 </Typography>
             </div>
         </div>

@@ -1,32 +1,32 @@
-import type DetailsOfRun from "@/types/testRun";
-import React, { useState, type ReactNode, useContext } from "react";
-import Space from "antd/lib/space";
-import Card from "antd/lib/card/Card";
-import Meta from "antd/lib/card/Meta";
-import Counter from "@/components/counter";
-import ProgressPieChart from "../Charts/StatusPieChart";
-import Typography from "antd/lib/typography/Typography";
-import Switch from "antd/lib/switch";
-import RelativeTo from "../Datetime/relativeTime";
-import Tooltip from "antd/lib/tooltip/index";
-import Divider from "antd/lib/divider/index";
-import dayjs, { type Dayjs } from "dayjs";
-import Table from "antd/lib/table/Table";
-import MetaCallContext from "./context";
-import { getEntityLevelAttachment, getSuites } from "@/Generators/helper";
-import Button from "antd/lib/button/button";
-import useSWR from "swr";
+import type DetailsOfRun from '@/types/testRun';
+import React, { useState, type ReactNode, useContext } from 'react';
+import Space from 'antd/lib/space';
+import Card from 'antd/lib/card/Card';
+import Meta from 'antd/lib/card/Meta';
+import Counter from '@/components/counter';
+import ProgressPieChart from '../Charts/StatusPieChart';
+import Typography from 'antd/lib/typography/Typography';
+import Switch from 'antd/lib/switch';
+import RelativeTo from '../utils/Datetime/relativeTime';
+import Tooltip from 'antd/lib/tooltip/index';
+import Divider from 'antd/lib/divider/index';
+import dayjs, { type Dayjs } from 'dayjs';
+import Table from 'antd/lib/table/Table';
+import MetaCallContext from './context';
+import { getEntityLevelAttachment, getSuites } from '@/Generators/helper';
+import Button from 'antd/lib/button/button';
+import useSWR from 'swr';
 import {
     type SuiteRecordDetails,
     type statusOfEntity,
     type SuiteDetails,
     testEntitiesTab,
     type AttachmentDetails,
-} from "@/types/detailedTestRunPage";
-import { RenderDuration, RenderStatus } from "@/components/renderers";
-import RenderPassedRate from "../Charts/StackedBarChart";
-import { dateFormatUsed, dateTimeFormatUsed } from "../Datetime/format";
-import ImagesWithThumbnail from "./TestEntities/TestEntity/ImagesWithThumbnails";
+} from '@/types/detailedTestRunPage';
+import { RenderDuration, RenderStatus } from '@/components/renderers';
+import RenderPassedRate from '../Charts/StackedBarChart';
+import { dateFormatUsed, dateTimeFormatUsed } from '../utils/Datetime/format';
+import ImagesWithThumbnail from './TestEntities/TestEntity/ImagesWithThumbnails';
 
 function TopSuites(props: {
     startedAt: Dayjs;
@@ -36,8 +36,8 @@ function TopSuites(props: {
     const { data } = useSWR<SuiteDetails>(getSuites(port, testID));
     if (data == null) return <></>;
 
-    const top5Suites = data["@order"]
-        .slice(-5, data?.["@order"].length)
+    const top5Suites = data['@order']
+        .slice(-5, data?.['@order'].length)
         .map((suite) => ({ key: data[suite].suiteID, ...data[suite] }));
 
     return (
@@ -46,8 +46,8 @@ function TopSuites(props: {
             size="small"
             bordered
             pagination={false}
-            style={{ flexShrink: 1, minWidth: "300px" }}
-            scroll={{ y: 199, x: "max-content" }}
+            style={{ flexShrink: 1, minWidth: '300px' }}
+            scroll={{ y: 199, x: 'max-content' }}
             footer={() => (
                 <Space>
                     <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
@@ -56,7 +56,7 @@ function TopSuites(props: {
                         <Button
                             key="maria"
                             type="link"
-                            style={{ padding: "0px" }}
+                            style={{ padding: '0px' }}
                             onClick={() => {
                                 props.setTab(testEntitiesTab);
                             }}
@@ -130,7 +130,7 @@ export default function Overview(props: {
 
     const images = Object.values(attachments)
         .flat(1)
-        .filter((image) => image.type === "PNG")
+        .filter((image) => image.type === 'PNG')
         .sort(() => 0.5 - Math.random())
         .slice(0, 6);
 
@@ -144,14 +144,14 @@ export default function Overview(props: {
             <Space>
                 <Card
                     bordered
-                    style={{ minHeight: "268px" }}
+                    style={{ minHeight: '268px' }}
                     title={
                         <Space align="center">
                             <Typography>Executed</Typography>
                             <Counter end={total} />
                             <Typography>
                                 <Switch
-                                    key={"switch"}
+                                    key={'switch'}
                                     defaultChecked
                                     size="small"
                                     checkedChildren={<>Test Cases</>}
@@ -161,8 +161,8 @@ export default function Overview(props: {
                                     }}
                                     checked={isTest}
                                     style={{
-                                        marginBottom: "2px",
-                                        marginRight: "5px",
+                                        marginBottom: '2px',
+                                        marginRight: '5px',
                                     }}
                                 />
                             </Typography>
@@ -181,7 +181,7 @@ export default function Overview(props: {
                                         split={
                                             <Divider
                                                 type="vertical"
-                                                style={{ margin: "0px" }}
+                                                style={{ margin: '0px' }}
                                             />
                                         }
                                         align="baseline"
@@ -189,8 +189,8 @@ export default function Overview(props: {
                                         <RelativeTo
                                             dateTime={startedAt}
                                             style={{
-                                                marginLeft: "30px",
-                                                maxWidth: "220px",
+                                                marginLeft: '30px',
+                                                maxWidth: '220px',
                                             }}
                                             secondDateTime={dayjs(
                                                 props.run.ended,
@@ -216,12 +216,12 @@ export default function Overview(props: {
                     size="small"
                     title="Preview"
                     bordered
-                    style={{ maxWidth: "500px" }}
+                    style={{ maxWidth: '500px' }}
                 >
                     <ImagesWithThumbnail
                         images={images}
                         loop={true}
-                        maxHeight={"200px"}
+                        maxHeight={'200px'}
                         hideDesc={true}
                     />
                 </Card>

@@ -1,6 +1,6 @@
-import { type statusOfEntity } from "./detailedTestRunPage";
+import type { statusOfEntity } from './sessionRecords';
 
-export default interface DetailsOfRun {
+export default interface TestRunRecord {
     projectName: string;
     testID: string;
     standing: statusOfEntity;
@@ -19,7 +19,7 @@ export default interface DetailsOfRun {
 }
 
 export type specNode = {
-    "<path>": string;
+    '<path>': string;
 } & { [key: string]: specNode };
 
 export interface SuiteSummary {

@@ -1,19 +1,17 @@
-import { type Dayjs } from "dayjs";
-import React, { type CSSProperties, type ReactNode } from "react";
-import RelativeTo, {
-    HumanizeDuration,
-} from "@/components/Datetime/relativeTime";
-import { type Duration } from "dayjs/plugin/duration";
-import { type statusOfEntity } from "@/types/detailedTestRunPage";
-import CheckCircleFilled from "@ant-design/icons/CheckCircleFilled";
-import CloseOutlined from "@ant-design/icons/CloseOutlined";
-import WarningFilled from "@ant-design/icons/WarningFilled";
-import Icon from "@ant-design/icons";
-import LoadingOutlined from "@ant-design/icons/LoadingOutlined";
-import { type possibleBrowserNames } from "@/types/testEntityRelated";
-import Chrome from "../../public/chrome.svg";
-import Firefox from "../../public/firefox.svg";
-import Edge from "../../public/edge.svg";
+import { type Dayjs } from 'dayjs';
+import React, { type CSSProperties, type ReactNode } from 'react';
+import { type Duration } from 'dayjs/plugin/duration';
+import type { statusOfEntity } from 'src/types/sessionRecords';
+import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
+import WarningFilled from '@ant-design/icons/WarningFilled';
+import Icon from '@ant-design/icons';
+import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
+import type { possibleBrowserNames } from 'src/types/sessionRecords';
+import Chrome from '../../public/chrome.svg';
+import Firefox from '../../public/firefox.svg';
+import Edge from '../../public/edge.svg';
+import RelativeTo, { HumanizeDuration } from './Datetime/relativeTime';
 
 export default function RenderTimeRelativeToStart(props: {
     value?: [Dayjs, Dayjs];
@@ -38,36 +36,36 @@ export function RenderDuration(props: {
 
 export function RenderStatus(props: { value: string }): ReactNode {
     switch (props.value as statusOfEntity) {
-        case "PASSED": {
+        case 'PASSED': {
             return (
                 <CheckCircleFilled
-                    style={{ fontSize: "16px", color: "green" }}
+                    style={{ fontSize: '16px', color: 'green' }}
                     title="Passed"
                 />
             );
         }
-        case "FAILED": {
+        case 'FAILED': {
             return (
                 <CloseOutlined
                     spin
-                    style={{ fontSize: "16px", color: "red" }}
+                    style={{ fontSize: '16px', color: 'red' }}
                     title="Failed"
                 />
             );
         }
-        case "SKIPPED": {
+        case 'SKIPPED': {
             return (
                 <WarningFilled
-                    style={{ fontSize: "16px", color: "yellow" }}
+                    style={{ fontSize: '16px', color: 'yellow' }}
                     spin
                     title="Skipped"
                 />
             );
         }
-        case "PENDING": {
+        case 'PENDING': {
             return (
                 <LoadingOutlined
-                    style={{ fontSize: "16px", color: "yellow" }}
+                    style={{ fontSize: '16px', color: 'yellow' }}
                     title="Pending"
                 />
             );
@@ -81,13 +79,13 @@ export function RenderBrowserType(props: {
     const style = { fontSize: 20 };
 
     switch (props.browserName) {
-        case "chrome": {
+        case 'chrome': {
             return <Icon component={Chrome} style={style} />;
         }
-        case "firefox": {
+        case 'firefox': {
             return <Icon component={Firefox} style={style} />;
         }
-        case "edge": {
+        case 'edge': {
             return <Icon component={Edge} style={style} />;
         }
         default: {

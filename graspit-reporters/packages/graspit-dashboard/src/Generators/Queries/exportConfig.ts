@@ -1,5 +1,5 @@
-import { type dbConnection } from "@/Generators/dbConnection";
-import type ExportConfig from "@/types/exportConfig";
+import { type dbConnection } from '../dbConnection';
+import type ExportConfig from 'src/types/exportConfigRecords';
 
 export default async function currentExportConfig(
     connection: dbConnection,
@@ -9,7 +9,7 @@ export default async function currentExportConfig(
         return undefined;
     }
     const result = await connection.get<ExportConfig>(
-        "select * from exportbase where ticketID = ?",
+        'select * from exportbase where ticketID = ?',
         ticketID,
     );
     return result;

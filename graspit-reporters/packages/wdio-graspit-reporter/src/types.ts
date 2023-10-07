@@ -37,7 +37,7 @@ export interface GraspItServiceOptions {
   export?: {
     out: string;
     maxTestRuns: number;
-    isDynamic: boolean;
-    skipPatch: boolean;
+    isDynamic?: boolean;
+    skipPatch?: boolean;
   }
 }

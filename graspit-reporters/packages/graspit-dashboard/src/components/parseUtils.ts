@@ -1,20 +1,21 @@
-import runLink from "@/Generators/linkProviders";
-import { type SuiteRecordDetails } from "@/types/detailedTestRunPage";
-import type SessionRecordDetails from "@/types/sessionRelated";
-import {
-    type PreviewForTests,
-    type PreviewForDetailedEntities,
-    type QuickPreviewForScenarios,
-    type QuickPreviewForTestRun,
-} from "@/types/testEntityRelated";
-import type DetailsOfRun from "@/types/testRun";
-import dayjs, { type Dayjs } from "dayjs";
-import duration from "dayjs/plugin/duration";
+import runLink from 'src/Generators/linkProviders';
+import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import type {
+    QuickPreviewForScenarios,
+    QuickPreviewForTestRun,
+    PreviewForDetailedEntities,
+    PreviewForTests,
+} from 'src/types/parsedRecords';
+import type TestRunRecord from 'src/types/testRunRecords';
+import type SessionRecordDetails from 'src/types/sessionRecords';
+import dayjs, { type Dayjs } from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+
 dayjs.extend(duration);
 
 export default function parseTestEntity(
     testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs
+    testStartedAt: Dayjs,
 ): QuickPreviewForScenarios {
     return {
         Started: [dayjs(testORSuite.started), testStartedAt],
@@ -30,7 +31,7 @@ export default function parseTestEntity(
 export function parseDetailedTestEntity(
     testORSuite: SuiteRecordDetails,
     testStartedAt: Dayjs,
-    session: SessionRecordDetails
+    session: SessionRecordDetails,
 ): PreviewForDetailedEntities {
     return {
         Started: [dayjs(testORSuite.started), testStartedAt],
@@ -51,7 +52,7 @@ export function parseDetailedTestEntity(
 
 export function parseTestCaseEntity(
     testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs
+    testStartedAt: Dayjs,
 ): PreviewForTests {
     return {
         Started: [dayjs(testORSuite.started), testStartedAt],
@@ -68,7 +69,7 @@ export function parseTestCaseEntity(
 }
 
 export function parseDetailedTestRun(
-    testRun: DetailsOfRun
+    testRun: TestRunRecord,
 ): QuickPreviewForTestRun {
     const summary: {
         passed: number;
@@ -90,4 +91,4 @@ export function parseDetailedTestRun(
     };
 }
 
-export const statusColors = ["green", "#FC4349", "#2C3E50"];
+export const statusColors = ['green', '#FC4349', '#2C3E50'];

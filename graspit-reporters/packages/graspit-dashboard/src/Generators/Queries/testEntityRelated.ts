@@ -1,10 +1,19 @@
-import { type dbConnection } from "@/Generators/dbConnection";
-import {
-    type SuiteRecordDetails,
-    type SuiteDetails,
-    type TestDetails,
-} from "@/types/detailedTestRunPage";
-import { Attachment, AttachmentDetails } from "@/types/detailedTestRunPage";
+// import { type dbConnection } from "@/Generators/dbConnection";
+// import {
+//     type SuiteRecordDetails,
+//     type SuiteDetails,
+//     type TestDetails,
+// } from "@/types/detailedTestRunPage";
+// import { Attachment, AttachmentDetails } from "@/types/detailedTestRunPage";
+
+import type { dbConnection } from '../dbConnection';
+import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import type { Attachment } from 'src/types/testEntityRelated';
+import type {
+    AttachmentDetails,
+    SuiteDetails,
+    TestDetails,
+} from 'src/types/generatedResponse';
 
 export default async function getAllSuites(
     connection: dbConnection,
@@ -17,7 +26,7 @@ export default async function getAllSuites(
 
     const order: string[] = [];
     // @ts-expect-error not sure why this one is happening
-    const response: SuiteDetails = { "@order": order };
+    const response: SuiteDetails = { '@order': order };
 
     suites.forEach((suite) => {
         response[suite.suiteID] = suite;

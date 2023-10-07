@@ -1,33 +1,33 @@
-import type DetailsOfRun from "@/types/testRun";
-import React, { useState, type ReactNode } from "react";
-import { parseDetailedTestRun } from "@/components/parseUtils";
+import type DetailsOfRun from '@/types/testRun';
+import React, { useState, type ReactNode } from 'react';
+import { parseDetailedTestRun } from '@/components/parseUtils';
 import RenderTimeRelativeToStart, {
     RenderDuration,
-} from "@/components/renderers";
-import RenderPassedRate from "@/components/Charts/StackedBarChart";
-import Switch from "antd/lib/switch";
-import List from "antd/lib/list";
-import Space from "antd/lib/space";
-import Collapse from "antd/lib/collapse/Collapse";
-import Card from "antd/lib/card/Card";
-import dayjs, { type Dayjs } from "dayjs";
-import Layout from "antd/lib/layout/index";
-import AreaChartForRuns from "@/components/Charts/AreaChartForRuns";
-import HeaderStyles from "@/styles/header.module.css";
-import Empty from "antd/lib/empty/index";
-import Tooltip from "antd/lib/tooltip/index";
-import Divider from "antd/lib/divider/index";
-import Select from "antd/lib/select/index";
-import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
-import DatePicker from "antd/lib/date-picker/index";
-import FilterOutlined from "@ant-design/icons/FilterOutlined";
-import crumbs from "@/components/ListOfRuns/Items";
-import Text from "antd/lib/typography/Text";
-import Link from "antd/lib/typography/Link";
-import isBetween from "dayjs/plugin/isBetween";
-import Button from "antd/lib/button/button";
-import { type QuickPreviewForTestRun } from "@/types/testEntityRelated";
-import { dateFormatUsed } from "../Datetime/format";
+} from '@/components/renderers';
+import RenderPassedRate from '@/components/Charts/StackedBarChart';
+import Switch from 'antd/lib/switch';
+import List from 'antd/lib/list';
+import Space from 'antd/lib/space';
+import Collapse from 'antd/lib/collapse/Collapse';
+import Card from 'antd/lib/card/Card';
+import dayjs, { type Dayjs } from 'dayjs';
+import Layout from 'antd/lib/layout/index';
+import AreaChartForRuns from '@/components/Charts/AreaChartForRuns';
+import HeaderStyles from '@/styles/header.module.css';
+import Empty from 'antd/lib/empty/index';
+import Tooltip from 'antd/lib/tooltip/index';
+import Divider from 'antd/lib/divider/index';
+import Select from 'antd/lib/select/index';
+import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
+import DatePicker from 'antd/lib/date-picker/index';
+import FilterOutlined from '@ant-design/icons/FilterOutlined';
+import crumbs from '@/components/ListOfRuns/Items';
+import Text from 'antd/lib/typography/Text';
+import Link from 'antd/lib/typography/Link';
+import isBetween from 'dayjs/plugin/isBetween';
+import Button from 'antd/lib/button/button';
+import { type QuickPreviewForTestRun } from '@/types/testEntityRelated';
+import { dateFormatUsed } from '../utils/Datetime/format';
 
 dayjs.extend(isBetween);
 
@@ -39,13 +39,13 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
         <List.Item
             key={item.Link}
             actions={[
-                <Space key={"space"}>
+                <Space key={'space'}>
                     <RenderPassedRate
                         value={isTest ? item.Rate : item.SuitesSummary}
-                        key={"chart"}
+                        key={'chart'}
                     />
                     <Switch
-                        key={"switch"}
+                        key={'switch'}
                         defaultChecked
                         size="small"
                         checkedChildren={<>Tests</>}
@@ -61,7 +61,7 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
             <List.Item.Meta
                 title={
                     <Link href={item.Link}>{`${item.Started[0].format(
-                        dateFormatUsed
+                        dateFormatUsed,
                     )} - ${item.Title}`}</Link>
                 }
                 description={
@@ -77,23 +77,23 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                             split={
                                 <Divider
                                     type="vertical"
-                                    style={{ margin: "0px" }}
+                                    style={{ margin: '0px' }}
                                 />
                             }
                         >
                             <RenderTimeRelativeToStart
                                 value={item.Started}
-                                style={{ maxWidth: "100px" }}
+                                style={{ maxWidth: '100px' }}
                             />
                             <RenderTimeRelativeToStart
                                 value={item.Ended}
-                                style={{ maxWidth: "100px" }}
+                                style={{ maxWidth: '100px' }}
                             />
                             <RenderDuration
                                 value={item.Duration}
                                 style={{
-                                    minWidth: "80px",
-                                    maxWidth: "80px",
+                                    minWidth: '80px',
+                                    maxWidth: '80px',
                                 }}
                             />
                         </Space>
@@ -122,7 +122,7 @@ function RawList(props: {
                 props.dataSource.length > showMax ? (
                     <Button
                         size="middle"
-                        style={{ width: "100%", marginTop: "1px" }}
+                        style={{ width: '100%', marginTop: '1px' }}
                         onClick={() => {
                             setShowMax(showMax + 10);
                         }}
@@ -143,56 +143,56 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     const chronological = details.slice(1);
 
     const today = dayjs();
-    const yesterday = today.subtract(1, "day");
-    const startOfThisMonth = today.startOf("month");
-    const thisWeek = yesterday.subtract(yesterday.get("day") + 1, "days");
-    const thisMonth = yesterday.set("date", 1);
+    const yesterday = today.subtract(1, 'day');
+    const startOfThisMonth = today.startOf('month');
+    const thisWeek = yesterday.subtract(yesterday.get('day') + 1, 'days');
+    const thisMonth = yesterday.set('date', 1);
 
     const forPrevMonth = chronological.filter((run) =>
-        run.Started[0].isBefore(startOfThisMonth)
+        run.Started[0].isBefore(startOfThisMonth),
     );
 
     const forThisMonth = chronological.filter(
         (run) =>
-            run.Started[0].isAfter(thisMonth.subtract(1, "day"), "date") &&
-            run.Started[0].isBefore(thisWeek, "date")
+            run.Started[0].isAfter(thisMonth.subtract(1, 'day'), 'date') &&
+            run.Started[0].isBefore(thisWeek, 'date'),
     );
 
     const forThisWeek = chronological.filter(
         (run) =>
-            run.Started[0].isAfter(thisWeek, "date") &&
-            run.Started[0].isBefore(yesterday, "date")
+            run.Started[0].isAfter(thisWeek, 'date') &&
+            run.Started[0].isBefore(yesterday, 'date'),
     );
 
     const forYesterday = chronological.filter((run) =>
-        run.Started[0].isSame(yesterday, "date")
+        run.Started[0].isSame(yesterday, 'date'),
     );
 
     const forToday = chronological.filter((run) =>
-        run.Started[0].isSame(today, "date")
+        run.Started[0].isSame(today, 'date'),
     );
 
     const data = [
-        { items: [firstRun], label: "Latest Run" },
+        { items: [firstRun], label: 'Latest Run' },
         {
             items: forToday,
-            label: "Today",
+            label: 'Today',
         },
         {
             items: forYesterday,
-            label: "Yesterday",
+            label: 'Yesterday',
         },
         {
             items: forThisWeek,
-            label: "This Week",
+            label: 'This Week',
         },
         {
             items: forThisMonth,
-            label: "This Month",
+            label: 'This Month',
         },
         {
             items: forPrevMonth,
-            label: "Prev Month",
+            label: 'Prev Month',
         },
     ]
         .filter((item) => item.items.length > 0)
@@ -208,7 +208,7 @@ function ListOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             size="small"
             accordion
             items={data}
-            defaultActiveKey={["Latest Run"]}
+            defaultActiveKey={['Latest Run']}
             bordered
         />
     );
@@ -238,7 +238,7 @@ function ListOfCharts(props: { runs: DetailsOfRun[] }): ReactNode {
     );
 
     return (
-        <Space direction="vertical" style={{ width: "100%" }}>
+        <Space direction="vertical" style={{ width: '100%' }}>
             {areaChart}
         </Space>
     );
@@ -252,15 +252,15 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
 
     if (props.runs.length === 0) {
         return (
-            <Layout style={{ height: "100%" }}>
+            <Layout style={{ height: '100%' }}>
                 <Space
                     direction="horizontal"
-                    style={{ height: "100%", justifyContent: "center" }}
+                    style={{ height: '100%', justifyContent: 'center' }}
                 >
                     <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                         description={
-                            "No Runs Found!, Please run your test suite"
+                            'No Runs Found!, Please run your test suite'
                         }
                     />
                 </Space>
@@ -274,7 +274,7 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             (selectedProjectName == null ||
                 run.projectName === selectedProjectName) &&
             (dateRange == null ||
-                started.isBetween(dateRange[0], dateRange[1], "date", "[]"))
+                started.isBetween(dateRange[0], dateRange[1], 'date', '[]'))
         );
     });
 
@@ -284,11 +284,11 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
         body = (
             <Space
                 direction="horizontal"
-                style={{ height: "100%", justifyContent: "center" }}
+                style={{ height: '100%', justifyContent: 'center' }}
             >
                 <Empty
                     image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description={"No Filtered Results found"}
+                    description={'No Filtered Results found'}
                 />
             </Space>
         );
@@ -297,19 +297,19 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
             <Layout hasSider>
                 <Layout.Sider
                     width={350}
-                    theme={"light"}
+                    theme={'light'}
                     style={{
-                        margin: "6px",
-                        overflow: "auto",
+                        margin: '6px',
+                        overflow: 'auto',
                     }}
                 >
                     <ListOfRuns runs={filteredRuns} />
                 </Layout.Sider>
                 <Layout.Content
                     style={{
-                        margin: "6px",
-                        overflow: "auto",
-                        paddingBottom: "13px",
+                        margin: '6px',
+                        overflow: 'auto',
+                        paddingBottom: '13px',
                     }}
                 >
                     <ListOfCharts runs={filteredRuns} />
@@ -319,21 +319,21 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
     }
 
     const projectNames = Array.from(
-        new Set(props.runs.map((run) => run.projectName))
+        new Set(props.runs.map((run) => run.projectName)),
     ).map((projectName) => ({ label: projectName, value: projectName }));
 
     return (
         <Layout
             style={{
-                overflow: "hidden",
-                height: "99.6vh",
+                overflow: 'hidden',
+                height: '99.6vh',
             }}
         >
             <Layout.Header className={HeaderStyles.header} spellCheck>
                 <Space
                     align="baseline"
                     size="large"
-                    style={{ marginTop: "6px" }}
+                    style={{ marginTop: '6px' }}
                 >
                     <BreadCrumb items={crumbs(false, filteredRuns.length)} />
                     <Divider type="vertical" />
@@ -345,7 +345,7 @@ export default function GridOfRuns(props: { runs: DetailsOfRun[] }): ReactNode {
                         allowClear
                         value={selectedProjectName}
                         placeholder="Select Project Name"
-                        style={{ minWidth: "180px" }}
+                        style={{ minWidth: '180px' }}
                         onChange={(selected) => {
                             filterProjectName(selected);
                         }}

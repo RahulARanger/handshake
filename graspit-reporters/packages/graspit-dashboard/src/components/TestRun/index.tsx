@@ -1,32 +1,32 @@
-import React, { useState, useContext, type ReactNode } from "react";
-import { getTestRun } from "@/Generators/helper";
-import type DetailsOfRun from "@/types/testRun";
-import useSWR from "swr";
-import Layout from "antd/lib/layout/index";
-import Empty from "antd/lib/empty/index";
-import Space from "antd/lib/space";
-import Tabs from "antd/lib/tabs/index";
-import BreadCrumb from "antd/lib/breadcrumb/Breadcrumb";
-import RelativeTo from "../Datetime/relativeTime";
-import dayjs from "dayjs";
-import { crumbsForRun } from "../ListOfRuns/Items";
-import type { Tab } from "rc-tabs/lib/interface";
-import Overview from "./Overview";
-import MetaCallContext from "./context";
-import GanttChartForTestEntities from "../Charts/GanttChartForTestSuites";
-import HomeOutlined from "@ant-design/icons/HomeOutlined";
-import TableOutlined from "@ant-design/icons/TableOutlined";
-import PartitionOutlined from "@ant-design/icons/PartitionOutlined";
-import TestEntities from "@/components/TestRun/TestEntities";
-import Card from "antd/lib/card/Card";
-import { dateFormatUsed } from "../Datetime/format";
+import React, { useState, useContext, type ReactNode } from 'react';
+import { getTestRun } from '@/Generators/helper';
+import type DetailsOfRun from '@/types/testRun';
+import useSWR from 'swr';
+import Layout from 'antd/lib/layout/index';
+import Empty from 'antd/lib/empty/index';
+import Space from 'antd/lib/space';
+import Tabs from 'antd/lib/tabs/index';
+import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
+import RelativeTo from '../utils/Datetime/relativeTime';
+import dayjs from 'dayjs';
+import { crumbsForRun } from '../ListOfRuns/Items';
+import type { Tab } from 'rc-tabs/lib/interface';
+import Overview from './Overview';
+import MetaCallContext from './context';
+import GanttChartForTestEntities from '../Charts/GanttChartForTestSuites';
+import HomeOutlined from '@ant-design/icons/HomeOutlined';
+import TableOutlined from '@ant-design/icons/TableOutlined';
+import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
+import TestEntities from '@/components/TestRun/TestEntities';
+import Card from 'antd/lib/card/Card';
+import { dateFormatUsed } from '../utils/Datetime/format';
 import {
     ganttChartTab,
     gridViewMode,
     overviewTab,
     testEntitiesTab,
-} from "@/types/detailedTestRunPage";
-import TestEntityDrawer from "./TestEntities/TestEntity";
+} from '@/types/detailedTestRunPage';
+import TestEntityDrawer from './TestEntities/TestEntity';
 
 export default function DetailedTestRun(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -38,15 +38,15 @@ export default function DetailedTestRun(): ReactNode {
 
     if (data == null) {
         return (
-            <Layout style={{ height: "100%" }}>
+            <Layout style={{ height: '100%' }}>
                 <Space
                     direction="horizontal"
-                    style={{ height: "100%", justifyContent: "center" }}
+                    style={{ height: '100%', justifyContent: 'center' }}
                 >
                     <Empty
                         image={Empty.PRESENTED_IMAGE_SIMPLE}
                         description={`Report: ${
-                            testID ?? "not-passed"
+                            testID ?? 'not-passed'
                         } is not available. Please raise an issue if you think it is a valid one.`}
                     />
                 </Space>
@@ -88,12 +88,12 @@ export default function DetailedTestRun(): ReactNode {
             ),
         },
         {
-            label: "Gantt Chart",
+            label: 'Gantt Chart',
             key: ganttChartTab,
             children: (
                 <Card
                     style={{
-                        padding: "3px",
+                        padding: '3px',
                     }}
                     size="small"
                 >
@@ -112,14 +112,14 @@ export default function DetailedTestRun(): ReactNode {
     ];
 
     return (
-        <Layout style={{ overflow: "hidden", height: "99.3vh" }}>
+        <Layout style={{ overflow: 'hidden', height: '99.3vh' }}>
             <Layout.Content
                 style={{
-                    marginLeft: "12px",
-                    marginTop: "2px",
-                    overflowY: "auto",
-                    marginBottom: "3px",
-                    overflowX: "hidden",
+                    marginLeft: '12px',
+                    marginTop: '2px',
+                    overflowY: 'auto',
+                    marginBottom: '3px',
+                    overflowX: 'hidden',
                 }}
             >
                 <Tabs
@@ -141,7 +141,7 @@ export default function DetailedTestRun(): ReactNode {
                         right: (
                             <RelativeTo
                                 dateTime={dayjs(data.ended)}
-                                style={{ maxWidth: "130px" }}
+                                style={{ maxWidth: '130px' }}
                                 format={dateFormatUsed}
                             />
                         ),
