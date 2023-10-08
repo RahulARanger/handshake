@@ -42,3 +42,11 @@ venv/*
 check.py
 graspit-reporters/packages/graspit-dashboard/public/antd.min.css
 graspit-reporters/packages/graspit-dashboard/src/styles/antd.min.css
+
+# Production
+/build
+
+# Generated files
+
+# Misc
+.DS_Store
