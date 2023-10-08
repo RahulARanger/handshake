@@ -1,0 +1,40 @@
+import SetupSteps from "pages/components/setupSteps";
+import Alert from "antd/lib/alert/Alert";
+
+<>
+	<SetupSteps current={0} />
+</>
+
+## Getting Started:
+
+-   Install [Python 3.11](https://www.python.org/downloads/release/python-3110/),
+    Please make sure to explore the relevant options under the `files` section.
+
+    <Alert
+    	type="warning"
+    	message="Path variable"
+    	description="It is not required for adding the download python executable to the path, but if not added please make sure to note the path."
+    	showIcon
+    />
+
+-   Move to the root directory, and execute this command `python -m venv venv`
+
+    <Alert
+    	type="info"
+    	message="We would be creating a virtual environment, under the name venv. We would see venv folder in your root directory after this."
+    />
+
+-   After the venv creation, create a file `requirements.txt`
+
+    ```requirements.txt
+    graspit>=0.8.1
+    ```
+
+-   Activate the venv
+
+    -   If in windows, `venv\Scripts\activate`
+    -   On Unix or MacOS, run: `source venv/bin/activate`
+
+-   Now Install packages through: `pip install -r requiremnts.txt`
+
+-   `graspit --help`

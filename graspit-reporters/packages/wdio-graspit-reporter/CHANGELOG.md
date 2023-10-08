@@ -1,5 +1,14 @@
 # wdio-graspit-reporter
 
+## 1.2.1
+
+### Patch Changes
+
+- Added cross env way of activating venv created
+- Updated dependencies
+  - graspit-commons@1.3.0
+  - graspit@2.0.1
+
 ## 1.2.0
 
 ### Minor Changes

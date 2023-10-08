@@ -1,5 +1,11 @@
 # graspit
 
+## 2.0.1
+
+### Patch Changes
+
+- Added cross env way of activating venv created
+
 ## 2.0.0
 
 ### Major Changes

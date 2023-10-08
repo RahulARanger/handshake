@@ -1,5 +1,16 @@
 # graspit-commons
 
+## 1.3.0
+
+### Minor Changes
+
+- Added cross env way of activating venv created
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@2.0.1
+
 ## 1.2.0
 
 ### Minor Changes
