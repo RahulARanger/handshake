@@ -5,7 +5,7 @@ const nextConfig = {
   // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
   trailingSlash: true,
 
-  transpilePackages: ['antd'],
+  transpilePackages: ['graspit'],
   env: {
     NEXT_PY_PORT: process.env.NEXT_PY_PORT
   },

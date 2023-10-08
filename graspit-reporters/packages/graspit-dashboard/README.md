@@ -1,4 +1,26 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Here I would be documenting few things, I explored and did some assumptions which made this app possible. This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app). Please jump to this [section](#getting-started) for running this app.
+
+# Important Settings
+
+## Exporting Next-js app
+
+Exporting Next-JS app was bit confusing for me at first, have spent a lot of time.
+
+### Expectations
+
+-   when the command line has this particular directory as its root then it should be able to use the command `npm run export`
+-   after running the export command, it should avoid linting next-js as it would be taken care before deploying the changes.
+-   First it generates the `antd.min.css` in the `src/styles` directory. the above file is not distributed. `scripts/genAntdCSS.ts` generates the file
+-   and then it would generate the html files inside the requested output directory through `next build` command.
+
+### Changes made
+
+-   `next.config.js`
+    -   we made output as `export`
+    -   informed to transpile `graspit` (current package)
+    -   added rules inside of webpack to enable custom icons in `antd`
+-   `package.json`
+    -   Added `predev` and `prebuild` command which would generate the antd css file
 
 ## Getting Started
 
@@ -26,8 +48,8 @@ This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-opti
 
 To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+-   [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+-   [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
 

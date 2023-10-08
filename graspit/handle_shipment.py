@@ -105,7 +105,7 @@ def export(path, runs, dynamic, out):
 
     call(
         f"npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, graspit)}"
-        f" DB_PATH={relpath(saved_db_path, graspit)} npm run build",
+        f" DB_PATH={relpath(saved_db_path, graspit)} npm run export",
         cwd=graspit,
         shell=True,
     )

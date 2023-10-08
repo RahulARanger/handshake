@@ -13,7 +13,8 @@
     "test": "turbo run test --concurrency=1 --continue",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "wdio": "wdio run ./apps\\test-mocha\\wdio.conf.js"
+    "wdio": "wdio run ./apps\\test-mocha\\wdio.conf.js",
+    "publish": "turbo run build lint && changeset version && changeset publish"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^6.7.3",
