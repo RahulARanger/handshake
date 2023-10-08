@@ -7,15 +7,21 @@ import DialPad from './dialPad';
 
 const logger = log4js.getLogger('graspit-service-commons');
 
+const isWindows = () => process.platform === 'win32' || /^(msys|cygwin)$/.test(process.env.OSTYPE ?? '');
+
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
   // eslint-disable-next-line class-methods-use-this
   get venv() {
-    return join('venv', 'Scripts', 'activate');
+    return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
   }
 
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
+  }
+
+  get activateVenvScript() {
+    return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
   }
 
   startService(
@@ -24,7 +30,7 @@ export class ServiceDialPad extends DialPad {
     rootDir: string,
     port: number,
   ): ChildProcess {
-    const command = `"${this.venv}" && graspit run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
+    const command = `"${this.activateVenvScript}" && graspit run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
     logger.warn(`Requesting a graspit server, command used: ${command} from ${rootDir}`);
 
     const pyProcess = spawn(command, {
@@ -113,7 +119,7 @@ export class ServiceDialPad extends DialPad {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
       return false;
     }
-    const patchScript = `"${this.venv}" && graspit patch "${resultsDir}"`;
+    const patchScript = `"${this.activateVenvScript}" && graspit patch "${resultsDir}"`;
     const exportScript = isDynamic ? `graspit export "${resultsDir}" --out "${outDir}" -d` : `graspit export "${resultsDir}" --out "${outDir}" -r ${maxTestRuns ?? 100}`;
 
     const script = outDir

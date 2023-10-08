@@ -15,15 +15,16 @@
 	},
 	"dependencies": {
 		"async-lock": "^1.4.0",
+		"graspit": "2.0.0",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit": "*"
+        "cross-env": "^7.0.3"
 	},
 	"devDependencies": {
-		"@types/async-lock": "^1.4.0",
-		"@types/superagent": "^4.1.19",
 		"@tsconfig/node18": "^18.2.2",
+		"@types/async-lock": "^1.4.0",
 		"@types/node": "^20.8.3",
+		"@types/superagent": "^4.1.19",
 		"typescript": "^5.2.2"
 	}
 }
