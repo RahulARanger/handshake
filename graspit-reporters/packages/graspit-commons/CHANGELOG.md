@@ -1,5 +1,16 @@
 # graspit-commons
 
+## 1.2.0
+
+### Minor Changes
+
+- Added Export Command for the graspit dashboard now we do not lint the export files at the time of export and also do not generate the css file on production, this can save some time for report generation.
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@2.0.0
+
 ## 1.1.0
 
 ### Minor Changes

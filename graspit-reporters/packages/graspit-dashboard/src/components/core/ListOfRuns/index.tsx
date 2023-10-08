@@ -139,7 +139,7 @@ function RawList(props: {
 }
 
 function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
-    const details = props.runs.map(parseDetailedTestRun).reverse();
+    const details = props.runs.map(parseDetailedTestRun);
     const firstRun = details.at(0);
     const chronological = details.slice(1);
 

@@ -10,23 +10,23 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "test": "turbo run test --concurrency=1 --continue",
+    "test": "npm run build && turbo run test --concurrency=1 --continue",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "wdio": "wdio run ./apps\\test-mocha\\wdio.conf.js",
     "publish": "turbo run build lint && changeset version && changeset publish"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.7.3",
-    "@typescript-eslint/parser": "^6.7.3",
-    "eslint": "^8.50.0",
+    "@typescript-eslint/eslint-plugin": "^6.7.4",
+    "@typescript-eslint/parser": "^6.7.4",
+    "eslint": "^8.51.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "prettier": "^3.0.3",
     "rimraf": "^5.0.5",
     "tsconfig": "7.0.0",
     "tsup": "^7.2.0",
-    "turbo": "1.10.14"
+    "turbo": "^1.10.15"
   },
   "dependencies": {
     "@changesets/cli": "^2.26.2",
