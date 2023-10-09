@@ -1,5 +1,33 @@
 import SetupSteps from "pages/components/setupSteps";
+import Alert from "antd/lib/alert/Alert";
+import Tag from "antd/lib/tag/index";
+import Space from "antd/lib/space/index";
 
 <>
+	<Space style={{ margin: "12px" }}>
+		<Tag color="gold">Important</Tag>
+		<Tag color="blue">Nodejs</Tag>
+	</Space>
 	<SetupSteps current={2} />
 </>
+
+## Introduction
+
+This step is also important, until now we were just storing the values in the database, but now we would be generating a dashboard out of the test results.
+
+<br />
+<Alert
+	type="info"
+	showIcon
+	message="Please skip this step if you are using Nodejs based test automation framework."
+/>
+
+## Setup
+
+-   Initate a project: `npm init .`
+
+-   Install the package: `npm install graspit`
+
+    [NPM Package](https://www.npmjs.com/package/graspit)
+
+Now its done!

@@ -1,0 +1,30 @@
+import SetupSteps from "pages/components/setupSteps";
+import Tag from "antd/lib/tag/index";
+import Space from "antd/lib/space/index";
+
+<>
+	<Space style={{ margin: "12px" }}>
+		<Tag color="orange">Webdriverio</Tag>
+		<Tag color="purple">Nodejs</Tag>
+	</Space>
+	<SetupSteps current={1} />
+</>
+
+## Installation
+
+Make sure you have done the [required setup](https://webdriver.io/docs/gettingstarted) for webdriverio past
+you can try this command, to install our custom reporter: `npm install wdio-graspit-reporter`
+
+[NPM Package](https://www.npmjs.com/package/wdio-graspit-reporter)
+
+## Configuration
+
+```js filename="wdio.conf.js"
+const config = {
+	specs: "...",
+	framework: "...",
+	// ....
+};
+
+attachReporter(config, {});
+```

@@ -1,21 +1,22 @@
 import SetupSteps from "pages/components/setupSteps";
 import Alert from "antd/lib/alert/Alert";
+import Tag from "antd/lib/tag/index";
+import Space from "antd/lib/space/index";
 
 <>
+	<Space style={{ margin: "12px" }}>
+		<Tag color="gold">Important</Tag>
+		<Tag color="blue">Python</Tag>
+	</Space>
 	<SetupSteps current={0} />
 </>
 
 ## Getting Started:
 
--   Install [Python 3.11](https://www.python.org/downloads/release/python-3110/),
-    Please make sure to explore the relevant options under the `files` section.
+In this step, we would be setting up python venv in our project, if you have python **3.11** installed, you can skip the jump to second step.
+This particular step is required regardless of the test framework used.
 
-    <Alert
-    	type="warning"
-    	message="Path variable"
-    	description="It is not required for adding the download python executable to the path, but if not added please make sure to note the path."
-    	showIcon
-    />
+-   Install [Python 3.11](https://www.python.org/downloads/release/python-3110/)
 
 -   Move to the root directory, and execute this command `python -m venv venv`
 
@@ -26,15 +27,42 @@ import Alert from "antd/lib/alert/Alert";
 
 -   After the venv creation, create a file `requirements.txt`
 
-    ```requirements.txt
+    ```text filename="requirements.txt"
     graspit>=0.8.1
     ```
 
--   Activate the venv
+    <Alert
+    	type="info"
+    	message="graspit version mentioned may not be updated ones, please refer to the post installation steps for updating the package."
+    />
 
-    -   If in windows, `venv\Scripts\activate`
-    -   On Unix or MacOS, run: `source venv/bin/activate`
+-   Activate the venv, If in **windows**, `venv\Scripts\activate`, else On **Unix or MacOS**, run: `source venv/bin/activate`
 
 -   Now Install packages through: `pip install -r requiremnts.txt`
 
 -   `graspit --help`
+    you would see the below text (may not be exact) as the output.
+
+    ```cmd
+    Usage: graspit [OPTIONS] COMMAND [ARGS]...
+    Options:
+    --help Show this message and exit.
+    Commands:
+    display
+    export
+    patch
+    run-app
+    ```
+
+## Past Setup
+
+Now that we have setup graspit package on python,
+Please download [PyPI Assistant](https://marketplace.visualstudio.com/items?itemName=twixes.pypi-assistant), a VSCode Extension, or similar one in your IDE. so we can update to the latest version.
+
+That's all for this step.
+
+## Reference
+
+-   [Invoking Python](https://docs.python.org/3.11/tutorial/interpreter.html#invoking-the-interpreter)
+-   [Creating Venv](https://docs.python.org/3.11/library/venv.html#creating-virtual-environments)
+-   [Invoking Venv](https://docs.python.org/3.11/library/venv.html#creating-virtual-environments)

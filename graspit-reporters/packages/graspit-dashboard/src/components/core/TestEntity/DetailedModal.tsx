@@ -1,6 +1,8 @@
 import { RenderStatus } from 'src/components/utils/renderers';
 import type { Attachment } from 'src/types/testEntityRelated';
-import ImagesWithThumbnail from 'src/components/utils/ImagesWithThumbnails';
+import GalleryOfImages, {
+    CardForAImage,
+} from 'src/components/utils/ImagesWithThumbnails';
 import type { PreviewForTests } from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 
@@ -70,7 +72,17 @@ export default function MoreDetailsOnEntity(props: {
         tabList.push({
             key: 'images',
             label: 'Images',
-            children: <ImagesWithThumbnail images={images} />,
+            children: (
+                <GalleryOfImages loop={true}>
+                    {images.map((image, index) => (
+                        <CardForAImage
+                            image={image}
+                            index={index}
+                            key={index}
+                        />
+                    ))}
+                </GalleryOfImages>
+            ),
         });
     }
 

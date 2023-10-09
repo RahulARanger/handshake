@@ -1,4 +1,5 @@
 import SetupSteps from "pages/components/setupSteps";
+import PreviewForMotivation from "pages/components/Preview";
 
 # Welcome to Graspit
 
@@ -11,6 +12,25 @@ Test results would be stored in sqlite3 Database and the dashboard is a static e
 
 For Getting Started with the setup, we could shorten it with three steps, please go through them one by one.
 
-<>
-	<SetupSteps />
-</>
+<SetupSteps />
+
+## Gallery
+
+Some of the Screenshots from Dashboard
+
+<PreviewForMotivation
+	images={[
+		{
+			url: "./overview.png",
+			title: "Overview tab",
+		},
+		{
+			url: "./db.png",
+			title: "Database",
+		},
+		{
+			url: "./grid.png",
+			title: "Test Entities grid",
+		},
+	]}
+/>

@@ -1,5 +1,11 @@
 # graspit-commons
 
+## 1.3.1
+
+### Patch Changes
+
+- e6055a0: Revert the line in package.json for graspit package
+
 ## 1.3.0
 
 ### Minor Changes

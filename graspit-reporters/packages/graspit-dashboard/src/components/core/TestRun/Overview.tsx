@@ -11,7 +11,9 @@ import RelativeTo from 'src/components/utils/Datetime/relativeTime';
 import ProgressPieChart from 'src/components/charts/StatusPieChart';
 import { RenderDuration, RenderStatus } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/StackedBarChart';
-import ImagesWithThumbnail from 'src/components/utils/ImagesWithThumbnails';
+import GalleryOfImages, {
+    CardForAImage,
+} from 'src/components/utils/ImagesWithThumbnails';
 import type { SuiteDetails } from 'src/types/generatedResponse';
 import type { AttachmentDetails } from 'src/types/generatedResponse';
 import { testEntitiesTab } from 'src/types/uiConstants';
@@ -221,12 +223,17 @@ export default function Overview(props: {
                     bordered
                     style={{ maxWidth: '500px' }}
                 >
-                    <ImagesWithThumbnail
-                        images={images}
-                        loop={true}
-                        maxHeight={'200px'}
-                        hideDesc={true}
-                    />
+                    <GalleryOfImages loop={true}>
+                        {images.map((image, index) => (
+                            <CardForAImage
+                                image={image}
+                                index={index}
+                                key={index}
+                                maxHeight={'200px'}
+                                hideDesc={true}
+                            />
+                        ))}
+                    </GalleryOfImages>
                 </Card>
             </Space>
         </Space>
