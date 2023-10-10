@@ -1,5 +1,6 @@
-import React, { Component, type ReactNode } from "react";
-import CountUp from "react-countup";
+import Statistic from 'antd/lib/statistic/Statistic';
+import React, { Component, type ReactNode } from 'react';
+import CountUp from 'react-countup';
 
 export default class Counter extends Component<
     { end: number; suffix?: string; decimalPoints?: number },
@@ -18,8 +19,8 @@ export default class Counter extends Component<
                         .toString()
                         .padStart(
                             Math.floor(Math.log10(this.props.end) + 1),
-                            "0"
-                        )}${this.props.suffix ?? ""}`
+                            '0',
+                        )}${this.props.suffix ?? ''}`
                 }
                 decimals={this.props.decimalPoints ?? 0}
             />
@@ -28,9 +29,22 @@ export default class Counter extends Component<
 
     componentDidUpdate(
         prevProps: Readonly<{ end: number }>,
-        prevState: Readonly<{ start: number }>
+        prevState: Readonly<{ start: number }>,
     ): void {
         if (prevProps.end !== prevState.start)
             this.setState({ start: prevProps.end });
     }
+}
+
+export function StatisticNumber(props: {
+    title: string | ReactNode;
+    end: number;
+}): ReactNode {
+    return (
+        <Statistic
+            title={props.title}
+            value={props.end}
+            formatter={() => <Counter end={props.end} />}
+        />
+    );
 }

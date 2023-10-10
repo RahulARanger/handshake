@@ -15,9 +15,17 @@ import Space from "antd/lib/space/index";
 Make sure you have done the [required setup](https://webdriver.io/docs/gettingstarted) for webdriverio past
 you can try this command, to install our custom reporter: `npm install wdio-graspit-reporter`
 
+It would take some time.
+
 [NPM Package](https://www.npmjs.com/package/wdio-graspit-reporter)
 
 ## Configuration
+
+You can refer to the general configuration options from [here]().
+
+Here's the general one, you would notice we haven't mentioned it in the `reporters` or `services`,
+it is because we have both [Custom Reporter]() and [Launcher]() and both are dependent and hence to make it simple
+we use helper function which would the append the required values.
 
 ```js filename="wdio.conf.js"
 const config = {
@@ -26,5 +34,15 @@ const config = {
 	// ....
 };
 
-attachReporter(config, {});
+attachReporter(config, {
+	projectName: "app-automation",
+	port: 6969,
+	collectionName: "TestResults",
+	root: process.cwd(),
+	timeout: 120e3,
+	export: {
+		out: "./dist",
+		maxTestRuns: 3,
+	},
+});
 ```

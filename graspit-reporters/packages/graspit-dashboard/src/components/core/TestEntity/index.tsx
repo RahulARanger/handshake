@@ -45,6 +45,7 @@ import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import Tag from 'antd/lib/tag/index';
 import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
+import Empty from 'antd/lib/empty/index';
 import Description, {
     type DescriptionsProps,
 } from 'antd/lib/descriptions/index';
@@ -376,12 +377,19 @@ export default function TestEntityDrawer(props: {
                         }
                     />
 
-                    <Collapse
-                        defaultActiveKey={['Latest Run']}
-                        bordered
-                        size="small"
-                        items={dataSource}
-                    />
+                    {dataSource.length > 0 ? (
+                        <Collapse
+                            defaultActiveKey={['Latest Run']}
+                            bordered
+                            size="small"
+                            items={dataSource}
+                        />
+                    ) : (
+                        <Empty
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
+                            description="No Test Entities were found"
+                        />
+                    )}
                 </Space>
             </Drawer>
             <MoreDetailsOnEntity

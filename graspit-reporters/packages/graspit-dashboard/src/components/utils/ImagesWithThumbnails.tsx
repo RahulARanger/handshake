@@ -30,6 +30,8 @@ export function CardForAImage(props: {
                 height={'95%'}
                 style={{
                     maxHeight: props.maxHeight ?? '250px',
+                    objectFit: 'cover',
+                    objectPosition: 'top',
                 }}
                 width={'95%'}
                 alt="Screenshot attached"
@@ -89,6 +91,7 @@ export function CardForAImage(props: {
 export default function GalleryOfImages(props: {
     loop?: boolean;
     children: ReactNode[];
+    maxWidth?: string;
 }): ReactNode {
     const [emblaRef] = useEmblaCarousel(
         {
@@ -99,7 +102,11 @@ export default function GalleryOfImages(props: {
         [Autoplay({})],
     );
     return (
-        <div className={carouselStyles.embla} ref={emblaRef}>
+        <div
+            className={carouselStyles.embla}
+            ref={emblaRef}
+            style={{ maxWidth: props.maxWidth }}
+        >
             <div className={carouselStyles.container}>{props.children}</div>
         </div>
     );

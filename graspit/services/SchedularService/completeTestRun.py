@@ -1,4 +1,8 @@
-from graspit.services.DBService.models.result_base import SessionBase, RunBase, SuiteBase
+from graspit.services.DBService.models.result_base import (
+    SessionBase,
+    RunBase,
+    SuiteBase,
+)
 from graspit.services.DBService.models.dynamic_base import TaskBase
 from graspit.services.DBService.models.types import Status, SuiteType
 from graspit.services.SchedularService.refer_types import PathTree, PathItem
@@ -20,12 +24,13 @@ def simplify_file_paths(paths: List[str]):
         dict(
             children=list(reversed(Path(path).parts)),
             pointer=tree,
-        ) for path in paths
+        )
+        for path in paths
     ]
 
     while _paths:
         path_to_include = _paths[-1]
-        if not path_to_include['children']:
+        if not path_to_include["children"]:
             _paths.pop()
             continue
 
@@ -34,10 +39,7 @@ def simplify_file_paths(paths: List[str]):
         # that dict will be inside the tree
 
         pointing_to = parent_pointer.setdefault(
-            possible_parent,
-            {
-                "<path>": join(parent_pointer["<path>"], possible_parent)
-            }
+            possible_parent, {"<path>": join(parent_pointer["<path>"], possible_parent)}
         )
         path_to_include["pointer"] = pointing_to
 
@@ -93,14 +95,19 @@ async def patchTestRun(test_id: str, current_test_id: str):
 
     filtered = SessionBase.filter(test_id=test_id)
 
-    pending_items = await SuiteBase.filter(
-        session__test_id=test_id).filter(
-        Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)).count()
+    pending_items = (
+        await SuiteBase.filter(session__test_id=test_id)
+        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+        .count()
+    )
 
     if pending_items > 0:
         if await mark_test_failure_if_required(test_id):
             return
-        logger.warning("Fix test run: {} was picked but some of its test entities were not processed yet.", test_id)
+        logger.warning(
+            "Fix test run: {} was picked but some of its test entities were not processed yet.",
+            test_id,
+        )
         await task.update_from_dict(dict(picked=False))
         return await task.save()  # continue in the next run
 
@@ -109,17 +116,26 @@ async def patchTestRun(test_id: str, current_test_id: str):
         await task.delete()
         return await test_run.delete()
 
-    test_result = await filtered.annotate(
-        total_passed=Sum("passed"),
-        total_failed=Sum("failed"),
-        total_skipped=Sum("skipped"),
-        total_retried=Sum("retried"),
-        total_tests=Sum("tests"),
-        actual_end=Max("ended"),
-        actual_start=Min("started")
-    ).first().values(
-        "total_passed", "total_failed", "total_skipped", "total_retried", "total_tests",
-        "actual_end", "actual_start"
+    test_result = (
+        await filtered.annotate(
+            total_passed=Sum("passed"),
+            total_failed=Sum("failed"),
+            total_skipped=Sum("skipped"),
+            total_retried=Sum("retried"),
+            total_tests=Sum("tests"),
+            actual_end=Max("ended"),
+            actual_start=Min("started"),
+        )
+        .first()
+        .values(
+            "total_passed",
+            "total_failed",
+            "total_skipped",
+            "total_retried",
+            "total_tests",
+            "actual_end",
+            "actual_start",
+        )
     )
     passed = test_result.get("total_passed", 0)
     failed = test_result.get("total_failed", 0)
@@ -128,8 +144,7 @@ async def patchTestRun(test_id: str, current_test_id: str):
     # we want to count the number of suites status
     summary = dict(passed=0, failed=0, skipped=0)
     summary.update(
-        await SuiteBase
-        .filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
+        await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
         .annotate(count=Count("suiteID"), status=Lower("standing"))
         .group_by("standing")
         .values_list("status", "count")
@@ -141,23 +156,29 @@ async def patchTestRun(test_id: str, current_test_id: str):
     started = test_result.get("actual_start", test_run.started)
     ended = test_result.get("actual_end", datetime.now())
 
-    await test_run.update_from_dict(dict(
-        started=started,
-        ended=ended,
-        tests=test_result.get("total_tests", 0),
-        passed=passed,
-        failed=failed,
-        skipped=skipped,
-        duration=(ended - started).total_seconds() * 1000,
-        retried=test_result.get("total_retried", 0),
-        specStructure=simplify_file_paths([
-            path
-            for paths in await filtered.all().distinct().values_list("specs", flat=True)
-            for path in paths
-        ]),
-        standing=fetch_key_from_status(passed, failed, skipped),
-        suiteSummary=summary
-    ))
+    await test_run.update_from_dict(
+        dict(
+            started=started,
+            ended=ended,
+            tests=test_result.get("total_tests", 0),
+            passed=passed,
+            failed=failed,
+            skipped=skipped,
+            duration=(ended - started).total_seconds() * 1000,
+            retried=test_result.get("total_retried", 0),
+            specStructure=simplify_file_paths(
+                [
+                    path
+                    for paths in await filtered.all()
+                    .distinct()
+                    .values_list("specs", flat=True)
+                    for path in paths
+                ]
+            ),
+            standing=fetch_key_from_status(passed, failed, skipped),
+            suiteSummary=summary,
+        )
+    )
 
     await test_run.save()
     logger.info("Completed the patch for test run | {}", test_id)
@@ -165,12 +186,28 @@ async def patchTestRun(test_id: str, current_test_id: str):
 
 
 async def mark_test_failure_if_required(test_id: str) -> bool:
+    test_run = await RunBase.filter(testID=test_id).first()
+    if test_run.ended is None:
+        await TestConfigBase.create(
+            test_id=test_id,
+            attachmentValue=dict(
+                reason=f"Failed to process {test_id}: {test_run.projectName} because it didn't end date",
+                incomplete=test_run.projectName,
+                test_id=test_id,
+            ),
+            type=AttachmentType.ERROR,
+            description="Job Failed: Complete Test Run",
+        )
+
+        await pruneTasks()
+        return True
+
     suites = [
-        str(_) for _ in
-        await SuiteBase.filter(
-            session__test_id=test_id).filter(
-            Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING)
-        ).all().values_list('suiteID', flat=True)
+        str(_)
+        for _ in await SuiteBase.filter(session__test_id=test_id)
+        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+        .all()
+        .values_list("suiteID", flat=True)
     ]
 
     does_it_exist = await TaskBase.exists(ticketID__in=suites)
@@ -183,10 +220,10 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
         attachmentValue=dict(
             reason=f"Failed to process {test_id} because of incomplete child suites",
             incomplete=suites,
-            test_id=test_id
+            test_id=test_id,
         ),
         type=AttachmentType.ERROR,
-        description="Job Failed: Complete Test Run"
+        description="Job Failed: Complete Test Run",
     )
 
     await pruneTasks()

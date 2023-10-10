@@ -128,7 +128,7 @@ export default class GraspItReporter extends ReporterContacts {
     );
   }
 
-  onTestEnd(test: TestStats): void {
+  onTestFail(test: TestStats): void {
     this.markTestCompletion(test);
   }
 
@@ -137,8 +137,6 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onTestSkip(test: TestStats): void {
-    // skipped tests are not registered
-    this.addTest(test);
     this.markTestCompletion(test);
   }
 

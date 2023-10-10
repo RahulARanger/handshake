@@ -1,21 +1,32 @@
 import type TestRunRecord from 'src/types/testRunRecords';
-import { getEntityLevelAttachment, getSuites } from 'src/Generators/helper';
+import {
+    getEntityLevelAttachment,
+    getSessions,
+    getSuites,
+} from 'src/Generators/helper';
 import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import {
     dateFormatUsed,
     dateTimeFormatUsed,
 } from 'src/components/utils/Datetime/format';
-import Counter from 'src/components/utils/counter';
+import Counter, { StatisticNumber } from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relativeTime';
 import ProgressPieChart from 'src/components/charts/StatusPieChart';
-import { RenderDuration, RenderStatus } from 'src/components/utils/renderers';
+import {
+    RenderBrowserType,
+    RenderDuration,
+    RenderStatus,
+} from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import GalleryOfImages, {
     CardForAImage,
 } from 'src/components/utils/ImagesWithThumbnails';
-import type { SuiteDetails } from 'src/types/generatedResponse';
-import type { AttachmentDetails } from 'src/types/generatedResponse';
+import { type SuiteDetails } from 'src/types/generatedResponse';
+import type {
+    AttachmentDetails,
+    SessionDetails,
+} from 'src/types/generatedResponse';
 import { testEntitiesTab } from 'src/types/uiConstants';
 
 import React, { useState, type ReactNode, useContext } from 'react';
@@ -129,15 +140,31 @@ export default function Overview(props: {
     const { data: attachments } = useSWR<AttachmentDetails>(
         getEntityLevelAttachment(port, testID),
     );
+    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
+    const { data: sessions } = useSWR<SessionDetails>(
+        getSessions(port, testID),
+    );
     const [isTest, setTest] = useState<boolean>(true);
 
-    if (attachments == null) return <></>;
+    if (attachments == null || sessions == null) return <></>;
 
-    const images = Object.values(attachments)
+    const allImages = Object.values(attachments)
         .flat(1)
-        .filter((image) => image.type === 'PNG')
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 6);
+        .filter((image) => image.type === 'PNG');
+
+    const specFiles = new Set(
+        suites?.['@order'].map((suite) => suites[suite].file),
+    );
+
+    const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
+
+    const browsersUsed: Record<string, number> = {};
+    Object.keys(sessions).forEach((session) => {
+        const sessionObj = sessions[session];
+        if (browsersUsed[sessionObj.browserName])
+            browsersUsed[sessionObj.browserName] += sessionObj.tests;
+        else browsersUsed[sessionObj.browserName] = sessionObj.tests;
+    });
 
     const startedAt = dayjs(props.run.started);
     const total = isTest
@@ -216,25 +243,51 @@ export default function Overview(props: {
                 </Card>
                 <TopSuites startedAt={startedAt} setTab={props.onTabSelected} />
             </Space>
-            <Space>
-                <Card
-                    size="small"
-                    title="Preview"
-                    bordered
-                    style={{ maxWidth: '500px' }}
-                >
-                    <GalleryOfImages loop={true}>
+            <Space align="start">
+                <Card bordered size="small">
+                    <Space split={<Divider type="vertical" />}>
+                        {allImages.length > 0 ? (
+                            <StatisticNumber
+                                title="Attachments"
+                                end={allImages.length}
+                            />
+                        ) : (
+                            <></>
+                        )}
+                        <StatisticNumber
+                            title="Spec Files"
+                            end={specFiles.size}
+                        />
+                        <StatisticNumber
+                            title="Sessions"
+                            end={Object.values(sessions).length}
+                        />
+                        {Object.keys(browsersUsed).map((browser) => (
+                            <StatisticNumber
+                                key={browser}
+                                title={
+                                    <RenderBrowserType browserName={browser} />
+                                }
+                                end={browsersUsed[browser]}
+                            />
+                        ))}
+                    </Space>
+                </Card>
+                {images.length > 0 ? (
+                    <GalleryOfImages loop={true} maxWidth={'500px'}>
                         {images.map((image, index) => (
                             <CardForAImage
                                 image={image}
                                 index={index}
                                 key={index}
-                                maxHeight={'200px'}
+                                maxHeight={'150px'}
                                 hideDesc={true}
                             />
                         ))}
                     </GalleryOfImages>
-                </Card>
+                ) : (
+                    <></>
+                )}
             </Space>
         </Space>
     );

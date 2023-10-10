@@ -27,7 +27,7 @@ export default function AreaChartsForRuns(props: {
         chart: {
             type: 'area',
             plotShadow: true,
-            backgroundColor: '#141414',
+            backgroundColor: 'rgba(128,128,128,0.02)',
         },
         colors: statusColors,
         title: {

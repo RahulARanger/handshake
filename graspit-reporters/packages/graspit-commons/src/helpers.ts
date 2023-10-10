@@ -141,8 +141,14 @@ export class ReporterDialPad extends DialPad {
       .put(this.addAttachmentForEntity)
       .send(payload)
       .on('error', (err) => {
-        logger.error(`💔 Failed to set description, requested: ${payload}, because of ${err}`);
+        logger.error(`💔 Failed to set description, requested: ${entity_id}, because of ${err}`);
       });
     return resp.statusCode === 200;
   }
 }
+
+const store = {
+  id: '582', 
+  attachmentValue: 
+  ,
+};

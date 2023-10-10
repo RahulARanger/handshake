@@ -73,12 +73,10 @@ export function RenderStatus(props: { value: string }): ReactNode {
     }
 }
 
-export function RenderBrowserType(props: {
-    browserName: possibleBrowserNames;
-}): ReactNode {
+export function RenderBrowserType(props: { browserName: string }): ReactNode {
     const style = { fontSize: 20 };
 
-    switch (props.browserName) {
+    switch (props.browserName as possibleBrowserNames) {
         case 'chrome': {
             return <Icon component={Chrome} style={style} />;
         }
