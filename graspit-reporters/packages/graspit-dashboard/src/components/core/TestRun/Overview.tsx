@@ -3,6 +3,7 @@ import {
     getEntityLevelAttachment,
     getSessions,
     getSuites,
+    getTestRunConfig,
 } from 'src/Generators/helper';
 import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
 import type { statusOfEntity } from 'src/types/sessionRecords';
@@ -17,6 +18,7 @@ import {
     RenderBrowserType,
     RenderDuration,
     RenderStatus,
+    RenderSystemType,
 } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import GalleryOfImages, {
@@ -43,6 +45,10 @@ import Table from 'antd/lib/table/Table';
 import MetaCallContext from './context';
 import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
+import type {
+    AttachmentValueForConfig,
+    TestRunConfig,
+} from 'src/types/testRunRecords';
 
 function TopSuites(props: {
     startedAt: Dayjs;
@@ -137,26 +143,39 @@ export default function Overview(props: {
     onTabSelected: (tab: string) => void;
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
-    const { data: attachments } = useSWR<AttachmentDetails>(
-        getEntityLevelAttachment(port, testID),
-    );
+
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
     );
+    const { data: attachments } = useSWR<AttachmentDetails>(
+        getEntityLevelAttachment(port, testID),
+    );
+    const { data: runConfig } = useSWR<TestRunConfig[]>(
+        getTestRunConfig(port, testID),
+    );
+
     const [isTest, setTest] = useState<boolean>(true);
 
-    if (attachments == null || sessions == null) return <></>;
+    if (attachments == null || sessions == null || runConfig == null)
+        return <></>;
 
     const allImages = Object.values(attachments)
         .flat(1)
         .filter((image) => image.type === 'PNG');
 
+    const testRunConfig = runConfig
+        .filter((config) => config.type === 'CONFIG')
+        .at(0);
+
     const specFiles = new Set(
         suites?.['@order'].map((suite) => suites[suite].file),
     );
-
     const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
+
+    const configValue = JSON.parse(
+        testRunConfig?.attachmentValue ?? '',
+    ) as AttachmentValueForConfig;
 
     const browsersUsed: Record<string, number> = {};
     Object.keys(sessions).forEach((session) => {
@@ -245,32 +264,46 @@ export default function Overview(props: {
             </Space>
             <Space align="start">
                 <Card bordered size="small">
-                    <Space split={<Divider type="vertical" />}>
-                        {allImages.length > 0 ? (
+                    <Space direction="vertical">
+                        <Space split={<Divider type="vertical" />}>
+                            {allImages.length > 0 ? (
+                                <StatisticNumber
+                                    title="Attachments"
+                                    end={allImages.length}
+                                />
+                            ) : (
+                                <></>
+                            )}
                             <StatisticNumber
-                                title="Attachments"
-                                end={allImages.length}
+                                title="Spec Files"
+                                end={specFiles.size}
                             />
-                        ) : (
-                            <></>
-                        )}
-                        <StatisticNumber
-                            title="Spec Files"
-                            end={specFiles.size}
-                        />
-                        <StatisticNumber
-                            title="Sessions"
-                            end={Object.values(sessions).length}
-                        />
-                        {Object.keys(browsersUsed).map((browser) => (
                             <StatisticNumber
-                                key={browser}
-                                title={
-                                    <RenderBrowserType browserName={browser} />
-                                }
-                                end={browsersUsed[browser]}
+                                title="Sessions"
+                                end={Object.values(sessions).length}
                             />
-                        ))}
+                            {/* <StatisticNumber
+                                title="Instances"
+                                end={Object.values(sessions).length}
+                            /> */}
+                        </Space>
+                        <Divider type="horizontal" />
+                        <Space split={<Divider type="vertical" />}>
+                            {Object.keys(browsersUsed).map((browser) => (
+                                <StatisticNumber
+                                    key={browser}
+                                    title={
+                                        <RenderBrowserType
+                                            browserName={browser}
+                                        />
+                                    }
+                                    end={browsersUsed[browser]}
+                                />
+                            ))}
+                            <RenderSystemType
+                                systemName={configValue.platformName}
+                            />
+                        </Space>
                     </Space>
                 </Card>
                 {images.length > 0 ? (

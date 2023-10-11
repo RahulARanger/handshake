@@ -15,6 +15,8 @@ export type IdMappedType = Record<string, string> & { session?: string };
 export class ReporterDialPad extends DialPad {
   idMapped: IdMappedType = {};
 
+  lockString = 'common-lock';
+
   lock = new AsyncLock({
     timeout: 60e3,
     maxExecutionTime: 60e3,
@@ -56,7 +58,7 @@ export class ReporterDialPad extends DialPad {
     dynamicKeys?: () => object,
   ) {
     this.lock.acquire(
-      'common-lock',
+      this.lockString,
       async (done) => {
         if (
           keyToBeStored !== 'session' && this.idMapped.session === undefined
@@ -146,9 +148,3 @@ export class ReporterDialPad extends DialPad {
     return resp.statusCode === 200;
   }
 }
-
-const store = {
-  id: '582', 
-  attachmentValue: 
-  ,
-};

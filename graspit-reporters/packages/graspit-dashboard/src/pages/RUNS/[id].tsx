@@ -3,6 +3,7 @@ import {
     getSessions,
     getSuites,
     getTestRun,
+    getTestRunConfig,
     getTestRunSummary,
     getTests,
 } from 'src/Generators/helper';
@@ -11,6 +12,7 @@ import {
     generateTestRunSummary,
     getAllTestRuns,
     getDetailsOfTestRun,
+    getTestRunConfigRecords,
 } from 'src/Generators/Queries/testRunRelated';
 import getAllSuites, {
     getAllEntityLevelAttachments,
@@ -67,6 +69,7 @@ export async function getStaticProps(prepareProps: {
     const suites = await getAllSuites(connection, testID);
     const tests = await getAllTests(connection, testID);
     const sessions = await getAllSessions(connection, testID);
+    const testRunConfig = await getTestRunConfigRecords(connection, testID);
     const entityLevelAttachments = await getAllEntityLevelAttachments(
         connection,
         testID,
@@ -84,6 +87,7 @@ export async function getStaticProps(prepareProps: {
                     generateTestRunSummary(details), // not a sql query
                 [getTests(port, testID)]: tests,
                 [getSessions(port, testID)]: sessions,
+                [getTestRunConfig(port, testID)]: testRunConfig,
                 [getEntityLevelAttachment(port, testID)]:
                     entityLevelAttachments,
             },

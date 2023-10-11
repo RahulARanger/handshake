@@ -137,6 +137,14 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onTestSkip(test: TestStats): void {
+    // sometimes it was observed the skipped tests were not added
+    // like the time when it is explicity skipped
+    // so we register before marking it
+    this.supporter.lock.acquire(this.supporter.lockString, async () => {
+      if (this.supporter.idMapped[test.uid]) { return; }
+      this.addTest(test);
+    });
+
     this.markTestCompletion(test);
   }
 

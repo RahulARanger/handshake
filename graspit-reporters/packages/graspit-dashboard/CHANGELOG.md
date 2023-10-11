@@ -1,5 +1,11 @@
 # graspit
 
+## 2.1.0
+
+### Minor Changes
+
+- Registering a test case which was skipped expliclity, minor improvements for the dashboard
+
 ## 2.0.1
 
 ### Patch Changes

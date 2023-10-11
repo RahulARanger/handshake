@@ -29,6 +29,18 @@ export interface SuiteSummary {
     failed: number;
 }
 
+export interface TestRunConfig {
+    attachmentValue: string;
+    description: string;
+    type: 'CONFIG' | 'ERROR';
+    test_id: string;
+}
+
+export interface AttachmentValueForConfig {
+    platformName: string;
+    version: string;
+}
+
 export interface TestRunSummary {
     TESTS: {
         passed: number;

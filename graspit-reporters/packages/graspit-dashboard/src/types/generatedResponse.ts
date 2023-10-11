@@ -1,7 +1,7 @@
 import type { ShareToOtherPages } from './parsedRecords';
 import type SessionRecordDetails from './sessionRecords';
 import type { Attachment, SuiteRecordDetails } from './testEntityRelated';
-import type { TestRunSummary } from './testRunRecords';
+import type { TestRunConfig, TestRunSummary } from './testRunRecords';
 import type TestRunRecord from './testRunRecords';
 
 export interface SWRResponse<Details> {
@@ -29,5 +29,6 @@ export interface DetailedTestRunPageProps extends ShareToOtherPages {
         | TestDetails
         | SessionDetails
         | AttachmentDetails
+        | TestRunConfig[]
     >;
 }

@@ -1,5 +1,5 @@
 import type { dbConnection } from '../dbConnection';
-import type { TestRunSummary } from 'src/types/testRunRecords';
+import type { TestRunConfig, TestRunSummary } from 'src/types/testRunRecords';
 import type TestRunRecord from 'src/types/testRunRecords';
 
 export default async function latestTestRun(
@@ -26,7 +26,7 @@ export async function getDetailsOfTestRun(
     connection: dbConnection,
     testID: string,
 ): Promise<TestRunRecord | undefined> {
-    return await connection.get<TestRunRecord>(
+    return connection.get<TestRunRecord>(
         "SELECT * from runbase where testID = ? AND ended <> '';",
         testID,
     );
@@ -36,9 +36,19 @@ export async function getAllTestRunDetails(
     connection: dbConnection,
     maxTestRuns?: number,
 ): Promise<TestRunRecord[] | undefined> {
-    return await connection.all<TestRunRecord[]>(
+    return connection.all<TestRunRecord[]>(
         "SELECT * from runbase where ended <> '' order by started desc LIMIT ?",
         maxTestRuns ?? -1,
+    );
+}
+
+export async function getTestRunConfigRecords(
+    connection: dbConnection,
+    test_id: string,
+): Promise<TestRunConfig[]> {
+    return connection.all<TestRunConfig[]>(
+        'SELECT * from testconfigbase where test_id = ?',
+        test_id,
     );
 }
 

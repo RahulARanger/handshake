@@ -11,6 +11,7 @@ import type { possibleBrowserNames } from 'src/types/sessionRecords';
 import Chrome from '../../../public/chrome.svg';
 import Firefox from '../../../public/firefox.svg';
 import Edge from '../../../public/edge.svg';
+import Windows from '../../../public/windows.svg';
 import RelativeTo, { HumanizeDuration } from './Datetime/relativeTime';
 
 export default function RenderTimeRelativeToStart(props: {
@@ -87,7 +88,17 @@ export function RenderBrowserType(props: { browserName: string }): ReactNode {
             return <Icon component={Edge} style={style} />;
         }
         default: {
-            return <>{props.browserName}</>;
+            return <>{props.browserName.toLocaleUpperCase()}</>;
         }
     }
+}
+
+export function RenderSystemType(props: { systemName: string }): ReactNode {
+    const style = { fontSize: 40 };
+
+    const target = props.systemName.toLowerCase();
+
+    if (target.startsWith('win'))
+        return <Icon title="System Name" component={Windows} style={style} />;
+    return <>{target.toLocaleUpperCase()}</>;
 }

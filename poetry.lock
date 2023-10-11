@@ -1060,7 +1060,10 @@ files = [
 [package.extras]
 dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 
+[extras]
+excel-export = []
+
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "63a84e1c20611746572ab8529f44d570209b4456a7672caf7e0aa502ab943dec"
+content-hash = "73837ba9647ba371d488e86f9a8899fdf65425fddb37378f4c7c3a2c03b089ea"

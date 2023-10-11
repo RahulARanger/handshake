@@ -1,5 +1,13 @@
 # graspit-commons
 
+## 1.3.2
+
+### Patch Changes
+
+- Registering a test case which was skipped expliclity, minor improvements for the dashboard
+- Updated dependencies
+  - graspit@2.1.0
+
 ## 1.3.1
 
 ### Patch Changes

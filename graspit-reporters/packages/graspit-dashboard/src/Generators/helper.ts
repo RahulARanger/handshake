@@ -50,6 +50,10 @@ export function getEntityLevelAttachment(
     )}`;
 }
 
+export function getTestRunConfig(port?: string, testID?: string): string {
+    return `${serverURL(port)}/get/testRunConfig?test_id=${filler(testID)}`;
+}
+
 export async function fetcher<T>(url: string): Promise<T> {
     return await fetch(url).then(async (resp) => await resp.json());
 }

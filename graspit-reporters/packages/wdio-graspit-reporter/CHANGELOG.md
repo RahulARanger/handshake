@@ -1,5 +1,17 @@
 # wdio-graspit-reporter
 
+## 1.3.0
+
+### Minor Changes
+
+- Registering a test case which was skipped expliclity, minor improvements for the dashboard
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@2.1.0
+  - graspit-commons@1.3.2
+
 ## 1.2.1
 
 ### Patch Changes
