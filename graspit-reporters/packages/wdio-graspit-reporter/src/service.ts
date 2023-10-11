@@ -154,7 +154,7 @@ export default class GraspItService
     const platformName = String(cap.platformName);
 
     await this.supporter.updateRunConfig({
-      maxTestRuns: 100,
+      maxInstances: config.maxInstances ?? 1,
       platformName,
     });
 

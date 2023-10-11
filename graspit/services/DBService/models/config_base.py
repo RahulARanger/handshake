@@ -54,7 +54,7 @@ class ValueForTestRunConfigBase(TypedDict):
 
 
 class PydanticModalForTestRunConfigBase(BaseModel):
-    maxTestRuns: Optional[int]
+    maxInstances: Optional[int]
     platformName: str
 
 
@@ -77,7 +77,7 @@ class JobBase(Model):
 
 
 class ConfigBase(Model):
-    key = CharField(description="Key", max_length=20)
+    key = CharField(description="Key", max_length=20, pk=True)
     value = TextField(description="Handling type is upto us")
 
     # icon = TextField(description="base64 encoded of your icon")

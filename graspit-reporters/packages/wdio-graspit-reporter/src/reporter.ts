@@ -81,17 +81,11 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onRunnerStart(runnerStats: RunnerStats): void {
-    const caps = this.runnerStat
-      ?.capabilities as Capabilities.DesiredCapabilities;
-
     this.supporter.feed(
       this.supporter.registerSession,
       {
         started: runnerStats.start.toISOString(),
-        browserName: caps.browserName,
-        browserVersion: caps.browserVersion,
         specs: sanitizePaths(runnerStats.specs),
-        simplified: runnerStats.sanitizedCapabilities,
         retried: runnerStats.retry,
       },
       'session',
@@ -149,6 +143,8 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onRunnerEnd(runnerStats: RunnerStats): void {
+    const caps = this.runnerStat
+      ?.capabilities as Capabilities.DesiredCapabilities;
     const payload = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
@@ -158,6 +154,9 @@ export default class GraspItReporter extends ReporterContacts {
       skipped: this.counts.skipping,
       hooks: this.counts.hooks,
       tests: this.counts.tests,
+      browserName: caps.browserName,
+      browserVersion: caps.browserVersion,
+      simplified: runnerStats.sanitizedCapabilities,
     };
     this.supporter.feed(this.supporter.updateSession, payload);
   }

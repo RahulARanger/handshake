@@ -5,7 +5,9 @@ from graspit.services.SchedularService.center import start_service
 from graspit.services.DBService.shared import db_path
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from graspit.services.SchedularService.lifecycle import start_loop
+from graspit.services.DBService.health import check_version
 from graspit.services.DBService.models.config_base import ExportBase, RunBase
+from graspit.services.DBService import DB_VERSION
 from tortoise.functions import Max
 from os.path import relpath
 from click import secho
@@ -109,6 +111,23 @@ def export(path, runs, dynamic, out):
         cwd=graspit,
         shell=True,
     )
+
+
+@handle_cli.group()
+def db_version():
+    pass
+
+
+@db_version.command()
+def check():
+    expected, actual, has_failed = run_async(check_version())
+
+    matched = expected == actual
+    secho(
+        f"Expected: {expected} but found: {actual}",
+        fg="red" if not matched else "green",
+    )
+    secho(f"Please run graspit ")
 
 
 if __name__ == "__main__":

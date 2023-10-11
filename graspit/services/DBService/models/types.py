@@ -16,9 +16,6 @@ class CommonRegisterCols(BaseModel):
 
 
 class RegisterSession(CommonRegisterCols):
-    browserName: str
-    browserVersion: str
-    simplified: str
     specs: List[str]
 
 
@@ -29,7 +26,11 @@ class RegisterSuite(CommonRegisterCols):
     session_id: uuid.UUID
     file: str
     parent: str
-    standing: Union[Literal[Status.YET_TO_CALCULATE], Literal[Status.PENDING], Literal[Status.SKIPPED]]
+    standing: Union[
+        Literal[Status.YET_TO_CALCULATE],
+        Literal[Status.PENDING],
+        Literal[Status.SKIPPED],
+    ]
     tags: Optional[List] = {}
 
 
@@ -42,6 +43,9 @@ class MarkSession(BaseModel):
     hooks: int
     ended: datetime
     sessionID: uuid.UUID
+    browserName: str
+    browserVersion: str
+    simplified: str
 
 
 class Error(TypedDict):
@@ -62,7 +66,7 @@ class MarkSuite(BaseModel):
 class AddAttachmentForEntity(BaseModel):
     entityID: uuid.UUID
     type: AttachmentType
-    description: Optional[str] = ''
+    description: Optional[str] = ""
     value: str
-    color: Optional[str] = ''
-    title: Optional[str] = ''
+    color: Optional[str] = ""
+    title: Optional[str] = ""
