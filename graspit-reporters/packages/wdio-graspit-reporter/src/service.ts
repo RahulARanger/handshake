@@ -97,7 +97,7 @@ export default class GraspItService
           this.logger.info('Server is online! 😀');
           resolve({});
         } else {
-          this.logger.warn('Server seems to be lazy today 😓, pinging again...');
+          this.logger.warn('😓 pinging server again...');
         }
       }, 3e3);
     }).catch(this.sayBye.bind(this));
@@ -151,7 +151,7 @@ export default class GraspItService
     // capabilities: Capabilities.RemoteCapabilities
   ): Promise<unknown> {
     const cap = config.capabilities as Capabilities.DesiredCapabilities;
-    const platformName = String(cap.platformName);
+    const platformName = String(cap?.platformName ?? process.platform);
 
     await this.supporter.updateRunConfig({
       maxInstances: config.maxInstances ?? 1,

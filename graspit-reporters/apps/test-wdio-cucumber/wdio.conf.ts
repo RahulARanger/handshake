@@ -193,7 +193,6 @@ export const config = attachReporter(metaConfig, {
   export: {
     maxTestRuns: 5,
     out: './dist',
-    skipPatch: false,
-    isDynamic: false,
+    skipPatch: true,
   },
 });

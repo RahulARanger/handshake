@@ -143,6 +143,11 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onRunnerEnd(runnerStats: RunnerStats): void {
+    if (this.supporter.idMapped.session == null) {
+      this.logger.warn(`Skipping this session for files: ${this.runnerStat?.specs}`);
+      return;
+    }
+
     const caps = this.runnerStat
       ?.capabilities as Capabilities.DesiredCapabilities;
     const payload = {

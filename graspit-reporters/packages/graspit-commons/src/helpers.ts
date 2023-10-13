@@ -76,7 +76,9 @@ export class ReporterDialPad extends DialPad {
         );
         const resp = await superagent.put(feedURL)
           .send(JSON.stringify(payload))
-          .on('error', (err) => { throw new Error(err); });
+          .on('error', (err) => {
+            throw new Error(`Failed: ${feedURL} with payload: ${JSON.stringify(feedJSON)}, because of ${err}`);
+          });
 
         done(
           resp.ok ? undefined : new Error(`Found this status: ${resp.status} with body: ${resp.body}`),

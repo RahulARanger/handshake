@@ -18,8 +18,7 @@
 		"@wdio/types": "^8.16.22",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit": "*",
-		"graspit-commons": "*"
+		"graspit-commons": "1.4.0"
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.0",

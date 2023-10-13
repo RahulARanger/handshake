@@ -12,20 +12,12 @@ import Space from "antd/lib/space/index";
 
 ## Installation
 
-Make sure you have done the [required setup](https://webdriver.io/docs/gettingstarted) for webdriverio past
-you can try this command, to install our custom reporter: `npm install wdio-graspit-reporter`
+After the [initial setup](https://webdriver.io/docs/gettingstarted),
+you can try this command to install our custom reporter: `npm install wdio-graspit-reporter`. It would take some time.
 
-It would take some time.
-
-[NPM Package](https://www.npmjs.com/package/wdio-graspit-reporter)
+Reference: [NPM Package](https://www.npmjs.com/package/wdio-graspit-reporter)
 
 ## Configuration
-
-You can refer to the general configuration options from [here]().
-
-Here's the general one, you would notice we haven't mentioned it in the `reporters` or `services`,
-it is because we have both [Custom Reporter]() and [Launcher]() and both are dependent and hence to make it simple
-we use helper function which would the append the required values.
 
 ```js filename="wdio.conf.js"
 const config = {
@@ -46,3 +38,24 @@ attachReporter(config, {
 	},
 });
 ```
+
+you would notice we haven't mentioned our reporter in the `reporters` or `services` array.
+Since We are using both [Custom Reporter]() and [Launcher](), it would be eaiser to let the helper function add required things in the configuration.
+you could use this `attachReporter` helper function for that.
+
+You can know more about the configuration options from [here](../Advanced/configuration).
+
+## Execution
+
+After letting the custom reporter is assigned, we could execute the tests. Make sure to add certain scripts inside your `package.json`.
+
+-   `activate`: `"venv\Scripts\activate"` in windows else `source "venv/bin/activate"`
+-   `display`: `npm run activate && graspit display ./dist`
+
+### activate
+
+This custom script would activate the venv added, make sure to add the required script based on your OS.
+
+### display
+
+we would first activate the venv and then use our graspit cli to display the reports generated in `dist` folder (or wherever required). This would spun a server that would host the static files generated from Next.js export.
