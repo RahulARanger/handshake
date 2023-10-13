@@ -1,13 +1,16 @@
 from sqlite3.dbapi2 import Connection
 
 
-def version_0_0_1(connection: Connection):
-    connection.execute(
-        "ALTER TABLE sessionbase rename column browserName to entityName"
+# 1
+def v2(connection: Connection):
+    connection.executescript(
+        "ALTER TABLE sessionbase rename column browserName to entityName;"
+        "ALTER TABLE sessionbase rename column browserVersion to entityVersion;"
     )
 
-    connection.execute(
-        "ALTER TABLE sessionbase rename column browserVersion to entityVersion"
-    )
 
-    connection.execute("UPDATE ")
+def revert_v2(connection: Connection):
+    connection.executescript(
+        "ALTER TABLE sessionbase rename column entityName to browserName;"
+        "ALTER TABLE sessionbase rename column entityVersion to browserVersion;"
+    )

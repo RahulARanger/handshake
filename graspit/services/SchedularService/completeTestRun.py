@@ -28,6 +28,7 @@ def simplify_file_paths(paths: List[str]):
         for path in paths
     ]
 
+    # Tree - Builder
     while _paths:
         path_to_include = _paths[-1]
         if not path_to_include["children"]:
@@ -43,6 +44,7 @@ def simplify_file_paths(paths: List[str]):
         )
         path_to_include["pointer"] = pointing_to
 
+    # Reducer
     while True:
         stack = [(_, tree) for _ in tree.keys() if not _.startswith("<")]
         movements = 0

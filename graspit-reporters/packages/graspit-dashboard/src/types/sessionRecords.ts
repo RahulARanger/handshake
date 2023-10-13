@@ -1,4 +1,4 @@
-export type possibleBrowserNames =
+export type possibleEntityNames =
     | 'chrome'
     | 'firefox'
     | 'safari'
@@ -21,8 +21,8 @@ export interface RecurringFields {
 
 export default interface SessionRecordDetails extends RecurringFields {
     sessionID: string;
-    browserVersion: string;
-    browserName: possibleBrowserNames;
+    entityVersion: string;
+    entityName: possibleEntityNames;
     simplified: string;
     specs: string[];
     hooks: number;

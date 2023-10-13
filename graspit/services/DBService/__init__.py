@@ -1,1 +1,1 @@
-DB_VERSION = "0.0.1"
+DB_VERSION = 2

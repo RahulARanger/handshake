@@ -43,8 +43,8 @@ class MarkSession(BaseModel):
     hooks: int
     ended: datetime
     sessionID: uuid.UUID
-    browserName: str
-    browserVersion: str
+    entityName: str
+    entityVersion: str
     simplified: str
 
 

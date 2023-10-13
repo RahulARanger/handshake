@@ -31,6 +31,6 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
     Retried: number;
     Description: string;
     id: string;
-    browserName: string;
-    browserVersion: string;
+    entityName: string;
+    entityVersion: string;
 }

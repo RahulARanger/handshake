@@ -93,10 +93,16 @@ export function HumanizeDuration(props: {
             }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
-                <Typography className={carouselStyles.slide}>
+                <Typography
+                    suppressHydrationWarning
+                    className={carouselStyles.slide}
+                >
                     {`${props?.duration?.asSeconds() ?? '--'} s`}
                 </Typography>
-                <Typography className={carouselStyles.slide}>
+                <Typography
+                    suppressHydrationWarning
+                    className={carouselStyles.slide}
+                >
                     {props?.duration?.humanize() ?? '--'}
                 </Typography>
             </div>

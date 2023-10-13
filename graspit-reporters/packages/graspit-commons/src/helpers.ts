@@ -108,6 +108,10 @@ export class ReporterDialPad extends DialPad {
     entity_id: string,
     description?:string,
   ) {
+    if (!entity_id) {
+      logger.warn('Skipping to add description for unknown entity');
+      return false;
+    }
     const payload = JSON.stringify({
       description,
       title,
@@ -122,7 +126,7 @@ export class ReporterDialPad extends DialPad {
       .put(this.addAttachmentForEntity)
       .send(payload)
       .on('error', (err) => {
-        logger.error(`💔 Failed to attach screenshot, requested: ${payload}, because of ${err}`);
+        logger.error(`💔 Failed to attach screenshot for ${entity_id}, because of ${err}`);
       });
     return resp.statusCode === 200;
   }
@@ -131,6 +135,10 @@ export class ReporterDialPad extends DialPad {
     content: string,
     entity_id: string,
   ) {
+    if (!entity_id) {
+      logger.warn('Skipping to add description for unknown entity');
+      return false;
+    }
     const payload = JSON.stringify({
       value: content,
       type: 'DESC',

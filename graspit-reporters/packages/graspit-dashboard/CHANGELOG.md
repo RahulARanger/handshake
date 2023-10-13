@@ -1,5 +1,11 @@
 # graspit
 
+## 2.2.0
+
+### Minor Changes
+
+- renamed browser to entity in the sessionbase, made changes to replicate the same on UI side and we have moved sending the details reg. session from register to mark in webdriverio
+
 ## 2.1.0
 
 ### Minor Changes

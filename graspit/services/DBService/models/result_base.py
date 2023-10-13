@@ -1,6 +1,17 @@
 from tortoise.models import Model
-from tortoise.fields import DatetimeField, IntField, FloatField, JSONField, CharEnumField, UUIDField, CharField, \
-    ReverseRelation, ForeignKeyField, ForeignKeyRelation, TextField
+from tortoise.fields import (
+    DatetimeField,
+    IntField,
+    FloatField,
+    JSONField,
+    CharEnumField,
+    UUIDField,
+    CharField,
+    ReverseRelation,
+    ForeignKeyField,
+    ForeignKeyRelation,
+    TextField,
+)
 from tortoise.contrib.pydantic import pydantic_model_creator
 from graspit.services.DBService.models.enums import Status, SuiteType
 
@@ -11,18 +22,24 @@ class CommandReportFields(Model):
     tests = IntField(default=0, null=False, description="No. of the test entries")
     passed = IntField(default=0, null=False, description="Passed test entities")
     failed = IntField(default=0, null=False, description="Failed test entities")
-    skipped = IntField(default=0, null=False, description='test entities that were skipped')
+    skipped = IntField(
+        default=0, null=False, description="test entities that were skipped"
+    )
     duration = FloatField(default=0, null=False, description="duration of test entity")
-    retried = IntField(default=0, null=False, description="number of the retries performed")
-    standing = CharEnumField(Status, description="status of the test run", default=Status.PENDING)
-    suitesConfig = JSONField(description='Dict. of suites', default={})
+    retried = IntField(
+        default=0, null=False, description="number of the retries performed"
+    )
+    standing = CharEnumField(
+        Status, description="status of the test run", default=Status.PENDING
+    )
+    suitesConfig = JSONField(description="Dict. of suites", default={})
 
     class Meta:
         abstract = True
 
 
 class CommonDetailedFields(CommandReportFields):
-    suitesConfig = JSONField(description='Dict. of suites', default={})
+    suitesConfig = JSONField(description="Dict. of suites", default={})
 
     class Meta:
         abstract = True
@@ -43,9 +60,16 @@ class RunBase(CommonDetailedFields):
     tasks = ReverseRelation["TaskBase"]
     config = ReverseRelation["TestConfigBase"]
     started = DatetimeField(null=False, auto_now_add=True)
-    projectName = CharField(max_length=30, null=False, description="Name of the project")
-    specStructure = JSONField(description="file structure of spec files", default=dict())
-    suiteSummary = JSONField(description="summary of the suites", default=dict(count=0, passed=0, failed=0, skipped=0))
+    projectName = CharField(
+        max_length=30, null=False, description="Name of the project"
+    )
+    specStructure = JSONField(
+        description="file structure of spec files", default=dict()
+    )
+    suiteSummary = JSONField(
+        description="summary of the suites",
+        default=dict(count=0, passed=0, failed=0, skipped=0),
+    )
 
 
 class SessionBase(CommonDetailedFields):
@@ -55,9 +79,11 @@ class SessionBase(CommonDetailedFields):
     )
     suites = ReverseRelation["SuiteBase"]
     sessionID = UUIDField(pk=True)
-    browserName = CharField(max_length=10, default="")
-    browserVersion = CharField(max_length=20, default="")
-    simplified = TextField(default="", description="browser name & version &/ platform name included")
+    entityName = CharField(max_length=10, default="")
+    entityVersion = CharField(max_length=20, default="")
+    simplified = TextField(
+        default="", description="browser name & version &/ platform name included"
+    )
     specs = JSONField(description="List of spec files", default=[])
     hooks = IntField(default=0, null=False, description="Number of hooks used")
 
@@ -72,14 +98,20 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
     attachments = ReverseRelation["AttachmentBase"]
     suiteID = UUIDField(pk=True)
     suiteType = CharEnumField(
-        SuiteType, description="Specifies whether if it is a test suite or test case", null=False
+        SuiteType,
+        description="Specifies whether if it is a test suite or test case",
+        null=False,
     )
     title = TextField(max_length=225)
     file = TextField(max_length=150, null=False, description="path to the spec file")
-    description = TextField(null=True, default="", description="Summary if provided for the test entity")
+    description = TextField(
+        null=True, default="", description="Summary if provided for the test entity"
+    )
     parent = CharField(max_length=45, description="Parent Suite's ID", default="")
-    tags = JSONField(description='list of all tags', default=[])
-    modified = DatetimeField(auto_now=True, description='Modified timestamp', null=False)
+    tags = JSONField(description="list of all tags", default=[])
+    modified = DatetimeField(
+        auto_now=True, description="Modified timestamp", null=False
+    )
 
 
 RunBasePydanticModel = pydantic_model_creator(RunBase)

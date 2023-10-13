@@ -15,7 +15,7 @@ import Counter, { StatisticNumber } from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relativeTime';
 import ProgressPieChart from 'src/components/charts/StatusPieChart';
 import {
-    RenderBrowserType,
+    RenderEntityType,
     RenderDuration,
     RenderStatus,
     RenderSystemType,
@@ -180,9 +180,9 @@ export default function Overview(props: {
     const browsersUsed: Record<string, number> = {};
     Object.keys(sessions).forEach((session) => {
         const sessionObj = sessions[session];
-        if (browsersUsed[sessionObj.browserName])
-            browsersUsed[sessionObj.browserName] += sessionObj.tests;
-        else browsersUsed[sessionObj.browserName] = sessionObj.tests;
+        if (browsersUsed[sessionObj.entityName])
+            browsersUsed[sessionObj.entityName] += sessionObj.tests;
+        else browsersUsed[sessionObj.entityName] = sessionObj.tests;
     });
 
     const startedAt = dayjs(props.run.started);
@@ -293,8 +293,8 @@ export default function Overview(props: {
                                 <StatisticNumber
                                     key={browser}
                                     title={
-                                        <RenderBrowserType
-                                            browserName={browser}
+                                        <RenderEntityType
+                                            entityName={browser}
                                         />
                                     }
                                     end={browsersUsed[browser]}

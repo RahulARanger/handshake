@@ -3,10 +3,10 @@ import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import { parseDetailedTestEntity } from '../parseUtils';
 import { getSuites, getSessions } from 'src/Generators/helper';
-import type { possibleBrowserNames } from 'src/types/sessionRecords';
+import type { possibleEntityNames } from 'src/types/sessionRecords';
 import type { PreviewForDetailedEntities } from 'src/types/parsedRecords';
 import RenderTimeRelativeToStart, {
-    RenderBrowserType,
+    RenderEntityType,
     RenderStatus,
 } from '../utils/renderers';
 import MetaCallContext from './TestRun/context';
@@ -157,12 +157,12 @@ export default function TestEntities(props: {
                             )}
                         />
                         <Table.Column
-                            title="Browser"
+                            title="Entity"
                             width={100}
-                            dataIndex="browserName"
+                            dataIndex="entityName"
                             align="center"
-                            render={(value: possibleBrowserNames) => (
-                                <RenderBrowserType browserName={value} />
+                            render={(value: possibleEntityNames) => (
+                                <RenderEntityType entityName={value} />
                             )}
                         />
                         <Table.Column

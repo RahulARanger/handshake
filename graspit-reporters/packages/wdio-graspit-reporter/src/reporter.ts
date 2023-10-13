@@ -154,8 +154,8 @@ export default class GraspItReporter extends ReporterContacts {
       skipped: this.counts.skipping,
       hooks: this.counts.hooks,
       tests: this.counts.tests,
-      browserName: caps.browserName,
-      browserVersion: caps.browserVersion,
+      entityName: caps.browserName,
+      entityVersion: caps.browserVersion,
       simplified: runnerStats.sanitizedCapabilities,
     };
     this.supporter.feed(this.supporter.updateSession, payload);

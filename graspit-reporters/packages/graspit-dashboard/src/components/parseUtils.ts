@@ -45,8 +45,8 @@ export function parseDetailedTestEntity(
         Retried: testORSuite.retried,
         Description: testORSuite.description,
         id: testORSuite.suiteID,
-        browserName: session.browserName,
-        browserVersion: session.browserVersion,
+        entityName: session.entityName,
+        entityVersion: session.entityVersion,
     };
 }
 

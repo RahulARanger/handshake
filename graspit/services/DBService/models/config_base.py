@@ -78,12 +78,7 @@ class JobBase(Model):
 
 class ConfigBase(Model):
     key = CharField(description="Key", max_length=20, pk=True)
-    value = TextField(description="Handling type is upto us")
-
-    # icon = TextField(description="base64 encoded of your icon")
-    # maxTestRuns = IntField(
-    #     null=True, default=10, description="Number of test runs to keep in our db"
-    # )
+    value = TextField(null=False, description="Handling type is upto us")
 
 
 class ExportBase(Model):

@@ -16,7 +16,7 @@ import {
 } from 'src/Generators/helper';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 import RenderTimeRelativeToStart, {
-    RenderBrowserType,
+    RenderEntityType,
     RenderStatus,
     RenderDuration,
 } from 'src/components/utils/renderers';
@@ -260,9 +260,9 @@ export default function TestEntityDrawer(props: {
             key: 'browserName',
             label: 'Browser',
             children: (
-                <RenderBrowserType
-                    browserName={
-                        sessions[selectedSuiteDetails.session_id].browserName
+                <RenderEntityType
+                    entityName={
+                        sessions[selectedSuiteDetails.session_id].entityName
                     }
                 />
             ),

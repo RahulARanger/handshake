@@ -7,7 +7,7 @@ import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import WarningFilled from '@ant-design/icons/WarningFilled';
 import Icon from '@ant-design/icons';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
-import type { possibleBrowserNames } from 'src/types/sessionRecords';
+import type { possibleEntityNames } from 'src/types/sessionRecords';
 import Chrome from '../../../public/chrome.svg';
 import Firefox from '../../../public/firefox.svg';
 import Edge from '../../../public/edge.svg';
@@ -74,10 +74,10 @@ export function RenderStatus(props: { value: string }): ReactNode {
     }
 }
 
-export function RenderBrowserType(props: { browserName: string }): ReactNode {
+export function RenderEntityType(props: { entityName: string }): ReactNode {
     const style = { fontSize: 20 };
 
-    switch (props.browserName as possibleBrowserNames) {
+    switch (props.entityName as possibleEntityNames) {
         case 'chrome': {
             return <Icon component={Chrome} style={style} />;
         }
@@ -88,7 +88,7 @@ export function RenderBrowserType(props: { browserName: string }): ReactNode {
             return <Icon component={Edge} style={style} />;
         }
         default: {
-            return <>{props.browserName.toLocaleUpperCase()}</>;
+            return <>{props.entityName?.toLocaleUpperCase()}</>;
         }
     }
 }

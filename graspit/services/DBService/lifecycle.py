@@ -3,6 +3,7 @@ from graspit.services.DBService.models.config_base import (
     ValueForTestRunConfigBase,
     ConfigBase,
 )
+from graspit.services.DBService import DB_VERSION
 from graspit.services.DBService.models.result_base import RunBase
 from graspit.services.DBService.models.enums import AttachmentType, ConfigKeys
 from tortoise import Tortoise, connections
@@ -45,10 +46,13 @@ async def create_run(projectName: str) -> str:
 
 
 async def set_default_config():
-    record, _ = await ConfigBase.update_or_create(
-        dict(key=ConfigKeys.maxRuns, value=100)
-    )
-    await record.save()
+    for key, value in [(ConfigKeys.maxRuns, "100"), (ConfigKeys.version, DB_VERSION)]:
+        record = await ConfigBase.filter(key=str(key)).first()
+        if not record:
+            await ConfigBase.create(key=key, value=value)
+        else:
+            record.value = value
+            await record.save()
 
 
 async def close_connection():

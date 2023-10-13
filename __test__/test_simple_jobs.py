@@ -1,11 +1,13 @@
-from pytest import mark, fixture
+import sys
+
+from pytest import mark
 from graspit.services.DBService.models import TaskBase, SuiteBase, RunBase, SessionBase
 from graspit.services.SchedularService.constants import JobType
 from graspit.services.SchedularService.modifySuites import patchTestSuite
 from graspit.services.SchedularService.completeTestRun import patchTestRun
 from graspit.services.DBService.models.types import SuiteType, Status
 from datetime import datetime, timedelta
-from tortoise.functions import Count, Lower
+from subprocess import call
 
 
 @mark.usefixtures("sample_test_session")
@@ -336,3 +338,27 @@ class TestCompleteTestRun:
             test_run.duration
             == (second_session.ended - session.started).total_seconds() * 1e3
         ), "but from the first session"
+
+    async def test_cli_patch_command(self, sample_test_session, db_path):
+        session = await sample_test_session
+        test = await session.test
+
+        await TestHandleSuiteStatus().test_dependent_suites(sample_test_session)
+
+        session = await SessionBase.filter(sessionID=session.sessionID).first()
+        await session.update_from_dict(dict(ended=test.started + timedelta(seconds=30)))
+        await session.save()
+
+        await TaskBase.create(
+            ticketID=test.testID,
+            type=JobType.MODIFY_TEST_RUN,
+            test_id=test.testID,
+            picked=True,
+        )
+
+        call(f'graspit patch "{db_path.parent}"', shell=True)
+
+        test_run = await RunBase.filter(testID=test.testID).first()
+        # status of each of its tests (not the suites)
+        assert test_run.suiteSummary == dict(count=2, passed=2, failed=0, skipped=0)
+        assert test_run.standing == Status.PASSED
