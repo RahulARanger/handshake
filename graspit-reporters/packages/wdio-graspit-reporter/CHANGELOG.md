@@ -1,5 +1,11 @@
 # wdio-graspit-reporter
 
+## 1.4.2
+
+### Patch Changes
+
+- Updated dependant packages
+
 ## 1.4.1
 
 ### Patch Changes
