@@ -1,5 +1,11 @@
 # graspit-commons
 
+## 1.4.1
+
+### Patch Changes
+
+- updated dependant packages, skipping mark session if the session id is undefined which would happen if a spec file was missed [observed in webdriverio]
+
 ## 1.4.0
 
 ### Minor Changes

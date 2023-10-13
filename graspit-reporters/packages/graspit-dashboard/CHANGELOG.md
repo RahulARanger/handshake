@@ -1,5 +1,11 @@
 # graspit
 
+## 2.2.1
+
+### Patch Changes
+
+- updated dependant packages, skipping mark session if the session id is undefined which would happen if a spec file was missed [observed in webdriverio]
+
 ## 2.2.0
 
 ### Minor Changes

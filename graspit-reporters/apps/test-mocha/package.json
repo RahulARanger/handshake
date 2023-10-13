@@ -14,7 +14,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"wdio-graspit-reporter": "*"
+		"wdio-graspit-reporter": "1.4.1"
 	},
 	"devDependencies": {
 		"@wdio/local-runner": "^8.16.22",
