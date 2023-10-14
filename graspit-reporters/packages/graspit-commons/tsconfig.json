@@ -1,6 +1,8 @@
 {
 	"extends": "./node.json",
 	"compilerOptions": {
-		"types": ["@wdio/globals/types"]
+		"types": ["@wdio/globals/types"],
+		"rootDirs": ["./src", "./test"]
 	},
+	
 }

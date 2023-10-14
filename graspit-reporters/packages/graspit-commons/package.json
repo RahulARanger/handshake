@@ -11,19 +11,26 @@
 	"description": "This package has some common functions or constants required for interacting with graspit-server",
 	"scripts": {
 		"lint": "eslint src/**",
+		"test": "jest",
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts"
 	},
 	"dependencies": {
 		"async-lock": "^1.4.0",
 		"log4js": "^6.9.1",
-		"superagent": "^8.1.2",
+		"superagent": "^8.1.2",	
 		"cross-env": "^7.0.3"
 	},
 	"devDependencies": {
 		"@tsconfig/node18": "^18.2.2",
 		"@types/async-lock": "^1.4.0",
-		"@types/node": "^20.8.5",
+		"@types/node": "^20.8.6",
 		"@types/superagent": "^4.1.19",
-		"typescript": "^5.2.2"
+		"typescript": "^5.2.2",
+		"@jest/globals": "^29.7.0",
+		"@types/jest": "^29.5.5",
+		"@types/supertest": "^2.0.14",
+		"babel-jest": "^29.7.0",
+		"jest": "^29.7.0",
+		"ts-jest": "^29.1.1"
 	}
 }

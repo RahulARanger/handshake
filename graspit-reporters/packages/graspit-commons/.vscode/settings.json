@@ -3,5 +3,9 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": true
 	},
-	"eslint.validate": ["javascript"]
+	"eslint.validate": [
+		"javascript"
+	],
+	"jestrunner.configPath": "jest.config.cjs",
+	"jestrunner.jestCommand": "npx jest"
 }

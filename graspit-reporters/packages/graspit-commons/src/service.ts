@@ -48,7 +48,7 @@ export class ServiceDialPad extends DialPad {
 
     pyProcess.on('exit', (code) => {
       if (code !== 0) {
-        logger.error(
+        logger.warn(
           `graspit was force closed 😫, found exit code: ${code}`,
         );
       }
