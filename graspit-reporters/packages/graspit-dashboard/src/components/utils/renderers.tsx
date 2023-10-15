@@ -8,10 +8,10 @@ import WarningFilled from '@ant-design/icons/WarningFilled';
 import Icon from '@ant-design/icons';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import type { possibleEntityNames } from 'src/types/sessionRecords';
-import Chrome from '../../../public/chrome.svg';
-import Firefox from '../../../public/firefox.svg';
-import Edge from '../../../public/edge.svg';
-import Windows from '../../../public/windows.svg';
+import Chrome from 'chrome.svg';
+import Firefox from 'firefox.svg';
+import Edge from 'edge.svg';
+import Windows from 'windows.svg';
 import RelativeTo, { HumanizeDuration } from './Datetime/relativeTime';
 
 export default function RenderTimeRelativeToStart(props: {
