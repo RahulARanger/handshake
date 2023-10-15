@@ -5,13 +5,9 @@ import type { statusOfEntity } from 'src/types/sessionRecords';
 import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
 import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import WarningFilled from '@ant-design/icons/WarningFilled';
-import Icon from '@ant-design/icons';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import type { possibleEntityNames } from 'src/types/sessionRecords';
-import Chrome from 'chrome.svg';
-import Firefox from 'firefox.svg';
-import Edge from 'edge.svg';
-import Windows from 'windows.svg';
+import Avatar from 'antd/lib/avatar/avatar';
 import RelativeTo, { HumanizeDuration } from './Datetime/relativeTime';
 
 export default function RenderTimeRelativeToStart(props: {
@@ -75,17 +71,15 @@ export function RenderStatus(props: { value: string }): ReactNode {
 }
 
 export function RenderEntityType(props: { entityName: string }): ReactNode {
-    const style = { fontSize: 20 };
-
     switch (props.entityName as possibleEntityNames) {
         case 'chrome': {
-            return <Icon component={Chrome} style={style} />;
+            return <Avatar src={'/chrome.png'} size="small" />;
         }
         case 'firefox': {
-            return <Icon component={Firefox} style={style} />;
+            return <Avatar src={'/firefox.png'} size="small" />;
         }
         case 'edge': {
-            return <Icon component={Edge} style={style} />;
+            return <Avatar src={'/edge.png'} size="small" />;
         }
         default: {
             return <>{props.entityName?.toLocaleUpperCase()}</>;
@@ -94,11 +88,11 @@ export function RenderEntityType(props: { entityName: string }): ReactNode {
 }
 
 export function RenderSystemType(props: { systemName: string }): ReactNode {
-    const style = { fontSize: 40 };
-
     const target = props.systemName.toLowerCase();
 
     if (target.startsWith('win'))
-        return <Icon title="System Name" component={Windows} style={style} />;
+        return <Avatar src={'/windows.png'} size="large" />;
+    else if (target.startsWith('mac'))
+        return <Avatar src={'/mac.png'} size="large" />;
     return <>{target.toLocaleUpperCase()}</>;
 }

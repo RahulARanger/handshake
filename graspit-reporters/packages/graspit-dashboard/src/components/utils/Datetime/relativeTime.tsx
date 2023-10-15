@@ -1,7 +1,12 @@
 import Typography from 'antd/lib/typography/Typography';
 import Tooltip from 'antd/lib/tooltip/index';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, { useState, type CSSProperties, type ReactNode } from 'react';
+import React, {
+    useState,
+    type CSSProperties,
+    type ReactNode,
+    useEffect,
+} from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import Button from 'antd/lib/button/button';
@@ -31,6 +36,11 @@ export default function RelativeTo(props: {
             ? props.dateTime.from(props.wrt)
             : props.dateTime.fromNow();
     const [formatted, setFormatted] = useState(formatter());
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     return (
         <div
@@ -64,10 +74,11 @@ export default function RelativeTo(props: {
                         onClick={() => {
                             setFormatted(formatter());
                         }}
+                        suppressHydrationWarning
                         size="small"
                         type="text"
                     >
-                        {formatted}
+                        {isClient ? formatted : ''}
                     </Button>
                 </Tooltip>
             </div>
