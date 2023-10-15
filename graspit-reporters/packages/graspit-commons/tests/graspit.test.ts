@@ -162,19 +162,19 @@ describe('verifying if we are able to start graspit server', () => {
       // but to check if it doesn't fail due to server termination
       // because we are expecting server to be online even at this point
     });
-    it('skipping the patch would also skip the report generation', async () => {
-      await service.generateReport(testResults, root, results, false, 2, true);
+    it('skipping the patch would also skip the report generation', () => {
+      service.generateReport(testResults, root, results, false, 2, true);
       expect(existsSync(results)).toBe(false);
     });
 
-    it('test patch only', async () => {
-      await service.generateReport(testResults, root, undefined, false, 1);
+    it('test patch only', () => {
+      service.generateReport(testResults, root, undefined, false, 1);
       expect(existsSync(results)).toBe(false);
     });
 
-    it('test report generation', async () => {
+    it('test report generation', () => {
       expect(existsSync(testResults)).toBe(true);
-      await service.generateReport(testResults, root, results, false, 1);
+      service.generateReport(testResults, root, results, false, 1);
       expect(existsSync(results)).toBe(true);
     });
   });

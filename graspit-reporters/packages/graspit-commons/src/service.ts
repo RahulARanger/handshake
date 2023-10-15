@@ -150,14 +150,14 @@ export class ServiceDialPad extends DialPad {
     return resp;
   }
 
-  async generateReport(
+  generateReport(
     resultsDir: string,
     rootDir: string,
     outDir?: string,
     isDynamic?: boolean,
     maxTestRuns?: number,
     skipPatch?: boolean,
-  ) {
+  ): false | Error | undefined {
     if (skipPatch) {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
       return false;
@@ -175,16 +175,14 @@ export class ServiceDialPad extends DialPad {
       logger.info(`Generating Report 📃, passing the command: ${script}`);
     }
 
-    spawnSync(
+    return spawnSync(
       script,
       {
         shell: true,
         cwd: rootDir,
         stdio: 'inherit',
       },
-    );
-
-    return {};
+    ).error;
   }
 
   async markTestRunCompletion() {
