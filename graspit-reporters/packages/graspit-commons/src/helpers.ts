@@ -17,18 +17,15 @@ export class ReporterDialPad extends DialPad {
 
   lockString = 'common-lock';
 
-  lock = new AsyncLock({
-    timeout: 60e3,
-    maxExecutionTime: 60e3,
-    maxPending: 1000,
-  });
+  lock: AsyncLock;
 
-  get addFeatureUrl(): string {
-    return `${this.saveUrl}/addFeature`;
-  }
-
-  get addSuiteUrl(): string {
-    return `${this.saveUrl}/addSuite`;
+  constructor(port: number, timeout?:number) {
+    super(port);
+    this.lock = new AsyncLock({
+      timeout: 60e3,
+      maxExecutionTime: timeout ?? 60e3,
+      maxPending: 1000,
+    });
   }
 
   get registerSession(): string {
@@ -59,49 +56,48 @@ export class ReporterDialPad extends DialPad {
   ) {
     this.lock.acquire(
       this.lockString,
-      async (done) => {
-        if (
-          keyToBeStored !== 'session' && this.idMapped.session === undefined
-        ) {
+      async () => {
+        if (keyToBeStored !== 'session'
+           && this.idMapped.session === undefined) {
           logger.warn(
-            '💔 Did not find live session, would fail in the next iteration',
+            '💔 We cannot send requests for any register / mark requests before registering a session',
           );
         }
-
         const payload = feedJSON || (dynamicKeys ? dynamicKeys() : {});
         logger.info(
-          `🚚 URL: ${feedURL} || 📃 payload: ${JSON.stringify(
+          `📠 Faxing, ${feedURL} with payload 📃: ${JSON.stringify(
             payload,
           )}`,
         );
-        const resp = await superagent.put(feedURL)
+        await superagent.put(feedURL)
           .send(JSON.stringify(payload))
-          .on('error', (err) => {
-            throw new Error(`Failed: ${feedURL} with payload: ${JSON.stringify(feedJSON)}, because of ${err}`);
+          .on('response', (result) => {
+            const { text, ok } = result;
+            if (!ok) {
+              logger.error(
+                `Server rejected the request 🙅 sent through ${feedURL} with payload 📃: ${JSON.stringify(
+                  feedJSON,
+                )} and attached a note: ${text}`,
+              );
+              return;
+            }
+
+            logger.info(`Server accepted 🙆 the request and attached a note: ${text}`);
+            if (keyToBeStored) {
+              logger.info(
+                `Storing received response key [${keyToBeStored}] 🫙 as ${text}`,
+              );
+              this.idMapped[keyToBeStored] = String(text);
+            }
           });
-
-        done(
-          resp.ok ? undefined : new Error(`Found this status: ${resp.status} with body: ${resp.body}`),
-          resp.text,
-        );
       },
-      (er, _text) => {
-        const text = String(_text);
-
-        if (er) {
-          logger.error(
-            `💔 URL: ${feedURL}, FOOD: ${JSON.stringify(
-              feedJSON,
-            )} | Message: ${er.message} || Response: ${text}`,
-          );
-        } else if (keyToBeStored) {
-          logger.info(
-            `Found 🤠 Key : ${keyToBeStored} | ${text}`,
-          );
-          this.idMapped[keyToBeStored] = String(text);
-        } else logger.info(`🗳️ - ${text}`);
-      },
-    );
+    ).catch((reason) => {
+      logger.error(
+        `💔 Failed to send or read the request send through URL: ${feedURL} with payload 📃: ${JSON.stringify(
+          feedJSON,
+        )} because of ${reason?.message ?? reason}`,
+      );
+    });
   }
 
   async attachScreenshot(
@@ -111,7 +107,7 @@ export class ReporterDialPad extends DialPad {
     description?:string,
   ) {
     if (!entity_id) {
-      logger.warn('Skipping to add description for unknown entity');
+      logger.warn('😕 Skipping!, we have not attached a screenshot for unknown entity');
       return false;
     }
     const payload = JSON.stringify({
@@ -122,15 +118,18 @@ export class ReporterDialPad extends DialPad {
       entityID: entity_id,
     });
 
-    logger.info(`📸 Attaching a screenshot [PNG] with payload: ${entity_id}, 📞 ${this.addAttachmentForEntity}`);
-
     const resp = await superagent
       .put(this.addAttachmentForEntity)
       .send(payload)
-      .on('error', (err) => {
-        logger.error(`💔 Failed to attach screenshot for ${entity_id}, because of ${err}`);
+      .on('response', (result) => {
+        if (result.ok) {
+          logger.info(`📸 Attached a screenshot [PNG] for ${entity_id}`);
+        } else {
+          logger.error(`💔 Failed to attach screenshot for ${entity_id}, because of ${result?.text}`);
+        }
       });
-    return resp.statusCode === 200;
+
+    return resp?.ok;
   }
 
   async addDescription(
@@ -138,7 +137,7 @@ export class ReporterDialPad extends DialPad {
     entity_id: string,
   ) {
     if (!entity_id) {
-      logger.warn('Skipping to add description for unknown entity');
+      logger.warn('😕 Skipping!, we have not added a description for unknown entity');
       return false;
     }
     const payload = JSON.stringify({
@@ -147,14 +146,17 @@ export class ReporterDialPad extends DialPad {
       entityID: entity_id,
     });
 
-    logger.info(`✍️ Added Description with payload: ${entity_id}, 📞 ${this.addAttachmentForEntity}`);
-
     const resp = await superagent
       .put(this.addAttachmentForEntity)
       .send(payload)
-      .on('error', (err) => {
-        logger.error(`💔 Failed to set description, requested: ${entity_id}, because of ${err}`);
+      .on('response', (result) => {
+        if (result.ok) {
+          logger.info(`👍 Added Description for ${entity_id}`);
+        } else {
+          logger.error(`💔 Failed to add description for ${entity_id}, because of ${result?.text}`);
+        }
       });
-    return resp.statusCode === 200;
+
+    return resp?.ok;
   }
 }

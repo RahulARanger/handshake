@@ -1,7 +1,12 @@
 import log4js from 'log4js';
 import superagent from 'superagent';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { join } from 'node:path';
+import {
+  setTimeout,
+  setInterval,
+  clearTimeout,
+} from 'node:timers';
 import type { ChildProcess } from 'node:child_process';
 import DialPad from './dialPad';
 
@@ -11,6 +16,8 @@ const isWindows = () => process.platform === 'win32' || /^(msys|cygwin)$/.test(p
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
+  pyProcess?: ChildProcess;
+
   // eslint-disable-next-line class-methods-use-this
   get venv() {
     return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
@@ -58,6 +65,12 @@ export class ServiceDialPad extends DialPad {
       `Started py-process, running 🐰 at pid: ${pyProcess.pid}`,
     );
 
+    // important for avoiding zombie py server
+    process.on('exit', async () => {
+      pyProcess.kill('SIGINT');
+      await this.terminateServer();
+    });
+
     return pyProcess;
   }
 
@@ -72,7 +85,32 @@ export class ServiceDialPad extends DialPad {
     }
   }
 
+  async waitUntilItsReady(): Promise<unknown> {
+    const waitingForTheServer = new Error(
+      'Not able to connect with graspit-server within 10 seconds 😢, Please start again without interruption.',
+    );
+    return new Promise((resolve, reject) => {
+      const bomb = setTimeout(() => {
+        reject(waitingForTheServer);
+      }, 10e3);
+
+      const timer = setInterval(async () => {
+        const isOnline = await this.ping();
+        if (isOnline) {
+          clearTimeout(bomb);
+          clearInterval(timer);
+
+          logger.info('Server is online! 😀');
+          resolve({});
+        } else {
+          logger.warn('😓 pinging server again...');
+        }
+      }, 3e3);
+    }).catch(this.terminateServer.bind(this));
+  }
+
   async isServerTerminated(): Promise<boolean> {
+    if (this.pyProcess?.killed) return true;
     const resp = await superagent.get(`${this.url}/`);
     const wasTerminated = resp.statusCode === 200;
     if (!wasTerminated) logger.warn('→ Had to 🗡️ the py-process.');
@@ -80,12 +118,17 @@ export class ServiceDialPad extends DialPad {
   }
 
   async terminateServer() {
+    if (this.pyProcess?.killed) {
+      logger.warn('🙀 graspit process was already terminated.');
+      return;
+    }
+
     const results = [];
     for (let worker = 0; worker < 2; worker += 1) {
       logger.info('📞 Requesting for worker termination');
       results.push(
         superagent.post(`${this.url}/bye`).retry(2).catch(() => {
-          logger.info('Terminated.');
+          logger.info('→ Py Process was closed 😪');
         }),
       );
     }
@@ -114,7 +157,7 @@ export class ServiceDialPad extends DialPad {
     isDynamic?: boolean,
     maxTestRuns?: number,
     skipPatch?: boolean,
-  ): Promise<ChildProcess | false> {
+  ) {
     if (skipPatch) {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
       return false;
@@ -132,7 +175,7 @@ export class ServiceDialPad extends DialPad {
       logger.info(`Generating Report 📃, passing the command: ${script}`);
     }
 
-    const patcher = spawn(
+    spawnSync(
       script,
       {
         shell: true,
@@ -140,7 +183,8 @@ export class ServiceDialPad extends DialPad {
         stdio: 'inherit',
       },
     );
-    return patcher;
+
+    return {};
   }
 
   async markTestRunCompletion() {
