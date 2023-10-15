@@ -42,9 +42,6 @@ def setup_app(
     fast: bool = False,
     debug: bool = True,
 ):
-    if not P_Path(path).is_dir():
-        raise NotADirectoryError(path)
-
     @service_provider.main_process_start
     async def get_me_started(app, loop):
         service_provider.shared_ctx.ROOT = Array("c", str.encode(path))
@@ -67,7 +64,7 @@ def setup_app(
 
 @handle_cli.command()
 @argument("projectName", nargs=1, required=True, type=str)
-@argument("path", nargs=1, type=Path(exists=True, dir_okay=True), required=True)
+@argument("path", nargs=1, type=Path(dir_okay=True), required=True)
 @option(
     "-p",
     "--port",
@@ -105,6 +102,7 @@ def setup_app(
 def run_app(
     projectname: str, path: str, port: int, workers: int, fast: bool, debug: bool
 ):
+    P_Path(path).mkdir(exist_ok=True)
     setup_app(projectname, path, port, workers, fast, debug)
 
 

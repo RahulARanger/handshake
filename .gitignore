@@ -11,6 +11,9 @@ results
 test-results/*
 TestResults/*
 
+jest-init-tests
+test-jest-reports
+
 **logs/
 # production
 /build

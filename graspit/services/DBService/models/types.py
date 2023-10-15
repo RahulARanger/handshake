@@ -31,7 +31,7 @@ class RegisterSuite(CommonRegisterCols):
         Literal[Status.PENDING],
         Literal[Status.SKIPPED],
     ]
-    tags: Optional[List] = {}
+    tags: Optional[List] = []
 
 
 class MarkSession(BaseModel):

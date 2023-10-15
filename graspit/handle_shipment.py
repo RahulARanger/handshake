@@ -72,6 +72,7 @@ def export(path, runs, dynamic, out):
         raise FileNotFoundError(f"DB file not in {path}")
 
     resolved = Path(out).resolve()
+    resolved.mkdir(exist_ok=True)
 
     secho(f"Currently at: {Path.cwd()}", fg="yellow")
     node_modules = check_output(
