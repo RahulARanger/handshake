@@ -1,5 +1,11 @@
 # graspit
 
+## 2.2.2
+
+### Patch Changes
+
+- replaced the sv icons with the png ones
+
 ## 2.2.1
 
 ### Patch Changes
