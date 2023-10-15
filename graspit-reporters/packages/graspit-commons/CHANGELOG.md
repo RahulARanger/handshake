@@ -1,5 +1,11 @@
 # graspit-commons
 
+## 1.4.3
+
+### Patch Changes
+
+- 0fb98cf: Moved some of the common methods from wdio-graspit-reporter to graspit-commons, add tests for graspit-commons and planned a custom report for jest.
+
 ## 1.4.1
 
 ### Patch Changes
