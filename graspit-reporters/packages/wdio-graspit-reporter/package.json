@@ -23,6 +23,6 @@
 	"devDependencies": {
 		"@types/async-lock": "^1.4.0",
 		"@types/superagent": "^4.1.19",
-		"@types/node": "^20.8.5"
+		"@types/node": "^20.8.6"
 	}
 }
