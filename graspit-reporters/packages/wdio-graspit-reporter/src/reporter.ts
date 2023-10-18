@@ -2,14 +2,11 @@ import type {
   AfterCommandArgs,
   RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
-import type { Capabilities } from '@wdio/types';
-import type {
-  PayloadForMarkingTestEntityCompletion,
-  PayloadForRegisteringTestEntity,
-  SuiteType,
-} from './types';
+import {
+  MarkTestEntity, RegisterTestEntity, SuiteType, sanitizePaths,
+} from 'graspit-commons';
 import ReporterContacts from './contacts';
-import sanitizePaths, { isScreenShot } from './helpers';
+import { isScreenShot } from './helpers';
 
 export default class GraspItReporter extends ReporterContacts {
   fetchParent(suiteOrTest: SuiteStats | TestStats): string {
@@ -28,13 +25,12 @@ export default class GraspItReporter extends ReporterContacts {
   extractRegistrationPayloadForTestEntity(
     suiteOrTest: SuiteStats | TestStats,
     type: SuiteType,
-  ): PayloadForRegisteringTestEntity {
+  ): RegisterTestEntity {
     const {
       title, file, tags, description,
     } = suiteOrTest as SuiteStats;
     const testStats = suiteOrTest as TestStats;
     const state = testStats.state as string | undefined;
-
     const started = suiteOrTest.start.toISOString();
 
     const payload = {
@@ -42,7 +38,7 @@ export default class GraspItReporter extends ReporterContacts {
       description: description ?? '',
       file: sanitizePaths([file || this.currentSuites.at(-1)?.file || '']).at(0) ?? '',
       standing: (state || 'YET_TO_CALC').toUpperCase(),
-      tags: tags ?? [],
+      tags: tags?.map((tag, index) => ({ name: typeof tag === 'string' ? tag : tag.name, astNodeId: String(index) })) || [],
       started,
       suiteType: type,
       parent: this.fetchParent(suiteOrTest),
@@ -55,7 +51,7 @@ export default class GraspItReporter extends ReporterContacts {
   // eslint-disable-next-line class-methods-use-this
   extractRequiredForEntityCompletion(
     suiteOrTest: SuiteStats | TestStats,
-  ): PayloadForMarkingTestEntityCompletion {
+  ): MarkTestEntity {
     const { duration } = suiteOrTest;
     const { errors, error, state: entityState } = suiteOrTest as TestStats;
     const state = entityState as undefined | string;
@@ -81,6 +77,12 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onRunnerStart(runnerStats: RunnerStats): void {
+    if (!runnerStats.sessionId) {
+      this.skipTestRun = true;
+      this.logger.warn("Skipping this test run, as we didn't get the session ID.");
+      return;
+    }
+
     this.supporter.feed(
       this.supporter.registerSession,
       {
@@ -93,20 +95,30 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onSuiteStart(suite: SuiteStats): void {
-    this.supporter.feed(this.supporter.registerSuite, null, suite.uid, () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'));
+    if (this.skipTestRun) {
+      return;
+    }
+    this.supporter.requestRegisterTestEntity(
+      suite.uid,
+      () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'),
+    );
   }
 
   addTest(test: TestStats): void {
-    this.supporter.feed(this.supporter.registerSuite, null, test.uid, () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'));
+    if (this.skipTestRun) {
+      return;
+    }
+    this.supporter.requestRegisterTestEntity(
+      test.uid,
+      () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'),
+    );
   }
 
   onSuiteEnd(suite: SuiteStats): void {
-    this.supporter.feed(
-      this.supporter.updateSuite,
-      null,
-      null,
-      () => this.extractRequiredForEntityCompletion(suite),
-    );
+    if (this.skipTestRun) {
+      return;
+    }
+    this.supporter.markTestEntity(suite.uid, () => this.extractRequiredForEntityCompletion(suite));
   }
 
   onTestStart(test: TestStats): void {
@@ -114,12 +126,10 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   markTestCompletion(test: TestStats): void {
-    this.supporter.feed(
-      this.supporter.updateSuite,
-      null,
-      null,
-      () => this.extractRequiredForEntityCompletion(test),
-    );
+    if (this.skipTestRun) {
+      return;
+    }
+    this.supporter.markTestEntity(test.uid, () => this.extractRequiredForEntityCompletion(test));
   }
 
   onTestFail(test: TestStats): void {
@@ -143,13 +153,12 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   onRunnerEnd(runnerStats: RunnerStats): void {
-    if (this.supporter.idMapped.session == null) {
-      this.logger.warn(`Skipping this session for files: ${this.runnerStat?.specs}`);
+    if (this.skipTestRun) {
       return;
     }
 
     const caps = this.runnerStat
-      ?.capabilities as Capabilities.DesiredCapabilities;
+      ?.capabilities as WebdriverIO.Capabilities;
     const payload = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
@@ -167,6 +176,10 @@ export default class GraspItReporter extends ReporterContacts {
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
+    if (this.skipTestRun) {
+      return;
+    }
+
     if (this.options.addScreenshots && isScreenShot(commandArgs)) {
       const attachedTest = this.currentTest;
       if (!attachedTest) return;
