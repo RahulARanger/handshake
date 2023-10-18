@@ -1,5 +1,15 @@
 # graspit-commons
 
+## 1.5.0
+
+### Minor Changes
+
+- e02741a: added some helper functions for registering and marking session or test entity
+
+### Patch Changes
+
+- a526144: Revamped wdio-graspit-reporter, reusing the helper function from graspit-commons
+
 ## 1.4.3
 
 ### Patch Changes
