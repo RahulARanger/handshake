@@ -3,11 +3,11 @@ from graspit.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
 )
-from graspit.services.DBService.models.dynamic_base import TaskBase
+from graspit.services.SchedularService.pruneTasks import mark_for_prune_task
+from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
 from graspit.services.DBService.models.types import Status, SuiteType
 from graspit.services.SchedularService.refer_types import PathTree, PathItem
 from graspit.services.SchedularService.modifySuites import fetch_key_from_status
-from graspit.services.SchedularService.pruneTasks import pruneTasks
 from graspit.services.DBService.models.config_base import TestConfigBase, AttachmentType
 from tortoise.functions import Sum, Max, Min, Count, Lower
 from datetime import datetime
@@ -85,7 +85,7 @@ def simplify_file_paths(paths: List[str]):
     return tree
 
 
-async def skip_test_run(test_id: str, reason: str, **extra):
+async def skip_test_run(test_id: str, reason: str, **extra) -> False:
     logger.error(reason)
     await TestConfigBase.create(
         test_id=test_id,
@@ -93,8 +93,8 @@ async def skip_test_run(test_id: str, reason: str, **extra):
         type=AttachmentType.ERROR,
         description="Job Failed: Complete Test Run",
     )
-
-    await pruneTasks()
+    await mark_for_prune_task(test_id)
+    return False
 
 
 async def patchValues(task: TaskBase, test_run: RunBase):
@@ -102,12 +102,11 @@ async def patchValues(task: TaskBase, test_run: RunBase):
 
     filtered = SessionBase.filter(test_id=test_id)
     if await filtered.count() == 0:
-        logger.error(
-            "Detected test run: {} with no sessions, we will be deleting the test run",
-            test_id,
+        reason = (
+            "Detected test run: {} with no sessions, we will be deleting the test run"
         )
-        await task.delete()
-        return await test_run.delete()
+        await skip_test_run(test_id, reason)
+        return
 
     test_result = (
         await filtered.annotate(
@@ -185,12 +184,8 @@ async def patchTestRun(test_id: str, current_test_id: str):
 
     logger.info("Patching up the Test Run: {}", test_id)
     if test_run.standing != Status.PENDING:
-        logger.warning(
-            "Expected Test Run: {} to be pending but found: {}",
-            test_id,
-            test_run.standing,
-        )
-        return await task.delete()
+        reason = "Expected Test Run: {} to be pending but found: {}"
+        return skip_test_run(test_id, reason)
 
     pending_items = (
         await SuiteBase.filter(session__test_id=test_id)
@@ -206,8 +201,10 @@ async def patchTestRun(test_id: str, current_test_id: str):
             test_id,
         )
         await task.update_from_dict(dict(picked=False))
-        return await task.save()  # continue in the next run
+        await task.save()  # continue in the next run
+        return False
 
+    to_return = False
     try:
         await patchValues(task, test_run)
     except Exception as error:
@@ -215,26 +212,20 @@ async def patchTestRun(test_id: str, current_test_id: str):
         await skip_test_run(test_id, reason)
     else:
         logger.info("Completed the patch for test run: {}", test_id)
-
-    await test_run.save()
-    return await task.delete()
+        to_return = True
+    finally:
+        await test_run.save()
+    return to_return
 
 
 async def mark_test_failure_if_required(test_id: str) -> bool:
     test_run = await RunBase.filter(testID=test_id).first()
     if test_run.ended is None:
-        await TestConfigBase.create(
-            test_id=test_id,
-            attachmentValue=dict(
-                reason=f"Failed to process {test_id}: {test_run.projectName} because it didn't end date",
-                incomplete=test_run.projectName,
-                test_id=test_id,
-            ),
-            type=AttachmentType.ERROR,
-            description="Job Failed: Complete Test Run",
+        await skip_test_run(
+            test_id,
+            f"Failed to process {test_id}: {test_run.projectName} because it didn't end date",
+            incomplete=test_run.projectName,
         )
-
-        await pruneTasks()
         return True
 
     suites = [
@@ -252,3 +243,4 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
 
     reason = f"Failed to process {test_id} because of incomplete child suites"
     await skip_test_run(test_id, reason, incomplete=suites)
+    return True
