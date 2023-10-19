@@ -73,7 +73,7 @@ export default function MoreDetailsOnEntity(props: {
             key: 'images',
             label: 'Images',
             children: (
-                <GalleryOfImages loop={true}>
+                <GalleryOfImages loop={false}>
                     {images.map((image, index) => (
                         <CardForAImage
                             image={image}

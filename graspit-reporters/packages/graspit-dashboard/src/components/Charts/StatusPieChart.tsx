@@ -2,15 +2,15 @@ import type TestRunRecord from 'src/types/testRunRecords';
 import type { SuiteSummary } from 'src/types/testRunRecords';
 import React, { type ReactNode } from 'react';
 import Highcharts from 'highcharts';
-import HighchartsExporting from 'highcharts/modules/exporting';
 import HighchartsReact from 'highcharts-react-official';
 import Highcharts3d from 'highcharts/highcharts-3d';
-import brandDark from 'highcharts/themes/brand-dark';
+import highContrastDark from 'highcharts/themes/high-contrast-dark';
+import { greenGradient, redGradient, skippedGradient } from './constants';
+import { toolTipFormats } from '../utils/counter';
 
 if (typeof Highcharts === 'object') {
     Highcharts3d(Highcharts);
-    HighchartsExporting(Highcharts);
-    brandDark(Highcharts);
+    highContrastDark(Highcharts);
 }
 
 export default function ProgressPieChart(props: {
@@ -24,8 +24,10 @@ export default function ProgressPieChart(props: {
         (props.isTestCases ? props.run.passed : suite.passed) / total;
     const passPercent = Number.isNaN(_overallPassed) ? 0 : _overallPassed;
 
-    const options = {
+    const options: Highcharts.Options = {
         credits: { enabled: false, text: 'link-to-docs-in-future' },
+        exporting: { enabled: false },
+
         chart: {
             type: 'pie',
             options3d: {
@@ -34,15 +36,16 @@ export default function ProgressPieChart(props: {
                 beta: 0,
                 fitToPlot: true,
             },
-            backgroundColor: 'rgba(128,128,128,0.02)',
+            backgroundColor: 'transparent',
             height: 185,
+            shadow: true,
         },
-
+        tooltip: toolTipFormats,
         title: {
             text: `${(passPercent * 100).toFixed(2)}%`,
             verticalAlign: 'middle',
             style: {
-                fontSize: 12,
+                fontSize: '12',
                 color: 'white',
             },
         },
@@ -51,9 +54,15 @@ export default function ProgressPieChart(props: {
         },
         plotOptions: {
             pie: {
+                shadow: {
+                    offsetX: 0,
+                    offsetY: 5,
+                    opacity: 0.2,
+                    width: 5,
+                },
                 innerSize: 90,
                 depth: 15,
-                colors: ['green', '#FC4349', '#2C3E50'],
+                colors: [greenGradient, redGradient, skippedGradient],
             },
         },
         series: [

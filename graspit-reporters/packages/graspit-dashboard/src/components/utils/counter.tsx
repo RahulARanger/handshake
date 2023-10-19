@@ -37,7 +37,7 @@ export default class Counter extends Component<
 }
 
 export function StatisticNumber(props: {
-    title: string | ReactNode;
+    title?: string | ReactNode;
     end: number;
 }): ReactNode {
     return (
@@ -48,3 +48,10 @@ export function StatisticNumber(props: {
         />
     );
 }
+
+export const toolTipFormats = {
+    backgroundColor: 'rgb(10, 10, 10)',
+    borderColor: 'rgba(128,128,128,0.1)',
+    borderWidth: 1,
+    style: { color: 'white' },
+};

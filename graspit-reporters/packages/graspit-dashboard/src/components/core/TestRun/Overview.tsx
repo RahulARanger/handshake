@@ -9,7 +9,7 @@ import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import {
     dateFormatUsed,
-    dateTimeFormatUsed,
+    timeFormatUsed,
 } from 'src/components/utils/Datetime/format';
 import Counter, { StatisticNumber } from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relativeTime';
@@ -45,6 +45,9 @@ import Table from 'antd/lib/table/Table';
 import MetaCallContext from './context';
 import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
+import Description, {
+    type DescriptionsProps,
+} from 'antd/lib/descriptions/index';
 import type {
     AttachmentValueForConfig,
     TestRunConfig,
@@ -68,7 +71,7 @@ function TopSuites(props: {
             size="small"
             bordered
             pagination={false}
-            style={{ flexShrink: 1, minWidth: '300px' }}
+            style={{ flexShrink: 1, marginRight: '40px' }}
             scroll={{ y: 199, x: 'max-content' }}
             footer={() => (
                 <Space>
@@ -108,7 +111,8 @@ function TopSuites(props: {
                 render={(_: number, record: SuiteRecordDetails) => (
                     <RenderPassedRate
                         value={[record.passed, record.failed, record.skipped]}
-                        width={180}
+                        width={271}
+                        immutable={true}
                     />
                 )}
             />
@@ -121,18 +125,22 @@ function TopSuites(props: {
             <Table.Column
                 dataIndex="started"
                 title="Started"
-                width={120}
-                render={(value: string) =>
-                    dayjs(value).format(dateTimeFormatUsed)
-                }
+                width={60}
+                render={(value: string) => (
+                    <Tooltip title={dayjs(value).format(dateFormatUsed)}>
+                        {dayjs(value).format(timeFormatUsed)}
+                    </Tooltip>
+                )}
             />
             <Table.Column
                 title="Ended"
-                width={120}
+                width={60}
                 dataIndex="ended"
-                render={(value: string) =>
-                    dayjs(value).format(dateTimeFormatUsed)
-                }
+                render={(value: string) => (
+                    <Tooltip title={dayjs(value).format(dateFormatUsed)}>
+                        {dayjs(value).format(timeFormatUsed)}
+                    </Tooltip>
+                )}
             />
         </Table>
     );
@@ -189,6 +197,51 @@ export default function Overview(props: {
     const total = isTest
         ? props.run.tests
         : JSON.parse(props.run.suiteSummary).count;
+
+    const extras: DescriptionsProps['items'] = [
+        {
+            key: 'suites',
+            label: 'Suites',
+            children: <StatisticNumber end={suites?.['@order'].length ?? 0} />,
+        },
+        {
+            key: 'files',
+            label: 'Spec Files',
+            children: <StatisticNumber end={specFiles.size} />,
+        },
+        {
+            key: 'sessions',
+            label: 'Sessions',
+            children: <StatisticNumber end={Object.values(sessions).length} />,
+        },
+        {
+            key: 'attachments',
+            label: 'Attachments',
+            children: <StatisticNumber end={allImages.length} />,
+        },
+        {
+            key: 'browsers',
+            label: 'Browsers',
+            children: (
+                <>
+                    {Object.keys(browsersUsed).map((browser) => (
+                        <StatisticNumber
+                            key={browser}
+                            title={<RenderEntityType entityName={browser} />}
+                            end={browsersUsed[browser]}
+                        />
+                    ))}
+                </>
+            ),
+        },
+        {
+            children: (
+                <RenderSystemType systemName={configValue.platformName} />
+            ),
+            key: 'system',
+            label: 'System',
+        },
+    ];
 
     return (
         <Space direction="vertical">
@@ -263,49 +316,7 @@ export default function Overview(props: {
                 <TopSuites startedAt={startedAt} setTab={props.onTabSelected} />
             </Space>
             <Space align="start">
-                <Card bordered size="small">
-                    <Space direction="vertical">
-                        <Space split={<Divider type="vertical" />}>
-                            {allImages.length > 0 ? (
-                                <StatisticNumber
-                                    title="Attachments"
-                                    end={allImages.length}
-                                />
-                            ) : (
-                                <></>
-                            )}
-                            <StatisticNumber
-                                title="Spec Files"
-                                end={specFiles.size}
-                            />
-                            <StatisticNumber
-                                title="Sessions"
-                                end={Object.values(sessions).length}
-                            />
-                            {/* <StatisticNumber
-                                title="Instances"
-                                end={Object.values(sessions).length}
-                            /> */}
-                        </Space>
-                        <Divider type="horizontal" />
-                        <Space split={<Divider type="vertical" />}>
-                            {Object.keys(browsersUsed).map((browser) => (
-                                <StatisticNumber
-                                    key={browser}
-                                    title={
-                                        <RenderEntityType
-                                            entityName={browser}
-                                        />
-                                    }
-                                    end={browsersUsed[browser]}
-                                />
-                            ))}
-                            <RenderSystemType
-                                systemName={configValue.platformName}
-                            />
-                        </Space>
-                    </Space>
-                </Card>
+                <Description items={extras} bordered size="small" />
                 {images.length > 0 ? (
                     <GalleryOfImages loop={true} maxWidth={'500px'}>
                         {images.map((image, index) => (

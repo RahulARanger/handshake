@@ -14,6 +14,7 @@ import brandDark from 'highcharts/themes/brand-dark';
 import dayjs from 'dayjs';
 import 'src/styles/highChartExternal.module.css';
 import MetaCallContext from '../core/TestRun/context';
+import { toolTipFormats } from '../utils/counter';
 
 if (typeof HighChartsForGantt === 'object') {
     HighchartsGantt(HighChartsForGantt);
@@ -125,15 +126,12 @@ export default function GanttChartForTestEntities(props: {
             staticScale: 31,
         },
         tooltip: {
-            backgroundColor: 'rgb(10, 10, 10)',
-            borderColor: 'rgba(128,128,128,0.1)',
-            borderWidth: 1,
-            style: { color: 'white' },
             pointFormat:
                 '<span style="font-weight: bold;">{point.name}</span><br>' +
                 '{point.start:%M:%S}' +
                 '{#unless point.milestone} → {point.end:%M:%S}{/unless}' +
                 '&nbsp;({point.duration} s)<br>',
+            ...toolTipFormats,
         },
         series: [
             {

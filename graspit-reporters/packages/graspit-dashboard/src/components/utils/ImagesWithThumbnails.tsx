@@ -97,7 +97,6 @@ export default function GalleryOfImages(props: {
         {
             loop: props.loop,
             align: 'center',
-            dragFree: true,
         },
         [Autoplay({})],
     );

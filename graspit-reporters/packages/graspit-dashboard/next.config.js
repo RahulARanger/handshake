@@ -6,7 +6,7 @@ const nextConfig = {
   trailingSlash: true,
   transpilePackages: ['graspit'],
   env: {
-    NEXT_PY_PORT: process.env.NEXT_PY_PORT
+    NEXT_PY_PORT: process.env.NEXT_PY_PORT ?? '6969'
   },
   images: {
     unoptimized: true

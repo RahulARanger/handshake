@@ -10,6 +10,11 @@ import type TestRunRecord from 'src/types/testRunRecords';
 import type SessionRecordDetails from 'src/types/sessionRecords';
 import dayjs, { type Dayjs } from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import {
+    greenGradient,
+    redGradient,
+    skippedGradient,
+} from './charts/constants';
 
 dayjs.extend(duration);
 
@@ -91,4 +96,4 @@ export function parseDetailedTestRun(
     };
 }
 
-export const statusColors = ['green', '#FC4349', '#2C3E50'];
+export const statusColors = [greenGradient, redGradient, skippedGradient];
