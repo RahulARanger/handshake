@@ -85,36 +85,27 @@ def simplify_file_paths(paths: List[str]):
     return tree
 
 
-async def patchTestRun(test_id: str, current_test_id: str):
-    logger.info("Patching up the test run... {}", test_id)
-
-    test_run = await RunBase.filter(testID=test_id).first()
-    task = await TaskBase.filter(ticketID=test_run.testID).first()
-
-    if test_run.standing != Status.PENDING:
-        logger.warning("Invalid task for completing the test run | {}", test_id)
-        return await task.delete()
-
-    filtered = SessionBase.filter(test_id=test_id)
-
-    pending_items = (
-        await SuiteBase.filter(session__test_id=test_id)
-        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
-        .count()
+async def skip_test_run(test_id: str, reason: str, **extra):
+    logger.error(reason)
+    await TestConfigBase.create(
+        test_id=test_id,
+        attachmentValue=dict(reason=reason, test_id=test_id, **extra),
+        type=AttachmentType.ERROR,
+        description="Job Failed: Complete Test Run",
     )
 
-    if pending_items > 0:
-        if await mark_test_failure_if_required(test_id):
-            return
-        logger.warning(
-            "Fix test run: {} was picked but some of its test entities were not processed yet.",
+    await pruneTasks()
+
+
+async def patchValues(task: TaskBase, test_run: RunBase):
+    test_id = test_run.testID
+
+    filtered = SessionBase.filter(test_id=test_id)
+    if await filtered.count() == 0:
+        logger.error(
+            "Detected test run: {} with no sessions, we will be deleting the test run",
             test_id,
         )
-        await task.update_from_dict(dict(picked=False))
-        return await task.save()  # continue in the next run
-
-    if await filtered.count() == 0:
-        logger.warning("Detected test run: {} with no sessions", test_id)
         await task.delete()
         return await test_run.delete()
 
@@ -139,6 +130,7 @@ async def patchTestRun(test_id: str, current_test_id: str):
             "actual_start",
         )
     )
+
     passed = test_result.get("total_passed", 0)
     failed = test_result.get("total_failed", 0)
     skipped = test_result.get("total_skipped", 0)
@@ -182,8 +174,49 @@ async def patchTestRun(test_id: str, current_test_id: str):
         )
     )
 
+
+async def patchTestRun(test_id: str, current_test_id: str):
+    test_run = await RunBase.filter(testID=test_id).first()
+    if not test_run:
+        return
+    task = await TaskBase.filter(ticketID=test_run.testID).first()
+    if not task:
+        return
+
+    logger.info("Patching up the Test Run: {}", test_id)
+    if test_run.standing != Status.PENDING:
+        logger.warning(
+            "Expected Test Run: {} to be pending but found: {}",
+            test_id,
+            test_run.standing,
+        )
+        return await task.delete()
+
+    pending_items = (
+        await SuiteBase.filter(session__test_id=test_id)
+        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+        .count()
+    )
+
+    if pending_items > 0:
+        if await mark_test_failure_if_required(test_id):
+            return
+        logger.warning(
+            "Fix test run: {} was picked but some of its test entities were not processed yet.",
+            test_id,
+        )
+        await task.update_from_dict(dict(picked=False))
+        return await task.save()  # continue in the next run
+
+    try:
+        await patchValues(task, test_run)
+    except Exception as error:
+        reason = f"Failed to patch the test run, error in calculation, {error}"
+        await skip_test_run(test_id, reason)
+    else:
+        logger.info("Completed the patch for test run: {}", test_id)
+
     await test_run.save()
-    logger.info("Completed the patch for test run | {}", test_id)
     return await task.delete()
 
 
@@ -217,15 +250,5 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
         # it means there are child tasks ensured to complete the child suites
         return False
 
-    await TestConfigBase.create(
-        test_id=test_id,
-        attachmentValue=dict(
-            reason=f"Failed to process {test_id} because of incomplete child suites",
-            incomplete=suites,
-            test_id=test_id,
-        ),
-        type=AttachmentType.ERROR,
-        description="Job Failed: Complete Test Run",
-    )
-
-    await pruneTasks()
+    reason = f"Failed to process {test_id} because of incomplete child suites"
+    await skip_test_run(test_id, reason, incomplete=suites)
