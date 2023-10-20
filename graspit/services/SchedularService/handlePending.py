@@ -20,13 +20,18 @@ def add_lookup_task(_scheduler: AsyncIOScheduler):
     )
 
 
+# NOTE: make sure to pick the task before adding a new task
 async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
     logger.info("Looking up for the tasks")
 
     task = (
         await TaskBase.filter(
             Q(picked=False)
-            & (Q(type=JobType.MODIFY_SUITE) | Q(type=JobType.MODIFY_TEST_RUN))
+            & (
+                Q(type=JobType.MODIFY_SUITE)
+                | Q(type=JobType.MODIFY_TEST_RUN)
+                | Q(type=JobType.PRUNE_TASKS)
+            )
         )
         .order_by("dropped")
         .first()
@@ -49,7 +54,6 @@ async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
 
         case JobType.PRUNE_TASKS:
             await pruneTasks()
-            delete_task = True
 
         case _:
             print("Not Implemented yet..")

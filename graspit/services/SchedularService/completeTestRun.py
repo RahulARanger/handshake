@@ -3,12 +3,15 @@ from graspit.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
 )
-from graspit.services.SchedularService.pruneTasks import mark_for_prune_task
-from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
+from uuid import UUID
+from typing import Union
+from traceback import format_exc
+from graspit.services.SchedularService.register import mark_for_prune_task
+from graspit.services.DBService.models.dynamic_base import TaskBase
 from graspit.services.DBService.models.types import Status, SuiteType
 from graspit.services.SchedularService.refer_types import PathTree, PathItem
 from graspit.services.SchedularService.modifySuites import fetch_key_from_status
-from graspit.services.DBService.models.config_base import TestConfigBase, AttachmentType
+from graspit.services.DBService.models.static_base import TestConfigBase, AttachmentType
 from tortoise.functions import Sum, Max, Min, Count, Lower
 from datetime import datetime
 from typing import List
@@ -85,11 +88,11 @@ def simplify_file_paths(paths: List[str]):
     return tree
 
 
-async def skip_test_run(test_id: str, reason: str, **extra) -> False:
+async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
     logger.error(reason)
     await TestConfigBase.create(
-        test_id=test_id,
-        attachmentValue=dict(reason=reason, test_id=test_id, **extra),
+        test_id=str(test_id),
+        attachmentValue=dict(reason=reason, test_id=str(test_id), **extra),
         type=AttachmentType.ERROR,
         description="Job Failed: Complete Test Run",
     )
@@ -97,14 +100,12 @@ async def skip_test_run(test_id: str, reason: str, **extra) -> False:
     return False
 
 
-async def patchValues(task: TaskBase, test_run: RunBase):
+async def patchValues(test_run: RunBase):
     test_id = test_run.testID
 
     filtered = SessionBase.filter(test_id=test_id)
     if await filtered.count() == 0:
-        reason = (
-            "Detected test run: {} with no sessions, we will be deleting the test run"
-        )
+        reason = f"Detected test run: {test_run.projectName} - {test_id} with no sessions, Hence skipping this."
         await skip_test_run(test_id, reason)
         return
 
@@ -206,9 +207,9 @@ async def patchTestRun(test_id: str, current_test_id: str):
 
     to_return = False
     try:
-        await patchValues(task, test_run)
-    except Exception as error:
-        reason = f"Failed to patch the test run, error in calculation, {error}"
+        await patchValues(test_run)
+    except Exception:
+        reason = f"Failed to patch the test run, error in calculation, {format_exc()}"
         await skip_test_run(test_id, reason)
     else:
         logger.info("Completed the patch for test run: {}", test_id)
@@ -223,7 +224,7 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
     if test_run.ended is None:
         await skip_test_run(
             test_id,
-            f"Failed to process {test_id}: {test_run.projectName} because it didn't end date",
+            f"Failed to process test Run{test_id}: {test_run.projectName} because it didn't have a end date",
             incomplete=test_run.projectName,
         )
         return True

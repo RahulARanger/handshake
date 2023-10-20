@@ -1,10 +1,9 @@
 from tortoise.models import Model
 from graspit.services.SchedularService.constants import JobType
-from graspit.services.DBService.models.enums import AttachmentType
-from graspit.services.DBService.models.result_base import SuiteBase, RunBase
+from graspit.services.DBService.models.enums import ConfigKeys
+from graspit.services.DBService.models.result_base import RunBase
 from tortoise.fields import (
     IntField,
-    JSONField,
     CharEnumField,
     CharField,
     ForeignKeyField,
@@ -16,46 +15,6 @@ from tortoise.fields import (
 from typing import TypedDict
 from pydantic import BaseModel
 from typing import Optional
-
-
-class AttachmentFields(Model):
-    attachmentValue = JSONField(
-        description="An attachment value", default={"value": ""}
-    )
-    description = TextField(
-        null=False, description="Description Field for the attachment"
-    )
-    type = CharEnumField(
-        AttachmentType,
-        description="Type of an attachment, refer the enums to get an idea",
-    )
-
-    class Meta:
-        abstract = True
-
-
-class AttachmentBase(AttachmentFields):
-    table = "AttachmentBase"
-    entity: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
-        "models.SuiteBase", related_name="attachment", to_field="suiteID"
-    )
-
-
-class TestConfigBase(AttachmentFields):
-    table = "TableConfigBase"
-    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="config", to_field="testID"
-    )
-
-
-class ValueForTestRunConfigBase(TypedDict):
-    version: str
-    platformName: str
-
-
-class PydanticModalForTestRunConfigBase(BaseModel):
-    maxInstances: Optional[int]
-    platformName: str
 
 
 class JobBase(Model):
@@ -77,7 +36,9 @@ class JobBase(Model):
 
 
 class ConfigBase(Model):
-    key = CharField(description="Key", max_length=20, pk=True)
+    key = CharEnumField(
+        ConfigKeys, pk=True, null=False, description="Type of job we would like to run"
+    )
     value = TextField(null=False, description="Handling type is upto us")
 
 

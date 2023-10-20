@@ -7,4 +7,4 @@ class JobType(StrEnum):
     MODIFY_SUITE = "fix-suite"
     MODIFY_TEST_RUN = "fix-test-run"
     EXECUTOR = "executor"
-    PRUNE_TASKS = "prune-runs"
+    PRUNE_TASKS = "prune-tasks"

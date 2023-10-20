@@ -192,7 +192,6 @@ export const config = attachReporter(metaConfig, {
   // does not depend on this as we have explicitly mentioned when to add screenshots
   export: {
     maxTestRuns: 5,
-    out: './dist',
-    skipPatch: true,
+    skipPatch: false,
   },
 });

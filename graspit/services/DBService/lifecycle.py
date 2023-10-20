@@ -1,8 +1,6 @@
-from graspit.services.DBService.models.config_base import (
-    TestConfigBase,
-    ValueForTestRunConfigBase,
-    ConfigBase,
-)
+from graspit.services.DBService.models.static_base import TestConfigBase
+from graspit.services.DBService.models.config_base import ConfigBase
+from graspit.services.DBService.models.types import ValueForTestRunConfigBase
 from graspit.services.DBService import DB_VERSION
 from graspit.services.DBService.models.result_base import RunBase
 from graspit.services.DBService.models.enums import AttachmentType, ConfigKeys

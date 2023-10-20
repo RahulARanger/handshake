@@ -1,37 +1,16 @@
-from typing import List
-from click import group, Path as C_Path, argument, option
-from pathlib import Path
-from graspit.services.SchedularService.center import start_service
+from graspit.services.CommandLine._init import handle_cli
 from graspit.services.DBService.shared import db_path
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
-from graspit.services.SchedularService.lifecycle import start_loop
-from graspit.services.DBService.health import check_version, initiate_migration
-from graspit.services.DBService.models.config_base import ExportBase, RunBase
+from graspit.services.DBService.models.result_base import RunBase
+from graspit.services.DBService.models.config_base import ExportBase
 from tortoise.functions import Max
 from os.path import relpath
 from click import secho
 from subprocess import call, check_output
 from tortoise import run_async
-
-
-@group()
-def handle_cli():
-    pass
-
-
-@handle_cli.command()
-@argument(
-    "path",
-    nargs=1,
-    type=C_Path(exists=True, dir_okay=True),
-    required=False,
-    default=Path.cwd(),
-)
-def patch(path):
-    if not Path(path).is_dir():
-        raise NotADirectoryError(path)
-    start_service(db_path(path))
-    start_loop()
+from click import option, argument, Path as C_Path
+from pathlib import Path
+from typing import List
 
 
 async def createExportTicket(
@@ -111,25 +90,3 @@ def export(path, runs, dynamic, out):
         cwd=graspit,
         shell=True,
     )
-
-
-@handle_cli.group()
-def db_version():
-    pass
-
-
-@db_version.command()
-@argument("path", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True)
-def check(path: str):
-    return check_version(db_path(Path(path)))
-
-
-@db_version.command()
-@argument("path", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True)
-def migrate(path: str):
-    return initiate_migration(db_path(Path(path)))
-
-
-if __name__ == "__main__":
-    start_service(db_path("../TestResults"))
-    start_loop()

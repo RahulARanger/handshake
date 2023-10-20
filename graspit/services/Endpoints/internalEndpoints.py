@@ -1,15 +1,15 @@
-from graspit.services.DBService.models.dynamic_base import TaskBase
 from graspit.services.DBService.shared import get_test_id
 from graspit.services.DBService.lifecycle import close_connection
 from sanic.blueprints import Blueprint
-from graspit.services.SchedularService.constants import JobType
 from sanic.response import HTTPResponse, text
 from sanic.request import Request
+from graspit.services.SchedularService.register import register_patch_test_run
 
 one_liners = Blueprint(name="one_liners", url_prefix="/")
 
 
 # Here we will have requests which are very simple but used at crucial points
+
 
 @one_liners.get("/")
 async def health_status(request: Request) -> HTTPResponse:
@@ -18,10 +18,7 @@ async def health_status(request: Request) -> HTTPResponse:
 
 @one_liners.put("/done")
 async def set_done(request: Request) -> HTTPResponse:
-    task = await TaskBase.create(
-        type=JobType.MODIFY_TEST_RUN,
-        test_id=get_test_id(), ticketID=get_test_id()
-    )
+    task = await register_patch_test_run(get_test_id())
     return text(task.ticketID)
 
 

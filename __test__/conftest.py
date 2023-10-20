@@ -4,6 +4,9 @@ from graspit.services.DBService.shared import db_path as shared_db_path
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from graspit.services.DBService.models import RunBase, SessionBase
 from datetime import datetime
+from subprocess import call
+from sanic_testing.testing import SanicASGITestClient
+from graspit.services.Endpoints.core import service_provider
 
 pytestmark = mark.asyncio
 
@@ -18,6 +21,11 @@ def root_dir():
 @fixture()
 def db_path(root_dir):
     return shared_db_path(root_dir)
+
+
+@fixture()
+def patch(root_dir):
+    return lambda: call(f'graspit patch "{root_dir}"', shell=True)
 
 
 @fixture(autouse=True)
@@ -37,8 +45,17 @@ async def sample_test_run():
 
 
 @fixture()
-async def sample_test_session(sample_test_run):
+async def sample_test_session(sample_test_run: RunBase):
     return await SessionBase.create(
-        started=datetime.utcnow(),
-        test_id=(await sample_test_run).testID
+        started=datetime.utcnow(), test_id=(await sample_test_run).testID
     )
+
+
+@fixture()
+def app():
+    return service_provider
+
+
+@fixture()
+def client() -> SanicASGITestClient:
+    return service_provider.asgi_client
