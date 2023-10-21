@@ -1,0 +1,20 @@
+## Introduction
+
+Here we would be exploring the architecture of our [turbo](https://turbo.build/) repo, we have for nodejs based reporters and dashboard.
+
+## Packages
+
+-   graspit - Next.js project for our dashboard
+-   graspit-commons - Helper package to store most of our common constants and functions in order to interact with graspit server.
+-   graspit-reporters - Custom Reporter for various test frameworks.
+
+## Dependancy
+
+| Bump if ↓, Release → | graspit | graspit-commons | reporters |
+| -------------------- | ------- | --------------- | --------- |
+| graspit              | ✅      | ❌              | ❌        |
+| graspit-commons      | ❌      | ✅              | ❌        |
+| reporters            | ❌      | ✅              | ✅        |
+
+Above table summarizes our [changesets](https://github.com/changesets/changesets/blob/main/docs/config-file-options.md) configuration. if we have some changes on `graspit-commons`.
+we would bump the version of ant reporters `*-graspit-reporter` so we would have release for all the reporters along with `graspit-commons` in that case.

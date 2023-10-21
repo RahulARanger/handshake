@@ -1,10 +1,18 @@
 import json
 from graspit.services.DBService.models.result_base import SessionBase, SuiteBase
-from graspit.services.DBService.models.types import RegisterSession, RegisterSuite, MarkSuite, MarkSession, \
-    AddAttachmentForEntity
-from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
-from graspit.services.DBService.models.config_base import PydanticModalForTestRunConfigBase, AttachmentType, \
-    TestConfigBase, AttachmentBase
+from graspit.services.DBService.models.types import (
+    RegisterSession,
+    RegisterSuite,
+    MarkSuite,
+    MarkSession,
+    AddAttachmentForEntity,
+    PydanticModalForTestRunConfigBase,
+)
+from graspit.services.DBService.models.static_base import (
+    AttachmentType,
+    TestConfigBase,
+    AttachmentBase,
+)
 from graspit.services.DBService.models.enums import Status, SuiteType
 from graspit.services.SchedularService.modifySuites import fetch_key_from_status
 from sanic.blueprints import Blueprint
@@ -12,6 +20,7 @@ from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
 from sanic.request import Request
 from graspit.services.DBService.shared import get_test_id
+from graspit.services.SchedularService.register import register_patch_suite
 
 service = Blueprint("DBService", url_prefix="/save")
 
@@ -24,11 +33,13 @@ async def handle_response(request: Request, response: JSONResponse):
     await TestConfigBase.create(
         test_id=get_test_id(),
         attachmentValue=dict(
-            url=request.url, payload=request.json, status=response.status,
-            reason=response.body.decode()
+            url=request.url,
+            payload=request.json,
+            status=response.status,
+            reason=response.body.decode(),
         ),
         type=AttachmentType.ERROR,
-        description=f'Failed to process the request at: {request.url}, will affect the test run'
+        description=f"Failed to process the request at: {request.url}, will affect the test run",
     )
 
 
@@ -36,7 +47,9 @@ async def handle_response(request: Request, response: JSONResponse):
 async def register_session(request: Request) -> HTTPResponse:
     try:
         session = RegisterSession.model_validate(request.json)
-        session_record = await SessionBase.create(**session.model_dump(), test_id=get_test_id())
+        session_record = await SessionBase.create(
+            **session.model_dump(), test_id=get_test_id()
+        )
         await session_record.save()
     except Exception as error:
         logger.error("Failed to create a session due to exception: {}", str(error))
@@ -49,10 +62,7 @@ async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
     suite_record = await SuiteBase.create(**suite.model_dump())
     await suite_record.save()
-    return text(
-        str(suite_record.suiteID),
-        status=201
-    )
+    return text(str(suite_record.suiteID), status=201)
 
 
 @service.put("/updateSuite")
@@ -62,14 +72,16 @@ async def updateSuite(request: Request) -> HTTPResponse:
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
     if not suite_record:
         logger.error("Was not able to found {} suite", str(suite.suiteID))
-        return text(f'Suite {suite.suiteID} was not found', status=404)
+        return text(f"Suite {suite.suiteID} was not found", status=404)
 
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
     else:
         note = {
-            fetch_key_from_status(suite_record.passed, suite_record.failed, suite_record.skipped).lower(): 1,
-            "tests": 1
+            fetch_key_from_status(
+                suite_record.passed, suite_record.failed, suite_record.skipped
+            ).lower(): 1,
+            "tests": 1,
         }
         await suite_record.update_from_dict(note)
         await suite_record.save()
@@ -78,13 +90,12 @@ async def updateSuite(request: Request) -> HTTPResponse:
     await suite_record.save()
 
     if suite_record.suiteType == SuiteType.SUITE:
-        task = (
-            await TaskBase.create(ticketID=suite_record.suiteID, test_id=get_test_id(), type=JobType.MODIFY_SUITE)
-        ).ticketID
-    else:
-        task = "Updated"
+        await register_patch_suite(suite_record.suiteID, get_test_id())
 
-    return text(f'Updated Suite: {  suite_record.title} || {suite_record.suiteID} || {task}', status=201)
+    return text(
+        f"Suite: {suite_record.title} - {suite_record.suiteID} was updated",
+        status=201,
+    )
 
 
 @service.put("/updateSession")
@@ -109,7 +120,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
         type=attachment.type,
         attachmentValue=dict(
             color=attachment.color, value=attachment.value, title=attachment.title
-        )
+        ),
     )
 
     return text(f"Attachment added successfully for {attachment.entityID}", status=201)

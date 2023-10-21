@@ -1,3 +1,4 @@
+from graspit.services.CommandLine.export import handle_cli
 from graspit.services.Endpoints.center import service_provider
 from graspit.services.DBService.lifecycle import (
     init_tortoise_orm,
@@ -5,9 +6,9 @@ from graspit.services.DBService.lifecycle import (
     create_run,
 )
 from graspit.services.DBService.shared import set_test_id
-from click import argument, option, Path, secho
+from click import argument, option, Path
 from pathlib import Path as P_Path
-from graspit.handle_shipment import handle_cli
+
 from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
 from sanic import Sanic

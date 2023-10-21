@@ -2,7 +2,6 @@ from sqlite3 import connect
 from graspit.services.DBService import DB_VERSION
 from sqlite3.dbapi2 import Connection
 from typing import Optional, Tuple
-from graspit.services.DBService.migration import v2, revert_v2
 from pathlib import Path
 from loguru import logger
 
@@ -74,30 +73,30 @@ def initiate_migration(path: Path, aim=DB_VERSION):
     connection.close()
 
 
-def revert(connection: Connection, new_version: int) -> bool:
-    match new_version:
-        case 1:
-            revert_v2(connection)
-
-        case _:
-            logger.error(
-                "Could not revert, Found the version: v{} but this is not a valid version",
-                new_version,
-            )
-            return True
-
-    return False
-
-
-def bump(connection: Connection, new_version: int) -> bool:
-    match new_version:
-        case 2:
-            v2(connection)
-
-        case _:
-            logger.error(
-                "Could not bump version, Found the version: v{} but this is not a valid version",
-                new_version,
-            )
-            return True
-    return False
+# def revert(connection: Connection, new_version: int) -> bool:
+#     match new_version:
+#         case 1:
+#             revert_v2(connection)
+#
+#         case _:
+#             logger.error(
+#                 "Could not revert, Found the version: v{} but this is not a valid version",
+#                 new_version,
+#             )
+#             return True
+#
+#     return False
+#
+#
+# def bump(connection: Connection, new_version: int) -> bool:
+#     match new_version:
+#         case 2:
+#             v2(connection)
+#
+#         case _:
+#             logger.error(
+#                 "Could not bump version, Found the version: v{} but this is not a valid version",
+#                 new_version,
+#             )
+#             return True
+#     return False

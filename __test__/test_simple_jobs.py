@@ -1,5 +1,3 @@
-import sys
-
 from pytest import mark
 from graspit.services.DBService.models import TaskBase, SuiteBase, RunBase, SessionBase
 from graspit.services.SchedularService.constants import JobType

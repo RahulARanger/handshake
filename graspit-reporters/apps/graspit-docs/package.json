@@ -18,6 +18,8 @@
 		"@next/mdx": "^13.5.4",
 		"antd": "^5.9.4",
 		"graspit": "*",
+		"highcharts": "^11.1.0",
+		"highcharts-react-official": "^3.2.1",
 		"next": "^13.5.4",
 		"nextra": "^2.13.2",
 		"nextra-theme-docs": "^2.13.2",

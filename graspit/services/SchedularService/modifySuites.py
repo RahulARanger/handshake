@@ -15,18 +15,21 @@ async def patchTestSuite(suiteID: str, testID: str):
 
     if suite.standing != Status.YET_TO_CALCULATE:
         logger.warning("Removing this task {} as it was already processed", suite.title)
-        return await drop_task(task.ticketID)
+        return True
 
     pending_child_tasks = await SuiteBase.filter(
-        Q(parent=suite.suiteID) & (Q(standing=Status.PENDING) | Q(standing=Status.YET_TO_CALCULATE))).exists()
+        Q(parent=suite.suiteID)
+        & (Q(standing=Status.PENDING) | Q(standing=Status.YET_TO_CALCULATE))
+    ).exists()
 
     if pending_child_tasks:
         logger.warning(
             "There are some child suites, which are not yet processed, so will process {} suite in the next iteration",
-            suite.title
+            suite.title,
         )
         await task.update_from_dict(dict(picked=False))
-        return await task.save()  # continue in the next run
+        await task.save()  # continue in the next run
+        return False
 
     filtered_suites = SuiteBase.filter(parent=suite.suiteID)
     passed = await filtered_suites.filter(standing=Status.PASSED).count()
@@ -36,18 +39,36 @@ async def patchTestSuite(suiteID: str, testID: str):
     standing = fetch_key_from_status(passed, failed, skipped)
 
     # rollup for the errors
-    errors = list(chain.from_iterable(
-        map(lambda suite_with_errors: suite_with_errors.errors, await filtered_suites.filter(~Q(errors='[]')).all())
-    ))
+    errors = list(
+        chain.from_iterable(
+            map(
+                lambda suite_with_errors: suite_with_errors.errors,
+                await filtered_suites.filter(~Q(errors="[]")).all(),
+            )
+        )
+    )
 
     await suite.update_from_dict(
-        dict(standing=standing, passed=passed, skipped=skipped, failed=failed, tests=total, errors=errors)
+        dict(
+            standing=standing,
+            passed=passed,
+            skipped=skipped,
+            failed=failed,
+            tests=total,
+            errors=errors,
+        )
     )
     await suite.save()
 
     logger.info("Successfully processed suite: {}", suite.title)
-    return await drop_task(task.ticketID)
+    return True
 
 
 def fetch_key_from_status(passed, failed, skipped):
-    return Status.FAILED if failed > 0 else Status.PASSED if passed > 0 or skipped == 0 else Status.SKIPPED
+    return (
+        Status.FAILED
+        if failed > 0
+        else Status.PASSED
+        if passed > 0 or skipped == 0
+        else Status.SKIPPED
+    )

@@ -1,16 +1,8 @@
-import { relative } from 'node:path';
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
 import { GraspItServiceOptions, ReporterOptions } from './types';
 import GraspItService from './service';
 import { currentReporter } from './contacts';
-
-export default function sanitizePaths(specs?: string[]): string[] {
-  return (specs ?? []).map((spec) => relative(
-    process.cwd(),
-    spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec,
-  ));
-}
 
 export function attachReporter(
   config: Options.Testrunner,
@@ -55,6 +47,9 @@ export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boo
 }
 
 export async function attachScreenshot(title: string, content: string, description?:string) {
+  if (currentReporter?.skipTestRun) {
+    return;
+  }
   await currentReporter?.supporter?.attachScreenshot(
     title,
     content,
@@ -64,6 +59,10 @@ export async function attachScreenshot(title: string, content: string, descripti
 }
 
 export async function addDescription(content: string) {
+  if (currentReporter?.skipTestRun) {
+    return;
+  }
+
   await currentReporter?.supporter?.addDescription(
     content,
     currentReporter?.currentTestID ?? '',

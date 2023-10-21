@@ -97,7 +97,7 @@ describe('verifying if we are able to start graspit server', () => {
 
     test('verifying endpoint for registering session', async () => {
       expect(reporter.idMapped.session).toBeUndefined();
-      reporter.feed(reporter.registerSession, { retried: 0, started: new Date().toISOString(), specs: ['test.spec.ts'] }, 'session');
+      reporter.requestRegisterSession({ retried: 0, started: new Date().toISOString(), specs: ['test.spec.ts'] });
       expect(reporter.idMapped.session).toBeUndefined();
       expect(reporter.lock.isBusy()).toBeTruthy();
       await waitForLock('session');
@@ -106,19 +106,18 @@ describe('verifying if we are able to start graspit server', () => {
     });
     test('creating dummy test', async () => {
       expect(reporter.idMapped[testKey]).toBeUndefined();
-
-      reporter.feed(reporter.registerSuite, {
+      reporter.requestRegisterTestEntity(testKey, {
         title: 'sample-test',
         description: 'dummy-test',
         suiteType: 'TEST',
         parent: '',
-        session_id: reporter.idMapped.session,
+        session_id: reporter.idMapped.session as string,
         file: 'test.spec.ts',
         started: new Date().toISOString(),
         retried: 0,
         standing: 'PENDING',
         tags: [],
-      }, testKey);
+      });
 
       await waitForLock(testKey);
 

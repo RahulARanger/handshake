@@ -6,10 +6,6 @@ from datetime import datetime
 from typing_extensions import TypedDict
 
 
-def understand_js_date(utc_date_string: str) -> datetime:
-    return datetime.strptime(utc_date_string, "%a, %d %b %Y %H:%M:%S %Z")
-
-
 class CommonRegisterCols(BaseModel):
     retried: int
     started: datetime
@@ -70,3 +66,13 @@ class AddAttachmentForEntity(BaseModel):
     value: str
     color: Optional[str] = ""
     title: Optional[str] = ""
+
+
+class ValueForTestRunConfigBase(TypedDict):
+    version: str
+    platformName: str
+
+
+class PydanticModalForTestRunConfigBase(BaseModel):
+    maxInstances: Optional[int]
+    platformName: str

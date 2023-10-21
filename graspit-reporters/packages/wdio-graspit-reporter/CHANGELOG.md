@@ -1,5 +1,14 @@
 # wdio-graspit-reporter
 
+## 1.5.0
+
+### Patch Changes
+
+- a526144: Revamped wdio-graspit-reporter, reusing the helper function from graspit-commons
+- Updated dependencies [a526144]
+- Updated dependencies [e02741a]
+  - graspit-commons@1.5.0
+
 ## 1.4.3
 
 ### Patch Changes

@@ -15,6 +15,8 @@ log4js.configure({
 export default class ReporterContacts extends WDIOReporter {
   options: ReporterOptions;
 
+  skipTestRun: boolean = false;
+
   supporter: ReporterDialPad;
 
   logger: Logger;
