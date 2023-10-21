@@ -53,7 +53,8 @@ async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
             delete_task = await patchTestRun(task.ticketID, task.test_id)
 
         case JobType.PRUNE_TASKS:
-            await pruneTasks()
+            await pruneTasks(task.ticketID)
+            delete_task = True
 
         case _:
             print("Not Implemented yet..")

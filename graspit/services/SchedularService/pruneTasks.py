@@ -7,13 +7,6 @@ from tortoise.expressions import Q
 
 
 async def pruneTasks(request_id: Optional[str] = ""):
-    # await TaskBase.filter(
-    #     test_id__in=await TestConfigBase.filter(type=AttachmentType.ERROR)
-    #     .only("test_id")
-    #     .distinct()
-    #     .values_list("test_id", flat=True)
-    # )
-
     if request_id:
         logger.error("Deleting Few Tasks as per request")
     else:

@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import List
 
 
+# TODO: Handle a case where there are records in the RunBase
 async def createExportTicket(
     maxTestRuns: int, isDynamic: bool, path: Path, store: List[str]
 ):
