@@ -4,44 +4,29 @@ import {
     getTestRun,
     getTestRunSummary,
     getTests,
-} from 'src/Generators/helper';
+} from 'src/components/scripts/helper';
 import type { DetailedTestRunPageProps } from 'src/types/generatedResponse';
 import {
     getAllEntityLevelAttachments,
     getAllTests,
 } from 'src/Generators/Queries/testEntityRelated';
 import getConnection from 'src/components/scripts/connection';
-import currentExportConfig from 'src/Generators/Queries/exportConfig';
 import DetailedTestRun from 'src/components/core/TestRun';
 
 import React from 'react';
-import { type GetStaticPathsResult, type GetStaticPropsResult } from 'next';
+import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
 import EnsureFallback from 'src/components/utils/swrFallback';
-import { overviewTab, testEntitiesTab } from 'src/types/uiConstants';
+import { testEntitiesTab } from 'src/types/uiConstants';
 import {
     getSessionSummary,
     getDetailsOfTestRun,
     generateTestRunSummary,
 } from 'src/components/scripts/RunPage/overview';
-import { getAllTestRuns } from 'src/components/scripts/runs';
+import { attachmentPrefix } from 'src/components/core/TestRun/context';
+import { getStaticPaths as staticPaths } from 'src/pages/RUN/[id]';
 
-export async function getStaticPaths(): Promise<GetStaticPathsResult> {
-    const connection = await getConnection();
-
-    const exportConfig = await currentExportConfig(connection);
-    const paths = await getAllTestRuns(connection, exportConfig?.maxTestRuns);
-    await connection.close();
-
-    return {
-        paths: [
-            ...paths.map((path) => ({
-                params: { id: path, tab: overviewTab },
-            })),
-        ],
-        fallback: false,
-    };
-}
+export const getStaticPaths = staticPaths;
 
 export async function getStaticProps(prepareProps: {
     params: {
@@ -86,6 +71,7 @@ export async function getStaticProps(prepareProps: {
             },
             testID: testID,
             port,
+            attachmentPrefix: process.env.ATTACHMENTS ?? attachmentPrefix,
         },
     };
 }
@@ -95,7 +81,7 @@ export default function TestRunResults(
 ): ReactNode {
     return (
         <EnsureFallback fallbackPayload={props}>
-            <DetailedTestRun activeTab={testEntitiesTab}>
+            <DetailedTestRun activeTab={testEntitiesTab} show>
                 <></>
             </DetailedTestRun>
         </EnsureFallback>

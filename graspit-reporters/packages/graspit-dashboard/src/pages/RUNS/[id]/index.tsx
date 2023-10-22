@@ -1,21 +1,17 @@
 import {
-    getEntityLevelAttachment,
     getOverAllAggResultsURL,
     getRecentSuitesURL,
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
     getTestRunSummary,
-} from 'src/Generators/helper';
+} from 'src/components/scripts/helper';
 import type { DetailedTestRunPageProps } from 'src/types/generatedResponse';
-import { getAllEntityLevelAttachments } from 'src/Generators/Queries/testEntityRelated';
-import getConnection from 'src/Generators/dbConnection';
-// import getConnection from 'src/components/scripts/connection';
-import currentExportConfig from 'src/Generators/Queries/exportConfig';
+import getConnection from 'src/components/scripts/connection';
 import DetailedTestRun from 'src/components/core/TestRun';
 
 import React from 'react';
-import { type GetStaticPathsResult, type GetStaticPropsResult } from 'next';
+import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
 import EnsureFallback from 'src/components/utils/swrFallback';
 import { overviewTab } from 'src/types/uiConstants';
@@ -27,27 +23,11 @@ import {
     getTestRunConfigRecords,
     getSomeAggResults,
 } from 'src/components/scripts/RunPage/overview';
-import { getAllTestRuns } from 'src/components/scripts/runs';
 import Overview from 'src/components/core/TestRun/Overview';
 import { attachmentPrefix } from 'src/components/core/TestRun/context';
+import staticPaths from 'src/components/scripts/RunPage/generatePaths';
 
-export async function getStaticPaths(): Promise<GetStaticPathsResult> {
-    const connection = await getConnection();
-
-    const exportConfig = await currentExportConfig(connection);
-    const paths = await getAllTestRuns(connection, exportConfig?.maxTestRuns);
-    await connection.close();
-
-    return {
-        paths: [
-            ...paths.map((path) => ({
-                params: { id: path, tab: overviewTab },
-            })),
-        ],
-        fallback: false,
-    };
-}
-
+export const getStaticPaths = staticPaths;
 export async function getStaticProps(prepareProps: {
     params: {
         id: string;

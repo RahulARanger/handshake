@@ -27,8 +27,10 @@ async def saveImage(request: Request) -> HTTPResponse:
     logger.info("Received a file from user, saving it as {}", file_name)
     root = root_dir() / "Attachments"
     root.mkdir(exist_ok=True)
+    test_root = root / str((await (await record.entity).session).test_id)
+    test_root.mkdir(exist_ok=True)
 
-    file = root / file_name
+    file = test_root / file_name
     file.write_bytes(base64.b64decode(attachment.value))
 
     await record.update_from_dict(

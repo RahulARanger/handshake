@@ -1,4 +1,8 @@
-import { getTestRun } from 'src/Generators/helper';
+import {
+    detailedPage,
+    getTestRun,
+    runPage,
+} from 'src/components/scripts/helper';
 import type TestRunRecord from 'src/types/testRunRecords';
 import RelativeTo from 'src/components/utils/Datetime/relativeTime';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
@@ -29,6 +33,8 @@ import Divider from 'antd/lib/divider/index';
 export default function DetailedTestRun(props: {
     children: ReactNode;
     activeTab: string;
+    show?: boolean;
+    onChange?: (nowSelected: string) => void;
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
@@ -37,25 +43,43 @@ export default function DetailedTestRun(props: {
     if (data == null) {
         return <></>;
     }
-    const relativeURL = `/RUNS/${data.testID}`;
 
     const items: MenuProps['items'] = [
         {
-            label: <Link href={`${relativeURL}/`}>Overview</Link>,
+            label: <Link href={runPage(data.testID)}>Overview</Link>,
             key: overviewTab,
             icon: <HomeOutlined />,
         },
-        {
-            label: (
-                <Link href={`${relativeURL}/TestEntities`}>Test Entities</Link>
-            ),
-            key: testEntitiesTab,
-            icon: gridViewMode ? <TableOutlined /> : <PartitionOutlined />,
-        },
-        {
-            label: 'Gantt Chart',
-            key: ganttChartTab,
-        },
+
+        ...(props.show
+            ? [
+                  {
+                      label: 'Test Entities',
+                      key: testEntitiesTab,
+                      icon: gridViewMode ? (
+                          <TableOutlined />
+                      ) : (
+                          <PartitionOutlined />
+                      ),
+                  },
+                  {
+                      label: 'Gantt Chart',
+                      key: ganttChartTab,
+                  },
+              ]
+            : [
+                  {
+                      label: (
+                          <Link href={detailedPage(data.testID)}>Detailed</Link>
+                      ),
+                      key: testEntitiesTab,
+                      icon: gridViewMode ? (
+                          <TableOutlined />
+                      ) : (
+                          <PartitionOutlined />
+                      ),
+                  },
+              ]),
     ];
 
     const onClick: MenuProps['onClick'] = (e) => {

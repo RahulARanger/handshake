@@ -1,4 +1,4 @@
-import runLink from 'src/Generators/linkProviders';
+import { runPage } from 'src/components/scripts/helper';
 import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
 import type {
     QuickPreviewForScenarios,
@@ -92,7 +92,7 @@ export function parseDetailedTestRun(
         Tests: testRun.tests,
         SuitesSummary: [summary.passed, summary.failed, summary.skipped],
         Suites: summary.count,
-        Link: runLink(testRun.testID),
+        Link: runPage(testRun.testID),
     };
 }
 

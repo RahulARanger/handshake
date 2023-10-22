@@ -1,7 +1,7 @@
 import type TestRunRecord from 'src/types/testRunRecords';
 import type { SuiteDetails } from 'src/types/generatedResponse';
 import type { specNode } from 'src/types/testRunRecords';
-import { getSuites, getTestRun } from 'src/Generators/helper';
+import { getSuites, getTestRun } from 'src/components/scripts/helper';
 import { RenderStatus } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import MetaCallContext from '../TestRun/context';

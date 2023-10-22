@@ -74,3 +74,11 @@ export function getTestRunConfig(port?: string, testID?: string): string {
 export async function fetcher<T>(url: string): Promise<T> {
     return await fetch(url).then(async (resp) => await resp.json());
 }
+
+export function runPage(testID: string) {
+    return `/RUNS/${testID}`;
+}
+
+export function detailedPage(testID: string) {
+    return `/RUNS/${testID}/Detailed`;
+}

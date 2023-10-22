@@ -5,7 +5,7 @@ import {
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
-} from 'src/Generators/helper';
+} from 'src/components/scripts/helper';
 import type {
     AttachmentContent,
     SuiteRecordDetails,
@@ -317,7 +317,7 @@ export default function Overview(): ReactNode {
                     <GalleryOfImages loop={true} maxWidth={'500px'}>
                         {images.map((image, index) => (
                             <CardForAImage
-                                url={`${attachmentPrefix}/${image.value}`}
+                                url={`${attachmentPrefix}/${testID}/${image.value}`}
                                 index={index}
                                 key={index}
                                 title={image.title}
