@@ -10,4 +10,8 @@ export default class DialPad {
   get saveUrl(): string {
     return `${this.url}/save`;
   }
+
+  get writeUrl(): string {
+    return `${this.url}/write`;
+  }
 }

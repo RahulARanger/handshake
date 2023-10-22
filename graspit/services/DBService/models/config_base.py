@@ -52,6 +52,3 @@ class ExportBase(Model):
     isDynamic = BooleanField(
         null=True, default=False, description="Export Dynamic pages only ?"
     )
-    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="exports", to_field="testID"
-    )

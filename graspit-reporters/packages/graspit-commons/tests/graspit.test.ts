@@ -115,7 +115,6 @@ describe('verifying if we are able to start graspit server', () => {
         file: 'test.spec.ts',
         started: new Date().toISOString(),
         retried: 0,
-        standing: 'PENDING',
         tags: [],
       });
 
@@ -141,16 +140,17 @@ describe('verifying if we are able to start graspit server', () => {
       await waitForLock(failedKey);
     });
 
-    describe('Verifying the additional methods provided', () => {
-      test('verifying additional Requests if no entity id was provided', async () => {
-        expect(await reporter.addDescription('test-description', '')).toBe(false);
-        expect(await reporter.attachScreenshot('test-attach', '', '', '')).toBe(false);
-      });
+    test('verifying additional Requests if no entity id was provided', async () => {
+      expect(await reporter.addDescription('test-description', '')).toBe(false);
+      expect(await reporter.attachScreenshot('test-attach', '', '', '')).toBe(false);
+    });
 
-      test('verifying additional Requests if entity id was provided', async () => {
-        expect(await reporter.addDescription('test-description', reporter.idMapped[testKey])).toBe(true);
-        expect(await reporter.attachScreenshot('test-attach', 'sample-content', reporter.idMapped[testKey], 'test-description')).toBe(true);
-      });
+    test('verifying additional Requests if entity id was provided', async () => {
+      expect(await reporter.addDescription('test-description', reporter.idMapped[testKey])).toBe(true);
+      const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
+      const attachmentId = await reporter.attachScreenshot('test-attach', raw, reporter.idMapped[testKey], 'test-description');
+      expect(typeof attachmentId).toBe('string');
+      if (attachmentId) expect(existsSync(join(testResults, 'Attachments', `${attachmentId}.png`))).toBe(true);
     });
   });
 

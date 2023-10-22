@@ -9,7 +9,7 @@ export interface GraspItServiceOptions {
   timeout?: number;
   projectName: string;
   export?: {
-    out: string;
+    out?: string;
     maxTestRuns: number;
     isDynamic?: boolean;
     skipPatch?: boolean;

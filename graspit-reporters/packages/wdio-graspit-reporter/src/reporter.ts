@@ -29,15 +29,12 @@ export default class GraspItReporter extends ReporterContacts {
     const {
       title, file, tags, description,
     } = suiteOrTest as SuiteStats;
-    const testStats = suiteOrTest as TestStats;
-    const state = testStats.state as string | undefined;
     const started = suiteOrTest.start.toISOString();
 
     const payload = {
       title,
       description: description ?? '',
       file: sanitizePaths([file || this.currentSuites.at(-1)?.file || '']).at(0) ?? '',
-      standing: (state || 'YET_TO_CALC').toUpperCase(),
       tags: tags?.map((tag, index) => ({ name: typeof tag === 'string' ? tag : tag.name, astNodeId: String(index) })) || [],
       started,
       suiteType: type,

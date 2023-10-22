@@ -1,11 +1,15 @@
 import type TestRunRecord from 'src/types/testRunRecords';
 import {
-    getEntityLevelAttachment,
-    getSessions,
-    getSuites,
+    getOverAllAggResultsURL,
+    getRecentSuitesURL,
+    getSessionSummaryURL,
+    getTestRun,
     getTestRunConfig,
 } from 'src/Generators/helper';
-import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import type {
+    AttachmentContent,
+    SuiteRecordDetails,
+} from 'src/types/testEntityRelated';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import {
     dateFormatUsed,
@@ -24,15 +28,9 @@ import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import GalleryOfImages, {
     CardForAImage,
 } from 'src/components/utils/ImagesWithThumbnails';
-import { type SuiteDetails } from 'src/types/generatedResponse';
-import type {
-    AttachmentDetails,
-    SessionDetails,
-} from 'src/types/generatedResponse';
-import { testEntitiesTab } from 'src/types/uiConstants';
 
 import React, { useState, type ReactNode, useContext } from 'react';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
@@ -52,18 +50,21 @@ import type {
     AttachmentValueForConfig,
     TestRunConfig,
 } from 'src/types/testRunRecords';
+import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
+import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
 
-function TopSuites(props: {
-    startedAt: Dayjs;
-    setTab: (tab: string) => void;
-}): ReactNode {
+function TopSuites(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
-    const { data } = useSWR<SuiteDetails>(getSuites(port, testID));
+    const { data } = useSWR<SuiteRecordDetails[]>(
+        getRecentSuitesURL(port, testID),
+    );
+
     if (data == null) return <></>;
 
-    const top5Suites = data['@order']
-        .slice(-5, data?.['@order'].length)
-        .map((suite) => ({ key: data[suite].suiteID, ...data[suite] }));
+    const top5Suites = data.map((suite) => ({
+        key: suite.suiteID,
+        ...suite,
+    }));
 
     return (
         <Table
@@ -82,9 +83,6 @@ function TopSuites(props: {
                             key="maria"
                             type="link"
                             style={{ padding: '0px' }}
-                            onClick={() => {
-                                props.setTab(testEntitiesTab);
-                            }}
                         >
                             here
                         </Button>
@@ -103,17 +101,23 @@ function TopSuites(props: {
                 )}
                 fixed="left"
             />
-            <Table.Column title="Name" dataIndex="title" width={120} />
+            <Table.Column title="Name" dataIndex="title" width={220} />
             <Table.Column
                 title="Rate"
                 dataIndex="Passed"
                 width={100}
                 render={(_: number, record: SuiteRecordDetails) => (
-                    <RenderPassedRate
-                        value={[record.passed, record.failed, record.skipped]}
-                        width={271}
-                        immutable={true}
-                    />
+                    <div style={{ width: '100%' }}>
+                        <RenderPassedRate
+                            value={[
+                                record.passed,
+                                record.failed,
+                                record.skipped,
+                            ]}
+                            width={100}
+                            immutable={true}
+                        />
+                    </div>
                 )}
             />
             <Table.Column
@@ -146,18 +150,15 @@ function TopSuites(props: {
     );
 }
 
-export default function Overview(props: {
-    run: TestRunRecord;
-    onTabSelected: (tab: string) => void;
-}): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: sessions } = useSWR<SessionDetails>(
-        getSessions(port, testID),
+export default function Overview(): ReactNode {
+    const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    const { data: aggResults } = useSWR<OverallAggResults>(
+        getOverAllAggResultsURL(port, testID),
     );
-    const { data: attachments } = useSWR<AttachmentDetails>(
-        getEntityLevelAttachment(port, testID),
+
+    const { data: sessions } = useSWR<SessionSummary[]>(
+        getSessionSummaryURL(port, testID),
     );
     const { data: runConfig } = useSWR<TestRunConfig[]>(
         getTestRunConfig(port, testID),
@@ -165,20 +166,22 @@ export default function Overview(props: {
 
     const [isTest, setTest] = useState<boolean>(true);
 
-    if (attachments == null || sessions == null || runConfig == null)
+    if (
+        aggResults == null ||
+        sessions == null ||
+        run == null ||
+        runConfig == null
+    )
         return <></>;
 
-    const allImages = Object.values(attachments)
-        .flat(1)
-        .filter((image) => image.type === 'PNG');
+    const allImages: AttachmentContent[] = aggResults.randomImages.map(
+        (image) => JSON.parse(image),
+    );
 
     const testRunConfig = runConfig
         .filter((config) => config.type === 'CONFIG')
         .at(0);
 
-    const specFiles = new Set(
-        suites?.['@order'].map((suite) => suites[suite].file),
-    );
     const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
 
     const configValue = JSON.parse(
@@ -186,38 +189,35 @@ export default function Overview(props: {
     ) as AttachmentValueForConfig;
 
     const browsersUsed: Record<string, number> = {};
-    Object.keys(sessions).forEach((session) => {
-        const sessionObj = sessions[session];
+    sessions.forEach((sessionObj) => {
         if (browsersUsed[sessionObj.entityName])
             browsersUsed[sessionObj.entityName] += sessionObj.tests;
         else browsersUsed[sessionObj.entityName] = sessionObj.tests;
     });
 
-    const startedAt = dayjs(props.run.started);
-    const total = isTest
-        ? props.run.tests
-        : JSON.parse(props.run.suiteSummary).count;
+    const startedAt = dayjs(run.started);
+    const total = isTest ? run.tests : JSON.parse(run.suiteSummary).count;
 
     const extras: DescriptionsProps['items'] = [
         {
             key: 'suites',
-            label: 'Suites',
-            children: <StatisticNumber end={suites?.['@order'].length ?? 0} />,
+            label: 'Parent Suites',
+            children: <StatisticNumber end={aggResults.parentSuites} />,
         },
         {
             key: 'files',
             label: 'Spec Files',
-            children: <StatisticNumber end={specFiles.size} />,
+            children: <StatisticNumber end={aggResults.fileCount} />,
         },
         {
             key: 'sessions',
             label: 'Sessions',
-            children: <StatisticNumber end={Object.values(sessions).length} />,
+            children: <StatisticNumber end={aggResults.sessionCount} />,
         },
         {
             key: 'attachments',
             label: 'Attachments',
-            children: <StatisticNumber end={allImages.length} />,
+            children: <StatisticNumber end={aggResults.imageCount} />,
         },
         {
             key: 'browsers',
@@ -296,14 +296,10 @@ export default function Overview(props: {
                                                 marginLeft: '30px',
                                                 maxWidth: '220px',
                                             }}
-                                            secondDateTime={dayjs(
-                                                props.run.ended,
-                                            )}
+                                            secondDateTime={dayjs(run.ended)}
                                         />
                                         <RenderDuration
-                                            value={dayjs.duration(
-                                                props.run.duration,
-                                            )}
+                                            value={dayjs.duration(run.duration)}
                                         />
                                     </Space>
                                 </Tooltip>
@@ -311,9 +307,9 @@ export default function Overview(props: {
                         />,
                     ]}
                 >
-                    <ProgressPieChart run={props.run} isTestCases={isTest} />
+                    <ProgressPieChart run={run} isTestCases={isTest} />
                 </Card>
-                <TopSuites startedAt={startedAt} setTab={props.onTabSelected} />
+                <TopSuites />
             </Space>
             <Space align="start">
                 <Description items={extras} bordered size="small" />
@@ -321,11 +317,11 @@ export default function Overview(props: {
                     <GalleryOfImages loop={true} maxWidth={'500px'}>
                         {images.map((image, index) => (
                             <CardForAImage
-                                image={image}
+                                url={`${attachmentPrefix}/${image.value}`}
                                 index={index}
                                 key={index}
+                                title={image.title}
                                 maxHeight={'150px'}
-                                hideDesc={true}
                             />
                         ))}
                     </GalleryOfImages>

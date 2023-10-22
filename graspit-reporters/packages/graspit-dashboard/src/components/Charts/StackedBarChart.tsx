@@ -24,6 +24,7 @@ export default function RenderPassedRate(props: {
             borderWidth: 0,
             margin: 0,
             backgroundColor: 'transparent',
+            reflow: true,
         },
         credits: { enabled: false },
         title: {
@@ -63,7 +64,7 @@ export default function RenderPassedRate(props: {
                 stacking: 'percent',
                 dataLabels: {
                     enabled: true,
-                    color: 'black',
+                    color: 'white',
                     shadow: false,
                     filter: {
                         property: 'percentage',
@@ -102,7 +103,7 @@ export default function RenderPassedRate(props: {
             immutable={props.immutable}
             allowChartUpdate={!props.immutable}
             containerProps={{
-                style: { width: props.width ?? 200 },
+                style: { width: '100%', height: '25px' },
             }}
         />
     );

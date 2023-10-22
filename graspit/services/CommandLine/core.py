@@ -5,6 +5,7 @@ from graspit.services.DBService.lifecycle import (
     close_connection,
     create_run,
 )
+from typing import Literal, Union
 from graspit.services.DBService.shared import set_test_id
 from click import argument, option, Path
 from pathlib import Path as P_Path
@@ -22,10 +23,18 @@ def feed_app() -> Sanic:
     return service_provider
 
 
-def feed_static_provider(root: P_Path) -> Sanic:
-    static_provider.static(
-        "/", str(root), name="root", index=["index.html", "RUNS.html"]
-    )
+def feed_static_provider(
+    export: Union[Literal[False], str], root: Union[Literal[False], str]
+) -> Sanic:
+    if export:
+        static_provider.static(
+            "/", str(P_Path(export)), name="export", index=["index.html", "RUNS.html"]
+        )
+    if root:
+        static_provider.static(
+            "/Attachments", str(P_Path(root) / "Attachments"), name="root"
+        )
+
     return static_provider
 
 
@@ -108,18 +117,23 @@ def run_app(
 
 
 @handle_cli.command()
-@argument("static_path", nargs=1, required=True, type=Path(exists=True, dir_okay=True))
-def display(static_path):
-    root = P_Path(static_path)
+@argument("static_path", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
+@option("root", "-r", required=False, type=Path(exists=True, dir_okay=True))
+def display(
+    static_path: Union[Literal[False], P_Path] = False,
+    root=False,
+):
+    if static_path:
+        static_path = P_Path(static_path)
 
-    if not root.exists():
-        raise NotADirectoryError(f"{static_path} does not exist")
+        if not static_path.exists():
+            raise NotADirectoryError(f"{static_path} does not exist")
 
-    loader = AppLoader(factory=partial(feed_static_provider, root))
+    loader = AppLoader(factory=partial(feed_static_provider, static_path, root))
     _app = loader.load()
     _app.prepare(host="127.0.0.1")
     Sanic.serve(primary=_app, app_loader=loader)
 
 
 if __name__ == "__main__":
-    setup_app("sample", "../TestResults")
+    setup_app("sample", "../../../TestResults")

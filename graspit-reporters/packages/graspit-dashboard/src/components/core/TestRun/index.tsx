@@ -1,8 +1,6 @@
 import { getTestRun } from 'src/Generators/helper';
 import type TestRunRecord from 'src/types/testRunRecords';
 import RelativeTo from 'src/components/utils/Datetime/relativeTime';
-import GanttChartForTestEntities from 'src/components/charts/GanttChartForTestSuites';
-import TestEntities from '../testEntities';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import {
     ganttChartTab,
@@ -10,111 +8,88 @@ import {
     overviewTab,
     testEntitiesTab,
 } from 'src/types/uiConstants';
-import TestEntityDrawer from '../TestEntity';
 
 import React, { useState, useContext, type ReactNode } from 'react';
 
 import useSWR from 'swr';
 import Layout from 'antd/lib/layout/index';
-import Empty from 'antd/lib/empty/index';
-import Space from 'antd/lib/space';
-import Tabs from 'antd/lib/tabs/index';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import dayjs from 'dayjs';
 import { crumbsForRun } from '../ListOfRuns/Items';
-import type { Tab } from 'rc-tabs/lib/interface';
-import Overview from './Overview';
 import MetaCallContext from './context';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
-import Card from 'antd/lib/card/Card';
+import Link from 'next/link';
+import type { MenuProps } from 'antd/lib/menu/menu';
+import Menu from 'antd/lib/menu/menu';
+import HeaderStyles from 'src/styles/header.module.css';
+import Divider from 'antd/lib/divider/index';
 
-export default function DetailedTestRun(): ReactNode {
+export default function DetailedTestRun(props: {
+    children: ReactNode;
+    activeTab: string;
+}): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
-    const [viewMode, setViewMode] = useState<string>(gridViewMode);
-    const [tab, setTab] = useState<string>(overviewTab);
-    const [detailed, showDetailed] = useState<string>();
-    const [openDetailed, setOpenDetailed] = useState<boolean>(false);
+    const [current, setCurrent] = useState<string>(props.activeTab);
 
     if (data == null) {
-        return (
-            <Layout style={{ height: '100%' }}>
-                <Space
-                    direction="horizontal"
-                    style={{ height: '100%', justifyContent: 'center' }}
-                >
-                    <Empty
-                        image={Empty.PRESENTED_IMAGE_SIMPLE}
-                        description={`Report: ${
-                            testID ?? 'not-passed'
-                        } is not available. Please raise an issue if you think it is a valid one.`}
-                    />
-                </Space>
-            </Layout>
-        );
+        return <></>;
     }
+    const relativeURL = `/RUNS/${data.testID}`;
 
-    const startDate = dayjs(data.started);
-    const helper = (id: string): void => {
-        showDetailed(id);
-        setOpenDetailed(true);
-    };
-
-    const items: Tab[] = [
+    const items: MenuProps['items'] = [
         {
-            label: (
-                <span>
-                    <HomeOutlined />
-                    Overview
-                </span>
-            ),
-            children: <Overview run={data} onTabSelected={setTab} />,
+            label: <Link href={`${relativeURL}/`}>Overview</Link>,
             key: overviewTab,
+            icon: <HomeOutlined />,
         },
         {
             label: (
-                <span>
-                    {viewMode === gridViewMode ? (
-                        <TableOutlined />
-                    ) : (
-                        <PartitionOutlined />
-                    )}
-                    Test Entities
-                </span>
+                <Link href={`${relativeURL}/TestEntities`}>Test Entities</Link>
             ),
             key: testEntitiesTab,
-            children: (
-                <TestEntities startDate={startDate} setIcon={setViewMode} />
-            ),
+            icon: gridViewMode ? <TableOutlined /> : <PartitionOutlined />,
         },
         {
             label: 'Gantt Chart',
             key: ganttChartTab,
-            children: (
-                <Card
-                    style={{
-                        padding: '3px',
-                    }}
-                    size="small"
-                >
-                    <GanttChartForTestEntities setOpenDrilldown={helper} />
-                    <TestEntityDrawer
-                        open={openDetailed}
-                        testID={detailed}
-                        onClose={() => {
-                            setOpenDetailed(false);
-                        }}
-                        setTestID={helper}
-                    />
-                </Card>
-            ),
         },
     ];
 
+    const onClick: MenuProps['onClick'] = (e) => {
+        setCurrent(e.key);
+    };
+
     return (
         <Layout style={{ overflow: 'hidden', height: '99.3vh' }}>
+            <Layout.Header
+                className={HeaderStyles.header}
+                style={{
+                    position: 'sticky',
+                    top: 0,
+                    zIndex: 2,
+                }}
+            >
+                <BreadCrumb items={crumbsForRun(data.projectName)} />
+                <Divider type="vertical" />
+                <Menu
+                    items={items}
+                    mode="horizontal"
+                    selectedKeys={[current]}
+                    onClick={onClick}
+                    style={{
+                        height: '25px',
+                        flexGrow: 2,
+                    }}
+                />
+                <RelativeTo
+                    dateTime={dayjs(data.ended)}
+                    style={{ maxWidth: '130px' }}
+                    format={dateFormatUsed}
+                />
+            </Layout.Header>
             <Layout.Content
                 style={{
                     marginLeft: '12px',
@@ -124,31 +99,7 @@ export default function DetailedTestRun(): ReactNode {
                     overflowX: 'hidden',
                 }}
             >
-                <Tabs
-                    items={items}
-                    size="small"
-                    animated
-                    centered
-                    activeKey={tab}
-                    onChange={(activeKey) => {
-                        setTab(activeKey);
-                    }}
-                    // type="card"
-                    tabBarExtraContent={{
-                        left: (
-                            <BreadCrumb
-                                items={crumbsForRun(data.projectName)}
-                            />
-                        ),
-                        right: (
-                            <RelativeTo
-                                dateTime={dayjs(data.ended)}
-                                style={{ maxWidth: '130px' }}
-                                format={dateFormatUsed}
-                            />
-                        ),
-                    }}
-                />
+                {props.children}
             </Layout.Content>
         </Layout>
     );

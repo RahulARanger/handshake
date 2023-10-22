@@ -1,8 +1,6 @@
 import type { ShareToOtherPages } from './parsedRecords';
 import type SessionRecordDetails from './sessionRecords';
 import type { Attachment, SuiteRecordDetails } from './testEntityRelated';
-import type { TestRunConfig, TestRunSummary } from './testRunRecords';
-import type TestRunRecord from './testRunRecords';
 
 export interface SWRResponse<Details> {
     data?: Details;
@@ -21,14 +19,5 @@ export type SessionDetails = Record<string, SessionRecordDetails>;
 export type AttachmentDetails = Record<string, Attachment[]>;
 
 export interface DetailedTestRunPageProps extends ShareToOtherPages {
-    fallback: Record<
-        string,
-        | TestRunRecord
-        | TestRunSummary
-        | SuiteDetails
-        | TestDetails
-        | SessionDetails
-        | AttachmentDetails
-        | TestRunConfig[]
-    >;
+    fallback: Record<string, unknown>;
 }

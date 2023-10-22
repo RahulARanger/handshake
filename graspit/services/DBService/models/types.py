@@ -1,5 +1,6 @@
+import base64
 import uuid
-from typing import Union, List, Optional, Literal, Any
+from typing import Union, Iterable, List, Optional, Any
 from graspit.services.DBService.models.enums import Status, SuiteType, AttachmentType
 from pydantic import BaseModel
 from datetime import datetime
@@ -22,11 +23,6 @@ class RegisterSuite(CommonRegisterCols):
     session_id: uuid.UUID
     file: str
     parent: str
-    standing: Union[
-        Literal[Status.YET_TO_CALCULATE],
-        Literal[Status.PENDING],
-        Literal[Status.SKIPPED],
-    ]
     tags: Optional[List] = []
 
 

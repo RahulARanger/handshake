@@ -18,10 +18,9 @@ async def createExportTicket(
     maxTestRuns: int, isDynamic: bool, path: Path, store: List[str]
 ):
     await init_tortoise_orm(path)
-
-    recent_record = await RunBase.annotate(recent_record=Max("ended")).first()
     ticket = await ExportBase.create(
-        maxTestRuns=maxTestRuns, isDynamic=isDynamic, test_id=recent_record.testID
+        maxTestRuns=maxTestRuns,
+        isDynamic=isDynamic,
     )
 
     await close_connection()

@@ -29,8 +29,21 @@ export function getSuites(port?: string, testID?: string): string {
     return `${serverURL(filler(port))}/get/suites?test_id=${filler(testID)}`;
 }
 
+export function getRecentSuitesURL(port?: string, testID?: string): string {
+    return `${serverURL(filler(port))}/get/recentSuites?test_id=${filler(
+        testID,
+    )}`;
+}
+
 export function getTestRunSummary(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/test-run-summary?test_id=${filler(testID)}`;
+}
+
+export function getOverAllAggResultsURL(
+    port?: string,
+    testID?: string,
+): string {
+    return `${serverURL(port)}/get/overall-agg?test_id=${filler(testID)}`;
 }
 
 export function getTests(port?: string, testID?: string): string {
@@ -39,6 +52,10 @@ export function getTests(port?: string, testID?: string): string {
 
 export function getSessions(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/sessions?test_id=${filler(testID)}`;
+}
+
+export function getSessionSummaryURL(port?: string, testID?: string): string {
+    return `${serverURL(port)}/get/sessionsSummary?test_id=${filler(testID)}`;
 }
 
 export function getEntityLevelAttachment(

@@ -3,8 +3,9 @@ import type { suiteType } from './testEntityRelated';
 
 // getStaticPaths to [id] root page
 export interface ShareToOtherPages {
-    test_id: string;
-    port: string;
+    testID?: string;
+    port?: string;
+    attachmentPrefix?: string;
 }
 
 export interface QuickPreviewForTestRun extends BasicDetails {

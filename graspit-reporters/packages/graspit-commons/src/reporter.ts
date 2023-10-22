@@ -52,6 +52,10 @@ export class ReporterDialPad extends DialPad {
     return `${this.saveUrl}/addAttachmentForEntity`;
   }
 
+  get writeAttachmentForEntity(): string {
+    return `${this.writeUrl}/addAttachmentForEntity`;
+  }
+
   feed(
     feedURL: string,
     feedJSON: object | null,
@@ -143,7 +147,7 @@ export class ReporterDialPad extends DialPad {
 
   async attachScreenshot(
     title: string,
-    content: string,
+    content: string, // can be base64 encoded string
     entity_id: string,
     description?:string,
   ) {
@@ -160,17 +164,17 @@ export class ReporterDialPad extends DialPad {
     });
 
     const resp = await superagent
-      .put(this.addAttachmentForEntity)
+      .put(this.writeAttachmentForEntity)
       .send(payload)
       .on('response', (result) => {
         if (result.ok) {
-          logger.info(`📸 Attached a screenshot [PNG] for ${entity_id}`);
+          logger.info(`📸 Attached a screenshot [PNG], id: ${result.text} for: ${entity_id}`);
         } else {
           logger.error(`💔 Failed to attach screenshot for ${entity_id}, because of ${result?.text}`);
         }
       });
 
-    return resp?.ok;
+    return resp.text;
   }
 
   async addDescription(

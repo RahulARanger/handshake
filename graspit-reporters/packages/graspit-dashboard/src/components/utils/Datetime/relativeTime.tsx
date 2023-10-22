@@ -28,9 +28,11 @@ export default function RelativeTo(props: {
     format?: string;
     style?: CSSProperties;
 }): ReactNode {
-    const [emblaRef] = useEmblaCarousel({ loop: true }, [
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
         Autoplay({ stopOnInteraction: false }),
     ]);
+    const [hover, setHover] = useState<boolean>(false);
+
     const formatter = (): string =>
         props.wrt != null
             ? props.dateTime.from(props.wrt)
@@ -40,13 +42,22 @@ export default function RelativeTo(props: {
 
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        if (!emblaApi) {
+            return;
+        }
+        emblaApi.on('pointerUp', () => setHover(false));
+        emblaApi.on('pointerDown', () => setHover(true));
+    }, [setHover, emblaApi]);
 
     return (
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: '120px', ...(props.style ?? {}) }}
+            style={{
+                maxWidth: '120px',
+                cursor: hover ? 'grabbing' : 'grab',
+                ...(props.style ?? {}),
+            }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>
@@ -90,9 +101,19 @@ export function HumanizeDuration(props: {
     duration?: Duration;
     style?: CSSProperties;
 }): ReactNode {
-    const [emblaRef] = useEmblaCarousel({ loop: true }, [
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
         Autoplay({ stopOnInteraction: false }),
     ]);
+    const [hover, setHover] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!emblaApi) {
+            return;
+        }
+        emblaApi.on('pointerUp', () => setHover(false));
+        emblaApi.on('pointerDown', () => setHover(true));
+    }, [setHover, emblaApi]);
+
     return (
         <div
             className={carouselStyles.embla}
@@ -100,6 +121,7 @@ export function HumanizeDuration(props: {
             style={{
                 maxWidth: '150px',
                 minWidth: '100px',
+                cursor: hover ? 'grabbing' : 'grab',
                 ...(props.style ?? {}),
             }}
         >
