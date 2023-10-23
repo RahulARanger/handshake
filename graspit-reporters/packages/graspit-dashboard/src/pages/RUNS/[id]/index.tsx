@@ -1,6 +1,5 @@
 import {
     getOverAllAggResultsURL,
-    getRecentSuitesURL,
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
@@ -19,7 +18,6 @@ import {
     getSessionSummary,
     getDetailsOfTestRun,
     generateTestRunSummary,
-    getRecentSuites,
     getTestRunConfigRecords,
     getSomeAggResults,
 } from 'src/components/scripts/RunPage/overview';
@@ -39,7 +37,6 @@ export async function getStaticProps(prepareProps: {
 
     const details = await getDetailsOfTestRun(connection, testID);
     const sessions = await getSessionSummary(connection, testID);
-    const recentSuites = await getRecentSuites(connection, testID);
 
     if (sessions == null || details == null) {
         return {
@@ -62,7 +59,6 @@ export async function getStaticProps(prepareProps: {
                 [getTestRun(port, testID)]: details,
                 [getTestRunSummary(port, testID)]:
                     generateTestRunSummary(details), // not a sql query
-                [getRecentSuitesURL(port, testID)]: recentSuites,
                 [getSessionSummaryURL(port, testID)]: sessions,
                 [getTestRunConfig(port, testID)]: testRunConfig,
                 [getOverAllAggResultsURL(port, testID)]: aggResults,

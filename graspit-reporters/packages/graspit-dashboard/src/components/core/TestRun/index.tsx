@@ -24,7 +24,6 @@ import MetaCallContext from './context';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
-import Link from 'next/link';
 import type { MenuProps } from 'antd/lib/menu/menu';
 import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from 'src/styles/header.module.css';
@@ -46,7 +45,7 @@ export default function DetailedTestRun(props: {
 
     const items: MenuProps['items'] = [
         {
-            label: <Link href={runPage(data.testID)}>Overview</Link>,
+            label: <a href={runPage(data.testID)}>Overview</a>,
             key: overviewTab,
             icon: <HomeOutlined />,
         },
@@ -69,9 +68,7 @@ export default function DetailedTestRun(props: {
               ]
             : [
                   {
-                      label: (
-                          <Link href={detailedPage(data.testID)}>Detailed</Link>
-                      ),
+                      label: <a href={detailedPage(data.testID)}>Detailed</a>,
                       key: testEntitiesTab,
                       icon: gridViewMode ? (
                           <TableOutlined />

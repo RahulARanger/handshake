@@ -40,16 +40,6 @@ export async function getSessionSummary(
     );
 }
 
-export async function getRecentSuites(
-    connection: dbConnection,
-    test_id: string,
-) {
-    return connection.all<SuiteDetails[]>(
-        "select * from suitebase where suiteType = 'SUITE' and session_id in (select sessionID from sessionbase where test_id = ?) limit 5",
-        test_id,
-    );
-}
-
 export async function getDetailsOfTestRun(
     connection: dbConnection,
     testID: string,
@@ -76,6 +66,7 @@ export interface OverallAggResults {
     sessionCount: number;
     imageCount: number;
     randomImages: string[];
+    recentSuites: SuiteDetails[];
 }
 
 export async function getSomeAggResults(
@@ -131,11 +122,17 @@ export async function getSomeAggResults(
         )
     ).map((attached) => attached.attachmentValue);
 
+    const recentSuites = await connection.all<SuiteDetails[]>(
+        `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} limit 5`,
+        test_id,
+    );
+
     return {
         parentSuites: parentSuiteCount,
         fileCount,
         sessionCount: allSessions.length,
         imageCount,
         randomImages,
+        recentSuites,
     };
 }

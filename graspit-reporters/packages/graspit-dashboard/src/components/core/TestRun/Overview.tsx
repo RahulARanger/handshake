@@ -1,7 +1,6 @@
 import type TestRunRecord from 'src/types/testRunRecords';
 import {
     getOverAllAggResultsURL,
-    getRecentSuitesURL,
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
@@ -52,15 +51,10 @@ import type {
 } from 'src/types/testRunRecords';
 import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
 import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
+import type { SuiteDetails } from 'src/types/generatedResponse';
 
-function TopSuites(): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data } = useSWR<SuiteRecordDetails[]>(
-        getRecentSuitesURL(port, testID),
-    );
-
-    if (data == null) return <></>;
-
+function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
+    const data = props.suites;
     const top5Suites = data.map((suite) => ({
         key: suite.suiteID,
         ...suite,
@@ -309,7 +303,7 @@ export default function Overview(): ReactNode {
                 >
                     <ProgressPieChart run={run} isTestCases={isTest} />
                 </Card>
-                <TopSuites />
+                <TopSuites suites={aggResults.recentSuites} />
             </Space>
             <Space align="start">
                 <Description items={extras} bordered size="small" />

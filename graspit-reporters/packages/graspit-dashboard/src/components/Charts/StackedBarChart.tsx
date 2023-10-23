@@ -20,7 +20,7 @@ export default function RenderPassedRate(props: {
         chart: {
             type: 'bar',
             height: 30,
-            width: props.width ?? 200,
+            width: props.width ?? 220,
             borderWidth: 0,
             margin: 0,
             backgroundColor: 'transparent',
