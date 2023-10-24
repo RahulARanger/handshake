@@ -51,6 +51,7 @@ import Description, {
 import useSWR from 'swr';
 import Drawer from 'antd/lib/drawer/index';
 import Typography from 'antd/lib/typography/Typography';
+import { StaticPercent } from 'src/components/utils/counter';
 
 function EntityItem(props: {
     item: PreviewForTests;
@@ -253,6 +254,15 @@ export default function TestEntityDrawer(props: {
             ),
         },
         {
+            key: 'duration',
+            label: 'Duration',
+            children: (
+                <RenderDuration
+                    value={dayjs.duration(selectedSuiteDetails.duration)}
+                />
+            ),
+        },
+        {
             key: 'browserName',
             label: 'Browser',
             children: (
@@ -270,15 +280,14 @@ export default function TestEntityDrawer(props: {
         },
         {
             key: 'tests',
-            label: 'Count',
-            children: <>{selectedSuiteDetails.tests}</>,
-        },
-        {
-            key: 'duration',
-            label: 'Duration',
+            label: 'Contribution',
             children: (
-                <RenderDuration
-                    value={dayjs.duration(selectedSuiteDetails.duration)}
+                <StaticPercent
+                    percent={
+                        (selectedSuiteDetails.tests /
+                            Object.keys(tests).length) *
+                        100
+                    }
                 />
             ),
         },
@@ -327,7 +336,6 @@ export default function TestEntityDrawer(props: {
                         <Input
                             placeholder="Search"
                             allowClear
-                            size="small"
                             onChange={(
                                 event: ChangeEvent<HTMLInputElement>,
                             ) => {
@@ -339,7 +347,6 @@ export default function TestEntityDrawer(props: {
                             options={statusOptions}
                             placeholder="Select Status"
                             allowClear
-                            size="small"
                             value={filterStatus}
                             onChange={(value) => {
                                 setFilterStatus(value);

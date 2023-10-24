@@ -2,7 +2,11 @@ import { gridViewMode, treeViewMode } from 'src/types/uiConstants';
 import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import { parseDetailedTestEntity } from '../parseUtils';
-import { getSuites, getSessions } from 'src/components/scripts/helper';
+import {
+    getSuites,
+    getSessions,
+    getTestRun,
+} from 'src/components/scripts/helper';
 import type { possibleEntityNames } from 'src/types/sessionRecords';
 import type { PreviewForDetailedEntities } from 'src/types/parsedRecords';
 import RenderTimeRelativeToStart, {
@@ -31,6 +35,7 @@ import Space from 'antd/lib/space/index';
 import type { Duration } from 'dayjs/plugin/duration';
 import Typography from 'antd/lib/typography/Typography';
 import { timeFormatUsed } from '../utils/Datetime/format';
+import type TestRunRecord from 'src/types/testRunRecords';
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
@@ -57,8 +62,20 @@ function extractSuiteTree(
     return result.length > 0 ? result : undefined;
 }
 
+export function TestRunStarted(): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
+    const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    if (data == null) return <></>;
+    return (
+        <Typography>{`Test Run Started at: ${dayjs(data.started).format(
+            timeFormatUsed,
+        )}`}</Typography>
+    );
+}
+
 export default function TestEntities(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
@@ -71,10 +88,9 @@ export default function TestEntities(): ReactNode {
         setShowEntity(false);
     };
 
-    if (suites == null || sessions == null) return <></>;
+    if (run == null || suites == null || sessions == null) return <></>;
 
-    const started = dayjs(suites[suites['@order'][0]]?.started);
-    const data = extractSuiteTree(suites, '', started, sessions);
+    const data = extractSuiteTree(suites, '', dayjs(run.started), sessions);
 
     const options: SegmentedLabeledOption[] = [
         {
@@ -116,9 +132,7 @@ export default function TestEntities(): ReactNode {
                         }}
                         style={{ marginBottom: '5px' }}
                     />
-                    <Typography>{`Test Run Started at: ${started.format(
-                        timeFormatUsed,
-                    )}`}</Typography>
+                    <TestRunStarted />
                 </Space>
                 {viewMode === gridViewMode ? (
                     <Table

@@ -68,9 +68,9 @@ export async function getDrillDownResults(
             entityIds,
         )
     ).map((attachment) => {
-        const tray = writtenAttachments[attachment.entity_id] ?? [];
+        const tray = attachments[attachment.entity_id] ?? [];
         tray.push(attachment);
-        writtenAttachments[attachment.entity_id] = tray;
+        attachments[attachment.entity_id] = tray;
     });
 
     const writtenAttachments: AttachmentDetails = {};
