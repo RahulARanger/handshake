@@ -1,4 +1,6 @@
-import { cached, type Database, type Statement } from 'sqlite3';
+import { Database } from 'sqlite3';
+// import { cached, type Statement } from 'sqlite3';
+import { type Statement } from 'sqlite3';
 import { open, type Database as sqlite } from 'sqlite';
 import { existsSync } from 'node:fs';
 
@@ -15,6 +17,7 @@ export default async function getConnection(): Promise<dbConnection> {
 
     return await open({
         filename: process.env.DB_PATH,
-        driver: cached.Database,
+        driver: Database,
+        // driver: cached.Database,
     });
 }

@@ -61,6 +61,12 @@ export function getEntityLevelAttachment(
     )}`;
 }
 
+export function getWrittenAttachments(port?: string, testID?: string): string {
+    return `${serverURL(port)}/get/writtenAttachments?test_id=${filler(
+        testID,
+    )}`;
+}
+
 export function getTestRunConfig(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/testRunConfig?test_id=${filler(testID)}`;
 }

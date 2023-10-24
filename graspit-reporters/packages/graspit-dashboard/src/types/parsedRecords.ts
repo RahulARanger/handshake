@@ -1,5 +1,5 @@
 import type BasicDetails from './testEntityRelated';
-import type { suiteType } from './testEntityRelated';
+import type { Attachment, suiteType } from './testEntityRelated';
 
 // getStaticPaths to [id] root page
 export interface ShareToOtherPages {
@@ -34,4 +34,8 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
     id: string;
     entityName: string;
     entityVersion: string;
+}
+
+export interface QuickPreviewForAttachments extends Attachment {
+    parsed: { title: string; value: string };
 }

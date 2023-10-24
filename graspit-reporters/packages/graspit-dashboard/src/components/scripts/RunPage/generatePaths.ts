@@ -10,7 +10,7 @@ export default async function staticPaths(): Promise<GetStaticPathsResult> {
     const exportConfig = await currentExportConfig(connection);
     const paths = await getAllTestRuns(
         connection,
-        exportConfig?.maxTestRuns ?? 1,
+        exportConfig?.maxTestRuns ?? -1,
     );
     await connection.close();
 

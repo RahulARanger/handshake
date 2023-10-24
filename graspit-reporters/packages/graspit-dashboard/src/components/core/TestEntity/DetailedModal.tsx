@@ -6,7 +6,7 @@ import GalleryOfImages, {
 import type { PreviewForTests } from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 
-import React, { type ReactNode } from 'react';
+import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
 import Card, { type CardProps } from 'antd/lib/card/Card';
 
@@ -14,6 +14,14 @@ import List from 'antd/lib/list';
 import Modal from 'antd/lib/modal/Modal';
 import Space from 'antd/lib/space';
 import Alert from 'antd/lib/alert/Alert';
+import {
+    convertForWrittenAttachments,
+    parseAttachment,
+} from 'src/components/parseUtils';
+import MetaCallContext from '../TestRun/context';
+import useSWR from 'swr';
+import { getTestRun } from 'src/components/scripts/helper';
+import type TestRunRecord from 'src/types/testRunRecords';
 
 function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
     return (
@@ -42,9 +50,19 @@ export default function MoreDetailsOnEntity(props: {
     item?: PreviewForTests;
     open: boolean;
     items: Attachment[];
+    writtenItems: Attachment[];
     onClose: () => void;
 }): ReactNode {
-    if (props.item == null) return <></>;
+    const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+
+    if (
+        attachmentPrefix == null ||
+        testID == null ||
+        run == null ||
+        props.item == null
+    )
+        return <></>;
     const converter = new Convert();
 
     const tabList: CardProps['tabList'] = [];
@@ -67,7 +85,10 @@ export default function MoreDetailsOnEntity(props: {
         });
     }
 
-    const images = props.items?.filter((item) => item.type === 'PNG');
+    const images = props.writtenItems
+        ?.filter((item) => item.type === 'PNG')
+        .map(parseAttachment);
+
     if (images?.length > 0) {
         tabList.push({
             key: 'images',
@@ -76,9 +97,16 @@ export default function MoreDetailsOnEntity(props: {
                 <GalleryOfImages loop={false}>
                     {images.map((image, index) => (
                         <CardForAImage
-                            image={image}
                             index={index}
                             key={index}
+                            title={image.parsed.title}
+                            maxHeight={'250px'}
+                            url={convertForWrittenAttachments(
+                                attachmentPrefix,
+                                testID,
+                                image.parsed.value,
+                            )}
+                            desc={image.description}
                         />
                     ))}
                 </GalleryOfImages>

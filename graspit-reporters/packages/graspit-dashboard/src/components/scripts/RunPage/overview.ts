@@ -1,4 +1,4 @@
-import type { dbConnection } from 'src/Generators/dbConnection';
+import type { dbConnection } from 'src/components/scripts/connection';
 import type { SuiteDetails } from 'src/types/generatedResponse';
 import type { TestRunConfig, TestRunSummary } from 'src/types/testRunRecords';
 import type TestRunRecord from 'src/types/testRunRecords';
@@ -82,12 +82,13 @@ export async function getSomeAggResults(
 
     const sqlHelperForSessions = `(${allSessions.map(() => '?').join(',')})`;
 
+    type expectedSuites = { suiteID: string };
     const possibleSuites = (
-        await connection.all<Array<{ suiteID: string }>>(
+        await connection.all<Array<expectedSuites>>(
             `select suiteID from suitebase where session_id in ${sqlHelperForSessions}`,
             allSessions,
         )
-    ).map((suite) => suite.suiteID);
+    ).map((suite: expectedSuites) => suite.suiteID);
 
     const sqlHelperForSuites = `(${possibleSuites.map(() => '?').join(',')})`;
 
@@ -115,16 +116,17 @@ export async function getSomeAggResults(
             )
         )?.attached ?? 0;
 
+    type expectedImage = { attachmentValue: string };
     const randomImages = (
-        await connection.all<Array<{ attachmentValue: string }>>(
+        await connection.all<Array<expectedImage>>(
             `SELECT attachmentValue FROM staticbase WHERE type = 'PNG' and entity_id in ${sqlHelperForSuites} and attachmentID  IN (SELECT attachmentID FROM staticbase ORDER BY RANDOM() LIMIT 10)`,
             possibleSuites,
         )
-    ).map((attached) => attached.attachmentValue);
+    ).map((attached: expectedImage) => attached.attachmentValue);
 
     const recentSuites = await connection.all<SuiteDetails[]>(
         `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} limit 5`,
-        test_id,
+        allSessions,
     );
 
     return {

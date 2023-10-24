@@ -52,6 +52,7 @@ import type {
 import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
 import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
 import type { SuiteDetails } from 'src/types/generatedResponse';
+import { convertForWrittenAttachments } from 'src/components/parseUtils';
 
 function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
     const data = props.suites;
@@ -161,6 +162,7 @@ export default function Overview(): ReactNode {
     const [isTest, setTest] = useState<boolean>(true);
 
     if (
+        testID == null ||
         aggResults == null ||
         sessions == null ||
         run == null ||
@@ -311,7 +313,11 @@ export default function Overview(): ReactNode {
                     <GalleryOfImages loop={true} maxWidth={'500px'}>
                         {images.map((image, index) => (
                             <CardForAImage
-                                url={`${attachmentPrefix}/${testID}/${image.value}`}
+                                url={convertForWrittenAttachments(
+                                    attachmentPrefix ?? '',
+                                    testID,
+                                    image.value,
+                                )}
                                 index={index}
                                 key={index}
                                 title={image.title}

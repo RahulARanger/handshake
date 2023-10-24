@@ -81,16 +81,7 @@ export default function RelativeTo(props: {
                     }
                     className={carouselStyles.slide}
                 >
-                    <Button
-                        onClick={() => {
-                            setFormatted(formatter());
-                        }}
-                        suppressHydrationWarning
-                        size="small"
-                        type="text"
-                    >
-                        {isClient ? formatted : ''}
-                    </Button>
+                    {isClient ? formatted : ''}
                 </Tooltip>
             </div>
         </div>

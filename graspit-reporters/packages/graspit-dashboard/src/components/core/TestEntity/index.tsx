@@ -1,9 +1,7 @@
 import type { SuiteDetails, SessionDetails } from 'src/types/generatedResponse';
 import type { statusOfEntity } from 'src/types/sessionRecords';
-import type {
-    TestDetails,
-    AttachmentDetails,
-} from 'src/types/generatedResponse';
+import type { AttachmentDetails } from 'src/types/generatedResponse';
+import type { TestDetails } from 'src/types/generatedResponse';
 import type { Attachment } from 'src/types/testEntityRelated';
 import { parseTestCaseEntity } from 'src/components/parseUtils';
 import type TestRunRecord from 'src/types/testRunRecords';
@@ -13,7 +11,8 @@ import {
     getTestRun,
     getSuites,
     getTests,
-} from 'src/Generators/helper';
+    getWrittenAttachments,
+} from 'src/components/scripts/helper';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 import RenderTimeRelativeToStart, {
     RenderEntityType,
@@ -75,14 +74,6 @@ function EntityItem(props: {
         },
     ];
 
-    // if (props.item.type === "SUITE") {
-    //     aboutSuite.push({
-    //         key: "rate",
-    //         label: "Rate",
-    //         children: <RenderPassedRate value={props.item.Rate} />,
-    //     });
-    // }
-
     return (
         <>
             {props.attachmentsForDescription?.map((desc, index) => (
@@ -109,14 +100,18 @@ export default function TestEntityDrawer(props: {
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
 
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+
+    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
     );
     const { data: attachments } = useSWR<AttachmentDetails>(
         getEntityLevelAttachment(port, testID),
+    );
+    const { data: writtenAttachments } = useSWR<AttachmentDetails>(
+        getWrittenAttachments(port, testID),
     );
 
     const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
@@ -134,7 +129,8 @@ export default function TestEntityDrawer(props: {
         run == null ||
         suites == null ||
         tests == null ||
-        attachments == null
+        attachments == null ||
+        writtenAttachments == null
     )
         return (
             <Drawer
@@ -162,9 +158,9 @@ export default function TestEntityDrawer(props: {
                 setShowDetailedView(true);
             };
 
-            const hasRequiredAttachment = attachments[test.suiteID]?.find(
-                (attachment) => attachment.type === 'PNG',
-            );
+            const hasRequiredAttachment = writtenAttachments[
+                test.suiteID
+            ]?.find((attachment) => attachment.type === 'PNG');
 
             if (test.suiteType === 'SUITE') {
                 actions.push(
@@ -399,6 +395,7 @@ export default function TestEntityDrawer(props: {
                 }}
                 item={selectedSuite}
                 items={attachments[selectedSuite?.id ?? '']}
+                writtenItems={writtenAttachments[selectedSuite?.id ?? '']}
             />
         </>
     );

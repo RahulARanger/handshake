@@ -1,10 +1,14 @@
 import { runPage } from 'src/components/scripts/helper';
-import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import type {
+    Attachment,
+    SuiteRecordDetails,
+} from 'src/types/testEntityRelated';
 import type {
     QuickPreviewForScenarios,
     QuickPreviewForTestRun,
     PreviewForDetailedEntities,
     PreviewForTests,
+    QuickPreviewForAttachments,
 } from 'src/types/parsedRecords';
 import type TestRunRecord from 'src/types/testRunRecords';
 import type SessionRecordDetails from 'src/types/sessionRecords';
@@ -94,6 +98,23 @@ export function parseDetailedTestRun(
         Suites: summary.count,
         Link: runPage(testRun.testID),
     };
+}
+
+export function parseAttachment(
+    attached: Attachment,
+): QuickPreviewForAttachments {
+    return {
+        ...attached,
+        parsed: JSON.parse(attached.attachmentValue),
+    };
+}
+
+export function convertForWrittenAttachments(
+    prefix: string,
+    testID: string,
+    attachmentID: string,
+): string {
+    return [prefix, testID, attachmentID].join('/');
 }
 
 export const statusColors = [greenGradient, redGradient, skippedGradient];

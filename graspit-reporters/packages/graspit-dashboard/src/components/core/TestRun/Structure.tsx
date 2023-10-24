@@ -1,8 +1,12 @@
 import type TestRunRecord from 'src/types/testRunRecords';
-import type { SuiteDetails } from 'src/types/generatedResponse';
+import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
 import type { specNode } from 'src/types/testRunRecords';
-import { getSuites, getTestRun } from 'src/components/scripts/helper';
-import { RenderStatus } from 'src/components/utils/renderers';
+import {
+    getSessions,
+    getSuites,
+    getTestRun,
+} from 'src/components/scripts/helper';
+import { RenderEntityType, RenderStatus } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import MetaCallContext from '../TestRun/context';
 
@@ -14,11 +18,18 @@ import Space from 'antd/lib/space';
 import DirectoryTree from 'antd/lib/tree/DirectoryTree';
 import type { DataNode } from 'antd/es/tree';
 import Typography from 'antd/lib/typography/Typography';
+import Text from 'antd/lib/typography/Text';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
+import { timeFormatUsed } from 'src/components/utils/Datetime/format';
+import { parseDetailedTestEntity } from 'src/components/parseUtils';
 
 function treeData(
     node: specNode,
     suites: SuiteDetails,
     setTestID: (testID: string) => void,
+    started: Dayjs,
+    sessions: SessionDetails,
 ): DataNode[] {
     const root: DataNode = { title: 'Root', key: '', children: [] };
     const structure: DataNode[] = [root];
@@ -52,14 +63,34 @@ function treeData(
 
         // these are suites
         pulled.forEach((suiteID) => {
-            const suite = suites[suiteID];
-            if (suite.file !== current) return;
+            const suite = parseDetailedTestEntity(
+                suites[suiteID],
+                started,
+                sessions[suites[suiteID].session_id],
+            );
+            const parent = suites[suiteID].parent;
+
+            if (suite.File !== current) return;
             const treeNode: DataNode = {
                 key: suiteID,
                 title: (
                     <Space direction="vertical">
-                        <Space align="center">
-                            <Typography>{suite.title}</Typography>
+                        <Space
+                            align="baseline"
+                            style={{ alignItems: 'center' }}
+                        >
+                            <RenderEntityType entityName={suite.entityName} />
+                            <Typography>{suite.Title}</Typography>
+                        </Space>
+                        <Space>
+                            <RenderPassedRate value={suite.Rate} />
+                            <Text
+                                italic
+                            >{`Executed from ${suite.Started[0].format(
+                                timeFormatUsed,
+                            )} to ${suite.Ended[0].format(
+                                timeFormatUsed,
+                            )} for ${suite.Duration.humanize()}`}</Text>
                             <Button
                                 icon={<ExpandAltOutlined />}
                                 shape="circle"
@@ -69,23 +100,14 @@ function treeData(
                                 size="small"
                             />
                         </Space>
-                        <Space>
-                            <RenderPassedRate
-                                value={[
-                                    suite.passed,
-                                    suite.failed,
-                                    suite.skipped,
-                                ]}
-                            />
-                        </Space>
                     </Space>
                 ),
-                icon: <RenderStatus value={suite.standing} />,
+                icon: <RenderStatus value={suite.Status} />,
                 children: [],
             };
             treeNodes[suiteID] = treeNode;
-            if (suite.parent.length === 0) childrenSpace.push(treeNode);
-            else treeNodes[suite.parent].children?.push(treeNode);
+            if (parent.length === 0) childrenSpace.push(treeNode);
+            else treeNodes[parent].children?.push(treeNode);
 
             pulled.delete(suiteID);
         });
@@ -99,16 +121,29 @@ export default function ProjectStructure(props: {
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
+
+    const { data: sessions } = useSWR<SessionDetails>(
+        getSessions(port, testID),
+    );
     const { data: detailsOfTestRun } = useSWR<TestRunRecord>(
         getTestRun(port, testID),
     );
-    if (detailsOfTestRun == null || suites == null) return <></>;
+    if (sessions == null || detailsOfTestRun == null || suites == null)
+        return <></>;
 
     const projectStructure: DataNode[] = treeData(
         JSON.parse(detailsOfTestRun.specStructure),
         suites,
         props.setTestID,
+        dayjs(detailsOfTestRun.started),
+        sessions,
     );
 
-    return <DirectoryTree treeData={projectStructure} showLine selectable />;
+    return (
+        <DirectoryTree
+            treeData={projectStructure}
+            showLine
+            selectable={false}
+        />
+    );
 }

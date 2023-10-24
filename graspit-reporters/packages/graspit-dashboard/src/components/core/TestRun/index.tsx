@@ -28,6 +28,7 @@ import type { MenuProps } from 'antd/lib/menu/menu';
 import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from 'src/styles/header.module.css';
 import Divider from 'antd/lib/divider/index';
+import Link from 'next/link';
 
 export default function DetailedTestRun(props: {
     children: ReactNode;
@@ -45,7 +46,7 @@ export default function DetailedTestRun(props: {
 
     const items: MenuProps['items'] = [
         {
-            label: <a href={runPage(data.testID)}>Overview</a>,
+            label: <Link href={runPage(data.testID)}>Overview</Link>,
             key: overviewTab,
             icon: <HomeOutlined />,
         },
@@ -68,7 +69,9 @@ export default function DetailedTestRun(props: {
               ]
             : [
                   {
-                      label: <a href={detailedPage(data.testID)}>Detailed</a>,
+                      label: (
+                          <Link href={detailedPage(data.testID)}>Detailed</Link>
+                      ),
                       key: testEntitiesTab,
                       icon: gridViewMode ? (
                           <TableOutlined />

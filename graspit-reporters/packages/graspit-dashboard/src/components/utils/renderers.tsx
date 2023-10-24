@@ -71,7 +71,7 @@ export function RenderStatus(props: { value: string }): ReactNode {
 }
 
 export function RenderEntityType(props: { entityName: string }): ReactNode {
-    switch (props.entityName as possibleEntityNames) {
+    switch (props.entityName.toLowerCase() as possibleEntityNames) {
         case 'chrome': {
             return <Avatar src={'/chrome.png'} size="small" />;
         }
