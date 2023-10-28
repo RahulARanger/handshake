@@ -56,15 +56,18 @@ export function StatisticNumber(props: {
     );
 }
 export const getColorCode = (value: number) => {
-    if (value >= 0 && value <= 25) {
-        return '#FFCDD2'; // Light Red
-    } else if (value > 25 && value <= 50) {
-        return '#FFD180'; // Light Orange
-    } else if (value > 50 && value <= 75) {
-        return '#FFECB3'; // Light Yellow
-    } else if (value > 75 && value <= 100) {
-        return '#C8E6C9'; // Light Green
-    }
+    const colors = [
+        'red',
+        '#ffcdd3',
+        '#ffd180',
+        'orange',
+        '#ffecb3',
+        'yellow',
+        '#c8e6c9',
+        'green',
+    ];
+    const expected = Math.floor(value / (100 / colors.length));
+    return colors.at(expected >= colors.length ? -1 : expected);
 };
 
 export function StaticPercent(props: { percent: number }): ReactNode {

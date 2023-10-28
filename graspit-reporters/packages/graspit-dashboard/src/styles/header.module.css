@@ -1,5 +1,5 @@
 .header {
-    transition: all 0.5s ease-in-out !important;
+    /* transition: all 0.5s ease-in-out !important; */
     line-height: unset !important;
     display: flex !important;
     flex-direction: row !important;
@@ -8,7 +8,8 @@
     padding: 0px !important;
     padding-left: 12px !important;
     column-gap: 12px;
-    background-color: #121212;
-    backdrop-filter: blur(5px);
+    backdrop-filter: blur(20px);
+    background-color: transparent !important;
+    transition: all 0.5s ease-in-out !important;
     height: 45px;
 }

@@ -52,12 +52,6 @@ export default function RenderPassedRate(props: {
         },
         plotOptions: {
             series: {
-                shadow: {
-                    offsetX: 0,
-                    offsetY: 5,
-                    opacity: 0.2,
-                    width: 5,
-                },
                 crisp: true,
                 opacity: 0.96,
                 borderWidth: 0,

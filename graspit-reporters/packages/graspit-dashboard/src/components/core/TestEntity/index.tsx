@@ -3,7 +3,11 @@ import type { statusOfEntity } from 'src/types/sessionRecords';
 import type { AttachmentDetails } from 'src/types/generatedResponse';
 import type { TestDetails } from 'src/types/generatedResponse';
 import type { Attachment } from 'src/types/testEntityRelated';
-import { parseTestCaseEntity } from 'src/components/parseUtils';
+import {
+    badgeStatus,
+    optionsForEntities,
+    parseTestCaseEntity,
+} from 'src/components/parseUtils';
 import type TestRunRecord from 'src/types/testRunRecords';
 import {
     getEntityLevelAttachment,
@@ -23,7 +27,6 @@ import MetaCallContext from '../TestRun/context';
 import type { Tag as SuiteTag } from 'src/types/testEntityRelated';
 import type { PreviewForTests } from 'src/types/parsedRecords';
 import MoreDetailsOnEntity from './DetailedModal';
-import parentEntities from './items';
 
 import Input from 'antd/lib/input/Input';
 import React, {
@@ -31,17 +34,18 @@ import React, {
     type ReactNode,
     useState,
     type ChangeEvent,
+    useMemo,
 } from 'react';
 import dayjs from 'dayjs';
 
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import PaperClipOutlined from '@ant-design/icons/PaperClipOutlined';
+import UpOutlined from '@ant-design/icons/UpOutlined';
 import Space from 'antd/lib/space';
 import Collapse from 'antd/lib/collapse/Collapse';
 import WarningFilled from '@ant-design/icons/lib/icons/WarningFilled';
 import Select, { type SelectProps } from 'antd/lib/select/index';
-import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import Tag from 'antd/lib/tag/index';
+import Text from 'antd/lib/typography/Text';
 import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Empty from 'antd/lib/empty/index';
@@ -52,6 +56,12 @@ import useSWR from 'swr';
 import Drawer from 'antd/lib/drawer/index';
 import Typography from 'antd/lib/typography/Typography';
 import { StaticPercent } from 'src/components/utils/counter';
+import CheckboxGroup from 'antd/lib/checkbox/Group';
+import Divider from 'antd/lib/divider/index';
+import TreeSelectionOfSuites from './items';
+import Card from 'antd/lib/card/Card';
+import { Badge } from 'antd/lib';
+import Meta from 'antd/lib/card/Meta';
 
 function EntityItem(props: {
     item: PreviewForTests;
@@ -123,6 +133,14 @@ export default function TestEntityDrawer(props: {
         null,
     );
     const [filterText, setFilterText] = useState<null | string>(null);
+    const [choices, setChoices] = useState<string[]>([optionsForEntities[0]]);
+    const [showFilters] = useMemo<boolean[]>(
+        () => [
+            choices.includes(optionsForEntities[0]),
+            // choices.includes(optionsForEntities[1]),
+        ],
+        [choices],
+    );
 
     if (
         props.testID == null ||
@@ -234,6 +252,17 @@ export default function TestEntityDrawer(props: {
             };
         });
 
+    const tags = JSON.parse(selectedSuiteDetails.tags).map((tag: SuiteTag) => {
+        return (
+            <Badge
+                key={tag.astNodeId}
+                color="geekblue"
+                count={tag.name}
+                style={{ color: 'white' }}
+            />
+        );
+    });
+
     const aboutSuite: DescriptionsProps['items'] = [
         {
             key: 'started',
@@ -241,6 +270,7 @@ export default function TestEntityDrawer(props: {
             children: (
                 <RenderTimeRelativeToStart
                     value={[dayjs(selectedSuiteDetails.started), started]}
+                    style={{ minWidth: '120px' }}
                 />
             ),
         },
@@ -250,6 +280,7 @@ export default function TestEntityDrawer(props: {
             children: (
                 <RenderTimeRelativeToStart
                     value={[dayjs(selectedSuiteDetails.ended), started]}
+                    style={{ minWidth: '120px' }}
                 />
             ),
         },
@@ -272,11 +303,6 @@ export default function TestEntityDrawer(props: {
                     }
                 />
             ),
-        },
-        {
-            key: 'status',
-            label: 'Status',
-            children: <RenderStatus value={selectedSuiteDetails.standing} />,
         },
         {
             key: 'tests',
@@ -307,91 +333,139 @@ export default function TestEntityDrawer(props: {
         value: status.toUpperCase(),
     }));
 
-    const tags = JSON.parse(selectedSuiteDetails.tags).map((tag: SuiteTag) => {
-        return (
-            <Tag key={tag.astNodeId} color="orange">
-                {tag.name}
-            </Tag>
-        );
-    });
-
     return (
         <>
             <Drawer
                 open={props.open}
                 onClose={props.onClose}
-                title={selectedSuiteDetails.title}
-                size="large"
                 footer={
-                    <BreadCrumb
-                        items={parentEntities(
-                            suites,
-                            props.testID,
-                            props.setTestID,
-                        )}
-                    />
+                    tags.length > 0 ? (
+                        <Space>
+                            <>Tags:</>
+                            {tags}
+                        </Space>
+                    ) : undefined
                 }
-                extra={
-                    <Space>
-                        <Input
-                            placeholder="Search"
-                            allowClear
-                            onChange={(
-                                event: ChangeEvent<HTMLInputElement>,
-                            ) => {
-                                const value = event.target.value;
-                                setFilterText(value === '' ? null : value);
-                            }}
-                        />
-                        <Select
-                            options={statusOptions}
-                            placeholder="Select Status"
-                            allowClear
-                            value={filterStatus}
-                            onChange={(value) => {
-                                setFilterStatus(value);
-                            }}
-                        />
+                title={
+                    <Space style={{ marginBottom: '-5px' }} align="start">
+                        <Badge
+                            title={selectedSuiteDetails.standing}
+                            style={{ zoom: '1.5' }}
+                            status={badgeStatus(selectedSuiteDetails.standing)}
+                            dot
+                        >
+                            <TreeSelectionOfSuites
+                                selected={props.testID}
+                                setTestID={props.setTestID}
+                            />
+                        </Badge>
                     </Space>
                 }
+                size="large"
+                extra={
+                    selectedSuiteDetails.parent == '' ? (
+                        <></>
+                    ) : (
+                        <Button
+                            size="small"
+                            icon={<UpOutlined />}
+                            title="View Parent"
+                            onClick={() =>
+                                props.setTestID(selectedSuiteDetails.parent)
+                            }
+                        />
+                    )
+                }
+                styles={{ body: { padding: '15px', paddingTop: '10px' } }}
             >
-                <Space direction="vertical" style={{ width: '100%' }}>
+                <Space
+                    direction="vertical"
+                    style={{ width: '100%', marginTop: '-3px' }}
+                >
+                    <Card
+                        size="small"
+                        bordered
+                        title={selectedSuiteDetails.file}
+                    >
+                        <Space style={{ columnGap: '10px' }}>
+                            <CheckboxGroup
+                                options={optionsForEntities}
+                                value={choices}
+                                onChange={(checked) => {
+                                    setChoices(
+                                        checked.map((checked) =>
+                                            checked.toString(),
+                                        ),
+                                    );
+                                }}
+                            />
+                            <Divider type="vertical" />
+                            {showFilters ? (
+                                <>
+                                    <Input
+                                        placeholder="Search"
+                                        allowClear
+                                        size="small"
+                                        onChange={(
+                                            event: ChangeEvent<HTMLInputElement>,
+                                        ) => {
+                                            const value = event.target.value;
+                                            setFilterText(
+                                                value === '' ? null : value,
+                                            );
+                                        }}
+                                        suffix={
+                                            <Text
+                                                italic
+                                            >{`(${dataSource.length})`}</Text>
+                                        }
+                                    />
+                                    <Select
+                                        options={statusOptions}
+                                        placeholder="Select Status"
+                                        size="small"
+                                        allowClear
+                                        value={filterStatus}
+                                        onChange={(value) => {
+                                            setFilterStatus(value);
+                                        }}
+                                    />
+                                </>
+                            ) : (
+                                <></>
+                            )}
+                        </Space>
+                        {selectedSuiteDetails.description ? (
+                            <Meta
+                                style={{ marginTop: '12px' }}
+                                description={selectedSuiteDetails.description}
+                            />
+                        ) : (
+                            <></>
+                        )}
+                    </Card>
+
                     <Description
                         items={aboutSuite}
                         bordered
                         style={{ overflowX: 'hidden' }}
                         size="small"
-                        title={
-                            selectedSuiteDetails.description == null ||
-                            tags.length > 0 ? (
-                                <>
-                                    {tags.length === 0 ? (
-                                        <>{selectedSuiteDetails.description} </>
-                                    ) : (
-                                        <Space direction="vertical">
-                                            {selectedSuiteDetails.description}
-                                            <Space direction="horizontal">
-                                                {tags}
-                                            </Space>
-                                        </Space>
-                                    )}
-                                </>
-                            ) : undefined
-                        }
                     />
 
-                    {dataSource.length > 0 ? (
+                    {showFilters && dataSource.length > 0 ? (
                         <Collapse
                             defaultActiveKey={['Latest Run']}
                             bordered
                             size="small"
                             items={dataSource}
                         />
-                    ) : (
+                    ) : showFilters ? (
                         <Empty
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description="No Test Entities were found"
                         />
+                    ) : (
+                        <></>
                     )}
                 </Space>
             </Drawer>

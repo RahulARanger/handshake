@@ -93,7 +93,6 @@ export default function DetailedTestRun(props: {
                 style={{
                     position: 'sticky',
                     top: 0,
-                    zIndex: 2,
                 }}
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />

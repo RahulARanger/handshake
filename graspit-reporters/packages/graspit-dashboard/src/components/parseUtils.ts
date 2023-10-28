@@ -19,6 +19,8 @@ import {
     redGradient,
     skippedGradient,
 } from './charts/constants';
+import type { statusOfEntity } from 'src/types/sessionRecords';
+import type { BadgeProps } from 'antd';
 
 dayjs.extend(duration);
 
@@ -118,3 +120,18 @@ export function convertForWrittenAttachments(
 }
 
 export const statusColors = [greenGradient, redGradient, skippedGradient];
+
+export function badgeStatus(status: string): BadgeProps['status'] {
+    switch (status as statusOfEntity) {
+        case 'FAILED':
+            return 'error';
+        case 'PASSED':
+            return 'success';
+        case 'PENDING':
+            return 'processing';
+        case 'SKIPPED':
+            return 'warning';
+    }
+}
+
+export const optionsForEntities = ['Tests', 'Timeline'];
