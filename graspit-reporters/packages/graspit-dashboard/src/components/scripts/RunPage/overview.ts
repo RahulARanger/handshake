@@ -119,7 +119,7 @@ export async function getSomeAggResults(
     type expectedImage = { attachmentValue: string };
     const randomImages = (
         await connection.all<Array<expectedImage>>(
-            `SELECT attachmentValue FROM staticbase WHERE type = 'PNG' and entity_id in ${sqlHelperForSuites} and attachmentID  IN (SELECT attachmentID FROM staticbase ORDER BY RANDOM() LIMIT 10)`,
+            `SELECT attachmentValue FROM staticbase where attachmentID IN (SELECT attachmentID FROM staticbase where type = 'PNG' and entity_id in ${sqlHelperForSuites} ORDER BY RANDOM() LIMIT 10)`,
             possibleSuites,
         )
     ).map((attached: expectedImage) => attached.attachmentValue);

@@ -45,7 +45,6 @@ import Space from 'antd/lib/space';
 import Collapse from 'antd/lib/collapse/Collapse';
 import WarningFilled from '@ant-design/icons/lib/icons/WarningFilled';
 import Select, { type SelectProps } from 'antd/lib/select/index';
-import Text from 'antd/lib/typography/Text';
 import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Empty from 'antd/lib/empty/index';
@@ -55,7 +54,7 @@ import Description, {
 import useSWR from 'swr';
 import Drawer from 'antd/lib/drawer/index';
 import Typography from 'antd/lib/typography/Typography';
-import { StaticPercent } from 'src/components/utils/counter';
+import Counter, { StaticPercent } from 'src/components/utils/counter';
 import CheckboxGroup from 'antd/lib/checkbox/Group';
 import Divider from 'antd/lib/divider/index';
 import TreeSelectionOfSuites from './items';
@@ -415,9 +414,12 @@ export default function TestEntityDrawer(props: {
                                             );
                                         }}
                                         suffix={
-                                            <Text
-                                                italic
-                                            >{`(${dataSource.length})`}</Text>
+                                            <Counter
+                                                style={{ fontStyle: 'italic' }}
+                                                end={dataSource.length}
+                                                prefix="("
+                                                suffix=")"
+                                            />
                                         }
                                     />
                                     <Select

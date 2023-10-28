@@ -8,6 +8,7 @@ export default class Counter extends Component<
         style?: CSSProperties;
         end: number;
         suffix?: string;
+        prefix?: string;
         decimalPoints?: number;
     },
     { start: number }
@@ -22,7 +23,7 @@ export default class Counter extends Component<
                 useIndianSeparators={true}
                 style={this.props.style}
                 formattingFn={(n: number) =>
-                    `${n
+                    `${this.props.prefix ?? ''}${n
                         .toString()
                         .padStart(
                             Math.floor(Math.log10(this.props.end) + 1),
