@@ -47,7 +47,7 @@ class CommonDetailedFields(CommandReportFields):
 
 class EntityBaseSpecific:
     error = JSONField(description="Error found", default={}, null=True)
-    errors = JSONField(description="Errors found", default={}, null=True)
+    errors = JSONField(description="Errors found", default=[], null=True)
 
     class Meta:
         abstract = True
@@ -111,6 +111,22 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
     tags = JSONField(description="list of all tags", default=[])
     modified = DatetimeField(
         auto_now=True, description="Modified timestamp", null=False
+    )
+
+
+class RollupBase(Model):
+    tests = IntField(default=0, null=False, description="Rolled up Test Entities")
+    passed = IntField(
+        default=0, null=False, description="Rolled up Passed test entities"
+    )
+    failed = IntField(
+        default=0, null=False, description="Rolled up Failed test entities"
+    )
+    skipped = IntField(
+        default=0, null=False, description="Rolled up test entities that were skipped"
+    )
+    suite: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
+        "models.SuiteBase", related_name="rollup", to_field="suiteID"
     )
 
 

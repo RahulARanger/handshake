@@ -1,15 +1,86 @@
-from graspit.services.DBService.models.result_base import SuiteBase
+from graspit.services.DBService.models.result_base import SuiteBase, RollupBase
 from graspit.services.DBService.models.dynamic_base import TaskBase
-from graspit.services.DBService.models.enums import Status
-from graspit.services.SchedularService.shared import drop_task
-from tortoise.expressions import Q
+from graspit.services.DBService.models.enums import Status, SuiteType
+from tortoise.expressions import Q, F
+from tortoise.functions import Count, Lower, Sum
 from loguru import logger
 from itertools import chain
 
 
+async def rollup_suite_values(suiteID: str):
+    # rollup for the errors
+    errors = list(
+        chain.from_iterable(
+            map(
+                lambda suite_with_errors: map(
+                    lambda error: error
+                    | dict(
+                        mailedFrom=error.get("mailedFrom", [])
+                        + [str(suite_with_errors.suiteID)]
+                    ),
+                    suite_with_errors.errors,
+                ),
+                await SuiteBase.filter(Q(parent=suiteID) & ~Q(errors="[]"))
+                .only("errors", "suiteID")
+                .all(),
+            )
+        )
+    )
+
+    suite = await SuiteBase.filter(suiteID=suiteID).only("errors", "suiteID").first()
+    await suite.update_from_dict(
+        dict(
+            errors=errors,
+        )
+    )
+
+    await suite.save()
+
+    expected = dict(passed=0, skipped=0, failed=0, tests=0)
+    direct_entities = await (
+        SuiteBase.filter(parent=suiteID, suiteType=SuiteType.TEST)
+        .only("parent", "passed", "skipped", "failed", "tests")
+        .group_by("parent")
+        .annotate(
+            passed=Sum("passed"),
+            skipped=Sum("skipped"),
+            failed=Sum("failed"),
+            tests=Sum("tests"),
+        )
+        .values()
+    )
+
+    entities = direct_entities[0] if direct_entities else expected
+
+    rolled_values = await RollupBase.create(**(entities | dict(suite_id=str(suiteID))))
+    indirect_entities = (
+        await RollupBase.filter(
+            Q(
+                suite_id__in=await SuiteBase.filter(
+                    suiteType=SuiteType.SUITE, parent=suiteID
+                ).values_list("suiteID", flat=True)
+            )
+        )
+        .group_by("suite_id")
+        .annotate(
+            passed=Sum("passed"),
+            skipped=Sum("skipped"),
+            failed=Sum("failed"),
+            tests=Sum("tests"),
+        )
+        .values()
+    )
+
+    await rolled_values.update_from_dict(
+        indirect_entities[0] if indirect_entities else {}
+    )
+
+    await rolled_values.save()
+
+
 async def patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
-    task = await TaskBase.filter(ticketID=suiteID).first()
+    task = await TaskBase.filter(ticketID=suiteID).only("picked", "ticketID").first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
     logger.info("Modifying suite {} belonging to the test {}", suite.title, testID)
 
@@ -31,34 +102,25 @@ async def patchTestSuite(suiteID: str, testID: str):
         await task.save()  # continue in the next run
         return False
 
-    filtered_suites = SuiteBase.filter(parent=suite.suiteID)
-    passed = await filtered_suites.filter(standing=Status.PASSED).count()
-    failed = await filtered_suites.filter(standing=Status.FAILED).count()
-    skipped = await filtered_suites.filter(standing=Status.SKIPPED).count()
-    total = await filtered_suites.count()
-    standing = fetch_key_from_status(passed, failed, skipped)
+    entities = SuiteBase.filter(parent=suite.suiteID)
 
-    # rollup for the errors
-    errors = list(
-        chain.from_iterable(
-            map(
-                lambda suite_with_errors: suite_with_errors.errors,
-                await filtered_suites.filter(~Q(errors="[]")).all(),
-            )
+    results = dict(
+        await (
+            entities.annotate(count=Count("standing"), status=Lower("standing"))
+            .group_by("standing")
+            .values_list("status", "count")
         )
     )
 
-    await suite.update_from_dict(
-        dict(
-            standing=standing,
-            passed=passed,
-            skipped=skipped,
-            failed=failed,
-            tests=total,
-            errors=errors,
-        )
+    results["standing"] = fetch_key_from_status(
+        results.get("passed", 0), results.get("failed", 0), results.get("skipped", 0)
     )
+    results["tests"] = await entities.count()
+
+    await suite.update_from_dict(results)
     await suite.save()
+
+    await rollup_suite_values(suiteID)
 
     logger.info("Successfully processed suite: {}", suite.title)
     return True

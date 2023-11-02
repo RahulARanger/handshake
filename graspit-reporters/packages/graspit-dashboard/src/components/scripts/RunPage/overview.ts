@@ -60,6 +60,18 @@ export async function getTestRunConfigRecords(
     );
 }
 
+export async function getAllSessionIds(
+    connection: dbConnection,
+    test_id: string,
+): Promise<string[]> {
+    return (
+        await connection.all<Array<{ sessionID: string }>>(
+            'select sessionID from sessionbase where test_id = ?',
+            test_id,
+        )
+    )?.map((session) => session.sessionID);
+}
+
 export interface OverallAggResults {
     parentSuites: number;
     fileCount: number;
@@ -73,12 +85,7 @@ export async function getSomeAggResults(
     connection: dbConnection,
     test_id: string,
 ): Promise<OverallAggResults> {
-    const allSessions = (
-        await connection.all<Array<{ sessionID: string }>>(
-            'select sessionID from sessionbase where test_id = ?',
-            test_id,
-        )
-    )?.map((session) => session.sessionID);
+    const allSessions = await getAllSessionIds(connection, test_id);
 
     const sqlHelperForSessions = `(${allSessions.map(() => '?').join(',')})`;
 
