@@ -21,7 +21,6 @@ export interface RegisterTestEntity {
 export interface MarkTestEntity {
   duration: number;
   suiteID: string;
-  error?: Error;
   errors: Error[];
   standing: string;
 }

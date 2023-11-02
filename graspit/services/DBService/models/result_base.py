@@ -46,7 +46,6 @@ class CommonDetailedFields(CommandReportFields):
 
 
 class EntityBaseSpecific:
-    error = JSONField(description="Error found", default={}, null=True)
     errors = JSONField(description="Errors found", default=[], null=True)
 
     class Meta:

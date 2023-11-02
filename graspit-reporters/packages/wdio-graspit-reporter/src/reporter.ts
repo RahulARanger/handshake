@@ -61,13 +61,14 @@ export default class GraspItReporter extends ReporterContacts {
       (suiteOrTest.type === 'test' ? state : 'YET_TO_CALC') || 'PENDING'
     ).toUpperCase();
 
+    const ifNotErrors = !errors?.length && error ? [error] : [];
+
     const payload = {
       duration,
       suiteID: this.supporter.idMapped[suiteOrTest.uid],
       ended,
       standing,
-      errors: errors ?? [],
-      error,
+      errors: errors?.length ? errors : ifNotErrors,
     };
 
     return payload;

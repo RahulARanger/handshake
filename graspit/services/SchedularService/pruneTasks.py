@@ -1,9 +1,23 @@
 from graspit.services.DBService.models.enums import AttachmentType
 from graspit.services.DBService.models.static_base import TestConfigBase
 from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
+from graspit.services.SchedularService.register import mark_for_prune_task
 from loguru import logger
 from typing import Optional
 from tortoise.expressions import Q
+from typing import Union
+from uuid import UUID
+
+
+async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
+    logger.error(reason)
+    await TestConfigBase.create(
+        test_id=str(test_id),
+        attachmentValue=dict(reason=reason, test_id=str(test_id), **extra),
+        type=AttachmentType.ERROR,
+        description="Job Failed: Complete Test Run",
+    )
+    return False
 
 
 async def pruneTasks(request_id: Optional[str] = ""):

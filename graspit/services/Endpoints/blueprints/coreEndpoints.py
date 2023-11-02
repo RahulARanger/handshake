@@ -78,9 +78,7 @@ async def updateSuite(request: Request) -> HTTPResponse:
         suite.standing = Status.YET_TO_CALCULATE
     else:
         note = {
-            fetch_key_from_status(
-                suite_record.passed, suite_record.failed, suite_record.skipped
-            ).lower(): 1,
+            suite.standing.lower(): 1,
             "tests": 1,
         }
         await suite_record.update_from_dict(note)

@@ -20,9 +20,11 @@ async def rollup_suite_values(suiteID: str):
                     ),
                     suite_with_errors.errors,
                 ),
-                await SuiteBase.filter(Q(parent=suiteID) & ~Q(errors="[]"))
-                .only("errors", "suiteID")
-                .all(),
+                await (
+                    SuiteBase.filter(Q(parent=suiteID) & ~Q(errors="[]"))
+                    .only("errors", "suiteID")
+                    .all()
+                ),
             )
         )
     )
@@ -33,8 +35,6 @@ async def rollup_suite_values(suiteID: str):
             errors=errors,
         )
     )
-
-    await suite.save()
 
     expected = dict(passed=0, skipped=0, failed=0, tests=0)
     direct_entities = await (
@@ -47,33 +47,34 @@ async def rollup_suite_values(suiteID: str):
             failed=Sum("failed"),
             tests=Sum("tests"),
         )
+        .first()
         .values()
     )
 
-    entities = direct_entities[0] if direct_entities else expected
+    entities = direct_entities if direct_entities else expected
 
     rolled_values = await RollupBase.create(**(entities | dict(suite_id=str(suiteID))))
+    suites = await SuiteBase.filter(
+        suiteType=SuiteType.SUITE, parent=suiteID
+    ).values_list("suiteID", flat=True)
+
     indirect_entities = (
-        await RollupBase.filter(
-            Q(
-                suite_id__in=await SuiteBase.filter(
-                    suiteType=SuiteType.SUITE, parent=suiteID
-                ).values_list("suiteID", flat=True)
+        (
+            await RollupBase.filter(Q(suite_id__in=suites))
+            .annotate(
+                passed=Sum("passed"),
+                skipped=Sum("skipped"),
+                failed=Sum("failed"),
+                tests=Sum("tests"),
             )
+            .first()
+            .values("passed", "skipped", "failed", "tests")
         )
-        .group_by("suite_id")
-        .annotate(
-            passed=Sum("passed"),
-            skipped=Sum("skipped"),
-            failed=Sum("failed"),
-            tests=Sum("tests"),
-        )
-        .values()
+        if suites
+        else None
     )
 
-    await rolled_values.update_from_dict(
-        indirect_entities[0] if indirect_entities else {}
-    )
+    await rolled_values.update_from_dict(indirect_entities if indirect_entities else {})
 
     await rolled_values.save()
 

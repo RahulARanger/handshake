@@ -50,7 +50,6 @@ class MarkSuite(BaseModel):
     duration: float
     ended: datetime
     suiteID: uuid.UUID
-    error: Optional[Error] = None
     errors: Optional[List[Error]] = []
     standing: Optional[Status] = Status.SKIPPED
 
