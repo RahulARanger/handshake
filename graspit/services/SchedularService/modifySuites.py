@@ -41,13 +41,16 @@ async def rollup_suite_values(suiteID: str):
 
     expected = {key: 0 for key in required}
 
-    direct_entities = await (
-        SuiteBase.filter(parent=suiteID, suiteType=SuiteType.TEST)
-        .only("parent", *required)
-        .group_by("parent")
-        .annotate(**{key: Sum(key) for key in required})
-        .first()
-        .values(*required)
+    direct_entities = (
+        await (
+            SuiteBase.filter(parent=suiteID, suiteType=SuiteType.TEST)
+            .only("parent", *required)
+            .group_by("parent")
+            .annotate(**{key: Sum(key) for key in required})
+            .first()
+            .values(*required)
+        )
+        or {}
     )
 
     suites = await SuiteBase.filter(
@@ -63,9 +66,10 @@ async def rollup_suite_values(suiteID: str):
         )
         if suites
         else None
-    )
+    ) or {}
 
     await RollupBase.create(
+        suite_id=suiteID,
         **{
             key: direct_entities.get(key, 0) + indirect_entities.get(key, 0)
             for key in required
@@ -75,7 +79,7 @@ async def rollup_suite_values(suiteID: str):
 
 async def patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
-    task = await TaskBase.filter(ticketID=suiteID).only("picked", "ticketID").first()
+    task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
     logger.info("Modifying suite {} belonging to the test {}", suite.title, testID)
 

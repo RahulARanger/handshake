@@ -1,4 +1,8 @@
-from graspit.services.SchedularService.completeTestRun import simplify_file_paths
+from graspit.services.SchedularService.completeTestRun import (
+    simplify_file_paths,
+    fetch_key_from_status,
+)
+from graspit.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -37,7 +41,7 @@ class TestSimplifyPathTree:
         assert Path(result["x"]["h"][path]) == Path(paths[7])
 
     def test_real_paths(self):
-        test_dir = Path(mkdtemp(prefix='TestDir'))
+        test_dir = Path(mkdtemp(prefix="TestDir"))
         files = [str(test_dir)]
 
         lvl_files = ["sample_file.py", "test_file.js", "comp_test.tsx"]
@@ -64,8 +68,23 @@ class TestSimplifyPathTree:
         assert root_path["test_file.js"]["<path>"] == str(test_dir / "test_file.js")
         assert root_path["lvl_2"]["<path>"] == str(lvl_2_folder)
 
-        assert root_path["lvl_2"]["comp_test.tsx"]["<path>"] == str(lvl_2_folder / "comp_test.tsx")
-        assert root_path["lvl_2"]["sample_file.py"]["<path>"] == str(lvl_2_folder / "sample_file.py")
-        assert root_path["lvl_2"]["test_file.js"]["<path>"] == str(lvl_2_folder / "test_file.js")
+        assert root_path["lvl_2"]["comp_test.tsx"]["<path>"] == str(
+            lvl_2_folder / "comp_test.tsx"
+        )
+        assert root_path["lvl_2"]["sample_file.py"]["<path>"] == str(
+            lvl_2_folder / "sample_file.py"
+        )
+        assert root_path["lvl_2"]["test_file.js"]["<path>"] == str(
+            lvl_2_folder / "test_file.js"
+        )
 
         rmtree(test_dir)
+
+
+def test_status_from_values():
+    assert fetch_key_from_status(0, 0, 0) == Status.PASSED
+    assert fetch_key_from_status(2, 0, 0) == Status.PASSED
+    assert fetch_key_from_status(2, 2, 0) == Status.FAILED
+    assert fetch_key_from_status(2, 2, 2) == Status.FAILED
+    assert fetch_key_from_status(2, 0, 2) == Status.PASSED
+    assert fetch_key_from_status(0, 0, 2) == Status.SKIPPED
