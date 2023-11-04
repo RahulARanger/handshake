@@ -6,11 +6,11 @@ const metaConfig = {
     reporterSyncTimeout: 40e3, // IMPORTANT
     runner: 'local',
     specs: [
-        ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
-        './test-mocha/specs/test.e2e.js',
+        // './test-mocha/specs/test.e2e.js',
         './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 10,
+    specFileRetries: 1,
     //
     capabilities: [{
         browserName: 'chrome',

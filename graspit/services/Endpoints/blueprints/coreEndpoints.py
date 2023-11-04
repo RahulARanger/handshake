@@ -14,7 +14,6 @@ from graspit.services.DBService.models.static_base import (
     AttachmentBase,
 )
 from graspit.services.DBService.models.enums import Status, SuiteType
-from graspit.services.SchedularService.modifySuites import fetch_key_from_status
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger

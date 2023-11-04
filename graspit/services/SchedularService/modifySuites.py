@@ -29,12 +29,13 @@ async def rollup_suite_values(suiteID: str):
         )
     )
 
-    suite = await SuiteBase.filter(suiteID=suiteID).only("errors", "suiteID").first()
+    suite = await SuiteBase.filter(suiteID=suiteID).first()
     await suite.update_from_dict(
         dict(
             errors=errors,
         )
     )
+    await suite.save()
 
     expected = dict(passed=0, skipped=0, failed=0, tests=0)
     direct_entities = await (
@@ -53,7 +54,7 @@ async def rollup_suite_values(suiteID: str):
 
     entities = direct_entities if direct_entities else expected
 
-    rolled_values = await RollupBase.create(**(entities | dict(suite_id=str(suiteID))))
+    greedy_suite = await RollupBase.create(**(entities | dict(suite_id=str(suiteID))))
     suites = await SuiteBase.filter(
         suiteType=SuiteType.SUITE, parent=suiteID
     ).values_list("suiteID", flat=True)
@@ -74,9 +75,8 @@ async def rollup_suite_values(suiteID: str):
         else None
     )
 
-    await rolled_values.update_from_dict(indirect_entities if indirect_entities else {})
-
-    await rolled_values.save()
+    await greedy_suite.update_from_dict(indirect_entities if indirect_entities else {})
+    await greedy_suite.save()
 
 
 async def patchTestSuite(suiteID: str, testID: str):
