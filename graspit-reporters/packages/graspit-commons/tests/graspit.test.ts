@@ -19,12 +19,14 @@ import { ReporterDialPad, ServiceDialPad } from '../src';
 
 describe('verifying if we are able to start graspit server', () => {
   jest.setTimeout(60e3);
+
   const port = 6969;
-  const service = new ServiceDialPad(port);
-  let pyProcess: ChildProcess;
   const root = dirname(dirname(dirname(process.cwd())));
   const testResults = join(root, 'jest-init-tests');
   const results = join(root, 'test-jest-reports');
+
+  const service = new ServiceDialPad(port, join(root, 'dist', 'graspit'));
+  let pyProcess: ChildProcess;
 
   async function safeSide() {
     await service.terminateServer();
@@ -44,7 +46,6 @@ describe('verifying if we are able to start graspit server', () => {
       'jest-test',
       testResults,
       root,
-      port,
     );
     await service.waitUntilItsReady();
   }, 120e3);

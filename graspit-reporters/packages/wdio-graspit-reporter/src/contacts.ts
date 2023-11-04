@@ -52,6 +52,6 @@ export class ContactsForService {
     this.logger = log4js.getLogger('wdio-py-service');
     this.logger.level = 'debug';
     this.options = options;
-    this.supporter = new ServiceDialPad(this.options.port);
+    this.supporter = new ServiceDialPad(this.options.port, this.options.exePath);
   }
 }

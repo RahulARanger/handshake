@@ -5,6 +5,7 @@ export interface ReporterOptions {
 export interface GraspItServiceOptions {
   port: number;
   root: string;
+  exePath?:string;
   collectionName: string;
   timeout?: number;
   projectName: string;

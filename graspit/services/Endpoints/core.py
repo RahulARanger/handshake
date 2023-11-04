@@ -8,6 +8,7 @@ from sanic import Sanic
 from pydantic import ValidationError
 
 service_provider = Sanic(app_name)
+service_provider.config.TOUCHUP = False
 service_provider.blueprint(one_liners)
 service_provider.blueprint(service)
 service_provider.blueprint(writeServices)

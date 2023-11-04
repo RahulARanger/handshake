@@ -25,7 +25,7 @@ export default class GraspItService
   onPrepare(options: Options.Testrunner)
   // capabilities: Capabilities.RemoteCapabilities
     : void {
-    const { root: rootDir, port, projectName } = this.options;
+    const { root: rootDir, projectName } = this.options;
     this.logger.info('Starting py-process 🚚...');
     const { resultsDir } = this;
 
@@ -37,7 +37,6 @@ export default class GraspItService
       projectName ?? options.framework ?? 'unknown',
       resultsDir,
       rootDir,
-      port ?? 6969,
     );
   }
 

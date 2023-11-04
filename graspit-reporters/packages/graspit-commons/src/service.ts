@@ -1,13 +1,15 @@
 import log4js from 'log4js';
 import superagent from 'superagent';
-import { spawn, spawnSync } from 'node:child_process';
+import {
+  spawn, spawnSync,
+} from 'node:child_process';
 import { join } from 'node:path';
 import {
   setTimeout,
   setInterval,
   clearTimeout,
 } from 'node:timers';
-import type { ChildProcess } from 'node:child_process';
+import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
 import DialPad from './dialPad';
 
 const logger = log4js.getLogger('graspit-service-commons');
@@ -31,20 +33,36 @@ export class ServiceDialPad extends DialPad {
     return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
   }
 
+  executeCommand(args: string[], isSync: boolean, cwd: string) {
+    const starter = isSync ? spawnSync : spawn;
+
+    if (this.exePath == null) {
+      const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
+      logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
+      return starter(command, { shell: true, stdio: 'inherit', cwd });
+    }
+    logger.info(`🪖 Execute with ${args} for ${this.exePath} from ${cwd} => ${args.join(' ')}`);
+
+    return starter(
+      this.exePath,
+      args,
+      { shell: false, cwd, stdio: 'inherit' },
+    );
+  }
+
+  patchArgPath(arg: string) {
+    return this.exePath ? arg : `"${arg}"`;
+  }
+
   startService(
     projectName: string,
     resultsDir: string,
     rootDir: string,
-    port: number,
   ): ChildProcess {
-    const command = `"${this.activateVenvScript}" && graspit run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
-    logger.warn(`Requesting a graspit server, command used: ${command} from ${rootDir}`);
+    const args = ['run-app', projectName, this.patchArgPath(resultsDir), '-p', this.port.toString(), '-w', '2'];
+    logger.warn(`Requesting a graspit server, command used: ${args.join(' ')} from ${rootDir}`);
 
-    const pyProcess = spawn(command, {
-      shell: true,
-      stdio: 'inherit',
-      cwd: rootDir,
-    });
+    const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
 
     pyProcess.stdout?.on('data', (chunk) => logger.info(chunk.toString()));
     pyProcess.stderr?.on('data', (chunk) => logger.error(chunk.toString()));
@@ -162,27 +180,25 @@ export class ServiceDialPad extends DialPad {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
       return false;
     }
-    const patchScript = `"${this.activateVenvScript}" && graspit patch "${resultsDir}"`;
-    const exportScript = isDynamic ? `graspit export "${resultsDir}" --out "${outDir}" -d` : `graspit export "${resultsDir}" --out "${outDir}" -r ${maxTestRuns ?? 100}`;
-
-    const script = outDir
-      ? `${patchScript} && cd "${process.cwd()}" && ${exportScript}`
-      : patchScript;
-
+    const patchArgs = ['patch', this.patchArgPath(resultsDir)];
     if (outDir == null) {
-      logger.info(`Patching the results ⛑️, passing the command ${script}`);
-    } else {
-      logger.info(`Generating Report 📃, passing the command: ${script}`);
+      logger.info(`Patching the results ⛑️, passing the command ${patchArgs}`);
     }
 
-    return spawnSync(
-      script,
-      {
-        shell: true,
-        cwd: rootDir,
-        stdio: 'inherit',
-      },
-    ).error;
+    let result = this.executeCommand(patchArgs, true, rootDir) as SpawnSyncReturns<Buffer>;
+    // for patching
+    if (outDir != null && result.error == null) {
+      const exportArgs = ['export', this.patchArgPath(resultsDir), '--out', this.patchArgPath(outDir), '-r', (maxTestRuns ?? 100).toString()];
+      logger.info(`Generating Report 📃, passing the command: ${exportArgs}`);
+
+      result = this.executeCommand(
+        exportArgs,
+        true,
+        process.cwd(),
+      ) as SpawnSyncReturns<Buffer>;
+      return result.error;
+    }
+    return result.error;
   }
 
   async markTestRunCompletion() {
