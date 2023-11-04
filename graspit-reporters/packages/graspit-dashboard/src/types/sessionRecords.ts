@@ -17,6 +17,11 @@ export interface RecurringFields {
     retried: number;
     standing: statusOfEntity;
     tests: number;
+
+    rollup_tests?: number;
+    rollup_passed?: number;
+    rollup_failed?: number;
+    rollup_skipped?: number;
 }
 
 export default interface SessionRecordDetails extends RecurringFields {

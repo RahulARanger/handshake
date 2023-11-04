@@ -10,7 +10,7 @@ const metaConfig = {
         './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 10,
-    specFileRetries: 1,
+    specFileRetries: 0,
     //
     capabilities: [{
         browserName: 'chrome',

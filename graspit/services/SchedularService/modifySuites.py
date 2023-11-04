@@ -37,24 +37,19 @@ async def rollup_suite_values(suiteID: str):
     )
     await suite.save()
 
-    expected = dict(passed=0, skipped=0, failed=0, tests=0)
+    required = ("passed", "failed", "skipped", "tests")
+
+    expected = {key: 0 for key in required}
+
     direct_entities = await (
         SuiteBase.filter(parent=suiteID, suiteType=SuiteType.TEST)
-        .only("parent", "passed", "skipped", "failed", "tests")
+        .only("parent", *required)
         .group_by("parent")
-        .annotate(
-            passed=Sum("passed"),
-            skipped=Sum("skipped"),
-            failed=Sum("failed"),
-            tests=Sum("tests"),
-        )
+        .annotate(**{key: Sum(key) for key in required})
         .first()
-        .values()
+        .values(*required)
     )
 
-    entities = direct_entities if direct_entities else expected
-
-    greedy_suite = await RollupBase.create(**(entities | dict(suite_id=str(suiteID))))
     suites = await SuiteBase.filter(
         suiteType=SuiteType.SUITE, parent=suiteID
     ).values_list("suiteID", flat=True)
@@ -62,21 +57,20 @@ async def rollup_suite_values(suiteID: str):
     indirect_entities = (
         (
             await RollupBase.filter(Q(suite_id__in=suites))
-            .annotate(
-                passed=Sum("passed"),
-                skipped=Sum("skipped"),
-                failed=Sum("failed"),
-                tests=Sum("tests"),
-            )
+            .annotate(**{key: Sum(key) for key in required})
             .first()
-            .values("passed", "skipped", "failed", "tests")
+            .values(*required)
         )
         if suites
         else None
     )
 
-    await greedy_suite.update_from_dict(indirect_entities if indirect_entities else {})
-    await greedy_suite.save()
+    await RollupBase.create(
+        **{
+            key: direct_entities.get(key, 0) + indirect_entities.get(key, 0)
+            for key in required
+        }
+    )
 
 
 async def patchTestSuite(suiteID: str, testID: str):

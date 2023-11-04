@@ -309,7 +309,8 @@ export default function TestEntityDrawer(props: {
             children: (
                 <StaticPercent
                     percent={
-                        (selectedSuiteDetails.tests /
+                        ((selectedSuiteDetails.rollup_tests ??
+                            selectedSuiteDetails.tests) /
                             Object.keys(tests).length) *
                         100
                     }

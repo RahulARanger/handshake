@@ -9,7 +9,12 @@ import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
 
 export default class GraspItReporter extends ReporterContacts {
-  fetchParent(suiteOrTest: SuiteStats | TestStats): string {
+  expectedIndex(snapshotIndex: number, requestFromEnd: number) {
+    // assumed requestFromEnd < 0
+    return -(this.currentSuites.length - snapshotIndex) + requestFromEnd;
+  }
+
+  fetchParent(suiteOrTest: SuiteStats | TestStats, snapshot: number): string {
     const expectedParent = suiteOrTest.parent ?? '';
     const fetchedParent = this.supporter.idMapped[
       (this.suites[expectedParent] as SuiteStats | undefined)?.uid ?? ''
@@ -17,7 +22,11 @@ export default class GraspItReporter extends ReporterContacts {
 
     return (
       fetchedParent
-      || this.supporter.idMapped[this.currentSuites.at(suiteOrTest.uid.includes('suite') ? -2 : -1)?.uid ?? '']
+      || this.supporter.idMapped[
+        this.currentSuites.at(
+          this.expectedIndex(snapshot, suiteOrTest.uid.includes('suite') ? -2 : -1),
+        )?.uid ?? ''
+      ]
       || ''
     );
   }
@@ -25,6 +34,7 @@ export default class GraspItReporter extends ReporterContacts {
   extractRegistrationPayloadForTestEntity(
     suiteOrTest: SuiteStats | TestStats,
     type: SuiteType,
+    snapshot: number,
   ): RegisterTestEntity {
     const {
       title, file, tags, description,
@@ -34,11 +44,11 @@ export default class GraspItReporter extends ReporterContacts {
     const payload = {
       title,
       description: description ?? '',
-      file: sanitizePaths([file || this.currentSuites.at(-1)?.file || '']).at(0) ?? '',
+      file: sanitizePaths([file || this.currentSuites.at(this.expectedIndex(snapshot, -1))?.file || '']).at(0) ?? '',
       tags: tags?.map((tag, index) => ({ name: typeof tag === 'string' ? tag : tag.name, astNodeId: String(index) })) || [],
       started,
       suiteType: type,
-      parent: this.fetchParent(suiteOrTest),
+      parent: this.fetchParent(suiteOrTest, snapshot),
       session_id: this.supporter.idMapped.session ?? '',
       retried: this.runnerStat?.retry ?? 0,
     };
@@ -98,17 +108,17 @@ export default class GraspItReporter extends ReporterContacts {
     }
     this.supporter.requestRegisterTestEntity(
       suite.uid,
-      () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE'),
+      () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE', this.currentSuites.length),
     );
   }
 
-  addTest(test: TestStats): void {
+  addTest(test: TestStats, note?:number): void {
     if (this.skipTestRun) {
       return;
     }
     this.supporter.requestRegisterTestEntity(
       test.uid,
-      () => this.extractRegistrationPayloadForTestEntity(test, 'TEST'),
+      () => this.extractRegistrationPayloadForTestEntity(test, 'TEST', note ?? this.currentSuites.length),
     );
   }
 
@@ -142,9 +152,10 @@ export default class GraspItReporter extends ReporterContacts {
     // sometimes it was observed the skipped tests were not added
     // like the time when it is explicity skipped
     // so we register before marking it
+    const note = this.currentSuites.length;
     this.supporter.lock.acquire(this.supporter.lockString, async () => {
       if (this.supporter.idMapped[test.uid]) { return; }
-      this.addTest(test);
+      this.addTest(test, note);
     });
 
     this.markTestCompletion(test);
