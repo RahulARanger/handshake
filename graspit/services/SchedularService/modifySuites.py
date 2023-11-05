@@ -39,8 +39,6 @@ async def rollup_suite_values(suiteID: str):
 
     required = ("passed", "failed", "skipped", "tests")
 
-    expected = {key: 0 for key in required}
-
     direct_entities = (
         await (
             SuiteBase.filter(parent=suiteID, suiteType=SuiteType.TEST)

@@ -20,10 +20,14 @@ export interface QuickPreviewForScenarios extends BasicDetails {
     Tests: number;
 }
 
+export interface AttachedError extends Error {
+    mailedFrom: string[];
+}
+
 export interface PreviewForTests extends BasicDetails {
     Description: string;
     id: string;
-    Errors: Error[];
+    Errors: AttachedError[];
     type: suiteType;
 }
 

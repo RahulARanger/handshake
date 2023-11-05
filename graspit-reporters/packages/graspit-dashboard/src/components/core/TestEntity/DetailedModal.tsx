@@ -1,5 +1,5 @@
 import { CardForAImage } from 'src/components/utils/ImagesWithThumbnails';
-import type { PreviewForTests } from 'src/types/parsedRecords';
+import type { AttachedError, PreviewForTests } from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
@@ -14,47 +14,110 @@ import {
 import MetaCallContext from '../TestRun/context';
 import useSWR from 'swr';
 import {
+    getSuites,
     getTestRun,
+    getTests,
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
 import Drawer from 'antd/lib/drawer/index';
 import Tabs from 'antd/lib/tabs/index';
 import type TestRunRecord from 'src/types/testRunRecords';
-import type { AttachmentDetails } from 'src/types/generatedResponse';
+import type {
+    AttachmentDetails,
+    SuiteDetails,
+    TestDetails,
+} from 'src/types/generatedResponse';
+import { Breadcrumb, Typography } from 'antd/lib';
 
-function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
+function ErrorMessage(props: {
+    item: AttachedError;
+    converter: Convert;
+    setTestID: (testID: string) => void;
+}): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
+    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
+    const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
+
+    if (tests == null || suites == null) return <></>;
+
     return (
-        <Alert
-            message={
-                <Text>
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html: props.converter.toHtml(props.item.message),
-                        }}
+        <List.Item
+            key={props.item.name}
+            actions={[
+                props.item.mailedFrom ? (
+                    <Breadcrumb
+                        items={props.item.mailedFrom
+                            .toReversed()
+                            .map((suite) => ({
+                                key: suite,
+                                title: (
+                                    <Typography
+                                        style={{
+                                            cursor:
+                                                suites[suite] == null
+                                                    ? undefined
+                                                    : 'pointer',
+                                        }}
+                                    >
+                                        {(tests[suite] ?? suites[suite]).title}
+                                    </Typography>
+                                ),
+                                onClick: suites[suite]
+                                    ? () => {
+                                          props.setTestID(
+                                              suites[suite].suiteID,
+                                          );
+                                      }
+                                    : undefined,
+                            }))}
                     />
-                </Text>
-            }
-            showIcon
-            type="error"
-            description={
-                <Text>
-                    <div
-                        dangerouslySetInnerHTML={{
-                            __html: props.converter.toHtml(
-                                props.item.stack ?? '',
-                            ),
-                        }}
+                ) : (
+                    <></>
+                ),
+            ]}
+        >
+            <List.Item.Meta
+                description={
+                    <Alert
+                        type="error"
+                        message={
+                            <Text>
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: props.converter.toHtml(
+                                            props.item.message,
+                                        ),
+                                    }}
+                                />
+                            </Text>
+                        }
+                        description={
+                            <Text>
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: props.converter.toHtml(
+                                            props.item.stack ?? '',
+                                        ),
+                                    }}
+                                />
+                            </Text>
+                        }
                     />
-                </Text>
-            }
-        />
+                }
+            />
+        </List.Item>
     );
 }
+export const errorsTab = 'errors';
+export const imagesTab = 'images';
 
 export default function MoreDetailsOnEntity(props: {
     selected?: PreviewForTests;
     open: boolean;
+    setTestID: (required: string) => void;
     onClose: () => void;
+    setTab: (tab: string) => void;
+    tab: string;
 }): ReactNode {
     const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
     const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
@@ -102,10 +165,12 @@ export default function MoreDetailsOnEntity(props: {
             <Tabs
                 animated
                 type="card"
+                onChange={props.setTab}
+                activeKey={props.tab}
                 tabBarStyle={{ margin: '0px', padding: '0px' }}
                 items={[
                     {
-                        key: 'errors',
+                        key: errorsTab,
                         label: 'Errors',
                         children: (
                             <List
@@ -114,22 +179,22 @@ export default function MoreDetailsOnEntity(props: {
                                 itemLayout="vertical"
                                 dataSource={props.selected.Errors}
                                 renderItem={(item) => (
-                                    <List.Item title="e">
-                                        <ErrorMessage
-                                            converter={converter}
-                                            item={item}
-                                        />
-                                    </List.Item>
+                                    <ErrorMessage
+                                        setTestID={props.setTestID}
+                                        converter={converter}
+                                        item={item}
+                                    />
                                 )}
                             />
                         ),
                     },
                     {
-                        key: 'images',
+                        key: imagesTab,
                         label: 'Images',
                         children: (
                             <List
                                 size="small"
+                                bordered
                                 itemLayout="vertical"
                                 dataSource={images}
                                 renderItem={(image, index) => (

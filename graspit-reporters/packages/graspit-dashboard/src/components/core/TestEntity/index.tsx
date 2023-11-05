@@ -27,7 +27,7 @@ import RenderTimeRelativeToStart, {
 import MetaCallContext from '../TestRun/context';
 import type { Tag as SuiteTag } from 'src/types/testEntityRelated';
 import type { PreviewForTests } from 'src/types/parsedRecords';
-import MoreDetailsOnEntity from './DetailedModal';
+import MoreDetailsOnEntity, { errorsTab, imagesTab } from './DetailedModal';
 
 import Input from 'antd/lib/input/Input';
 import React, {
@@ -134,6 +134,7 @@ export default function TestEntityDrawer(props: {
     );
     const [filterText, setFilterText] = useState<null | string>(null);
     const [choices, setChoices] = useState<string[]>([optionsForEntities[0]]);
+    const [tabForDetailed, setTabForDetailed] = useState<string>(imagesTab);
     const [showFilters, showTimeline] = useMemo<boolean[]>(
         () => [
             choices.includes(optionsForEntities[0]),
@@ -176,9 +177,10 @@ export default function TestEntityDrawer(props: {
     const dataSource = rawSource.map((test) => {
         const actions = [];
         const parsed = parseTestCaseEntity(test, started);
-        const openDetailedView = (): void => {
+        const openDetailedView = (tab: string): void => {
             setShowDetailedView(true);
             setDetailed(parsed.id);
+            setTabForDetailed(tab);
         };
 
         const hasRequiredAttachment = writtenAttachments[test.suiteID]?.find(
@@ -205,7 +207,7 @@ export default function TestEntityDrawer(props: {
                         shape="circle"
                         size="small"
                         icon={<PaperClipOutlined />}
-                        onClick={openDetailedView}
+                        onClick={openDetailedView.bind(null, imagesTab)}
                     />,
                 );
             }
@@ -223,7 +225,7 @@ export default function TestEntityDrawer(props: {
                         />
                     }
                     shape="round"
-                    onClick={openDetailedView}
+                    onClick={openDetailedView.bind(null, errorsTab)}
                 />,
             );
         }
@@ -456,6 +458,16 @@ export default function TestEntityDrawer(props: {
                             ) : (
                                 <></>
                             )}
+                            <Button
+                                key="attachments"
+                                shape="circle"
+                                size="small"
+                                icon={<PaperClipOutlined />}
+                                onClick={() => [
+                                    setDetailed(props.testID),
+                                    setShowDetailedView(true),
+                                ]}
+                            />
                         </Space>
                         {selectedSuiteDetails.description ? (
                             <Meta
@@ -538,6 +550,8 @@ export default function TestEntityDrawer(props: {
                 onClose={() => {
                     setShowDetailedView(false);
                 }}
+                tab={tabForDetailed}
+                setTestID={setTestID}
                 selected={
                     detailed
                         ? parseTestCaseEntity(
@@ -546,6 +560,7 @@ export default function TestEntityDrawer(props: {
                           )
                         : undefined
                 }
+                setTab={setTabForDetailed}
             />
         </>
     );
