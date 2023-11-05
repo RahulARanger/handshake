@@ -1,10 +1,8 @@
 import { CardForAImage } from 'src/components/utils/ImagesWithThumbnails';
 import type { PreviewForTests } from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
-
 import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
-import Card, { type CardProps } from 'antd/lib/card/Card';
 import Text from 'antd/lib/typography/Text';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -20,8 +18,8 @@ import {
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
 import Drawer from 'antd/lib/drawer/index';
+import Tabs from 'antd/lib/tabs/index';
 import type TestRunRecord from 'src/types/testRunRecords';
-import Empty from 'antd/lib/empty/index';
 import type { AttachmentDetails } from 'src/types/generatedResponse';
 
 function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
@@ -74,54 +72,9 @@ export default function MoreDetailsOnEntity(props: {
         return <></>;
 
     const converter = new Convert();
-    const tabList: CardProps['tabList'] = [];
-
-    if (props.selected.Errors?.length > 0) {
-        tabList.push({
-            key: 'errors',
-            label: 'Errors',
-            children: (
-                <List
-                    itemLayout="vertical"
-                    dataSource={props.selected.Errors}
-                    renderItem={(item) => (
-                        <List.Item>
-                            <ErrorMessage converter={converter} item={item} />
-                        </List.Item>
-                    )}
-                />
-            ),
-        });
-    }
-
     const images = writtenAttachments[props.selected.id]
         ?.filter((item) => item.type === 'PNG')
         ?.map(parseAttachment);
-
-    if (images?.length > 0) {
-        tabList.push({
-            key: 'images',
-            label: 'Images',
-            children: (
-                <>
-                    {images.map((image, index) => (
-                        <CardForAImage
-                            index={index}
-                            key={index}
-                            title={image.parsed.title}
-                            maxHeight={'250px'}
-                            url={convertForWrittenAttachments(
-                                attachmentPrefix,
-                                testID,
-                                image.parsed.value,
-                            )}
-                            desc={image.description}
-                        />
-                    ))}
-                </>
-            ),
-        });
-    }
 
     return (
         <Drawer
@@ -146,14 +99,60 @@ export default function MoreDetailsOnEntity(props: {
             mask={false}
             placement="left"
         >
-            {tabList.length > 0 ? (
-                <Card tabList={tabList} size="small" bordered />
-            ) : (
-                <Empty
-                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                    description="No Attachments were added for this."
-                />
-            )}
+            <Tabs
+                animated
+                type="card"
+                tabBarStyle={{ margin: '0px', padding: '0px' }}
+                items={[
+                    {
+                        key: 'errors',
+                        label: 'Errors',
+                        children: (
+                            <List
+                                size="small"
+                                bordered
+                                itemLayout="vertical"
+                                dataSource={props.selected.Errors}
+                                renderItem={(item) => (
+                                    <List.Item title="e">
+                                        <ErrorMessage
+                                            converter={converter}
+                                            item={item}
+                                        />
+                                    </List.Item>
+                                )}
+                            />
+                        ),
+                    },
+                    {
+                        key: 'images',
+                        label: 'Images',
+                        children: (
+                            <List
+                                size="small"
+                                itemLayout="vertical"
+                                dataSource={images}
+                                renderItem={(image, index) => (
+                                    <List.Item>
+                                        <CardForAImage
+                                            index={index}
+                                            key={index}
+                                            title={image.parsed.title}
+                                            maxHeight={'250px'}
+                                            url={convertForWrittenAttachments(
+                                                attachmentPrefix,
+                                                testID,
+                                                image.parsed.value,
+                                            )}
+                                            desc={image.description}
+                                        />
+                                    </List.Item>
+                                )}
+                            />
+                        ),
+                    },
+                ]}
+            />
         </Drawer>
     );
 }

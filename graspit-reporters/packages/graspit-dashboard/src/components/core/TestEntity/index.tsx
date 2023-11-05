@@ -128,6 +128,7 @@ export default function TestEntityDrawer(props: {
     );
 
     const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
+    const [detailed, setDetailed] = useState<undefined | string>(props.testID);
     const [filterStatus, setFilterStatus] = useState<null | statusOfEntity>(
         null,
     );
@@ -157,6 +158,10 @@ export default function TestEntityDrawer(props: {
 
     const closeTimeline = () =>
         setChoices(choices.filter((x) => x != optionsForEntities[1]));
+    const setTestID = (detailed: string) => {
+        setDetailed(detailed);
+        props.setTestID(detailed);
+    };
 
     const rawSource = [
         ...Object.values(tests),
@@ -173,6 +178,7 @@ export default function TestEntityDrawer(props: {
         const parsed = parseTestCaseEntity(test, started);
         const openDetailedView = (): void => {
             setShowDetailedView(true);
+            setDetailed(parsed.id);
         };
 
         const hasRequiredAttachment = writtenAttachments[test.suiteID]?.find(
@@ -187,7 +193,7 @@ export default function TestEntityDrawer(props: {
                     shape="circle"
                     size="small"
                     onClick={() => {
-                        props.setTestID(test.suiteID);
+                        setTestID(test.suiteID);
                     }}
                 />,
             );
@@ -369,7 +375,7 @@ export default function TestEntityDrawer(props: {
                         >
                             <TreeSelectionOfSuites
                                 selected={props.testID}
-                                setTestID={props.setTestID}
+                                setTestID={setTestID}
                             />
                         </Badge>
                     </Space>
@@ -384,7 +390,7 @@ export default function TestEntityDrawer(props: {
                             icon={<UpOutlined />}
                             title="View Parent"
                             onClick={() =>
-                                props.setTestID(selectedSuiteDetails.parent)
+                                setTestID(selectedSuiteDetails.parent)
                             }
                         />
                     )
@@ -533,8 +539,11 @@ export default function TestEntityDrawer(props: {
                     setShowDetailedView(false);
                 }}
                 selected={
-                    props.testID
-                        ? parseTestCaseEntity(selectedSuiteDetails, started)
+                    detailed
+                        ? parseTestCaseEntity(
+                              suites[detailed] ?? tests[detailed],
+                              started,
+                          )
                         : undefined
                 }
             />
