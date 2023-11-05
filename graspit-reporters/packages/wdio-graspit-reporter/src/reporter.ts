@@ -154,11 +154,10 @@ export default class GraspItReporter extends ReporterContacts {
     // so we register before marking it
     const note = this.currentSuites.length;
     this.supporter.lock.acquire(this.supporter.lockString, async () => {
-      if (this.supporter.idMapped[test.uid]) { return; }
+      if (this.supporter.idMapped[test.uid]) { return this.markTestCompletion(test); }
       this.addTest(test, note);
+      return this.markTestCompletion(test);
     });
-
-    this.markTestCompletion(test);
   }
 
   onRunnerEnd(runnerStats: RunnerStats): void {

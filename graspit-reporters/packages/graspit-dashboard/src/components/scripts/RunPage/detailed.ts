@@ -36,7 +36,7 @@ export async function getDrillDownResults(
     const sqlHelperForSessions = `(${sessionsIDs.map(() => '?').join(',')})`;
 
     const suites = await connection.all<SuiteRecordDetails[]>(
-        `select rollupbase.tests as rollup_tests, rollupbase.passed as rollup_passed, rollupbase.failed as rollup_failed, rollupbase.skipped as rollup_skipped, suitebase.* from suitebase join rollupbase on suitebase.suiteID = rollupbase.suite_id and suitebase.session_id in ${sqlHelperForSessions}`,
+        `select rollupbase.tests as rollup_tests, rollupbase.passed as rollup_passed, rollupbase.failed as rollup_failed, rollupbase.skipped as rollup_skipped, suitebase.* from suitebase join rollupbase on suitebase.suiteID = rollupbase.suite_id and suitebase.session_id in ${sqlHelperForSessions} order by suitebase.started`,
         sessionsIDs,
     );
     const order: string[] = [];

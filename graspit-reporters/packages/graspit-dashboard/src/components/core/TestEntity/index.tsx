@@ -7,6 +7,7 @@ import {
     badgeStatus,
     optionsForEntities,
     parseTestCaseEntity,
+    timelineColor,
 } from 'src/components/parseUtils';
 import type TestRunRecord from 'src/types/testRunRecords';
 import {
@@ -58,9 +59,12 @@ import Counter, { StaticPercent } from 'src/components/utils/counter';
 import CheckboxGroup from 'antd/lib/checkbox/Group';
 import Divider from 'antd/lib/divider/index';
 import TreeSelectionOfSuites from './items';
+import Timeline from 'antd/lib/timeline/Timeline';
+import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
 import { Badge } from 'antd/lib';
 import Meta from 'antd/lib/card/Meta';
+import { dateTimeFormatUsed } from 'src/components/utils/Datetime/format';
 
 function EntityItem(props: {
     item: PreviewForTests;
@@ -133,10 +137,10 @@ export default function TestEntityDrawer(props: {
     );
     const [filterText, setFilterText] = useState<null | string>(null);
     const [choices, setChoices] = useState<string[]>([optionsForEntities[0]]);
-    const [showFilters] = useMemo<boolean[]>(
+    const [showFilters, showTimeline] = useMemo<boolean[]>(
         () => [
             choices.includes(optionsForEntities[0]),
-            // choices.includes(optionsForEntities[1]),
+            choices.includes(optionsForEntities[1]),
         ],
         [choices],
     );
@@ -161,95 +165,96 @@ export default function TestEntityDrawer(props: {
     const selectedSuiteDetails = suites[props.testID];
     const started = dayjs(run.started);
 
-    const dataSource = [...Object.values(tests), ...Object.values(suites)]
-        .filter((test) => {
-            let result = test.parent === selectedSuiteDetails.suiteID;
-            result &&= filterStatus == null || test.standing === filterStatus;
-            result &&= filterText == null || test.title.includes(filterText);
-            return result;
-        })
-        .map((test) => {
-            const actions = [];
-            const parsed = parseTestCaseEntity(test, started);
-            const openDetailedView = (): void => {
-                setSelectedSuite(parsed);
-                setShowDetailedView(true);
-            };
+    const rawSource = [
+        ...Object.values(tests),
+        ...Object.values(suites),
+    ].filter((test) => {
+        let result = test.parent === selectedSuiteDetails.suiteID;
+        result &&= filterStatus == null || test.standing === filterStatus;
+        result &&= filterText == null || test.title.includes(filterText);
+        return result;
+    });
 
-            const hasRequiredAttachment = writtenAttachments[
-                test.suiteID
-            ]?.find((attachment) => attachment.type === 'PNG');
+    const dataSource = rawSource.map((test) => {
+        const actions = [];
+        const parsed = parseTestCaseEntity(test, started);
+        const openDetailedView = (): void => {
+            setSelectedSuite(parsed);
+            setShowDetailedView(true);
+        };
 
-            if (test.suiteType === 'SUITE') {
+        const hasRequiredAttachment = writtenAttachments[test.suiteID]?.find(
+            (attachment) => attachment.type === 'PNG',
+        );
+
+        if (test.suiteType === 'SUITE') {
+            actions.push(
+                <Button
+                    key="drill-down"
+                    icon={<ExpandAltOutlined />}
+                    shape="circle"
+                    size="small"
+                    onClick={() => {
+                        props.setTestID(test.suiteID);
+                    }}
+                />,
+            );
+        } else {
+            if (hasRequiredAttachment != null) {
                 actions.push(
                     <Button
-                        key="drill-down"
-                        icon={<ExpandAltOutlined />}
+                        key="attachments"
                         shape="circle"
                         size="small"
-                        onClick={() => {
-                            props.setTestID(test.suiteID);
-                        }}
-                    />,
-                );
-            } else {
-                if (hasRequiredAttachment != null) {
-                    actions.push(
-                        <Button
-                            key="attachments"
-                            shape="circle"
-                            size="small"
-                            icon={<PaperClipOutlined />}
-                            onClick={openDetailedView}
-                        />,
-                    );
-                }
-            }
-
-            if (test.standing === 'FAILED') {
-                actions.push(
-                    <Button
-                        size="small"
-                        key="errors"
-                        type="text"
-                        icon={
-                            <WarningFilled
-                                style={{ fontSize: '16px', color: 'firebrick' }}
-                            />
-                        }
-                        shape="round"
+                        icon={<PaperClipOutlined />}
                         onClick={openDetailedView}
                     />,
                 );
             }
+        }
 
-            return {
-                key: test.suiteID,
-                label: (
-                    <Space align="end">
-                        <RenderStatus value={test.standing} />
-                        <Typography>{test.title}</Typography>
-                        <BadgeForSuiteType
-                            text={test.suiteType}
-                            color={
-                                test.suiteType === 'SUITE'
-                                    ? 'magenta'
-                                    : 'purple'
-                            }
+        if (test.standing === 'FAILED') {
+            actions.push(
+                <Button
+                    size="small"
+                    key="errors"
+                    type="text"
+                    icon={
+                        <WarningFilled
+                            style={{ fontSize: '16px', color: 'firebrick' }}
                         />
-                    </Space>
-                ),
-                children: (
-                    <EntityItem
-                        item={parsed}
-                        attachmentsForDescription={attachments[
-                            parsed.id
-                        ]?.filter((item) => item.type === 'DESC')}
+                    }
+                    shape="round"
+                    onClick={openDetailedView}
+                />,
+            );
+        }
+
+        return {
+            key: test.suiteID,
+            label: (
+                <Space align="end" id={test.suiteID}>
+                    <RenderStatus value={test.standing} />
+                    <Typography>{test.title}</Typography>
+                    <BadgeForSuiteType
+                        text={test.suiteType}
+                        color={
+                            test.suiteType === 'SUITE' ? 'magenta' : 'purple'
+                        }
                     />
-                ),
-                extra: <Space>{actions}</Space>,
-            };
-        });
+                </Space>
+            ),
+            children: (
+                <EntityItem
+                    item={parsed}
+                    attachmentsForDescription={attachments[parsed.id]?.filter(
+                        (item) => item.type === 'DESC',
+                    )}
+                />
+            ),
+            extra: <Space>{actions}</Space>,
+        };
+    });
 
     const tags = JSON.parse(selectedSuiteDetails.tags).map((tag: SuiteTag) => {
         return (
@@ -318,6 +323,18 @@ export default function TestEntityDrawer(props: {
             ),
         },
     ];
+
+    if (tags.length > 0)
+        aboutSuite.push({
+            key: 'tags',
+            label: 'Tags',
+            children: (
+                <Space>
+                    <>Tags:</>
+                    {tags}
+                </Space>
+            ),
+        });
 
     const statusOptions: SelectProps['options'] = [
         'Passed',
@@ -471,7 +488,54 @@ export default function TestEntityDrawer(props: {
                         <></>
                     )}
                 </Space>
+                <Drawer
+                    open={showTimeline}
+                    onClose={() =>
+                        setChoices(
+                            choices.filter((x) => x != optionsForEntities[1]),
+                        )
+                    }
+                    title="Timeline"
+                    mask={false}
+                >
+                    <Timeline
+                        items={rawSource.map((item) => ({
+                            children: (
+                                <Space direction="vertical">
+                                    <Button
+                                        type="text"
+                                        size="small"
+                                        style={{
+                                            margin: '0px',
+                                            padding: '0px',
+                                            whiteSpace: 'break-spaces',
+                                            wordBreak: 'break-word',
+                                            textAlign: 'left',
+                                        }}
+                                        onClick={() => {
+                                            document
+                                                .getElementById(item.suiteID)
+                                                ?.scrollIntoView({
+                                                    behavior: 'smooth',
+                                                });
+                                        }}
+                                    >
+                                        {item.title}
+                                    </Button>
+                                    <Text italic>
+                                        {dayjs(item.started).format(
+                                            dateTimeFormatUsed,
+                                        )}
+                                    </Text>
+                                </Space>
+                            ),
+                            color: timelineColor(item.standing),
+                            key: item.suiteID,
+                        }))}
+                    />
+                </Drawer>
             </Drawer>
+
             <MoreDetailsOnEntity
                 open={showDetailedView}
                 onClose={() => {

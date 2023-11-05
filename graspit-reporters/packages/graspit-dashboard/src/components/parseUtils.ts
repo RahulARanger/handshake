@@ -21,6 +21,7 @@ import {
 } from './charts/constants';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import type { BadgeProps } from 'antd';
+import type { TimelineItemProps } from 'antd/lib';
 
 dayjs.extend(duration);
 
@@ -131,6 +132,19 @@ export function badgeStatus(status: string): BadgeProps['status'] {
             return 'processing';
         case 'SKIPPED':
             return 'warning';
+    }
+}
+
+export function timelineColor(status: string): TimelineItemProps['color'] {
+    switch (status as statusOfEntity) {
+        case 'FAILED':
+            return 'red';
+        case 'PASSED':
+            return 'green';
+        case 'PENDING':
+            return 'blue';
+        case 'SKIPPED':
+            return 'gray';
     }
 }
 

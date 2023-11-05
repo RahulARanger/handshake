@@ -4,6 +4,10 @@
     --card-color: #121212;
     --background-color: #262626;
     color-scheme: dark;
+    --bg: oklch(35% 0.3 var(--hue));
+    --text: oklch(85% 0.1 var(--hue));
+    --shadow: oklch(25% 0.2 var(--hue));
+    --highlight: oklch(98% 0.05 var(--hue));
 }
 
 * {
@@ -42,7 +46,7 @@ body {
 } */
 
 ::-webkit-scrollbar {
-    width: 9px; /* Width of the scrollbar track */
+    width: 6px; /* Width of the scrollbar track */
 }
 
 ::-webkit-scrollbar-thumb {

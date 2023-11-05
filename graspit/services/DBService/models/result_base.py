@@ -129,5 +129,16 @@ class RollupBase(Model):
     )
 
 
+class RetriedBase(Model):
+    tests = JSONField(
+        default=[],
+        description="details of all suites which were retried for a particular test case",
+    )
+    RetriedId = UUIDField(pk=True)
+    suite: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
+        "models.SuiteBase", related_name="retried", to_field="suiteID"
+    )
+
+
 RunBasePydanticModel = pydantic_model_creator(RunBase)
 SuiteBasePydanticModel = pydantic_model_creator(SuiteBase)

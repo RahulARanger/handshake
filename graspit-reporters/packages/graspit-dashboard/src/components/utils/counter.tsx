@@ -10,6 +10,7 @@ export default class Counter extends Component<
         suffix?: string;
         prefix?: string;
         decimalPoints?: number;
+        maxDigits?: number;
     },
     { start: number }
 > {
@@ -26,7 +27,11 @@ export default class Counter extends Component<
                     `${this.props.prefix ?? ''}${n
                         .toString()
                         .padStart(
-                            Math.floor(Math.log10(this.props.end) + 1),
+                            Math.floor(
+                                Math.log10(
+                                    this.props.maxDigits ?? this.props.end,
+                                ) + 1,
+                            ),
                             '0',
                         )}${this.props.suffix ?? ''}`
                 }

@@ -240,15 +240,15 @@ export default function Overview(): ReactNode {
     ];
 
     return (
-        <Space direction="vertical">
-            <Space>
+        <Space direction="vertical" style={{ rowGap: '10px' }}>
+            <Space style={{ columnGap: '10px', alignItems: 'stretch' }}>
                 <Card
                     bordered
                     style={{ minHeight: '268px' }}
                     title={
                         <Space align="center">
                             <Typography>Executed</Typography>
-                            <Counter end={total} />
+                            <Counter end={total} maxDigits={run.tests} />
                             <Typography>
                                 <Switch
                                     key={'switch'}
@@ -307,7 +307,10 @@ export default function Overview(): ReactNode {
                 </Card>
                 <TopSuites suites={aggResults.recentSuites} />
             </Space>
-            <Space align="start">
+            <Space
+                align="start"
+                style={{ columnGap: '10px', alignItems: 'stretch' }}
+            >
                 <Description items={extras} bordered size="small" />
                 {images.length > 0 ? (
                     <GalleryOfImages loop={true} maxWidth={'500px'}>
