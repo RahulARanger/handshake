@@ -70,7 +70,9 @@ export default function DetailedTestRun(props: {
             : [
                   {
                       label: (
-                          <Link href={detailedPage(data.testID)}>Detailed</Link>
+                          <Link id="Detailed" href={detailedPage(data.testID)}>
+                              Detailed
+                          </Link>
                       ),
                       key: testEntitiesTab,
                       icon: gridViewMode ? (
@@ -102,10 +104,7 @@ export default function DetailedTestRun(props: {
                     mode="horizontal"
                     selectedKeys={[current]}
                     onClick={onClick}
-                    style={{
-                        height: '25px',
-                        flexGrow: 2,
-                    }}
+                    className={HeaderStyles.tab}
                 />
                 <RelativeTo
                     dateTime={dayjs(data.ended)}

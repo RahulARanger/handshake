@@ -1,17 +1,12 @@
-import { RenderStatus } from 'src/components/utils/renderers';
-import type { Attachment } from 'src/types/testEntityRelated';
-import GalleryOfImages, {
-    CardForAImage,
-} from 'src/components/utils/ImagesWithThumbnails';
+import { CardForAImage } from 'src/components/utils/ImagesWithThumbnails';
 import type { PreviewForTests } from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 
 import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
 import Card, { type CardProps } from 'antd/lib/card/Card';
-
+import Text from 'antd/lib/typography/Text';
 import List from 'antd/lib/list';
-import Modal from 'antd/lib/modal/Modal';
 import Space from 'antd/lib/space';
 import Alert from 'antd/lib/alert/Alert';
 import {
@@ -20,61 +15,75 @@ import {
 } from 'src/components/parseUtils';
 import MetaCallContext from '../TestRun/context';
 import useSWR from 'swr';
-import { getTestRun } from 'src/components/scripts/helper';
+import {
+    getTestRun,
+    getWrittenAttachments,
+} from 'src/components/scripts/helper';
+import Drawer from 'antd/lib/drawer/index';
 import type TestRunRecord from 'src/types/testRunRecords';
+import Empty from 'antd/lib/empty/index';
+import type { AttachmentDetails } from 'src/types/generatedResponse';
 
 function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
     return (
         <Alert
             message={
-                <div
-                    dangerouslySetInnerHTML={{
-                        __html: props.converter.toHtml(props.item.message),
-                    }}
-                />
+                <Text>
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: props.converter.toHtml(props.item.message),
+                        }}
+                    />
+                </Text>
             }
             showIcon
             type="error"
             description={
-                <div
-                    dangerouslySetInnerHTML={{
-                        __html: props.converter.toHtml(props.item.stack ?? ''),
-                    }}
-                />
+                <Text>
+                    <div
+                        dangerouslySetInnerHTML={{
+                            __html: props.converter.toHtml(
+                                props.item.stack ?? '',
+                            ),
+                        }}
+                    />
+                </Text>
             }
         />
     );
 }
 
 export default function MoreDetailsOnEntity(props: {
-    item?: PreviewForTests;
+    selected?: PreviewForTests;
     open: boolean;
-    items: Attachment[];
-    writtenItems: Attachment[];
     onClose: () => void;
 }): ReactNode {
     const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
     const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    const { data: writtenAttachments } = useSWR<AttachmentDetails>(
+        getWrittenAttachments(port, testID),
+    );
 
     if (
+        props.selected == null ||
         attachmentPrefix == null ||
         testID == null ||
-        run == null ||
-        props.item == null
+        writtenAttachments == null ||
+        run == null
     )
         return <></>;
-    const converter = new Convert();
 
+    const converter = new Convert();
     const tabList: CardProps['tabList'] = [];
 
-    if (props.item.Errors?.length > 0) {
+    if (props.selected.Errors?.length > 0) {
         tabList.push({
             key: 'errors',
             label: 'Errors',
             children: (
                 <List
                     itemLayout="vertical"
-                    dataSource={props.item.Errors}
+                    dataSource={props.selected.Errors}
                     renderItem={(item) => (
                         <List.Item>
                             <ErrorMessage converter={converter} item={item} />
@@ -85,16 +94,16 @@ export default function MoreDetailsOnEntity(props: {
         });
     }
 
-    const images = props.writtenItems
+    const images = writtenAttachments[props.selected.id]
         ?.filter((item) => item.type === 'PNG')
-        .map(parseAttachment);
+        ?.map(parseAttachment);
 
     if (images?.length > 0) {
         tabList.push({
             key: 'images',
             label: 'Images',
             children: (
-                <GalleryOfImages loop={false}>
+                <>
                     {images.map((image, index) => (
                         <CardForAImage
                             index={index}
@@ -109,35 +118,42 @@ export default function MoreDetailsOnEntity(props: {
                             desc={image.description}
                         />
                     ))}
-                </GalleryOfImages>
+                </>
             ),
         });
     }
 
     return (
-        <Modal
+        <Drawer
             title={
-                <Space>
-                    {props.item.Title}
+                <Space align="start">
                     <BadgeForSuiteType
-                        text={props.item.type}
+                        size="small"
+                        text={props.selected.type}
                         color={
-                            props.item.type === 'SUITE' ? 'magenta' : 'purple'
+                            props.selected.type === 'SUITE'
+                                ? 'magenta'
+                                : 'purple'
                         }
                     />
+                    <Text>{props.selected.Title}</Text>
                 </Space>
             }
+            style={{ width: '500px' }}
+            styles={{ body: { padding: '15px', paddingTop: '10px' } }}
             open={props.open}
-            onCancel={props.onClose}
-            destroyOnClose
-            cancelText="Close"
-            closeIcon={<RenderStatus value={props.item.Status} />}
-            width={600}
-            okButtonProps={{
-                style: { display: 'none' },
-            }}
+            onClose={props.onClose}
+            mask={false}
+            placement="left"
         >
-            <Card tabList={tabList} size="small" bordered />
-        </Modal>
+            {tabList.length > 0 ? (
+                <Card tabList={tabList} size="small" bordered />
+            ) : (
+                <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="No Attachments were added for this."
+                />
+            )}
+        </Drawer>
     );
 }

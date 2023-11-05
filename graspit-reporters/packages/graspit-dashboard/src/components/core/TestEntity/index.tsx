@@ -115,7 +115,6 @@ export default function TestEntityDrawer(props: {
     const { port, testID } = useContext(MetaCallContext);
 
     const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
-
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
@@ -129,9 +128,6 @@ export default function TestEntityDrawer(props: {
     );
 
     const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
-    const [selectedSuite, setSelectedSuite] = useState<
-        undefined | PreviewForTests
-    >(undefined);
     const [filterStatus, setFilterStatus] = useState<null | statusOfEntity>(
         null,
     );
@@ -154,16 +150,13 @@ export default function TestEntityDrawer(props: {
         attachments == null ||
         writtenAttachments == null
     )
-        return (
-            <Drawer
-                open={props.open}
-                onClose={props.onClose}
-                title={'Not Found'}
-            ></Drawer>
-        );
+        return <></>;
 
     const selectedSuiteDetails = suites[props.testID];
     const started = dayjs(run.started);
+
+    const closeTimeline = () =>
+        setChoices(choices.filter((x) => x != optionsForEntities[1]));
 
     const rawSource = [
         ...Object.values(tests),
@@ -179,7 +172,6 @@ export default function TestEntityDrawer(props: {
         const actions = [];
         const parsed = parseTestCaseEntity(test, started);
         const openDetailedView = (): void => {
-            setSelectedSuite(parsed);
             setShowDetailedView(true);
         };
 
@@ -354,7 +346,11 @@ export default function TestEntityDrawer(props: {
         <>
             <Drawer
                 open={props.open}
-                onClose={props.onClose}
+                onClose={() => {
+                    props.onClose();
+                    setShowDetailedView(false);
+                    closeTimeline();
+                }}
                 footer={
                     tags.length > 0 ? (
                         <Space>
@@ -490,11 +486,7 @@ export default function TestEntityDrawer(props: {
                 </Space>
                 <Drawer
                     open={showTimeline}
-                    onClose={() =>
-                        setChoices(
-                            choices.filter((x) => x != optionsForEntities[1]),
-                        )
-                    }
+                    onClose={closeTimeline}
                     title="Timeline"
                     mask={false}
                 >
@@ -535,15 +527,16 @@ export default function TestEntityDrawer(props: {
                     />
                 </Drawer>
             </Drawer>
-
             <MoreDetailsOnEntity
                 open={showDetailedView}
                 onClose={() => {
                     setShowDetailedView(false);
                 }}
-                item={selectedSuite}
-                items={attachments[selectedSuite?.id ?? '']}
-                writtenItems={writtenAttachments[selectedSuite?.id ?? '']}
+                selected={
+                    props.testID
+                        ? parseTestCaseEntity(selectedSuiteDetails, started)
+                        : undefined
+                }
             />
         </>
     );

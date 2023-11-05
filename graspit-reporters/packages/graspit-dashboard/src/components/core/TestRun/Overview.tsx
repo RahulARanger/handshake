@@ -78,10 +78,13 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
                             key="maria"
                             type="link"
                             style={{ padding: '0px' }}
+                            onClick={() =>
+                                document.getElementById('Detailed')?.click()
+                            }
                         >
                             here
                         </Button>
-                        &nbsp;to know more
+                        &nbsp;to know more details.
                     </Typography>
                 </Space>
             )}
@@ -102,17 +105,11 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
                 dataIndex="Passed"
                 width={100}
                 render={(_: number, record: SuiteRecordDetails) => (
-                    <div style={{ width: '100%' }}>
-                        <RenderPassedRate
-                            value={[
-                                record.passed,
-                                record.failed,
-                                record.skipped,
-                            ]}
-                            width={100}
-                            immutable={true}
-                        />
-                    </div>
+                    <RenderPassedRate
+                        value={[record.passed, record.failed, record.skipped]}
+                        width={100}
+                        immutable={true}
+                    />
                 )}
             />
             <Table.Column
