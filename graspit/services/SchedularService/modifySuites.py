@@ -79,10 +79,10 @@ async def patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
     task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
-    logger.info("Modifying suite {} belonging to the test {}", suite.title, testID)
+    logger.info("Patching Suite: {} | {}", suite.suiteID, suite.title)
 
     if suite.standing != Status.YET_TO_CALCULATE:
-        logger.warning("Removing this task {} as it was already processed", suite.title)
+        logger.warning("Skipping patch suite for: {}", suite.suiteID)
         return True
 
     pending_child_tasks = await SuiteBase.filter(
@@ -93,7 +93,7 @@ async def patchTestSuite(suiteID: str, testID: str):
     if pending_child_tasks:
         logger.warning(
             "There are some child suites, which are not yet processed, so will process {} suite in the next iteration",
-            suite.title,
+            suite.suiteID,
         )
         await task.update_from_dict(dict(picked=False))
         await task.save()  # continue in the next run
@@ -119,7 +119,7 @@ async def patchTestSuite(suiteID: str, testID: str):
 
     await rollup_suite_values(suiteID)
 
-    logger.info("Successfully processed suite: {}", suite.title)
+    logger.info("Successfully processed suite: {}", suite.suiteID)
     return True
 
 
