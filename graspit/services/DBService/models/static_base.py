@@ -35,7 +35,6 @@ class AttachmentBase(AttachmentFields):
 
 
 class TestConfigBase(AttachmentFields):
-    table = "TableConfigBase"
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
         "models.RunBase", related_name="config", to_field="testID"
     )

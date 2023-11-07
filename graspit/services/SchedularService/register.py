@@ -1,6 +1,8 @@
 from loguru import logger
 from graspit.services.DBService.models.dynamic_base import TaskBase, JobType
-from uuid import uuid4
+from uuid import uuid4, UUID
+from typing import Union
+from graspit.services.DBService.models.static_base import TestConfigBase, AttachmentType
 
 
 async def register_patch_suite(suiteID: str, testID: str) -> TaskBase:
@@ -20,3 +22,17 @@ async def mark_for_prune_task(test_id: str):
     await TaskBase.create(
         ticketID=str(uuid4()), type=JobType.PRUNE_TASKS, test_id=test_id
     )
+
+
+async def skip_test_run(
+    description: str, test_id: Union[str, UUID], reason: str, **extra
+) -> False:
+    logger.error(reason)
+    await TestConfigBase.create(
+        test_id=str(test_id),
+        attachmentValue=dict(reason=reason, test_id=str(test_id), **extra),
+        type=AttachmentType.ERROR,
+        description=description,
+    )
+    await mark_for_prune_task(test_id)
+    return False

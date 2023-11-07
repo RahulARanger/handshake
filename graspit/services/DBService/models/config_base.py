@@ -1,20 +1,14 @@
 from tortoise.models import Model
 from graspit.services.SchedularService.constants import JobType
 from graspit.services.DBService.models.enums import ConfigKeys
-from graspit.services.DBService.models.result_base import RunBase
 from tortoise.fields import (
     IntField,
     CharEnumField,
     CharField,
-    ForeignKeyField,
-    ForeignKeyRelation,
     TextField,
     UUIDField,
     BooleanField,
 )
-from typing import TypedDict
-from pydantic import BaseModel
-from typing import Optional
 
 
 class JobBase(Model):

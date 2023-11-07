@@ -1,13 +1,17 @@
 import datetime
 from pytest import mark
-from graspit.services.DBService.models import SuiteBase, RollupBase
+from graspit.services.DBService.models import SuiteBase, RollupBase, RunBase
 from graspit.services.DBService.models.enums import SuiteType, Status
 from graspit.services.SchedularService.modifySuites import patchTestSuite
-from graspit.services.SchedularService.register import register_patch_suite
+from graspit.services.SchedularService.completeTestRun import patchTestRun
+from graspit.services.SchedularService.register import (
+    register_patch_suite,
+    register_patch_test_run,
+)
 
 
 @mark.usefixtures("sample_test_session")
-class TestModifyJob:
+class TestPatchSuiteJob:
     async def test_empty_suite(self, sample_test_session):
         session = await sample_test_session
         test_id = session.test_id
@@ -26,7 +30,7 @@ class TestModifyJob:
         parent_id = str(parent_suite.suiteID)
 
         await register_patch_suite(parent_id, test_id)
-        await patchTestSuite(parent_suite.suiteID, test_id)
+        assert await patchTestSuite(parent_suite.suiteID, test_id)
 
         # if there are no test entities it won't make any change
         record = await RollupBase.filter(suite_id=parent_suite.suiteID).first()
@@ -90,8 +94,8 @@ class TestModifyJob:
         await register_patch_suite(suite_id, test_id)
         await register_patch_suite(parent_id, test_id)
 
-        await patchTestSuite(suite_id, test_id)
-        await patchTestSuite(parent_id, test_id)
+        assert await patchTestSuite(suite_id, test_id)
+        assert await patchTestSuite(parent_id, test_id)
 
         child_suite = await SuiteBase.filter(suiteID=suite_id).first()
         assert child_suite.passed == child_suite.failed == child_suite.skipped == 3
@@ -171,8 +175,8 @@ class TestModifyJob:
         await register_patch_suite(parent_suite.suiteID, test_id)
 
         for suite in suites:
-            await patchTestSuite(suite, test_id)
-        await patchTestSuite(parent_suite.suiteID, test_id)
+            assert await patchTestSuite(suite, test_id)
+        assert await patchTestSuite(parent_suite.suiteID, test_id)
 
         for index, suite in enumerate(suites):
             suite_record = await SuiteBase.filter(suiteID=suite).first()
@@ -232,3 +236,22 @@ class TestModifyJob:
 
         assert await patchTestSuite(child_suite.suiteID, session.test)
         assert await patchTestSuite(parent_suite.suiteID, session.test)
+
+
+@mark.usefixtures("sample_test_session")
+class TestPatchRunJob:
+    async def test_empty_run(self, sample_test_run):
+        test = await sample_test_run
+
+        await register_patch_test_run(test.testID)
+        assert await patchTestRun(test.testID, test.testID)
+
+        empty = await RunBase.filter(testID=test.testID).first()
+        assert empty.standing == Status.PASSED
+        assert empty.passed == empty.failed == empty.skipped == empty.tests == 0
+        assert (
+            empty.suiteSummary["passed"]
+            == empty.suiteSummary["failed"]
+            == empty.suiteSummary["count"]
+            == empty.suiteSummary["skipped"]
+        )
