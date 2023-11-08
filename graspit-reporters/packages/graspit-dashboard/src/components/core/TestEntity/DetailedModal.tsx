@@ -7,6 +7,7 @@ import Text from 'antd/lib/typography/Text';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
 import Alert from 'antd/lib/alert/Alert';
+import PreviewGroup from 'antd/lib/image/PreviewGroup';
 import {
     convertForWrittenAttachments,
     parseAttachment,
@@ -53,6 +54,7 @@ function ErrorMessage(props: {
                                 title: (
                                     <Typography
                                         style={{
+                                            fontStyle: 'italic',
                                             cursor:
                                                 suites[suite] == null
                                                     ? undefined
@@ -124,19 +126,32 @@ export default function MoreDetailsOnEntity(props: {
     const { data: writtenAttachments } = useSWR<AttachmentDetails>(
         getWrittenAttachments(port, testID),
     );
+    const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
 
     if (
         props.selected == null ||
         attachmentPrefix == null ||
         testID == null ||
+        tests == null ||
         writtenAttachments == null ||
         run == null
     )
         return <></>;
 
+    const current = props.selected.id;
+    const needed = [current];
+
+    if (props.selected.type === 'SUITE') {
+        Object.keys(tests).forEach(
+            (key) => tests[key]?.parent === current && needed.push(key),
+        );
+    }
+
     const converter = new Convert();
-    const images = writtenAttachments[props.selected.id]
-        ?.filter((item) => item.type === 'PNG')
+    const images = needed
+        .map((key) => writtenAttachments[key])
+        .flat()
+        ?.filter((item) => item?.type === 'PNG')
         ?.map(parseAttachment);
 
     return (
@@ -144,7 +159,6 @@ export default function MoreDetailsOnEntity(props: {
             title={
                 <Space align="start">
                     <BadgeForSuiteType
-                        size="small"
                         text={props.selected.type}
                         color={
                             props.selected.type === 'SUITE'
@@ -192,28 +206,30 @@ export default function MoreDetailsOnEntity(props: {
                         key: imagesTab,
                         label: 'Images',
                         children: (
-                            <List
-                                size="small"
-                                bordered
-                                itemLayout="vertical"
-                                dataSource={images}
-                                renderItem={(image, index) => (
-                                    <List.Item>
-                                        <CardForAImage
-                                            index={index}
-                                            key={index}
-                                            title={image.parsed.title}
-                                            maxHeight={'250px'}
-                                            url={convertForWrittenAttachments(
-                                                attachmentPrefix,
-                                                testID,
-                                                image.parsed.value,
-                                            )}
-                                            desc={image.description}
-                                        />
-                                    </List.Item>
-                                )}
-                            />
+                            <PreviewGroup>
+                                <List
+                                    size="small"
+                                    bordered
+                                    itemLayout="vertical"
+                                    dataSource={images}
+                                    renderItem={(image, index) => (
+                                        <List.Item>
+                                            <CardForAImage
+                                                index={index}
+                                                key={index}
+                                                title={image.parsed.title}
+                                                maxHeight={'250px'}
+                                                url={convertForWrittenAttachments(
+                                                    attachmentPrefix,
+                                                    testID,
+                                                    image.parsed.value,
+                                                )}
+                                                desc={image.description}
+                                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            </PreviewGroup>
                         ),
                     },
                 ]}
