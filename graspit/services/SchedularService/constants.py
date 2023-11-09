@@ -6,5 +6,9 @@ class JobType(StrEnum):
     LOOKUP_JOB = "pending-tasks"
     MODIFY_SUITE = "fix-suite"
     MODIFY_TEST_RUN = "fix-test-run"
-    EXECUTOR = "executor"
+    EXECUTOR = "say-bye-if-required"
     PRUNE_TASKS = "prune-tasks"
+    DELETE_RUNS = "delete-runs"
+
+
+writtenAttachmentFolderName = "Attachments"

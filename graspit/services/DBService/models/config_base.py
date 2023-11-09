@@ -43,6 +43,3 @@ class ExportBase(Model):
         default=10,
         description="Number of test runs to export [recent ones are picked]",
     )
-    isDynamic = BooleanField(
-        null=True, default=False, description="Export Dynamic pages only ?"
-    )

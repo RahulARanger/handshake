@@ -40,7 +40,6 @@ import Tooltip from 'antd/lib/tooltip/index';
 import Divider from 'antd/lib/divider/index';
 import Table from 'antd/lib/table/Table';
 import MetaCallContext from './context';
-import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
 import Description, {
     type DescriptionsProps,
@@ -67,27 +66,31 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
             size="small"
             bordered
             pagination={false}
-            style={{ flexShrink: 1, marginRight: '40px' }}
-            scroll={{ y: 199, x: 'max-content' }}
-            footer={() => (
-                <Space>
-                    <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
-                    <Typography>
-                        Click&nbsp;
-                        <Button
-                            key="maria"
-                            type="link"
-                            style={{ padding: '0px' }}
-                            onClick={() =>
-                                document.getElementById('Detailed')?.click()
-                            }
-                        >
-                            here
-                        </Button>
-                        &nbsp;to know more details.
-                    </Typography>
-                </Space>
-            )}
+            style={{
+                flexShrink: 1,
+                maxWidth: '800px',
+                minWidth: '300px',
+            }}
+            scroll={{ y: 181, x: 'max-content' }}
+            // footer={() => (
+            //     <Space>
+            //         <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
+            //         <Typography>
+            //             Click&nbsp;
+            //             <Button
+            //                 key="maria"
+            //                 type="link"
+            //                 style={{ padding: '0px' }}
+            //                 onClick={() =>
+            //                     document.getElementById('Detailed')?.click()
+            //                 }
+            //             >
+            //                 here
+            //             </Button>
+            //             &nbsp;to know more details.
+            //         </Typography>
+            //     </Space>
+            // )}
         >
             <Table.Column
                 title="Status"
@@ -103,11 +106,10 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
             <Table.Column
                 title="Rate"
                 dataIndex="Passed"
-                width={100}
+                width={60}
                 render={(_: number, record: SuiteRecordDetails) => (
                     <RenderPassedRate
                         value={[record.passed, record.failed, record.skipped]}
-                        width={100}
                         immutable={true}
                     />
                 )}
@@ -127,6 +129,7 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
                         {dayjs(value).format(timeFormatUsed)}
                     </Tooltip>
                 )}
+                responsive={['lg']}
             />
             <Table.Column
                 title="Ended"
@@ -137,6 +140,7 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
                         {dayjs(value).format(timeFormatUsed)}
                     </Tooltip>
                 )}
+                responsive={['lg']}
             />
         </Table>
     );
@@ -241,7 +245,7 @@ export default function Overview(): ReactNode {
             <Space style={{ columnGap: '10px', alignItems: 'stretch' }}>
                 <Card
                     bordered
-                    style={{ minHeight: '268px' }}
+                    style={{ minHeight: '220px', maxWidth: '350px' }}
                     title={
                         <Space align="center">
                             <Typography>Executed</Typography>
@@ -308,7 +312,6 @@ export default function Overview(): ReactNode {
                 align="start"
                 style={{ columnGap: '10px', alignItems: 'stretch' }}
             >
-                <Description items={extras} bordered size="small" />
                 {images.length > 0 ? (
                     <GalleryOfImages loop={true} maxWidth={'500px'}>
                         {images.map((image, index) => (
@@ -328,6 +331,7 @@ export default function Overview(): ReactNode {
                 ) : (
                     <></>
                 )}
+                <Description items={extras} bordered size="small" />
             </Space>
         </Space>
     );

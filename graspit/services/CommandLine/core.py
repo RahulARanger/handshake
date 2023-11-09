@@ -1,4 +1,4 @@
-from graspit.services.CommandLine.export import handle_cli
+from graspit.services.CommandLine.export import handle_cli, general_requirement
 from graspit.services.Endpoints.center import service_provider
 from graspit.services.DBService.lifecycle import (
     init_tortoise_orm,
@@ -72,9 +72,14 @@ def setup_app(
     Sanic.serve(primary=_app, app_loader=loader)
 
 
-@handle_cli.command()
-@argument("projectName", nargs=1, required=True, type=str)
-@argument("path", nargs=1, type=Path(dir_okay=True), required=True)
+@handle_cli.command(
+    short_help="Starts the server which would listen for your input",
+    help="""
+Starts the Graspit server to listen for inputs at the specified port on localhost. This command initiates a test run, allowing the server to handle a single test run at a time. For multiple test runs, spawn the process separately on different ports.
+""",
+)
+@argument("PROJECT_NAME", nargs=1, required=True, type=str)
+@general_requirement
 @option(
     "-p",
     "--port",
@@ -88,7 +93,7 @@ def setup_app(
     "--workers",
     default=2,
     show_default=True,
-    help="Number of workers to use, note min: 2 workers are required",
+    help="Number of workers to use",
     type=int,
 )
 @option(
@@ -110,15 +115,30 @@ def setup_app(
     help="Run the Sanic Server in debug mode for better logs",
 )
 def run_app(
-    projectname: str, path: str, port: int, workers: int, fast: bool, debug: bool
+    collection_path: str,
+    project_name: str,
+    port: int,
+    workers: int,
+    fast: bool,
+    debug: bool,
 ):
-    P_Path(path).mkdir(exist_ok=True)
-    setup_app(projectname, path, port, workers, fast, debug)
+    P_Path(collection_path).mkdir(exist_ok=True)
+    setup_app(project_name, collection_path, port, workers, fast, debug)
 
 
-@handle_cli.command()
-@argument("static_path", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
-@option("root", "-r", required=False, type=Path(exists=True, dir_okay=True))
+@handle_cli.command(
+    help="serves the generated reports. simply serves the static files generated in your directory mentioned "
+    "in static_path",
+    short_help="serves generated report",
+)
+@option(
+    "root",
+    "-r",
+    required=False,
+    type=Path(exists=True, dir_okay=True),
+    help="[ROOT_DIR]",
+)
+@argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
 def display(
     static_path: Union[Literal[False], P_Path] = False,
     root=False,

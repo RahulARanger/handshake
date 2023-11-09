@@ -3,13 +3,11 @@ import type { SuiteSummary } from 'src/types/testRunRecords';
 import React, { type ReactNode } from 'react';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
-import Highcharts3d from 'highcharts/highcharts-3d';
 import highContrastDark from 'highcharts/themes/high-contrast-dark';
 import { greenGradient, redGradient, skippedGradient } from './constants';
 import { toolTipFormats } from '../utils/counter';
 
 if (typeof Highcharts === 'object') {
-    Highcharts3d(Highcharts);
     highContrastDark(Highcharts);
 }
 
@@ -30,19 +28,18 @@ export default function ProgressPieChart(props: {
 
         chart: {
             type: 'pie',
-            options3d: {
-                enabled: true,
-                alpha: 45,
-                beta: 0,
-                fitToPlot: true,
-            },
             backgroundColor: 'transparent',
-            height: 185,
             shadow: true,
+            spacing: [0, 0, 0, 0],
+            margin: [0, 0, 0, 0],
+            height: 120,
         },
         tooltip: toolTipFormats,
         title: {
             text: `${(passPercent * 100).toFixed(2)}%`,
+            x: -20,
+            y: 40,
+            align: 'center',
             verticalAlign: 'middle',
             style: {
                 fontSize: '12',
@@ -61,12 +58,19 @@ export default function ProgressPieChart(props: {
                     width: 5,
                 },
                 innerSize: 90,
-                depth: 15,
                 colors: [greenGradient, redGradient, skippedGradient],
+                startAngle: -90,
+                endAngle: 90,
+                center: ['43%', '100%'],
+                size: '180%',
+                borderWidth: 0,
             },
         },
         series: [
             {
+                allowPointSelect: false,
+                shadow: true,
+
                 type: 'pie',
                 name: !props.isTestCases ? 'Suite Entities' : 'Test Entities',
                 data: [

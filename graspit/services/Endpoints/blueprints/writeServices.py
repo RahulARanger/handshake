@@ -9,6 +9,7 @@ from graspit.services.DBService.models.types import (
 )
 from graspit.services.DBService.shared import root_dir
 from graspit.services.DBService.models.static_base import StaticBase
+from graspit.services.SchedularService.constants import writtenAttachmentFolderName
 
 writeServices = Blueprint("WriteService", url_prefix="/write")
 
@@ -25,7 +26,7 @@ async def saveImage(request: Request) -> HTTPResponse:
 
     file_name = f"{record.attachmentID}.{record.type.lower()}"
     logger.info("Received a file from user, saving it as {}", file_name)
-    root = root_dir() / "Attachments"
+    root = root_dir() / writtenAttachmentFolderName
     root.mkdir(exist_ok=True)
     test_root = root / str((await (await record.entity).session).test_id)
     test_root.mkdir(exist_ok=True)
