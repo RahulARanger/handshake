@@ -1,4 +1,5 @@
 from graspit.services.CommandLine.export import handle_cli, general_requirement
+from graspit.services.CommandLine._init import general_but_optional_requirement
 from graspit.services.Endpoints.center import service_provider
 from graspit.services.DBService.lifecycle import (
     init_tortoise_orm,
@@ -79,7 +80,7 @@ Starts the Graspit server to listen for inputs at the specified port on localhos
 """,
 )
 @argument("PROJECT_NAME", nargs=1, required=True, type=str)
-@general_requirement
+@general_but_optional_requirement
 @option(
     "-p",
     "--port",

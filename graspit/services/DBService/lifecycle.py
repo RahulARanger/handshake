@@ -48,9 +48,6 @@ async def set_default_config():
         record = await ConfigBase.filter(key=str(key)).first()
         if not record:
             await ConfigBase.create(key=key, value=value)
-        else:
-            record.value = value
-            await record.save()
 
 
 async def close_connection():

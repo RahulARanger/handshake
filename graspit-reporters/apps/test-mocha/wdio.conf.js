@@ -6,11 +6,11 @@ const metaConfig = {
     reporterSyncTimeout: 40e3, // IMPORTANT
     runner: 'local',
     specs: [
-        // './test-mocha/specs/test.e2e.js',
-        './test-mocha/specs/package-version.e2e.js',
+        './test-mocha/specs/test.e2e.js',
+        // './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 10,
-    specFileRetries: 1,
+    specFileRetries: 0,
     //
     capabilities: [{
         browserName: 'chrome',
@@ -45,7 +45,7 @@ export const config = attachReporter(metaConfig, {
     collectionName: "TestResults",
     projectName: "NeXtReporter:Mocha",
     port: 6969,
-    timeout: 30e3,
+    timeout: 3e3,
     root,
     exePath: join(root, "dist", "graspit"),
     addScreenshots: true

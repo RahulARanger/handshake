@@ -41,8 +41,7 @@ export default class GraspItService
   }
 
   async onWorkerStart(): Promise<unknown> {
-    await Promise.resolve(this.supporter.waitUntilItsReady);
-    return {};
+    return this.supporter.waitUntilItsReady();
   }
 
   async flagToPyThatsItsDone(): Promise<void> {
@@ -61,9 +60,9 @@ export default class GraspItService
         this.resultsDir,
         this.options.root || process.cwd(),
         this.options?.export?.out,
-        this.options?.export?.isDynamic,
         this.options?.export?.maxTestRuns,
         this.options?.export?.skipPatch,
+        this.options.timeout,
       );
 
       if (hasError) {

@@ -15,7 +15,7 @@ from graspit.services.DBService.models.static_base import (
 )
 from graspit.services.DBService.models.enums import Status, SuiteType
 from sanic.blueprints import Blueprint
-from sanic.response import JSONResponse, text, HTTPResponse
+from sanic.response import JSONResponse, text, HTTPResponse, json
 from loguru import logger
 from sanic.request import Request
 from graspit.services.DBService.shared import get_test_id
@@ -27,7 +27,9 @@ service = Blueprint("DBService", url_prefix="/save")
 @service.on_response
 async def handle_response(request: Request, response: JSONResponse):
     if 200 <= response.status < 300:
-        return response
+        return json(
+            body=dict(response=response, test=get_test_id()), status=response.status
+        )
 
     await TestConfigBase.create(
         test_id=get_test_id(),

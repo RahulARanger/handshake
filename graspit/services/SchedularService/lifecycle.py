@@ -6,6 +6,7 @@ from graspit.services.DBService.lifecycle import close_connection
 from graspit.services.SchedularService.constants import JobType
 from datetime import datetime
 from loguru import logger
+from asyncio import run
 
 
 def verify_pending_jobs(scheduler: AsyncIOScheduler, mapped: List[bool]):
@@ -40,8 +41,8 @@ def start_loop():
     loop = get_event_loop()
     try:
         loop.run_forever()  # blocking
-    except (SystemExit, KeyboardInterrupt):
-        pass
+    except (KeyboardInterrupt, SystemExit):
+        logger.error("Received your signal, closing the loop.")
+        run(close_connection())
     finally:
-        if loop.is_running():
-            loop.close()
+        loop.close()

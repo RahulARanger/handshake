@@ -1,3 +1,5 @@
+import pprint
+
 from graspit.services.CommandLine.core import handle_cli, general_requirement
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from click import option
@@ -33,13 +35,18 @@ def patch(collection_path):
 async def setConfig(path: Path, feed: Dict[ConfigKeys, str]):
     await init_tortoise_orm(path)
 
-    to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
-    for to in to_change:
-        to.value = feed[to.key]
+    message = "Modified as requested, updated: {}" if feed else "config: {}"
 
-    await ConfigBase.bulk_update(to_change, fields=["value"])
-    logger.info("Done - {}", await ConfigBase.all().values_list())
+    if feed:
+        to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
+        for to in to_change:
+            to.value = feed[to.key]
 
+            await ConfigBase.bulk_update(to_change, fields=["value"])
+
+        logger.info("Modified as expected")
+
+    pprint.pprint(await ConfigBase.all().values_list(), indent=4)
     await close_connection()
 
 
@@ -64,7 +71,4 @@ def config(collection_path, max_runs):
     if max_runs > 1:
         feed[ConfigKeys.maxRuns] = max_runs
 
-    if feed:
-        run_async(setConfig(saved_db_path, feed))
-    else:
-        logger.warning("Skipped based on the input")
+    run_async(setConfig(saved_db_path, feed))

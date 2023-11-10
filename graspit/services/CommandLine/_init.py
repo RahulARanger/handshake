@@ -3,6 +3,9 @@ from click import group, argument, Path as C_Path
 general_requirement = argument(
     "COLLECTION_PATH", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True
 )
+general_but_optional_requirement = argument(
+    "COLLECTION_PATH", nargs=1, type=C_Path(dir_okay=True), required=True
+)
 
 
 @group(

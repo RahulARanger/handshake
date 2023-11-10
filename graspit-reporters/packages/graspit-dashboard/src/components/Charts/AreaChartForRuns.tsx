@@ -44,11 +44,11 @@ export default function AreaChartsForRuns(props: {
         xAxis: {
             type: 'datetime',
             labels: {
-                format: '{value:%d-%m %I:%M %p}',
+                format: '{value:%I %p, %d-%m}',
             },
             title: {
                 useHTML: true,
-                text: 'Start Date_Time (<em>month:day hr:min AM/PM</em>)',
+                text: 'Start Date_Time (<em>month:day hr AM/PM</em>)',
             },
             tickInterval: 1000 * 60 * 60,
         },

@@ -12,7 +12,7 @@ from shutil import rmtree
 from typing import List
 
 
-def addDeleteJob(_scheduler: AsyncIOScheduler, path: str, mapped: List[bool]):
+def addDeleteJob(_scheduler: AsyncIOScheduler, path: Path, mapped: List[bool]):
     _scheduler.add_job(
         deleteOldRuns,
         id=JobType.DELETE_RUNS,
@@ -23,26 +23,28 @@ def addDeleteJob(_scheduler: AsyncIOScheduler, path: str, mapped: List[bool]):
     )
 
 
-async def deleteOldRuns(db_path: str, punch_out: List[bool]):
+async def deleteOldRuns(db_path: Path, punch_out: List[bool]):
     max_requested = await ConfigBase.filter(key=ConfigKeys.maxRuns).first()
     count_of_all_runs = await RunBase.all().count()
 
     requested = max(int(max_requested.value), 2)
 
-    if count_of_all_runs > requested:
-        logger.info("Limit not exceeded, hence skipping deleteRuns Job")
+    if count_of_all_runs <= requested:
+        logger.info(
+            "Limit not exceeded, hence skipping deleteRuns Job. Found {} but max is {}",
+            count_of_all_runs,
+            requested,
+        )
         return punch_out.pop()
 
     recently_deleted = count_of_all_runs - requested
 
-    collected = (
-        RunBase.all().order_by("started").limit(count_of_all_runs - max_requested.value)
-    )
+    collected = RunBase.all().order_by("started").limit(count_of_all_runs - requested)
 
     runs = await collected.values_list("testID", flat=True)
     await collected.delete()
 
-    collection = Path(db_path).parent / writtenAttachmentFolderName
+    collection = db_path.parent / writtenAttachmentFolderName
 
     for run in runs:
         target = collection / run

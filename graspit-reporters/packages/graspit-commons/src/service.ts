@@ -33,13 +33,15 @@ export class ServiceDialPad extends DialPad {
     return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
   }
 
-  executeCommand(args: string[], isSync: boolean, cwd: string) {
+  executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
     const starter = isSync ? spawnSync : spawn;
 
     if (this.exePath == null) {
       const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
       logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
-      return starter(command, { shell: true, stdio: 'inherit', cwd });
+      return starter(command, {
+        timeout, shell: true, stdio: 'inherit', cwd,
+      });
     }
     logger.info(`🪖 Execute with ${args} for ${this.exePath} from ${cwd} => ${args.join(' ')}`);
 
@@ -63,7 +65,7 @@ export class ServiceDialPad extends DialPad {
     logger.warn(`Requesting a graspit server, command used: ${args.join(' ')} from ${rootDir}`);
 
     const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
-
+    this.pyProcess = pyProcess;
     pyProcess.stdout?.on('data', (chunk) => logger.info(chunk.toString()));
     pyProcess.stderr?.on('data', (chunk) => logger.error(chunk.toString()));
 
@@ -103,28 +105,33 @@ export class ServiceDialPad extends DialPad {
     }
   }
 
-  async waitUntilItsReady(): Promise<unknown> {
+  async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
       'Not able to connect with graspit-server within 10 seconds 😢, Please start again without interruption.',
     );
     return new Promise((resolve, reject) => {
-      const bomb = setTimeout(() => {
+      let timer: NodeJS.Timeout;
+      let bomb: NodeJS.Timeout;
+      const cleanup = () => { clearTimeout(bomb); clearInterval(timer); };
+
+      bomb = setTimeout(async () => {
+        cleanup();
+        await this.terminateServer();
         reject(waitingForTheServer);
-      }, 10e3);
+      }, force ?? 10e3);
 
-      const timer = setInterval(async () => {
+      timer = setInterval(async () => {
         const isOnline = await this.ping();
-        if (isOnline) {
-          clearTimeout(bomb);
-          clearInterval(timer);
 
+        if (isOnline) {
+          cleanup();
           logger.info('Server is online! 😀');
           resolve({});
         } else {
           logger.warn('😓 pinging server again...');
         }
       }, 3e3);
-    }).catch(this.terminateServer.bind(this));
+    });
   }
 
   async isServerTerminated(): Promise<boolean> {
@@ -136,7 +143,7 @@ export class ServiceDialPad extends DialPad {
   }
 
   async terminateServer() {
-    if (this.pyProcess?.killed) {
+    if (!this.pyProcess || this.pyProcess?.killed) {
       logger.warn('🙀 graspit process was already terminated.');
       return;
     }
@@ -172,9 +179,9 @@ export class ServiceDialPad extends DialPad {
     resultsDir: string,
     rootDir: string,
     outDir?: string,
-    isDynamic?: boolean,
     maxTestRuns?: number,
     skipPatch?: boolean,
+    timeout?:number,
   ): false | Error | undefined {
     if (skipPatch) {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
@@ -185,7 +192,7 @@ export class ServiceDialPad extends DialPad {
       logger.info(`Patching the results ⛑️, passing the command ${patchArgs}`);
     }
 
-    let result = this.executeCommand(patchArgs, true, rootDir) as SpawnSyncReturns<Buffer>;
+    let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
     // for patching
     if (outDir != null && result.error == null) {
       const exportArgs = ['export', this.patchArgPath(resultsDir), '--out', this.patchArgPath(outDir), '-r', (maxTestRuns ?? 100).toString()];
@@ -195,6 +202,7 @@ export class ServiceDialPad extends DialPad {
         exportArgs,
         true,
         process.cwd(),
+        timeout,
       ) as SpawnSyncReturns<Buffer>;
       return result.error;
     }
