@@ -1,11 +1,15 @@
+import pathlib
 from graspit.services.SchedularService.completeTestRun import (
     simplify_file_paths,
     fetch_key_from_status,
 )
+from graspit.services.DBService.models.config_base import ConfigKeys, ConfigBase
 from graspit.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
+from subprocess import run
+from pytest import mark
 
 
 class TestSimplifyPathTree:
@@ -88,3 +92,16 @@ def test_status_from_values():
     assert fetch_key_from_status(2, 2, 2) == Status.FAILED
     assert fetch_key_from_status(2, 0, 2) == Status.PASSED
     assert fetch_key_from_status(0, 0, 2) == Status.SKIPPED
+
+
+@mark.usefixtures("clean_close")
+class TestSetConfigCommand:
+    async def test_set_config_with_one_para(self, root_dir):
+        result = run(
+            f'graspit config "{root_dir}" -mr 3',
+            cwd=pathlib.Path(__file__).parent.parent / "dist",
+            shell=True,
+        )
+        assert result.returncode == 0
+        config_record = await ConfigBase.filter(key=ConfigKeys.maxRuns).first()
+        assert int(config_record.value) == 3

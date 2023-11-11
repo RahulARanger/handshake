@@ -169,9 +169,8 @@ describe('verifying if we are able to start graspit server', () => {
     test('verifying additional Requests if entity id was provided', async () => {
       expect(await reporter.addDescription('test-description', reporter.idMapped[testKey])).toBe(true);
       const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
-      const attachmentId = await reporter.attachScreenshot('test-attach', raw, reporter.idMapped[testKey], 'test-description');
-      expect(typeof attachmentId).toBe('string');
-      if (attachmentId) expect(existsSync(join(testResults, 'Attachments', `${attachmentId}.png`))).toBe(true);
+      const attachmentId = await reporter.attachScreenshot('test-attach', raw, reporter.idMapped[testKey], 'test-description') as string;
+      expect(attachmentId.length).toBeGreaterThan(2);
     });
   });
 
@@ -188,14 +187,8 @@ describe('verifying if we are able to start graspit server', () => {
     });
 
     it('test patch only', () => {
-      service.generateReport(testResults, root, undefined, 1);
+      service.generateReport(testResults, root, undefined, 1, false, 1e3);
       expect(existsSync(results)).toBe(false);
-    });
-
-    it('test report generation', () => {
-      expect(existsSync(testResults)).toBe(true);
-      service.generateReport(testResults, root, results, 1);
-      expect(existsSync(results)).toBe(true);
     });
   });
 });

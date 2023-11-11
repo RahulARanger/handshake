@@ -48,7 +48,9 @@ export class ServiceDialPad extends DialPad {
     return starter(
       this.exePath,
       args,
-      { shell: false, cwd, stdio: 'inherit' },
+      {
+        timeout, shell: false, cwd, stdio: 'inherit',
+      },
     );
   }
 

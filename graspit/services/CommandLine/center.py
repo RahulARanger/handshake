@@ -35,16 +35,12 @@ def patch(collection_path):
 async def setConfig(path: Path, feed: Dict[ConfigKeys, str]):
     await init_tortoise_orm(path)
 
-    message = "Modified as requested, updated: {}" if feed else "config: {}"
-
     if feed:
         to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
         for to in to_change:
             to.value = feed[to.key]
-
             await ConfigBase.bulk_update(to_change, fields=["value"])
-
-        logger.info("Modified as expected")
+        logger.info("Modified the requested values")
 
     pprint.pprint(await ConfigBase.all().values_list(), indent=4)
     await close_connection()
