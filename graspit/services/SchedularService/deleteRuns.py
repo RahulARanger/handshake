@@ -10,6 +10,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pathlib import Path
 from shutil import rmtree
 from typing import List
+from tortoise.expressions import Q
 
 
 def addDeleteJob(_scheduler: AsyncIOScheduler, path: Path, mapped: List[bool]):
@@ -39,22 +40,28 @@ async def deleteOldRuns(db_path: Path, punch_out: List[bool]):
 
     recently_deleted = count_of_all_runs - requested
 
-    collected = RunBase.all().order_by("started").limit(count_of_all_runs - requested)
-
-    runs = await collected.values_list("testID", flat=True)
-    await collected.delete()
+    runs = (
+        await RunBase.all()
+        .order_by("started")
+        .limit(count_of_all_runs - requested)
+        .values_list("testID", flat=True)
+    )
+    await RunBase.filter(Q(testID__in=runs)).delete()
 
     collection = db_path.parent / writtenAttachmentFolderName
 
-    for run in runs:
-        target = collection / run
-        if not target.exists():
+    for _run in runs:
+        run = str(_run)  # UUID to string
+
+        entry = collection / run
+        if not entry.exists():
             continue
 
         logger.warning("Deleting the attachments for run {}", run)
-        rmtree(target)
+        rmtree(entry)
 
     await ConfigBase.update_or_create(
-        dict(key=ConfigKeys.recentlyDeleted, value=recently_deleted)
+        key=ConfigKeys.recentlyDeleted, value=str(recently_deleted)
     )
+    logger.info("Delete job is completed.")
     return punch_out.pop()

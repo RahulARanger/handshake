@@ -45,7 +45,7 @@ export const config = attachReporter(metaConfig, {
     collectionName: "TestResults",
     projectName: "NeXtReporter:Mocha",
     port: 6969,
-    timeout: 3e3,
+    timeout: 30e3,
     root,
     exePath: join(root, "dist", "graspit"),
     addScreenshots: true

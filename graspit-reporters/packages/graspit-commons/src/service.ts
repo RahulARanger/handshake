@@ -49,7 +49,7 @@ export class ServiceDialPad extends DialPad {
       this.exePath,
       args,
       {
-        timeout, shell: false, cwd, stdio: 'inherit',
+        timeout, shell: false, cwd, stdio: 'inherit', detached: false,
       },
     );
   }
@@ -98,13 +98,8 @@ export class ServiceDialPad extends DialPad {
 
   async ping(): Promise<boolean> {
     logger.warn('pinging py-server 👆...');
-
-    try {
-      const resp = await superagent.get(`${this.url}/`);
-      return resp.statusCode === 200;
-    } catch {
-      return false;
-    }
+    const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
+    return resp?.statusCode === 200;
   }
 
   async waitUntilItsReady(force?:number): Promise<unknown> {
@@ -154,9 +149,12 @@ export class ServiceDialPad extends DialPad {
     for (let worker = 0; worker < 2; worker += 1) {
       logger.info('📞 Requesting for worker termination');
       results.push(
-        superagent.post(`${this.url}/bye`).retry(2).catch(() => {
-          logger.info('→ Py Process was closed 😪');
-        }),
+        superagent
+          .post(`${this.url}/bye`)
+          .retry(2)
+          .catch(() => {
+            logger.info('→ Py Process was closed 😪');
+          }),
       );
     }
     await Promise.all(results);
@@ -166,14 +164,16 @@ export class ServiceDialPad extends DialPad {
     logger.info(
       `📃 Updating config for this current test run with ${payload}.`,
     );
-
     const resp = await superagent
       .put(this.updateRunConfigUrl)
-      .send(JSON.stringify(payload));
+      .send(JSON.stringify(payload))
+      .catch((err) => logger.error(`⚠️ Failed to update the config: ${err}`));
 
-    logger.info(
-      `Updated config 🐰 for the test run: ${resp.text}`,
-    );
+    if (resp) {
+      logger.info(
+        `Updated config 🐰 for the test run: ${resp.text}`,
+      );
+    }
     return resp;
   }
 
@@ -212,10 +212,13 @@ export class ServiceDialPad extends DialPad {
   }
 
   async markTestRunCompletion() {
-    await superagent.put(`${this.url}/done`).retry(3).then(
-      async (data) => {
-        logger.info(`Marked Test Run: ${data.text} for patching.`);
-      },
-    );
+    await superagent
+      .put(`${this.url}/done`)
+      .retry(3)
+      .then(
+        async (data) => {
+          logger.info(`Marked Test Run: ${data.text} for patching.`);
+        },
+      ).catch((err) => logger.error(`⚠️ Failed to mark test run completion: ${err}`));
   }
 }

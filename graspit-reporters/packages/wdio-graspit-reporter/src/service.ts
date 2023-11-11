@@ -1,8 +1,4 @@
 import { join } from 'node:path';
-import {
-  setTimeout,
-  clearTimeout,
-} from 'node:timers';
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Options, Services } from '@wdio/types';
 import { ContactsForService } from './contacts';
@@ -44,41 +40,28 @@ export default class GraspItService
     return this.supporter.waitUntilItsReady();
   }
 
-  async flagToPyThatsItsDone(): Promise<void> {
+  async flagToPyThatsItsDone() {
     // closing graspit server for now.
     await this.supporter.terminateServer();
 
-    const reportError = new Error(
-      'Failed to generate Report on time 😢, please note the errors if any seen.',
+    const hasError = this.supporter.generateReport(
+      this.resultsDir,
+      this.options.root || process.cwd(),
+      this.options?.export?.out,
+      this.options?.export?.maxTestRuns,
+      this.options?.export?.skipPatch,
+      this.options.timeout,
     );
-    return new Promise((resolve, reject) => {
-      const bomb = setTimeout(async () => {
-        reject(reportError);
-      }, this.options.timeout);
+    if (hasError) {
+      this.logger.error(`Failed to patch results, because of ${hasError.message}`);
+      return;
+    }
 
-      const hasError = this.supporter.generateReport(
-        this.resultsDir,
-        this.options.root || process.cwd(),
-        this.options?.export?.out,
-        this.options?.export?.maxTestRuns,
-        this.options?.export?.skipPatch,
-        this.options.timeout,
-      );
-
-      if (hasError) {
-        this.logger.error(`Failed to patch results, because of ${hasError.message}`);
-        reject(reportError);
-        return;
-      }
-
-      clearTimeout(bomb);
-      this.logger.info(
-        this.options.export?.out
-          ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.export?.out}"`
-          : 'Results are patched 🤩. Now we are ready to export it.',
-      );
-      resolve();
-    });
+    this.logger.info(
+      this.options.export?.out
+        ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.export?.out}"`
+        : 'Results are patched 🤩. Now we are ready to export it.',
+    );
   }
 
   async onComplete(
