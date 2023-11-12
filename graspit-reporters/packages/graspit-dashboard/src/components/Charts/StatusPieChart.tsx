@@ -6,6 +6,9 @@ import HighchartsReact from 'highcharts-react-official';
 import highContrastDark from 'highcharts/themes/high-contrast-dark';
 import { greenGradient, redGradient, skippedGradient } from './constants';
 import { toolTipFormats } from '../utils/counter';
+import { REM } from 'next/font/google';
+
+const serif = REM({ subsets: ['latin'], weight: '300' });
 
 if (typeof Highcharts === 'object') {
     highContrastDark(Highcharts);
@@ -33,6 +36,7 @@ export default function ProgressPieChart(props: {
             spacing: [0, 0, 0, 0],
             margin: [0, 0, 0, 0],
             height: 120,
+            style: { fontFamily: serif.style.fontFamily },
         },
         tooltip: toolTipFormats,
         title: {
@@ -91,6 +95,7 @@ export default function ProgressPieChart(props: {
                     style: {
                         textOutline: '0px',
                         color: 'white',
+                        fontWeight: 'normal',
                     },
                     alignTo: 'center',
                     distance: 10,

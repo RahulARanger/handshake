@@ -1,9 +1,11 @@
 import type TestRunRecord from 'src/types/testRunRecords';
 import {
     getOverAllAggResultsURL,
+    getRelatedRuns,
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
+    runPage,
 } from 'src/components/scripts/helper';
 import type {
     AttachmentContent,
@@ -39,6 +41,8 @@ import Switch from 'antd/lib/switch';
 import Tooltip from 'antd/lib/tooltip/index';
 import Divider from 'antd/lib/divider/index';
 import Table from 'antd/lib/table/Table';
+import type { TimelineProps } from 'antd/lib/timeline/Timeline';
+import Timeline from 'antd/lib/timeline/Timeline';
 import MetaCallContext from './context';
 import useSWR from 'swr';
 import Description, {
@@ -51,7 +55,11 @@ import type {
 import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
 import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
 import type { SuiteDetails } from 'src/types/generatedResponse';
-import { convertForWrittenAttachments } from 'src/components/parseUtils';
+import {
+    convertForWrittenAttachments,
+    timelineColor,
+} from 'src/components/parseUtils';
+import { Badge, Button, Popover } from 'antd/lib';
 
 function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
     const data = props.suites;
@@ -94,7 +102,7 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
         >
             <Table.Column
                 title="Status"
-                width={50}
+                width={60}
                 align="center"
                 dataIndex="standing"
                 render={(value: statusOfEntity) => (
@@ -123,7 +131,7 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
             <Table.Column
                 dataIndex="started"
                 title="Started"
-                width={60}
+                width={100}
                 render={(value: string) => (
                     <Tooltip title={dayjs(value).format(dateFormatUsed)}>
                         {dayjs(value).format(timeFormatUsed)}
@@ -133,7 +141,7 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
             />
             <Table.Column
                 title="Ended"
-                width={60}
+                width={100}
                 dataIndex="ended"
                 render={(value: string) => (
                     <Tooltip title={dayjs(value).format(dateFormatUsed)}>
@@ -169,7 +177,7 @@ function PreviewForImages(): ReactNode {
                     index={index}
                     key={index}
                     title={image.title}
-                    maxHeight={'150px'}
+                    maxHeight={'200px'}
                 />
             ))}
         </GalleryOfImages>
@@ -313,6 +321,13 @@ function DescriptiveValues(): ReactNode {
             children: <StatisticNumber end={aggResults.imageCount} />,
         },
         {
+            children: (
+                <RenderSystemType systemName={configValue.platformName} />
+            ),
+            key: 'system',
+            label: 'System',
+        },
+        {
             key: 'browsers',
             label: 'Browsers',
             children: (
@@ -327,22 +342,109 @@ function DescriptiveValues(): ReactNode {
                 </>
             ),
         },
-        {
-            children: (
-                <RenderSystemType systemName={configValue.platformName} />
-            ),
-            key: 'system',
-            label: 'System',
-        },
     ];
 
-    return <Description items={extras} bordered size="small" />;
+    return (
+        <Description
+            style={{ marginTop: '6px' }}
+            items={extras}
+            bordered
+            size="small"
+        />
+    );
 }
 
 function TimelineView(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
-    const { data: aggResults } = useSWR<OverallAggResults>(
-        getOverAllAggResultsURL(port, testID),
+    const { data: relatedRuns } = useSWR<TestRunRecord[]>(
+        getRelatedRuns(port, testID),
+    );
+    if (relatedRuns == null) return <></>;
+
+    const items: TimelineProps['items'] = relatedRuns.map((run) => ({
+        children:
+            testID === run.testID ? (
+                <Badge size="small" color="orange" style={{ zoom: 1.5 }} dot>
+                    <Button
+                        type="text"
+                        size="small"
+                        style={{ marginLeft: '-10px', cursor: 'alias' }}
+                    >
+                        {dayjs(run.started).fromNow()}
+                    </Button>
+                </Badge>
+            ) : (
+                <Popover
+                    content={
+                        <Space direction="vertical" style={{ padding: '2px' }}>
+                            <Space
+                                align="baseline"
+                                split={<Divider type="vertical" />}
+                            >
+                                <Typography>
+                                    {dayjs(run.started).format(dateFormatUsed)}
+                                </Typography>
+                                <RenderDuration
+                                    value={dayjs.duration(run.duration)}
+                                    style={{
+                                        maxWidth: '60px',
+                                        minWidth: '60px',
+                                    }}
+                                />
+                            </Space>
+                            <RelativeTo
+                                dateTime={dayjs(run.started)}
+                                style={{
+                                    maxWidth: '180px',
+                                }}
+                                secondDateTime={dayjs(run.ended)}
+                            />
+                        </Space>
+                    }
+                    title={
+                        <Space>
+                            <RenderPassedRate
+                                value={[run.passed, run.failed, run.skipped]}
+                            />
+                        </Space>
+                    }
+                >
+                    {run.testID !== testID ? (
+                        <Button
+                            type={'text'}
+                            size="small"
+                            style={{ marginLeft: '-10px' }}
+                            href={runPage(run.testID)}
+                            target="_blank"
+                        >
+                            {dayjs(run.started).fromNow()}
+                        </Button>
+                    ) : (
+                        <></>
+                    )}
+                </Popover>
+            ),
+        key: run.testID,
+        color: timelineColor(run.standing),
+    }));
+
+    return (
+        <>
+            <Typography style={{ position: 'relative' }}>
+                Related Runs:
+            </Typography>
+            <Timeline
+                mode="left"
+                items={items}
+                style={{
+                    maxHeight: '250px',
+                    paddingRight: '6px',
+                    paddingTop: '12px',
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                }}
+            />
+        </>
     );
 }
 
@@ -355,17 +457,27 @@ export default function Overview(): ReactNode {
     if (aggResults == null) return <></>;
 
     return (
-        <Space direction="vertical" style={{ rowGap: '10px' }}>
-            <Space style={{ columnGap: '10px', alignItems: 'stretch' }}>
+        <Space direction="vertical" style={{ rowGap: '10px', width: '99%' }}>
+            <Space
+                style={{
+                    columnGap: '10px',
+                    justifyContent: 'space-evenly',
+                    width: '99%',
+                }}
+            >
                 <PieChart />
                 <TopSuites suites={aggResults.recentSuites} />
             </Space>
             <Space
                 align="start"
-                style={{ columnGap: '10px', alignItems: 'stretch' }}
+                style={{
+                    justifyContent: 'space-between',
+                    width: '99%',
+                }}
             >
                 <PreviewForImages />
                 <DescriptiveValues />
+                <TimelineView />
             </Space>
         </Space>
     );

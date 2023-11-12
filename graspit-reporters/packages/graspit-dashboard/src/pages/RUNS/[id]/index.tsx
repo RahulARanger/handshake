@@ -1,5 +1,6 @@
 import {
     getOverAllAggResultsURL,
+    getRelatedRuns,
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
@@ -24,6 +25,7 @@ import {
 import Overview from 'src/components/core/TestRun/Overview';
 import { attachmentPrefix } from 'src/components/core/TestRun/context';
 import staticPaths from 'src/components/scripts/RunPage/generatePaths';
+import { getDetailsOfRelatedRuns } from 'src/components/scripts/runs';
 
 export const getStaticPaths = staticPaths;
 export async function getStaticProps(prepareProps: {
@@ -49,6 +51,10 @@ export async function getStaticProps(prepareProps: {
 
     const testRunConfig = await getTestRunConfigRecords(connection, testID);
     const aggResults = await getSomeAggResults(connection, testID);
+    const relatedRuns = await getDetailsOfRelatedRuns(
+        connection,
+        details.projectName,
+    );
 
     await connection.close();
     const port = process.env.NEXT_PUBLIC_PY_PORT ?? '1212';
@@ -62,6 +68,7 @@ export async function getStaticProps(prepareProps: {
                 [getSessionSummaryURL(port, testID)]: sessions,
                 [getTestRunConfig(port, testID)]: testRunConfig,
                 [getOverAllAggResultsURL(port, testID)]: aggResults,
+                [getRelatedRuns(port, testID)]: relatedRuns,
             },
             testID,
             port,

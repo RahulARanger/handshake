@@ -25,6 +25,10 @@ export function getTestRun(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/run?test_id=${filler(testID)}`;
 }
 
+export function getRelatedRuns(port?: string, testID?: string): string {
+    return `${serverURL(port)}/get/relatedRuns?test_id=${filler(testID)}`;
+}
+
 export function getSuites(port?: string, testID?: string): string {
     return `${serverURL(filler(port))}/get/suites?test_id=${filler(testID)}`;
 }

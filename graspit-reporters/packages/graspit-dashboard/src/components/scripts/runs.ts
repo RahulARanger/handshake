@@ -2,11 +2,14 @@ import type { dbConnection } from 'src/components/scripts/connection';
 import type { TestRunSummary } from 'src/types/testRunRecords';
 import type TestRunRecord from 'src/types/testRunRecords';
 
+const miniConditionForTestRuns = "WHERE ended <> ''";
+const conditionForTestRuns = `${miniConditionForTestRuns} order by started desc limit ?`;
+
 export default async function latestTestRun(
     connection: dbConnection,
 ): Promise<string> {
     const result = await connection.get<{ testID: string }>(
-        "select testID from runbase where started = (select max(started) from runbase where ended <> '');",
+        `select testID from runbase where started = (select max(started) from runbase ${miniConditionForTestRuns});`,
     );
     return result?.testID ?? '';
 }
@@ -26,8 +29,28 @@ export async function getAllTestRunDetails(
     maxTestRuns?: number,
 ): Promise<TestRunRecord[] | undefined> {
     return connection.all<TestRunRecord[]>(
-        "SELECT * from runbase where ended <> '' order by started desc LIMIT ?",
+        `SELECT * from runbase ${conditionForTestRuns}`,
         maxTestRuns ?? -1,
+    );
+}
+
+export async function getDetailsOfRelatedRuns(
+    connection: dbConnection,
+    projectName: string,
+    maxTestRuns?: number,
+) {
+    const runs = (
+        await connection.all<Array<{ testID: string }>>(
+            `select testID from runbase ${conditionForTestRuns}`,
+            maxTestRuns ?? -1,
+        )
+    )?.map((run) => run.testID);
+    const sqlHelperForRuns = `(${runs.map(() => '?').join(',')})`;
+
+    return connection.all<TestRunRecord[]>(
+        `SELECT * from runbase where projectName = ? and testID in ${sqlHelperForRuns};`,
+        projectName,
+        ...runs,
     );
 }
 
