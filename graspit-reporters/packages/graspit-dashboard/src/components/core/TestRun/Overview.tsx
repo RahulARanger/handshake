@@ -146,9 +146,117 @@ function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
     );
 }
 
-export default function Overview(): ReactNode {
+function PreviewForImages(): ReactNode {
     const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
+    const { data: aggResults } = useSWR<OverallAggResults>(
+        getOverAllAggResultsURL(port, testID),
+    );
+    if (testID == null || aggResults == null) return <></>;
+    const allImages: AttachmentContent[] = aggResults.randomImages.map(
+        (image) => JSON.parse(image),
+    );
+    const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
+
+    return images.length > 0 ? (
+        <GalleryOfImages loop={true} maxWidth={'500px'}>
+            {images.map((image, index) => (
+                <CardForAImage
+                    url={convertForWrittenAttachments(
+                        attachmentPrefix ?? '',
+                        testID,
+                        image.value,
+                    )}
+                    index={index}
+                    key={index}
+                    title={image.title}
+                    maxHeight={'150px'}
+                />
+            ))}
+        </GalleryOfImages>
+    ) : (
+        <></>
+    );
+}
+
+function PieChart(): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
     const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+
+    const [isTest, setTest] = useState<boolean>(true);
+
+    if (testID == null || run == null) return <></>;
+
+    const startedAt = dayjs(run.started);
+    const total = isTest ? run.tests : JSON.parse(run.suiteSummary).count;
+    return (
+        <Card
+            bordered
+            style={{ minHeight: '220px', maxWidth: '350px' }}
+            title={
+                <Space align="center">
+                    <Typography>Executed</Typography>
+                    <Counter end={total} maxDigits={run.tests} />
+                    <Typography>
+                        <Switch
+                            key={'switch'}
+                            defaultChecked
+                            size="small"
+                            checkedChildren={<>Test Cases</>}
+                            unCheckedChildren={<>Test Suites</>}
+                            onChange={(checked) => {
+                                setTest(checked);
+                            }}
+                            checked={isTest}
+                            style={{
+                                marginBottom: '2px',
+                                marginRight: '5px',
+                            }}
+                        />
+                    </Typography>
+                    <Typography>
+                        {`On ${startedAt.format(dateFormatUsed)}`}
+                    </Typography>
+                </Space>
+            }
+            size="small"
+            actions={[
+                <Meta
+                    key="started"
+                    description={
+                        <Tooltip title="Time Range | Duration">
+                            <Space
+                                split={
+                                    <Divider
+                                        type="vertical"
+                                        style={{ margin: '0px' }}
+                                    />
+                                }
+                                align="baseline"
+                            >
+                                <RelativeTo
+                                    dateTime={startedAt}
+                                    style={{
+                                        marginLeft: '30px',
+                                        maxWidth: '220px',
+                                    }}
+                                    secondDateTime={dayjs(run.ended)}
+                                />
+                                <RenderDuration
+                                    value={dayjs.duration(run.duration)}
+                                />
+                            </Space>
+                        </Tooltip>
+                    }
+                />,
+            ]}
+        >
+            <ProgressPieChart run={run} isTestCases={isTest} />
+        </Card>
+    );
+}
+
+function DescriptiveValues(): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
     const { data: aggResults } = useSWR<OverallAggResults>(
         getOverAllAggResultsURL(port, testID),
     );
@@ -160,30 +268,13 @@ export default function Overview(): ReactNode {
         getTestRunConfig(port, testID),
     );
 
-    const [isTest, setTest] = useState<boolean>(true);
-
     if (
         testID == null ||
         aggResults == null ||
         sessions == null ||
-        run == null ||
         runConfig == null
     )
         return <></>;
-
-    const allImages: AttachmentContent[] = aggResults.randomImages.map(
-        (image) => JSON.parse(image),
-    );
-
-    const testRunConfig = runConfig
-        .filter((config) => config.type === 'CONFIG')
-        .at(0);
-
-    const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
-
-    const configValue = JSON.parse(
-        testRunConfig?.attachmentValue ?? '',
-    ) as AttachmentValueForConfig;
 
     const browsersUsed: Record<string, number> = {};
     sessions.forEach((sessionObj) => {
@@ -192,8 +283,13 @@ export default function Overview(): ReactNode {
         else browsersUsed[sessionObj.entityName] = sessionObj.tests;
     });
 
-    const startedAt = dayjs(run.started);
-    const total = isTest ? run.tests : JSON.parse(run.suiteSummary).count;
+    const testRunConfig = runConfig
+        .filter((config) => config.type === 'CONFIG')
+        .at(0);
+
+    const configValue = JSON.parse(
+        testRunConfig?.attachmentValue ?? '',
+    ) as AttachmentValueForConfig;
 
     const extras: DescriptionsProps['items'] = [
         {
@@ -240,98 +336,36 @@ export default function Overview(): ReactNode {
         },
     ];
 
+    return <Description items={extras} bordered size="small" />;
+}
+
+function TimelineView(): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
+    const { data: aggResults } = useSWR<OverallAggResults>(
+        getOverAllAggResultsURL(port, testID),
+    );
+}
+
+export default function Overview(): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
+    const { data: aggResults } = useSWR<OverallAggResults>(
+        getOverAllAggResultsURL(port, testID),
+    );
+
+    if (aggResults == null) return <></>;
+
     return (
         <Space direction="vertical" style={{ rowGap: '10px' }}>
             <Space style={{ columnGap: '10px', alignItems: 'stretch' }}>
-                <Card
-                    bordered
-                    style={{ minHeight: '220px', maxWidth: '350px' }}
-                    title={
-                        <Space align="center">
-                            <Typography>Executed</Typography>
-                            <Counter end={total} maxDigits={run.tests} />
-                            <Typography>
-                                <Switch
-                                    key={'switch'}
-                                    defaultChecked
-                                    size="small"
-                                    checkedChildren={<>Test Cases</>}
-                                    unCheckedChildren={<>Test Suites</>}
-                                    onChange={(checked) => {
-                                        setTest(checked);
-                                    }}
-                                    checked={isTest}
-                                    style={{
-                                        marginBottom: '2px',
-                                        marginRight: '5px',
-                                    }}
-                                />
-                            </Typography>
-                            <Typography>
-                                {`On ${startedAt.format(dateFormatUsed)}`}
-                            </Typography>
-                        </Space>
-                    }
-                    size="small"
-                    actions={[
-                        <Meta
-                            key="started"
-                            description={
-                                <Tooltip title="Time Range | Duration">
-                                    <Space
-                                        split={
-                                            <Divider
-                                                type="vertical"
-                                                style={{ margin: '0px' }}
-                                            />
-                                        }
-                                        align="baseline"
-                                    >
-                                        <RelativeTo
-                                            dateTime={startedAt}
-                                            style={{
-                                                marginLeft: '30px',
-                                                maxWidth: '220px',
-                                            }}
-                                            secondDateTime={dayjs(run.ended)}
-                                        />
-                                        <RenderDuration
-                                            value={dayjs.duration(run.duration)}
-                                        />
-                                    </Space>
-                                </Tooltip>
-                            }
-                        />,
-                    ]}
-                >
-                    <ProgressPieChart run={run} isTestCases={isTest} />
-                </Card>
+                <PieChart />
                 <TopSuites suites={aggResults.recentSuites} />
             </Space>
             <Space
                 align="start"
                 style={{ columnGap: '10px', alignItems: 'stretch' }}
             >
-                {images.length > 0 ? (
-                    <GalleryOfImages loop={true} maxWidth={'500px'}>
-                        {images.map((image, index) => (
-                            <CardForAImage
-                                url={convertForWrittenAttachments(
-                                    attachmentPrefix ?? '',
-                                    testID,
-                                    image.value,
-                                )}
-                                index={index}
-                                key={index}
-                                title={image.title}
-                                maxHeight={'150px'}
-                            />
-                        ))}
-                    </GalleryOfImages>
-                ) : (
-                    <></>
-                )}
-                <Description items={extras} bordered size="small" />
+                <PreviewForImages />
+                <DescriptiveValues />
             </Space>
         </Space>
     );

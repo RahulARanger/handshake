@@ -199,7 +199,7 @@ async def patchValues(test_run: RunBase):
         dict(
             started=started,
             ended=ended,
-            tests=test_result.get("total_tests", 0),
+            tests=test_result.get("tests", 0),
             passed=passed,
             failed=failed,
             skipped=skipped,

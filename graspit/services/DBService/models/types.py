@@ -71,6 +71,6 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     maxInstances: Optional[int]
     platformName: str
     framework: str
-    exitCode: str
+    exitCode: int
     saveOptions: Optional[Dict]
     fileRetries: int

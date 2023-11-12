@@ -7,7 +7,7 @@ const metaConfig = {
     runner: 'local',
     specs: [
         './test-mocha/specs/test.e2e.js',
-        // './test-mocha/specs/package-version.e2e.js',
+        './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 10,
     specFileRetries: 0,
