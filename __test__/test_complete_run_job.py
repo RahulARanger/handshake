@@ -16,28 +16,6 @@ from graspit.services.SchedularService.register import register_patch_test_run
 @mark.usefixtures("sample_test_session")
 class TestRunCompletion:
     # testing the Patch Test Run
-
-    async def test_run_with_no_sessions(self, sample_test_run, patch):
-        test = await sample_test_run
-        await SessionBase.filter(test_id=test.testID).delete()
-        assert not await SessionBase.filter(
-            test_id=test.testID
-        ).exists(), "Session should not exist!"
-        await register_patch_test_run(test.testID)
-
-        patch()
-
-        error = await TestConfigBase.filter(
-            test_id=test.testID, type=AttachmentType.ERROR
-        ).first()
-
-        assert (
-            error is not None
-        ), "Test run should be marked with an error in case of any error"
-        assert (
-            "no sessions" in error.attachmentValue["reason"]
-        ), "There should be a valid reason"
-
     async def test_error_handling(self, sample_test_session, patch):
         test = (await sample_test_session).test_id
         await register_patch_test_run(test)

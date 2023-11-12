@@ -1,6 +1,5 @@
-import base64
 import uuid
-from typing import Union, Iterable, List, Optional, Any
+from typing import List, Optional, Dict
 from graspit.services.DBService.models.enums import Status, SuiteType, AttachmentType
 from pydantic import BaseModel
 from datetime import datetime
@@ -71,3 +70,7 @@ class ValueForTestRunConfigBase(TypedDict):
 class PydanticModalForTestRunConfigBase(BaseModel):
     maxInstances: Optional[int]
     platformName: str
+    framework: str
+    exitCode: str
+    saveOptions: Optional[Dict]
+    fileRetries: int

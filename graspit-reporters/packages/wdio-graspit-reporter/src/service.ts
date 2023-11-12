@@ -18,28 +18,6 @@ export default class GraspItService
     return join('venv', 'Scripts', 'activate');
   }
 
-  onPrepare(options: Options.Testrunner)
-  // capabilities: Capabilities.RemoteCapabilities
-    : void {
-    const { root: rootDir, projectName } = this.options;
-    this.logger.info('Starting py-process 🚚...');
-    const { resultsDir } = this;
-
-    if (!existsSync(resultsDir)) {
-      mkdirSync(resultsDir);
-    }
-
-    this.supporter.startService(
-      projectName ?? options.framework ?? 'unknown',
-      resultsDir,
-      rootDir,
-    );
-  }
-
-  async onWorkerStart(): Promise<unknown> {
-    return this.supporter.waitUntilItsReady();
-  }
-
   async flagToPyThatsItsDone() {
     // closing graspit server for now.
     await this.supporter.terminateServer();
@@ -64,6 +42,28 @@ export default class GraspItService
     );
   }
 
+  onPrepare(options: Options.Testrunner)
+  // capabilities: Capabilities.RemoteCapabilities
+    : void {
+    const { root: rootDir, projectName } = this.options;
+    this.logger.info('😇 Starting py-process.');
+    const { resultsDir } = this;
+
+    if (!existsSync(resultsDir)) {
+      mkdirSync(resultsDir);
+    }
+
+    this.supporter.startService(
+      projectName ?? options.framework ?? 'unknown',
+      resultsDir,
+      rootDir,
+    );
+  }
+
+  async onWorkerStart(): Promise<unknown> {
+    return this.supporter.waitUntilItsReady();
+  }
+
   async onComplete(
     exitCode: number,
     config: Options.Testrunner,
@@ -75,6 +75,13 @@ export default class GraspItService
     await this.supporter.updateRunConfig({
       maxInstances: config.maxInstances ?? 1,
       platformName,
+      framework: config.framework ?? 'WebdriverIO',
+      fileRetries: config.specFileRetries ?? 0,
+      saveOptions: {
+        bail: config.bail,
+        protocol: config.baseUrl,
+      },
+      exitCode,
     });
 
     const completed = this.supporter.pyProcess?.killed;

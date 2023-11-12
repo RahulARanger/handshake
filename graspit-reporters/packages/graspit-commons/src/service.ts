@@ -11,6 +11,7 @@ import {
 } from 'node:timers';
 import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
 import DialPad from './dialPad';
+import { UpdateTestRunConfig } from './payload';
 
 const logger = log4js.getLogger('graspit-service-commons');
 
@@ -37,6 +38,7 @@ export class ServiceDialPad extends DialPad {
     const starter = isSync ? spawnSync : spawn;
 
     if (this.exePath == null) {
+      // not recommended unless if a use case was shared
       const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
       logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
       return starter(command, {
@@ -160,7 +162,7 @@ export class ServiceDialPad extends DialPad {
     await Promise.all(results);
   }
 
-  async updateRunConfig(payload: any) {
+  async updateRunConfig(payload: UpdateTestRunConfig) {
     logger.info(
       `📃 Updating config for this current test run with ${payload}.`,
     );

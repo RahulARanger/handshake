@@ -1,7 +1,12 @@
-import datetime
 from pytest import mark
-from graspit.services.DBService.models import SuiteBase, RollupBase, RunBase
-from graspit.services.DBService.models.enums import SuiteType, Status
+from graspit.services.DBService.models import (
+    SuiteBase,
+    RollupBase,
+    RunBase,
+    SessionBase,
+    TestConfigBase,
+)
+from graspit.services.DBService.models.enums import Status, AttachmentType
 from graspit.services.SchedularService.modifySuites import patchTestSuite
 from graspit.services.SchedularService.completeTestRun import patchTestRun
 from graspit.services.SchedularService.register import (
@@ -12,21 +17,13 @@ from graspit.services.SchedularService.register import (
 
 @mark.usefixtures("sample_test_session")
 class TestPatchSuiteJob:
-    async def test_empty_suite(self, sample_test_session):
+    async def test_empty_suite(self, sample_test_session, create_suite):
         session = await sample_test_session
         test_id = session.test_id
 
         session_id = str(session.sessionID)
 
-        parent_suite = await SuiteBase.create(
-            session_id=session_id,
-            suiteType=SuiteType.SUITE,
-            started=datetime.datetime.now().isoformat(),
-            title="suite-parent",
-            standing=Status.YET_TO_CALCULATE,
-            file="test-1.js",
-            parent="",
-        )
+        parent_suite = await create_suite(session_id, "suite-parent")
         parent_id = str(parent_suite.suiteID)
 
         await register_patch_suite(parent_id, test_id)
@@ -47,50 +44,20 @@ class TestPatchSuiteJob:
             == 0
         ), "Patching any empty suite has 0s with passed as status"
 
-    async def test_rollup_values(self, sample_test_run, sample_test_session):
+    async def test_rollup_values(
+        self, sample_test_run, sample_test_session, create_suite, create_tests
+    ):
         session = await sample_test_session
         test_id = session.test_id
-
         session_id = str(session.sessionID)
 
-        parent_suite = await SuiteBase.create(
-            session_id=session_id,
-            suiteType=SuiteType.SUITE,
-            started=datetime.datetime.now().isoformat(),
-            title="suite-parent",
-            standing=Status.YET_TO_CALCULATE,
-            file="test-1.js",
-            parent="",
-        )
-
+        parent_suite = await create_suite(session_id)
         parent_id = str(parent_suite.suiteID)
 
-        suite = await SuiteBase.create(
-            session_id=session_id,
-            suiteType=SuiteType.SUITE,
-            started=datetime.datetime.now().isoformat(),
-            title="suite-1",
-            standing=Status.YET_TO_CALCULATE,
-            file="test-1.js",
-            parent=parent_id,
-        )
-
+        suite = await create_suite(session_id, "suite-1", parent_id)
         suite_id = str(suite.suiteID)
 
-        for test in range(3):
-            for _ in (Status.PASSED, Status.FAILED, Status.SKIPPED):
-                await SuiteBase.create(
-                    session_id=session_id,
-                    suiteType=SuiteType.TEST,
-                    started=datetime.datetime.now().isoformat(),
-                    title="test-1-" + _,
-                    standing=_,
-                    file="test-1.js",
-                    tests=1,
-                    parent=str(suite.suiteID),
-                    **{_.lower(): 1},
-                )
-
+        await create_tests(session_id, suite_id)
         await register_patch_suite(suite_id, test_id)
         await register_patch_suite(parent_id, test_id)
 
@@ -100,6 +67,7 @@ class TestPatchSuiteJob:
         child_suite = await SuiteBase.filter(suiteID=suite_id).first()
         assert child_suite.passed == child_suite.failed == child_suite.skipped == 3
         assert child_suite.tests == 9
+
         child_rollup_suite = await RollupBase.filter(suite_id=suite_id).first()
         assert (
             child_rollup_suite.passed
@@ -123,55 +91,17 @@ class TestPatchSuiteJob:
         )
         assert parent_rollup_suite.tests == 9
 
-    async def test_rollup_errors(self, sample_test_session):
+    async def test_rollup_errors(
+        self, sample_test_session, create_suite, create_hierarchy
+    ):
         session = await sample_test_session
         test_id = session.test_id
         session_id = session.sessionID
+        parent_suite = await create_suite(session_id)
 
-        parent_suite = await SuiteBase.create(
-            session_id=session_id,
-            suiteType=SuiteType.SUITE,
-            started=datetime.datetime.now().isoformat(),
-            title="suite-parent",
-            standing=Status.YET_TO_CALCULATE,
-            file="test-1.js",
-            parent="",
+        tests, suites = await create_hierarchy(
+            session_id, parent_suite.suiteID, test_id
         )
-
-        suites = []
-        tests = []
-
-        for index in range(3):
-            suite = await SuiteBase.create(
-                session_id=session_id,
-                suiteType=SuiteType.SUITE,
-                started=datetime.datetime.now().isoformat(),
-                title="suite-parent",
-                standing=Status.YET_TO_CALCULATE,
-                file="test-1.js",
-                parent=parent_suite.suiteID,
-            )
-
-            suites.append(suite.suiteID)
-
-            _tests = []
-
-            for test in range(3):
-                test = await SuiteBase.create(
-                    session_id=session_id,
-                    suiteType=SuiteType.TEST,
-                    started=datetime.datetime.now().isoformat(),
-                    title="suite-parent",
-                    standing=Status.FAILED,
-                    file="test-1.js",
-                    parent=suites[-1],
-                    errors=[{"message": f"{index}-{test}"}],
-                )
-                _tests.append(test.suiteID)
-
-            await register_patch_suite(suites[-1], test_id)
-            tests.append(_tests)
-
         await register_patch_suite(parent_suite.suiteID, test_id)
 
         for suite in suites:
@@ -183,9 +113,9 @@ class TestPatchSuiteJob:
             errors = suite_record.errors
             assert len(errors) == 3
 
-            for _index, error in enumerate(errors):
-                assert error["message"] == f"{index}-{_index}"
-                assert error["mailedFrom"] == [str(tests[index][_index])]
+            for _index, item in enumerate(errors):
+                assert item["message"] == f"{index}-{_index}"
+                assert item["mailedFrom"] == [str(tests[index][_index])]
 
         parent_errors = (
             await SuiteBase.filter(suiteID=parent_suite.suiteID).first()
@@ -196,14 +126,14 @@ class TestPatchSuiteJob:
             test_index = _index % 3
             suite_index = _index // 3
 
-            error = parent_errors[_index]
-            assert error["message"] == f"{suite_index}-{test_index}"
-            assert error["mailedFrom"] == [
+            item = parent_errors[_index]
+            assert item["message"] == f"{suite_index}-{test_index}"
+            assert item["mailedFrom"] == [
                 str(tests[suite_index][test_index]),
                 str(suites[suite_index]),
             ]
 
-    async def test_dependency_of_suites(self, sample_test_session):
+    async def test_dependency_of_suites(self, sample_test_session, create_suite):
         # we would have suite - 1 and suite - 2
         # suite - 2 is child of the suite - 1
         # suite - 2 is under processing but suite - 1 will now be processed so, in that case
@@ -214,15 +144,7 @@ class TestPatchSuiteJob:
         suites = []
 
         for suiteIndex in range(2):
-            suite = await SuiteBase.create(
-                started=datetime.datetime.now().isoformat(),
-                title=f"sample-suite-{suiteIndex + 1}",
-                session_id=session_id,
-                suiteType=SuiteType.SUITE,
-                file="",
-                parent="",
-                standing=Status.YET_TO_CALCULATE,
-            )
+            suite = await create_suite(session_id, f"sample-suite-{suiteIndex + 1}")
             suites.append(suite)
             await register_patch_suite(suite.suiteID, test.testID)
 
@@ -236,6 +158,9 @@ class TestPatchSuiteJob:
 
         assert await patchTestSuite(child_suite.suiteID, session.test)
         assert await patchTestSuite(parent_suite.suiteID, session.test)
+
+    async def test_match_when_retried(self):
+        ...
 
 
 @mark.usefixtures("sample_test_session")
@@ -255,3 +180,24 @@ class TestPatchRunJob:
             == empty.suiteSummary["count"]
             == empty.suiteSummary["skipped"]
         )
+
+    async def test_run_with_no_sessions(self, sample_test_run):
+        test = await sample_test_run
+        await SessionBase.filter(test_id=test.testID).delete()
+        assert not await SessionBase.filter(
+            test_id=test.testID
+        ).exists(), "Session should not exist!"
+        await register_patch_test_run(test.testID)
+
+        assert await patchTestRun(test.testID, test.testID)
+
+        error = await TestConfigBase.filter(
+            test_id=test.testID, type=AttachmentType.ERROR
+        ).first()
+
+        assert (
+            error is not None
+        ), "Test run should be marked with an error in case of any error"
+        assert (
+            "no sessions" in error.attachmentValue["reason"]
+        ), "There should be a valid reason"

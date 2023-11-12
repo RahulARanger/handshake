@@ -38,3 +38,12 @@ export interface MarkTestSession {
   entityVersion: string;
   simplified: string;
 }
+
+export interface UpdateTestRunConfig {
+  maxInstances?:number;
+  framework:string;
+  platformName: string;
+  exitCode:number;
+  fileRetries:number;
+  saveOptions: object;
+}

@@ -47,10 +47,23 @@ export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boo
   );
 }
 
+export function skipIfRequired() {
+  if (currentReporter == null || currentReporter?.skipTestRun) {
+    currentReporter?.logger.info('🚫 Skipping the test as marked');
+    return true;
+  }
+  if (currentReporter.currentTestID == null) {
+    currentReporter?.logger.warn('🤕 Didn\'t find the current test id');
+    return true;
+  }
+  return false;
+}
+
 export async function attachScreenshot(title: string, content: string, description?:string) {
-  if (currentReporter?.skipTestRun) {
+  if (skipIfRequired()) {
     return;
   }
+
   await currentReporter?.supporter?.attachScreenshot(
     title,
     content,
@@ -60,7 +73,7 @@ export async function attachScreenshot(title: string, content: string, descripti
 }
 
 export async function addDescription(content: string) {
-  if (currentReporter?.skipTestRun) {
+  if (skipIfRequired()) {
     return;
   }
 

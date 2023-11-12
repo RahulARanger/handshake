@@ -87,7 +87,7 @@ export default class GraspItReporter extends ReporterContacts {
   onRunnerStart(runnerStats: RunnerStats): void {
     if (!runnerStats.sessionId) {
       this.skipTestRun = true;
-      this.logger.warn("Skipping this test run, as we didn't get the session ID.");
+      this.logger.warn("😐 Skipping this test run, as we didn't get the session ID.");
       return;
     }
 
