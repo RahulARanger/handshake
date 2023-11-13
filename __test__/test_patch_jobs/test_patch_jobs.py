@@ -1,5 +1,3 @@
-import datetime
-
 from pytest import mark
 from graspit.services.DBService.models import (
     SuiteBase,
