@@ -1,8 +1,14 @@
-from graspit.services.DBService.models.result_base import SuiteBase, RollupBase
+from graspit.services.DBService.models.result_base import (
+    SuiteBase,
+    RollupBase,
+    RetriedBase,
+)
+from graspit.services.DBService.models.static_base import TestConfigBase, AttachmentType
+from graspit.services.DBService.models.types import PydanticModalForTestRunConfigBase
 from graspit.services.DBService.models.dynamic_base import TaskBase
 from graspit.services.DBService.models.enums import Status, SuiteType
 from tortoise.expressions import Q, F
-from tortoise.functions import Count, Lower, Sum
+from tortoise.functions import Count, Lower, Sum, Length
 from loguru import logger
 from itertools import chain
 
@@ -75,10 +81,67 @@ async def rollup_suite_values(suiteID: str):
     )
 
 
+def fetch_key_from_status(passed, failed, skipped):
+    return (
+        Status.FAILED
+        if failed > 0
+        else Status.PASSED
+        if passed > 0 or skipped == 0
+        else Status.SKIPPED
+    )
+
+
+async def handleRetries(suiteID: str, test_id: str):
+    # assuming we would need to match the retries
+    suite = await SuiteBase.filter(suiteID=suiteID).first()
+    suite_id = str(suite.suiteID)
+    if suite.retried == 0:
+        return await RetriedBase.create(tests=[suite_id], suite_id=suite_id, length=1)
+
+    matching_previous_suites = (
+        await SuiteBase.filter(
+            Q(title=suite.title)
+            & Q(session__test_id=test_id)
+            & Q(file=suite.file)
+            # & Q(parent=suite.parent)
+            & Q(tags=suite.tags)
+            & Q(retried=suite.retried - 1)
+            & Q(suiteType=suite.suiteType)
+            & ~Q(suiteID=suite.suiteID)
+            & Q(ended__lte=suite.started)
+        )
+        .order_by("started")
+        .values_list("suiteID", flat=True)
+    )
+
+    previous = (
+        await RetriedBase.filter(
+            Q(length=suite.retried) & Q(suite_id__in=matching_previous_suites)
+        )
+        .order_by("modified")
+        .first()
+    )
+
+    await previous.update_from_dict(
+        dict(
+            length=previous.length + 1,
+            tests=previous.tests + [suite_id],
+            suite_id=suite.suiteID,
+        )
+    )
+    await previous.save()
+
+    return previous
+
+
 async def patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
     task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
+    test_config_record = await TestConfigBase.filter(
+        type=AttachmentType.CONFIG, test_id=testID
+    ).first()
+
     logger.info("Patching Suite: {} | {}", suite.suiteID, suite.title)
 
     if suite.standing != Status.YET_TO_CALCULATE:
@@ -119,15 +182,15 @@ async def patchTestSuite(suiteID: str, testID: str):
 
     await rollup_suite_values(suiteID)
 
+    test_config = (
+        0
+        if not test_config_record
+        else PydanticModalForTestRunConfigBase.model_validate(
+            test_config_record.attachmentValue, strict=False
+        )
+    )
+    if test_config and test_config.fileRetries > 0 and suite.standing == Status.FAILED:
+        await handleRetries(suiteID, testID)
+
     logger.info("Successfully processed suite: {}", suite.suiteID)
     return True
-
-
-def fetch_key_from_status(passed, failed, skipped):
-    return (
-        Status.FAILED
-        if failed > 0
-        else Status.PASSED
-        if passed > 0 or skipped == 0
-        else Status.SKIPPED
-    )

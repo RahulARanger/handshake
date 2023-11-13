@@ -3,7 +3,7 @@ from pathlib import Path
 from graspit.services.DBService.shared import db_path as shared_db_path
 from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from graspit.services.DBService.models import RunBase, SessionBase
-from datetime import datetime
+from datetime import datetime, timedelta
 from subprocess import call
 from sanic_testing.testing import SanicASGITestClient
 from graspit.services.Endpoints.core import service_provider
@@ -46,8 +46,11 @@ async def sample_test_run():
 
 @fixture()
 async def sample_test_session(sample_test_run: RunBase):
+    started = datetime.utcnow()
     return await SessionBase.create(
-        started=datetime.utcnow(), test_id=(await sample_test_run).testID
+        started=started,
+        test_id=(await sample_test_run).testID,
+        ended=started + timedelta(milliseconds=24),
     )
 
 

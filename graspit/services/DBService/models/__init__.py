@@ -1,4 +1,4 @@
-from .result_base import SessionBase, SuiteBase, RunBase, RollupBase
+from .result_base import SessionBase, SuiteBase, RunBase, RollupBase, RetriedBase
 from .config_base import ConfigBase, ExportBase
 from .static_base import AttachmentBase, TestConfigBase, StaticBase
 from .dynamic_base import TaskBase, DynamicVideoBase, PrunedBase
@@ -16,4 +16,5 @@ __all__ = [
     ConfigBase,
     RollupBase,
     StaticBase,
+    RetriedBase,
 ]

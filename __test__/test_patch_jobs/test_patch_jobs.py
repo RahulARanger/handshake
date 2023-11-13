@@ -1,9 +1,12 @@
+import datetime
+
 from pytest import mark
 from graspit.services.DBService.models import (
     SuiteBase,
     RollupBase,
     RunBase,
     SessionBase,
+    RetriedBase,
     TestConfigBase,
 )
 from graspit.services.DBService.models.enums import Status, AttachmentType
@@ -159,8 +162,104 @@ class TestPatchSuiteJob:
         assert await patchTestSuite(child_suite.suiteID, session.test)
         assert await patchTestSuite(parent_suite.suiteID, session.test)
 
-    async def test_match_when_retried(self):
-        ...
+    async def test_retried_suite_match(
+        self, sample_test_session, create_suite, create_tests, attach_config
+    ):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        await attach_config(str(test.testID), 1)
+
+        # initial suite
+        suite = await create_suite(session_id)
+        await create_tests(session_id, suite.suiteID)
+        await register_patch_suite(suite.suiteID, test.testID)
+        await patchTestSuite(suite.suiteID, test.testID)
+
+        record = await RetriedBase.filter(suite_id=suite.suiteID).first()
+        assert record is not None
+        assert record.tests == [str(suite.suiteID)]
+        assert record.length == 1
+        assert (await record.suite).suiteID == suite.suiteID
+
+        # retried suite
+        retried_suite = await create_suite(session_id, retried=1)
+        await create_tests(session_id, retried_suite.suiteID, retried=1)
+
+        await register_patch_suite(retried_suite.suiteID, test.testID)
+        await patchTestSuite(retried_suite.suiteID, test.testID)
+
+        record = await RetriedBase.filter(suite_id=retried_suite.suiteID).first()
+        assert record is not None
+        assert record.tests == [str(suite.suiteID), str(retried_suite.suiteID)]
+        assert record.length == 2
+        assert (await record.suite).suiteID == retried_suite.suiteID
+
+    async def test_many_retries(
+        self, sample_test_session, create_hierarchy, attach_config, create_suite
+    ):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        await attach_config(str(test.testID), 2)
+
+        parent_suite = await create_suite(session_id)
+        first_tests, first_suites = await create_hierarchy(
+            session_id,
+            parent_suite.suiteID,
+            test.testID,
+        )
+
+        parent_suite_2 = await create_suite(session_id, retried=1)
+        second_tests, second_suites = await create_hierarchy(
+            session_id, parent_suite_2.suiteID, test.testID, retried=1
+        )
+
+        parent_suite_3 = await create_suite(session_id, retried=2)
+        third_tests, third_suites = await create_hierarchy(
+            session_id, parent_suite_3.suiteID, test.testID, retried=2
+        )
+
+        for _ in [parent_suite, parent_suite_2, parent_suite_3]:
+            await register_patch_suite(_.suiteID, test.testID)
+
+        for index, suite in enumerate(
+            [
+                *first_suites,
+                parent_suite.suiteID,
+                *second_suites,
+                parent_suite_2.suiteID,
+                *third_suites,
+                parent_suite_3.suiteID,
+            ]
+        ):
+            assert await patchTestSuite(str(suite), str(test.testID)), index
+
+        for index, suite in enumerate(
+            [
+                parent_suite.suiteID,
+                *first_suites,
+                parent_suite_2.suiteID,
+                *second_suites,
+            ]
+        ):
+            assert not await RetriedBase.exists(suite_id=suite), index
+
+        for index, suites in enumerate(
+            [
+                [parent_suite.suiteID, parent_suite_2.suiteID, parent_suite_3.suiteID],
+                *[
+                    [first_suites[_], second_suites[_], third_suites[_]]
+                    for _ in range(len(first_suites))
+                ],
+            ],
+        ):
+            record = await RetriedBase.filter(suite_id=suites[-1]).first()
+            assert record is not None, "record should exist"
+            assert record.tests == [str(_) for _ in suites]
+            assert record.length == 3
 
 
 @mark.usefixtures("sample_test_session")
@@ -201,3 +300,61 @@ class TestPatchRunJob:
         assert (
             "no sessions" in error.attachmentValue["reason"]
         ), "There should be a valid reason"
+
+    async def test_normal_run(
+        self, sample_test_session, create_hierarchy, create_session
+    ):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        second_session = await create_session(test.testID)
+
+        _, suites = await create_hierarchy(session_id, "", test.testID)
+        _, second_suites = await create_hierarchy(
+            second_session.sessionID, "", test.testID
+        )
+        await register_patch_test_run(test.testID)
+
+        for suite in suites + second_suites:
+            assert await patchTestSuite(suite, test.testID)
+
+        await session.update_from_dict(
+            dict(passed=9, failed=9, skipped=9, tests=27, retried=3)
+        )
+        await second_session.update_from_dict(
+            dict(passed=9, failed=9, skipped=9, tests=27, retried=5)
+        )
+        await session.save()
+        await second_session.save()
+
+        assert await patchTestRun(test.testID, test.testID)
+
+        test_record = await RunBase.filter(testID=test.testID).first()
+
+        # session dependant
+        assert (
+            test_record.passed
+            == test_record.failed
+            == test_record.skipped
+            == 2 * (3 * 3)
+        )
+        assert test_record.tests == (2 * (3 * 3)) * 3
+
+        # job related
+        assert test_record.standing == Status.FAILED
+        assert test_record.suiteSummary["passed"] == 0
+        assert test_record.suiteSummary["failed"] == 3 + 3
+        assert test_record.suiteSummary["skipped"] == 0
+        assert test_record.suiteSummary["count"] == 3 + 3
+
+        assert test_record.retried == 5 + 3
+
+        # assumption
+        assert session.started < second_session.started
+        assert session.ended < second_session.ended
+
+        # tests
+        assert test_record.started == session.started
+        assert test_record.ended == second_session.ended
+        assert test_record.duration == (test_record.ended - test_record.started).seconds

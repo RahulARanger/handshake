@@ -134,9 +134,16 @@ class RetriedBase(Model):
         default=[],
         description="details of all suites which were retried for a particular test case",
     )
-    RetriedId = UUIDField(pk=True)
     suite: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
-        "models.SuiteBase", related_name="retried", to_field="suiteID"
+        "models.SuiteBase", related_name="retries", to_field="suiteID"
+    )
+
+    length = IntField(
+        description="Just the length of the tests cols", default=1, null=False
+    )
+
+    modified = DatetimeField(
+        auto_now=True, description="Modified timestamp", null=False
     )
 
 
