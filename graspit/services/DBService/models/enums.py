@@ -10,6 +10,7 @@ class Status(StrEnum):
         "YET_TO_CALC"  # needs to be updated by our server to either passed or failed
     )
     # yet_to_calc is mostly seen for the suite
+    RETRIED = "RETRIED"
 
 
 class SuiteType(StrEnum):

@@ -28,52 +28,32 @@ async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> Fal
     )
 
 
-async def patchTestRun(test_id: str, current_test_id: str):
+async def mark_test_failure_if_required(test_id: str) -> bool:
     test_run = await RunBase.filter(testID=test_id).first()
-    if not test_run:
-        return
-    task = await TaskBase.filter(ticketID=test_run.testID).first()
-    if not task:
-        return
-
-    logger.info("Patching up the Test Run: {}", test_id)
-    if test_run.standing != Status.PENDING:
-        return skip_coz_error(
-            test_id, "Expected Test Run: {} to be pending but found: {}"
-        )
-
-    pending_items = (
-        await SuiteBase.filter(session__test_id=test_id)
-        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
-        .count()
-    )
-
-    if pending_items > 0:
-        if await mark_test_failure_if_required(test_id):
-            return
-        logger.warning(
-            "Patch Test Run: {} will be picked in the next run, some of its entities are not processed yet.",
-            test_id,
-        )
-        await task.update_from_dict(dict(picked=False))
-        await task.save()  # continue in the next run
-        return False
-
-    to_return = False
-    try:
-        await patchValues(test_run)
-    except Exception:
+    if test_run.ended is None:
         await skip_coz_error(
             test_id,
-            f"Failed to patch the test run, error in calculation, {format_exc()}",
+            f"Failed to process test Run{test_id}: {test_run.projectName} because it didn't have a end date",
+            incomplete=test_run.projectName,
         )
-    else:
-        logger.info("Completed the patch for test run: {}", test_id)
-        to_return = True
-    finally:
-        await test_run.save()
+        return True
 
-    return to_return
+    suites = [
+        str(_)
+        for _ in await SuiteBase.filter(session__test_id=test_id)
+        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+        .all()
+        .values_list("suiteID", flat=True)
+    ]
+
+    does_it_exist = await TaskBase.exists(ticketID__in=suites)
+    if does_it_exist:
+        # it means there are child tasks ensured to complete the child suites
+        return False
+
+    reason = f"Failed to process {test_id} because of incomplete child suites"
+    await skip_coz_error(test_id, reason, incomplete=suites)
+    return True
 
 
 def simplify_file_paths(paths: List[str]):
@@ -146,37 +126,26 @@ def simplify_file_paths(paths: List[str]):
 async def patchValues(test_run: RunBase):
     test_id = test_run.testID
 
-    filtered = SessionBase.filter(test_id=test_id)
-    if await filtered.count() == 0:
-        reason = f"Detected test run: {test_run.projectName} - {test_id} with no sessions, Hence skipping this."
-        await skip_coz_error(test_id, reason)
-        return False
+    filtered = SessionBase.filter(Q(test_id=test_id) & Q(retried=False))
+    retried_sessions = await SessionBase.filter(
+        Q(test_id=test_id) & Q(retried=True)
+    ).count()
+
+    actual_start = "actual_start"
+    actual_end = "actual_end"
 
     test_result = (
         await filtered.annotate(
             passed=Sum("passed"),
             failed=Sum("failed"),
             skipped=Sum("skipped"),
-            retried=Sum("retried"),
             tests=Sum("tests"),
             actual_end=Max("ended"),
             actual_start=Min("started"),
         )
         .first()
-        .values(
-            "passed",
-            "failed",
-            "skipped",
-            "retried",
-            "tests",
-            "actual_end",
-            "actual_start",
-        )
+        .values("passed", "failed", "skipped", "tests", actual_start, actual_end)
     )
-
-    passed = test_result.get("passed", 0)
-    failed = test_result.get("failed", 0)
-    skipped = test_result.get("skipped", 0)
 
     # we want to count the number of suites status
     summary = dict(passed=0, failed=0, skipped=0)
@@ -190,21 +159,20 @@ async def patchValues(test_run: RunBase):
 
     # start date was initially when we start the shipment
     # now it is when the first session starts
-    started = test_result.get("actual_start", test_run.started)
-    ended = test_result.get("actual_end", datetime.now(timezone.utc)) or datetime.now(
+    started = test_result.get(actual_start, test_run.started) or test_run.started
+    ended = test_result.get(actual_end, datetime.now(timezone.utc)) or datetime.now(
         timezone.utc
     )
+    test_result.pop(actual_start) if actual_start in test_result else ...
+    test_result.pop(actual_end) if actual_end in test_result else ...
 
     await test_run.update_from_dict(
         dict(
+            **{_: test_result[_] or 0 for _ in test_result.keys()},
+            retried=retried_sessions,
             started=started,
             ended=ended,
-            tests=test_result.get("tests", 0),
-            passed=passed,
-            failed=failed,
-            skipped=skipped,
             duration=(ended - started).total_seconds() * 1000,
-            retried=test_result.get("total_retried", 0),
             specStructure=simplify_file_paths(
                 [
                     path
@@ -214,35 +182,56 @@ async def patchValues(test_run: RunBase):
                     for path in paths
                 ]
             ),
-            standing=fetch_key_from_status(passed, failed, skipped),
+            standing=fetch_key_from_status(
+                summary["passed"], summary["failed"], summary["skipped"]
+            ),
             suiteSummary=summary,
         )
     )
+    return True
 
 
-async def mark_test_failure_if_required(test_id: str) -> bool:
+async def patchTestRun(test_id: str, current_test_id: str):
     test_run = await RunBase.filter(testID=test_id).first()
-    if test_run.ended is None:
-        await skip_coz_error(
-            test_id,
-            f"Failed to process test Run{test_id}: {test_run.projectName} because it didn't have a end date",
-            incomplete=test_run.projectName,
-        )
+    if not test_run:
         return True
 
-    suites = [
-        str(_)
-        for _ in await SuiteBase.filter(session__test_id=test_id)
-        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
-        .all()
-        .values_list("suiteID", flat=True)
-    ]
+    task = await TaskBase.filter(ticketID=test_run.testID).first()
+    if not task:
+        return True
 
-    does_it_exist = await TaskBase.exists(ticketID__in=suites)
-    if does_it_exist:
-        # it means there are child tasks ensured to complete the child suites
+    logger.info("Patching up the Test Run: {}", test_id)
+    if test_run.standing != Status.PENDING:
+        return True
+
+    pending_items = (
+        await SuiteBase.filter(session__test_id=test_id)
+        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+        .count()
+    )
+
+    if pending_items > 0:
+        if await mark_test_failure_if_required(test_id):
+            return
+        logger.warning(
+            "Patch Test Run: {} will be picked in the next run, some of its entities are not processed yet.",
+            test_id,
+        )
+        await task.update_from_dict(dict(picked=False))
+        await task.save()  # continue in the next run
         return False
 
-    reason = f"Failed to process {test_id} because of incomplete child suites"
-    await skip_coz_error(test_id, reason, incomplete=suites)
-    return True
+    to_return = False
+    try:
+        if await patchValues(test_run):
+            logger.info("Completed the patch for test run: {}", test_id)
+            to_return = True
+    except Exception:
+        await skip_coz_error(
+            test_id,
+            f"Failed to patch the test run, error in calculation, {format_exc()}",
+        )
+    finally:
+        await test_run.save()
+
+    return to_return

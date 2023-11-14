@@ -195,11 +195,19 @@ class TestPatchSuiteJob:
         assert (await record.suite).suiteID == retried_suite.suiteID
 
     async def test_many_retries(
-        self, sample_test_session, create_hierarchy, attach_config, create_suite
+        self,
+        sample_test_session,
+        create_hierarchy,
+        attach_config,
+        create_suite,
+        create_session,
     ):
         session = await sample_test_session
         session_id = session.sessionID
         test = await session.test
+
+        second_session = await create_session(test.testID)
+        third_session = await create_session(test.testID)
 
         await attach_config(str(test.testID), 2)
 
@@ -210,14 +218,14 @@ class TestPatchSuiteJob:
             test.testID,
         )
 
-        parent_suite_2 = await create_suite(session_id, retried=1)
+        parent_suite_2 = await create_suite(second_session.sessionID, retried=1)
         second_tests, second_suites = await create_hierarchy(
-            session_id, parent_suite_2.suiteID, test.testID, retried=1
+            second_session.sessionID, parent_suite_2.suiteID, test.testID, retried=1
         )
 
-        parent_suite_3 = await create_suite(session_id, retried=2)
+        parent_suite_3 = await create_suite(third_session.sessionID, retried=2)
         third_tests, third_suites = await create_hierarchy(
-            session_id, parent_suite_3.suiteID, test.testID, retried=2
+            third_session.sessionID, parent_suite_3.suiteID, test.testID, retried=2
         )
 
         for _ in [parent_suite, parent_suite_2, parent_suite_3]:
@@ -259,6 +267,20 @@ class TestPatchSuiteJob:
             assert record.tests == [str(_) for _ in suites]
             assert record.length == 3
 
+        await session.update_from_dict(dict(tests=9, passed=3, failed=3, skipped=3))
+        await second_session.update_from_dict(
+            dict(tests=9, passed=3, failed=3, skipped=3)
+        )
+        await third_session.update_from_dict(
+            dict(tests=9, passed=3, failed=3, skipped=3)
+        )
+
+        await session.save()
+        await second_session.save()
+        await third_session.save()
+
+        return test
+
 
 @mark.usefixtures("sample_test_session")
 class TestPatchRunJob:
@@ -278,27 +300,6 @@ class TestPatchRunJob:
             == empty.suiteSummary["skipped"]
         )
 
-    async def test_run_with_no_sessions(self, sample_test_run):
-        test = await sample_test_run
-        await SessionBase.filter(test_id=test.testID).delete()
-        assert not await SessionBase.filter(
-            test_id=test.testID
-        ).exists(), "Session should not exist!"
-        await register_patch_test_run(test.testID)
-
-        assert await patchTestRun(test.testID, test.testID)
-
-        error = await TestConfigBase.filter(
-            test_id=test.testID, type=AttachmentType.ERROR
-        ).first()
-
-        assert (
-            error is not None
-        ), "Test run should be marked with an error in case of any error"
-        assert (
-            "no sessions" in error.attachmentValue["reason"]
-        ), "There should be a valid reason"
-
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session
     ):
@@ -317,11 +318,9 @@ class TestPatchRunJob:
         for suite in suites + second_suites:
             assert await patchTestSuite(suite, test.testID)
 
-        await session.update_from_dict(
-            dict(passed=9, failed=9, skipped=9, tests=27, retried=3)
-        )
+        await session.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
         await second_session.update_from_dict(
-            dict(passed=9, failed=9, skipped=9, tests=27, retried=5)
+            dict(passed=9, failed=9, skipped=9, tests=27)
         )
         await session.save()
         await second_session.save()
@@ -346,8 +345,6 @@ class TestPatchRunJob:
         assert test_record.suiteSummary["skipped"] == 0
         assert test_record.suiteSummary["count"] == 3 + 3
 
-        assert test_record.retried == 5 + 3
-
         # assumption
         assert session.started < second_session.started
         assert session.ended < second_session.ended
@@ -355,4 +352,38 @@ class TestPatchRunJob:
         # tests
         assert test_record.started == session.started
         assert test_record.ended == second_session.ended
-        assert test_record.duration == (test_record.ended - test_record.started).seconds
+        assert (
+            test_record.duration
+            == (test_record.ended - test_record.started).total_seconds() * 1000
+        )
+
+    async def test_after_retries(
+        self,
+        sample_test_session,
+        create_hierarchy,
+        attach_config,
+        create_suite,
+        create_session,
+    ):
+        tester = TestPatchSuiteJob()
+        test = await tester.test_many_retries(
+            sample_test_session,
+            create_hierarchy,
+            attach_config,
+            create_suite,
+            create_session,
+        )
+
+        await register_patch_test_run(test.testID)
+        await patchTestRun(test.testID, test.testID)
+
+        record = await RunBase.filter(testID=test.testID).first()
+        assert record.failed == record.skipped == record.passed == 9
+        assert record.tests == 27
+        assert record.standing == Status.FAILED
+
+        suite_agg = record.suiteSummary
+        assert suite_agg["passed"] == suite_agg["skipped"] == 0
+        assert suite_agg["count"] == suite_agg["failed"] == 3
+
+        assert record.retried == 3

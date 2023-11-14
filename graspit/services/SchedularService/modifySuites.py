@@ -2,6 +2,7 @@ from graspit.services.DBService.models.result_base import (
     SuiteBase,
     RollupBase,
     RetriedBase,
+    SessionBase,
 )
 from graspit.services.DBService.models.static_base import TestConfigBase, AttachmentType
 from graspit.services.DBService.models.types import PydanticModalForTestRunConfigBase
@@ -103,7 +104,6 @@ async def handleRetries(suiteID: str, test_id: str):
             Q(title=suite.title)
             & Q(session__test_id=test_id)
             & Q(file=suite.file)
-            # & Q(parent=suite.parent)
             & Q(tags=suite.tags)
             & Q(retried=suite.retried - 1)
             & Q(suiteType=suite.suiteType)
@@ -122,6 +122,10 @@ async def handleRetries(suiteID: str, test_id: str):
         .first()
     )
 
+    previous_suite = await SuiteBase.filter(suiteID=previous.suite_id).first()
+    await previous_suite.update_from_dict(dict(standing=Status.RETRIED))
+    await previous.save()
+
     await previous.update_from_dict(
         dict(
             length=previous.length + 1,
@@ -129,7 +133,12 @@ async def handleRetries(suiteID: str, test_id: str):
             suite_id=suite.suiteID,
         )
     )
+
     await previous.save()
+    session = await SessionBase.filter(
+        sessionID=(await previous_suite.session).sessionID
+    ).first()
+    await session.update_from_dict(dict(retried=True))
 
     return previous
 
@@ -171,7 +180,6 @@ async def patchTestSuite(suiteID: str, testID: str):
             .values_list("status", "count")
         )
     )
-
     results["standing"] = fetch_key_from_status(
         results.get("passed", 0), results.get("failed", 0), results.get("skipped", 0)
     )
@@ -181,7 +189,6 @@ async def patchTestSuite(suiteID: str, testID: str):
     await suite.save()
 
     await rollup_suite_values(suiteID)
-
     test_config = (
         0
         if not test_config_record

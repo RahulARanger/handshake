@@ -1,7 +1,15 @@
 import pprint
 
-from graspit.services.CommandLine.core import handle_cli, general_requirement
-from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from graspit.services.CommandLine.core import (
+    handle_cli,
+    general_requirement,
+    general_but_optional_requirement,
+)
+from graspit.services.DBService.lifecycle import (
+    init_tortoise_orm,
+    close_connection,
+    set_default_config,
+)
 from click import option
 from loguru import logger
 from pathlib import Path
@@ -32,9 +40,11 @@ def patch(collection_path):
     start_loop()
 
 
-async def setConfig(path: Path, feed: Dict[ConfigKeys, str]):
+async def setConfig(path: Path, feed: Dict[ConfigKeys, str], set_default: bool):
     await init_tortoise_orm(path)
 
+    if set_default:
+        await set_default_config()
     if feed:
         to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
         for to in to_change:
@@ -51,7 +61,7 @@ async def setConfig(path: Path, feed: Dict[ConfigKeys, str]):
     help="configures few values which is used while processing your reports., ignore the options if not required for "
     "update",
 )
-@general_requirement
+@general_but_optional_requirement
 @option(
     "--max_runs",
     "-mr",
@@ -60,11 +70,13 @@ async def setConfig(path: Path, feed: Dict[ConfigKeys, str]):
 )
 def config(collection_path, max_runs):
     saved_db_path = db_path(collection_path)
-    if not saved_db_path.exists():
-        raise FileNotFoundError(f"DB file not in {collection_path}")
+
+    set_default_first = not Path(collection_path).exists()
+    if set_default_first:
+        Path(collection_path).mkdir(exist_ok=True)
 
     feed = dict()
     if max_runs > 1:
         feed[ConfigKeys.maxRuns] = max_runs
 
-    run_async(setConfig(saved_db_path, feed))
+    run_async(setConfig(saved_db_path, feed, set_default_first))

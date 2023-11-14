@@ -28,9 +28,16 @@ def patch(root_dir):
     return lambda: call(f'graspit patch "{root_dir}"', shell=True)
 
 
+@fixture()
+def init_db(root_dir):
+    return lambda: call(f'graspit config "{root_dir}"', shell=True)
+
+
 @fixture(autouse=True)
-async def clean_close(db_path):
-    assert db_path.exists(), "DB does not exist"
+async def clean_close(db_path, init_db):
+    if not db_path.exists():
+        init_db()
+
     await init_tortoise_orm(db_path)
     yield
 

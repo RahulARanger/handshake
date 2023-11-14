@@ -9,6 +9,7 @@ from tortoise.fields import (
     CharField,
     ReverseRelation,
     ForeignKeyField,
+    BooleanField,
     ForeignKeyRelation,
     TextField,
 )
@@ -40,6 +41,11 @@ class CommandReportFields(Model):
 
 class CommonDetailedFields(CommandReportFields):
     suitesConfig = JSONField(description="Dict. of suites", default={})
+    retried = BooleanField(
+        description="was this session omitted, because there would be one more retried session",
+        default=False,
+        required=False,
+    )
 
     class Meta:
         abstract = True

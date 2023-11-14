@@ -7,7 +7,6 @@ from typing_extensions import TypedDict
 
 
 class CommonRegisterCols(BaseModel):
-    retried: int
     started: datetime
 
 
@@ -17,6 +16,7 @@ class RegisterSession(CommonRegisterCols):
 
 class RegisterSuite(CommonRegisterCols):
     title: str
+    retried: int
     description: Optional[str] = ""
     suiteType: SuiteType
     session_id: uuid.UUID
