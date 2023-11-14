@@ -150,7 +150,11 @@ async def patchValues(test_run: RunBase):
     # we want to count the number of suites status
     summary = dict(passed=0, failed=0, skipped=0)
     summary.update(
-        await SuiteBase.filter(session__test_id=test_id, suiteType=SuiteType.SUITE)
+        await SuiteBase.filter(
+            Q(session__test_id=test_id)
+            & Q(suiteType=SuiteType.SUITE)
+            & ~Q(standing=Status.RETRIED)
+        )
         .annotate(count=Count("suiteID"), status=Lower("standing"))
         .group_by("standing")
         .values_list("status", "count")

@@ -124,7 +124,13 @@ async def handleRetries(suiteID: str, test_id: str):
 
     previous_suite = await SuiteBase.filter(suiteID=previous.suite_id).first()
     await previous_suite.update_from_dict(dict(standing=Status.RETRIED))
-    await previous.save()
+    await previous_suite.save()
+
+    session = await SessionBase.filter(
+        sessionID=(await previous_suite.session).sessionID
+    ).first()
+    await session.update_from_dict(dict(retried=True))
+    await session.save()
 
     await previous.update_from_dict(
         dict(
@@ -135,11 +141,6 @@ async def handleRetries(suiteID: str, test_id: str):
     )
 
     await previous.save()
-    session = await SessionBase.filter(
-        sessionID=(await previous_suite.session).sessionID
-    ).first()
-    await session.update_from_dict(dict(retried=True))
-
     return previous
 
 

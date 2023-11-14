@@ -41,11 +41,6 @@ class CommandReportFields(Model):
 
 class CommonDetailedFields(CommandReportFields):
     suitesConfig = JSONField(description="Dict. of suites", default={})
-    retried = BooleanField(
-        description="was this session omitted, because there would be one more retried session",
-        default=False,
-        required=False,
-    )
 
     class Meta:
         abstract = True
@@ -81,6 +76,11 @@ class SessionBase(CommonDetailedFields):
     table = "SessionBase"
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
         "models.RunBase", related_name="sessions", to_field="testID"
+    )
+    retried = BooleanField(
+        description="was this session omitted, because there would be one more retried session",
+        default=False,
+        required=False,
     )
     suites = ReverseRelation["SuiteBase"]
     sessionID = UUIDField(pk=True)

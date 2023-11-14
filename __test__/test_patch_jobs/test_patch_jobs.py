@@ -14,6 +14,7 @@ from graspit.services.SchedularService.register import (
     register_patch_suite,
     register_patch_test_run,
 )
+from tortoise.expressions import Q
 
 
 @mark.usefixtures("sample_test_session")
@@ -267,17 +268,18 @@ class TestPatchSuiteJob:
             assert record.tests == [str(_) for _ in suites]
             assert record.length == 3
 
-        await session.update_from_dict(dict(tests=9, passed=3, failed=3, skipped=3))
-        await second_session.update_from_dict(
-            dict(tests=9, passed=3, failed=3, skipped=3)
-        )
-        await third_session.update_from_dict(
-            dict(tests=9, passed=3, failed=3, skipped=3)
-        )
+        retries = await SessionBase.filter(
+            Q(sessionID__in=[session.sessionID, second_session.sessionID])
+        ).values_list("retried", flat=True)
+        assert all(retries)
+        third_session = await SessionBase.filter(
+            sessionID=third_session.sessionID
+        ).first()
+        assert not third_session.retried
 
-        await session.save()
-        await second_session.save()
-        await third_session.save()
+        for session in await SessionBase.filter(test_id=test.testID).all():
+            await session.update_from_dict(dict(tests=9, passed=3, failed=3, skipped=3))
+            await session.save()
 
         return test
 
@@ -378,12 +380,12 @@ class TestPatchRunJob:
         await patchTestRun(test.testID, test.testID)
 
         record = await RunBase.filter(testID=test.testID).first()
-        assert record.failed == record.skipped == record.passed == 9
-        assert record.tests == 27
+        assert record.failed == record.skipped == record.passed == 3
+        assert record.tests == 9
         assert record.standing == Status.FAILED
 
         suite_agg = record.suiteSummary
         assert suite_agg["passed"] == suite_agg["skipped"] == 0
-        assert suite_agg["count"] == suite_agg["failed"] == 3
+        assert suite_agg["count"] == suite_agg["failed"] == 4
 
-        assert record.retried == 3
+        assert record.retried == 2
