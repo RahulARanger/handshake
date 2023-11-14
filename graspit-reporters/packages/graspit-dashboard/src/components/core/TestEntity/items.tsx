@@ -19,6 +19,8 @@ export default function TreeSelectionOfSuites(props: {
 
     suites['@order'].forEach((suite) => {
         const toAdd = suites[suite];
+        if (toAdd.standing === 'RETRIED') return;
+
         const parent = parents[toAdd.parent];
         const addTo = parent == null ? data : parent;
 

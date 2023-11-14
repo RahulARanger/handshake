@@ -133,13 +133,10 @@ export default function TestEntityDrawer(props: {
         null,
     );
     const [filterText, setFilterText] = useState<null | string>(null);
-    const [choices, setChoices] = useState<string[]>([optionsForEntities[0]]);
+    const [choices, setChoices] = useState<string[]>([]);
     const [tabForDetailed, setTabForDetailed] = useState<string>(imagesTab);
-    const [showFilters, showTimeline] = useMemo<boolean[]>(
-        () => [
-            choices.includes(optionsForEntities[0]),
-            choices.includes(optionsForEntities[1]),
-        ],
+    const [showTimeline] = useMemo<boolean[]>(
+        () => [choices.includes(optionsForEntities[0])],
         [choices],
     );
 
@@ -158,7 +155,7 @@ export default function TestEntityDrawer(props: {
     const started = dayjs(run.started);
 
     const closeTimeline = () =>
-        setChoices(choices.filter((x) => x != optionsForEntities[1]));
+        setChoices(choices.filter((x) => x != optionsForEntities[0]));
     const setTestID = (detailed: string) => {
         setDetailed(detailed);
         props.setTestID(detailed);
@@ -421,43 +418,35 @@ export default function TestEntityDrawer(props: {
                                 }}
                             />
                             <Divider type="vertical" />
-                            {showFilters ? (
-                                <>
-                                    <Input
-                                        placeholder="Search"
-                                        allowClear
-                                        size="small"
-                                        onChange={(
-                                            event: ChangeEvent<HTMLInputElement>,
-                                        ) => {
-                                            const value = event.target.value;
-                                            setFilterText(
-                                                value === '' ? null : value,
-                                            );
-                                        }}
-                                        suffix={
-                                            <Counter
-                                                style={{ fontStyle: 'italic' }}
-                                                end={dataSource.length}
-                                                prefix="("
-                                                suffix=")"
-                                            />
-                                        }
+                            <Input
+                                placeholder="Search"
+                                allowClear
+                                size="small"
+                                onChange={(
+                                    event: ChangeEvent<HTMLInputElement>,
+                                ) => {
+                                    const value = event.target.value;
+                                    setFilterText(value === '' ? null : value);
+                                }}
+                                suffix={
+                                    <Counter
+                                        style={{ fontStyle: 'italic' }}
+                                        end={dataSource.length}
+                                        prefix="("
+                                        suffix=")"
                                     />
-                                    <Select
-                                        options={statusOptions}
-                                        placeholder="Select Status"
-                                        size="small"
-                                        allowClear
-                                        value={filterStatus}
-                                        onChange={(value) => {
-                                            setFilterStatus(value);
-                                        }}
-                                    />
-                                </>
-                            ) : (
-                                <></>
-                            )}
+                                }
+                            />
+                            <Select
+                                options={statusOptions}
+                                placeholder="Select Status"
+                                size="small"
+                                allowClear
+                                value={filterStatus}
+                                onChange={(value) => {
+                                    setFilterStatus(value);
+                                }}
+                            />
                             <Button
                                 key="attachments"
                                 shape="circle"
@@ -486,20 +475,18 @@ export default function TestEntityDrawer(props: {
                         size="small"
                     />
 
-                    {showFilters && dataSource.length > 0 ? (
+                    {dataSource.length > 0 ? (
                         <Collapse
                             defaultActiveKey={['Latest Run']}
                             bordered
                             size="small"
                             items={dataSource}
                         />
-                    ) : showFilters ? (
+                    ) : (
                         <Empty
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                             description="No Test Entities were found"
                         />
-                    ) : (
-                        <></>
                     )}
                 </Space>
                 <Drawer

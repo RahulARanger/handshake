@@ -148,4 +148,4 @@ export function timelineColor(status: string): TimelineItemProps['color'] {
     }
 }
 
-export const optionsForEntities = ['Tests', 'Timeline'];
+export const optionsForEntities = ['Timeline'];
