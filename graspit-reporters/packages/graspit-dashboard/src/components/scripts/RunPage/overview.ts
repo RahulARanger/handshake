@@ -110,7 +110,7 @@ export async function getSomeAggResults(
     const parentSuiteCount =
         (
             await connection.get<{ suites: number }>(
-                `select count(*) as suites from suitebase where parent = '' and session_id in ${sqlHelperForSessions}`,
+                `select count(*) as suites from suitebase where parent = '' and standing <> 'RETRIED' and session_id in ${sqlHelperForSessions}`,
                 allSessions,
             )
         )?.suites ?? 0;
@@ -132,7 +132,7 @@ export async function getSomeAggResults(
     ).map((attached: expectedImage) => attached.attachmentValue);
 
     const recentSuites = await connection.all<SuiteDetails[]>(
-        `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} limit 5`,
+        `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} and standing <> 'RETRIED' limit 5`,
         allSessions,
     );
 

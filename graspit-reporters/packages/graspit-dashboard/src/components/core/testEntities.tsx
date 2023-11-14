@@ -49,7 +49,11 @@ function extractSuiteTree(
     sessions: SessionDetails,
 ): undefined | SuiteNode[] {
     const result = suites['@order']
-        .filter((suiteID) => parent === suites[suiteID].parent)
+        .filter(
+            (suiteID) =>
+                parent === suites[suiteID].parent &&
+                suites[suiteID].standing !== 'RETRIED',
+        )
         .map((suiteID) => ({
             children: extractSuiteTree(suites, suiteID, startDate, sessions),
             key: suiteID,

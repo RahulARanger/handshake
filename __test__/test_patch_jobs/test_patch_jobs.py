@@ -5,7 +5,6 @@ from graspit.services.DBService.models import (
     RunBase,
     SessionBase,
     RetriedBase,
-    TestConfigBase,
 )
 from graspit.services.DBService.models.enums import Status, AttachmentType
 from graspit.services.SchedularService.modifySuites import patchTestSuite

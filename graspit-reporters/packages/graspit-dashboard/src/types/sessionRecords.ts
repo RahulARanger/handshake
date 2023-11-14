@@ -5,7 +5,12 @@ export type possibleEntityNames =
     | 'edge'
     | 'others';
 
-export type statusOfEntity = 'PASSED' | 'FAILED' | 'PENDING' | 'SKIPPED';
+export type statusOfEntity =
+    | 'PASSED'
+    | 'FAILED'
+    | 'PENDING'
+    | 'SKIPPED'
+    | 'RETRIED';
 
 export interface RecurringFields {
     started: string;

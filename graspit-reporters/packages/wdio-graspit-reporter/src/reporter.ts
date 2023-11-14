@@ -95,8 +95,7 @@ export default class GraspItReporter extends ReporterContacts {
       this.supporter.registerSession,
       {
         started: runnerStats.start.toISOString(),
-        specs: sanitizePaths(runnerStats.specs),
-        retried: runnerStats.retry,
+        specs: sanitizePaths(runnerStats.specs)
       },
       'session',
     );

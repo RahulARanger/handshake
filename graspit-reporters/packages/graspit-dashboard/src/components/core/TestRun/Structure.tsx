@@ -70,7 +70,7 @@ function treeData(
             );
             const parent = suites[suiteID].parent;
 
-            if (suite.File !== current) return;
+            if (suite.Status === 'RETRIED' || suite.File !== current) return;
             const treeNode: DataNode = {
                 key: suiteID,
                 title: (
