@@ -30,3 +30,6 @@ jobs:
 
         - name: build executable
           run: pyinstaller starter.spec
+
+        - name: testing the build
+          run: pytest __test__/test_sanity
