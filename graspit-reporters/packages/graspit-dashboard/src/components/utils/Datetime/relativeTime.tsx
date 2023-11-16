@@ -9,7 +9,6 @@ import React, {
 } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import Button from 'antd/lib/button/button';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import { type Duration } from 'dayjs/plugin/duration';
@@ -32,11 +31,11 @@ export default function RelativeTo(props: {
         Autoplay({ stopOnInteraction: false }),
     ]);
     const [hover, setHover] = useState<boolean>(false);
-
     const formatter = (): string =>
         props.wrt != null
             ? props.dateTime.from(props.wrt)
             : props.dateTime.fromNow();
+
     const [formatted, setFormatted] = useState(formatter());
     const [isClient, setIsClient] = useState(false);
 
@@ -71,18 +70,25 @@ export default function RelativeTo(props: {
                             : ''
                     }`}
                 </Typography>
-                <Tooltip
-                    title={
-                        props.wrt != null
-                            ? `Relative to ${props.wrt.format(
-                                  props.format ?? timeFormatUsed,
-                              )}`
-                            : 'Click me to update!'
-                    }
-                    className={carouselStyles.slide}
-                >
-                    {isClient ? formatted : ''}
-                </Tooltip>
+                {props.wrt != null ? (
+                    <Tooltip
+                        title={`Relative to ${props.wrt.format(
+                            props.format ?? timeFormatUsed,
+                        )}`}
+                        className={carouselStyles.slide}
+                    >
+                        {isClient ? formatted : ''}
+                    </Tooltip>
+                ) : (
+                    <span
+                        className={carouselStyles.slide}
+                        onMouseEnter={() => {
+                            setFormatted(formatter());
+                        }}
+                    >
+                        {isClient ? formatted : ''}
+                    </span>
+                )}
             </div>
         </div>
     );

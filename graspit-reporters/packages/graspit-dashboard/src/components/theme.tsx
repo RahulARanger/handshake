@@ -2,7 +2,6 @@ import { type ThemeConfig } from 'antd/lib/config-provider';
 import theme from 'antd/lib/theme';
 import ConfigProvider from 'antd/lib/config-provider';
 import React, { type ReactNode } from 'react';
-import { Roboto } from 'next/font/google';
 
 const withTheme = (node: ReactNode): JSX.Element => {
     // const selectedFont = Roboto({

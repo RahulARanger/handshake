@@ -44,3 +44,9 @@ export interface Attachment {
     description: string;
     entity_id: string;
 }
+
+export interface RetriedRecord {
+    suite_id: string;
+    tests: string[];
+    length: number;
+}

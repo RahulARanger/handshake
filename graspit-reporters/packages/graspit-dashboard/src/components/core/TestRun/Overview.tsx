@@ -387,8 +387,8 @@ function TimelineView(): ReactNode {
                                 <RenderDuration
                                     value={dayjs.duration(run.duration)}
                                     style={{
-                                        maxWidth: '60px',
-                                        minWidth: '60px',
+                                        maxWidth: '65px',
+                                        minWidth: '65px',
                                     }}
                                 />
                             </Space>

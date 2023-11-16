@@ -71,6 +71,10 @@ export function getWrittenAttachments(port?: string, testID?: string): string {
     )}`;
 }
 
+export function getRetriedRecords(port?: string, testID?: string): string {
+    return `${serverURL(port)}/get/retriedSuites?test_id=${filler(testID)}`;
+}
+
 export function getTestRunConfig(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/testRunConfig?test_id=${filler(testID)}`;
 }

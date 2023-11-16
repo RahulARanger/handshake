@@ -3,6 +3,7 @@ import React, { type CSSProperties, type ReactNode } from 'react';
 import { type Duration } from 'dayjs/plugin/duration';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
+import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import WarningFilled from '@ant-design/icons/WarningFilled';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
@@ -54,7 +55,6 @@ export function RenderStatus(props: { value: string }): ReactNode {
             return (
                 <WarningFilled
                     style={{ fontSize: '16px', color: 'yellow' }}
-                    spin
                     title="Skipped"
                 />
             );
@@ -64,6 +64,15 @@ export function RenderStatus(props: { value: string }): ReactNode {
                 <LoadingOutlined
                     style={{ fontSize: '16px', color: 'yellow' }}
                     title="Pending"
+                />
+            );
+        }
+        case 'RETRIED': {
+            return (
+                <ReloadOutlined
+                    style={{ fontSize: '16px', color: 'orangered' }}
+                    spin
+                    title="Retried Suite"
                 />
             );
         }

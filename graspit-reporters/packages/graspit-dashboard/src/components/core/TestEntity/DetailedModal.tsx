@@ -28,7 +28,8 @@ import type {
     SuiteDetails,
     TestDetails,
 } from 'src/types/generatedResponse';
-import { Breadcrumb, Typography } from 'antd/lib';
+import Typography from 'antd/lib/typography/index';
+import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
 
 function ErrorMessage(props: {
     item: AttachedError;

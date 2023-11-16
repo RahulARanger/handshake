@@ -1,6 +1,7 @@
 import type { dbConnection } from 'src/components/scripts/connection';
 import type {
     AttachmentDetails,
+    RetriedRecords,
     SessionDetails,
     SuiteDetails,
     TestDetails,
@@ -30,6 +31,7 @@ export async function getDrillDownResults(
     sessions: SessionDetails;
     attachments: AttachmentDetails;
     writtenAttachments: AttachmentDetails;
+    retriedRecords: RetriedRecords;
 }> {
     const allSessions = await getAllSessions(connection, testID);
     const sessionsIDs = Object.keys(allSessions);
@@ -86,11 +88,33 @@ export async function getDrillDownResults(
         writtenAttachments[attachment.entity_id] = tray;
     });
 
+    const retriedRecords: RetriedRecords = {};
+
+    (
+        await connection.all<
+            Array<{ tests: string; suite_id: string; length: number }>
+        >(
+            `select * from retriedbase where suite_id in ${sqlHelperForEntities}`,
+            entityIds,
+        )
+    ).map((record) => {
+        const parsedRecord = {
+            suite_id: record.suite_id,
+            length: record.length,
+            tests: JSON.parse(record.tests) as string[],
+        };
+        retriedRecords[record.suite_id] = parsedRecord;
+        retriedRecords[record.suite_id].tests.forEach(
+            (test) => (retriedRecords[test] = parsedRecord),
+        );
+    });
+
     return {
         suites: response,
         tests: responseForTests,
         sessions: allSessions,
         attachments,
         writtenAttachments,
+        retriedRecords: retriedRecords,
     };
 }

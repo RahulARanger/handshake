@@ -1,5 +1,6 @@
 import {
     getEntityLevelAttachment,
+    getRetriedRecords,
     getSessions,
     getSuites,
     getTestRun,
@@ -47,8 +48,14 @@ export async function getStaticProps(prepareProps: {
         };
     }
 
-    const { tests, suites, sessions, attachments, writtenAttachments } =
-        await getDrillDownResults(connection, testID);
+    const {
+        tests,
+        suites,
+        sessions,
+        attachments,
+        writtenAttachments,
+        retriedRecords,
+    } = await getDrillDownResults(connection, testID);
 
     await connection.close();
     const port = process.env.NEXT_PUBLIC_PY_PORT ?? '1212';
@@ -64,6 +71,7 @@ export async function getStaticProps(prepareProps: {
                 [getTests(port, testID)]: tests,
                 [getEntityLevelAttachment(port, testID)]: attachments,
                 [getWrittenAttachments(port, testID)]: writtenAttachments,
+                [getRetriedRecords(port, testID)]: retriedRecords,
             },
             testID: testID,
             port,

@@ -2,12 +2,9 @@ import type { SuiteDetails, SessionDetails } from 'src/types/generatedResponse';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import type { AttachmentDetails } from 'src/types/generatedResponse';
 import type { TestDetails } from 'src/types/generatedResponse';
-import type { Attachment } from 'src/types/testEntityRelated';
 import {
-    badgeStatus,
     optionsForEntities,
     parseTestCaseEntity,
-    timelineColor,
 } from 'src/components/parseUtils';
 import type TestRunRecord from 'src/types/testRunRecords';
 import {
@@ -26,7 +23,6 @@ import RenderTimeRelativeToStart, {
 } from 'src/components/utils/renderers';
 import MetaCallContext from '../TestRun/context';
 import type { Tag as SuiteTag } from 'src/types/testEntityRelated';
-import type { PreviewForTests } from 'src/types/parsedRecords';
 import MoreDetailsOnEntity, { errorsTab, imagesTab } from './DetailedModal';
 
 import Input from 'antd/lib/input/Input';
@@ -41,13 +37,11 @@ import dayjs from 'dayjs';
 
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import PaperClipOutlined from '@ant-design/icons/PaperClipOutlined';
-import UpOutlined from '@ant-design/icons/UpOutlined';
 import Space from 'antd/lib/space';
 import Collapse from 'antd/lib/collapse/Collapse';
 import WarningFilled from '@ant-design/icons/lib/icons/WarningFilled';
 import Select, { type SelectProps } from 'antd/lib/select/index';
 import Button from 'antd/lib/button/button';
-import Paragraph from 'antd/lib/typography/Paragraph';
 import Empty from 'antd/lib/empty/index';
 import Description, {
     type DescriptionsProps,
@@ -58,53 +52,12 @@ import Typography from 'antd/lib/typography/Typography';
 import Counter, { StaticPercent } from 'src/components/utils/counter';
 import CheckboxGroup from 'antd/lib/checkbox/Group';
 import Divider from 'antd/lib/divider/index';
-import TreeSelectionOfSuites from './items';
-import Timeline from 'antd/lib/timeline/Timeline';
-import Text from 'antd/lib/typography/Text';
+import TreeSelectionOfSuites from './treeSelectDropdown';
 import Card from 'antd/lib/card/Card';
-import { Badge } from 'antd/lib';
+import Badge from 'antd/lib/badge/index';
 import Meta from 'antd/lib/card/Meta';
-import { dateTimeFormatUsed } from 'src/components/utils/Datetime/format';
-
-function EntityItem(props: {
-    item: PreviewForTests;
-    attachmentsForDescription?: Attachment[];
-}): ReactNode {
-    const aboutSuite: DescriptionsProps['items'] = [
-        {
-            key: 'started',
-            label: 'Started',
-            children: <RenderTimeRelativeToStart value={props.item.Started} />,
-        },
-        {
-            key: 'ended',
-            label: 'Ended',
-            children: <RenderTimeRelativeToStart value={props.item.Ended} />,
-        },
-        {
-            key: 'duration',
-            label: 'Duration',
-            children: <RenderDuration value={props.item.Duration} />,
-        },
-    ];
-
-    return (
-        <>
-            {props.attachmentsForDescription?.map((desc, index) => (
-                <Paragraph key={index}>
-                    {JSON.parse(desc.attachmentValue).value}
-                </Paragraph>
-            ))}
-            <Description
-                items={aboutSuite}
-                bordered
-                title={props.item.Description}
-                style={{ overflowX: 'hidden' }}
-                size="small"
-            />
-        </>
-    );
-}
+import { NavigationButtons } from './header';
+import { EntityCollapsibleItem, EntityTimeline } from './entityItem';
 
 export default function TestEntityDrawer(props: {
     open: boolean;
@@ -242,7 +195,7 @@ export default function TestEntityDrawer(props: {
                 </Space>
             ),
             children: (
-                <EntityItem
+                <EntityCollapsibleItem
                     item={parsed}
                     attachmentsForDescription={attachments[parsed.id]?.filter(
                         (item) => item.type === 'DESC',
@@ -366,33 +319,18 @@ export default function TestEntityDrawer(props: {
                 }
                 title={
                     <Space style={{ marginBottom: '-5px' }} align="start">
-                        <Badge
-                            title={selectedSuiteDetails.standing}
-                            style={{ zoom: '1.5' }}
-                            status={badgeStatus(selectedSuiteDetails.standing)}
-                            dot
-                        >
-                            <TreeSelectionOfSuites
-                                selected={props.testID}
-                                setTestID={setTestID}
-                            />
-                        </Badge>
+                        <TreeSelectionOfSuites
+                            selected={props.testID}
+                            setTestID={setTestID}
+                        />
                     </Space>
                 }
                 size="large"
                 extra={
-                    selectedSuiteDetails.parent == '' ? (
-                        <></>
-                    ) : (
-                        <Button
-                            size="small"
-                            icon={<UpOutlined />}
-                            title="View Parent"
-                            onClick={() =>
-                                setTestID(selectedSuiteDetails.parent)
-                            }
-                        />
-                    )
+                    <NavigationButtons
+                        selectedSuite={selectedSuiteDetails}
+                        setTestID={setTestID}
+                    />
                 }
                 styles={{ body: { padding: '15px', paddingTop: '10px' } }}
             >
@@ -495,41 +433,7 @@ export default function TestEntityDrawer(props: {
                     title="Timeline"
                     mask={false}
                 >
-                    <Timeline
-                        items={rawSource.map((item) => ({
-                            children: (
-                                <Space direction="vertical">
-                                    <Button
-                                        type="text"
-                                        size="small"
-                                        style={{
-                                            margin: '0px',
-                                            padding: '0px',
-                                            whiteSpace: 'break-spaces',
-                                            wordBreak: 'break-word',
-                                            textAlign: 'left',
-                                        }}
-                                        onClick={() => {
-                                            document
-                                                .getElementById(item.suiteID)
-                                                ?.scrollIntoView({
-                                                    behavior: 'smooth',
-                                                });
-                                        }}
-                                    >
-                                        {item.title}
-                                    </Button>
-                                    <Text italic>
-                                        {dayjs(item.started).format(
-                                            dateTimeFormatUsed,
-                                        )}
-                                    </Text>
-                                </Space>
-                            ),
-                            color: timelineColor(item.standing),
-                            key: item.suiteID,
-                        }))}
-                    />
+                    <EntityTimeline rawSource={rawSource} />
                 </Drawer>
             </Drawer>
             <MoreDetailsOnEntity
