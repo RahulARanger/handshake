@@ -1,8 +1,8 @@
 # -*- mode: python ; coding: utf-8 -*-
-
+import pathlib
 
 a = Analysis(
-    ["graspit\\services\\starter.py"],
+    [str(pathlib.Path("graspit") / "services" / "starter.py")],
     pathex=[],
     binaries=[],
     datas=[],

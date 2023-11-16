@@ -15,7 +15,7 @@ testNames = "pyTestForOurProject"
 
 @fixture()
 def root_dir():
-    return Path(__file__).parent.parent / "TestResults"
+    return Path(__file__).parent.parent.parent / "TestResults"
 
 
 @fixture()

@@ -35,13 +35,25 @@ class TestSimplifyPathTree:
         assert a[path] == "a"
         assert x[path] == "x"
 
-        assert Path(result["a"]["b\\c\\d"]["e"]["f"][path]) == Path(paths[0])
-        assert Path(result["a"]["b\\c\\d"]["e"]["i\\k"][path]) == Path(paths[1])
-        assert Path(result["a"]["b\\c\\d"]["g"][path]) == Path(paths[5])
+        assert Path(result["a"][str(Path("b") / "c" / "d")]["e"]["f"][path]) == Path(
+            paths[0]
+        )
+        assert Path(
+            result["a"][str(Path("b") / "c" / "d")]["e"][str(Path("i") / "k")][path]
+        ) == Path(paths[1])
+        assert Path(result["a"][str(Path("b") / "c" / "d")]["g"][path]) == Path(
+            paths[5]
+        )
         assert Path(result["a"]["h"][path]) == Path(paths[6])
-        assert Path(result["x"]["b\\c\\d"]["e"]["f"][path]) == Path(paths[2])
-        assert Path(result["x"]["b\\c\\d"]["e"]["i\\k"][path]) == Path(paths[3])
-        assert Path(result["x"]["b\\c\\d"]["g"][path]) == Path(paths[4])
+        assert Path(result["x"][str(Path("b") / "c" / "d")]["e"]["f"][path]) == Path(
+            paths[2]
+        )
+        assert Path(
+            result["x"][str(Path("b") / "c" / "d")]["e"][str(Path("i") / "k")][path]
+        ) == Path(paths[3])
+        assert Path(result["x"][str(Path("b") / "c" / "d")]["g"][path]) == Path(
+            paths[4]
+        )
         assert Path(result["x"]["h"][path]) == Path(paths[7])
 
     def test_real_paths(self):
@@ -99,7 +111,7 @@ class TestSetConfigCommand:
     async def test_set_config_with_one_para(self, root_dir):
         result = run(
             f'graspit config "{root_dir}" -mr 3',
-            cwd=pathlib.Path(__file__).parent.parent / "dist",
+            cwd=pathlib.Path(__file__).parent.parent,
             shell=True,
         )
         assert result.returncode == 0
