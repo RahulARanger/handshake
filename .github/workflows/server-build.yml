@@ -5,12 +5,13 @@ on:
     branches:
       - 'server-build'
 
-permissions: read-all
+permissions:
+    contents: write
 
 jobs:
     build:
       name: building executable
-      runs-on: ['ubuntu-latest']
+      runs-on: ['ubuntu-latest', 'macos-latest', 'windows-latest']
       steps:
         - uses: actions/checkout@v3
 
