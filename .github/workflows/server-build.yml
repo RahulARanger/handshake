@@ -62,3 +62,4 @@ jobs:
             body: "Nightly Pre-Release for the graspit"
             commit: true
             tag: 0.0.1
+            name: 0.0.1
