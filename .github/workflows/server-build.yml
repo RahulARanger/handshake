@@ -45,6 +45,8 @@ jobs:
     release:
       name: Preparing Inital release
       runs-on: 'windows-latest'
+      needs: build
+      permissions: read-all
 
       steps:
         - name: Reading Version
