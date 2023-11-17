@@ -50,15 +50,12 @@ jobs:
         contents: write
 
       steps:
-        - name: Downloading generated builds
-          uses: actions/download-artifact@v3
+        - uses: actions/download-artifact@v3
           with:
             path: dist
 
-        - name: Generate a Release
-          uses: ncipollo/release-action@v1
+        - uses: ncipollo/release-action@v1
           with:
-#            tag: steps.read_version.outputs.value
             allowUpdates: true
             artifactErrorsFailBuild: true
             artifacts: "dist/*"
