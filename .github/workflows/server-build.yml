@@ -39,5 +39,5 @@ jobs:
           uses: actions/upload-artifact@v3
           with:
             name: my-artifact
-            path: dist/graspit.pkg
+            path: dist/graspit
             retention-days: 5
