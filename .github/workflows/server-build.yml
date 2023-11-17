@@ -34,10 +34,3 @@ jobs:
 
         - name: testing the build
           run: pytest __test__/test_sanity
-
-        - name: store it as artifact
-          uses: actions/upload-artifact@v3
-          with:
-            name: executable
-            path: |
-              dist/graspit*
