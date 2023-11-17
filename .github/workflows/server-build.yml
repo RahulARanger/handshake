@@ -26,18 +26,41 @@ jobs:
             pip install poetry 
             poetry install
 
-        - name: Testing Application
+        - name: Regression Test
           run: pytest __test__/test_regression
 
-        - name: build executable
+        - name: Build Generation
           run: pyinstaller starter.spec
 
-        - name: testing the build
+        - name: Testing the build
           run: pytest __test__/test_sanity
 
-        - name: 'Upload Executable'
+        - name: Upload Executable
           uses: actions/upload-artifact@v3
           with:
-            name: my-artifact
+            name: linux
             path: dist/graspit
             retention-days: 5
+
+    release:
+      name: Preparing Inital release
+      runs-on: 'windows-latest'
+
+      steps:
+        - name: Reading Version
+          uses: SebRollen/toml-action@v1.0.2
+          id: read_version
+          with:
+            file: 'pyproject.toml'
+            field: 'tools.poetry.version'
+
+        - name: Generate a Release
+          uses: ncipollo/release-action@v1
+          with:
+#            tag: steps.read_version.outputs.value
+            allowUpdates: true
+            artifactErrorsFailBuild: true
+            artifacts: "release.tar.gz,foo/*.txt"
+            body: "Nightly Pre-Release for the graspit"
+            commit: true
+            tag: 0.0.1
