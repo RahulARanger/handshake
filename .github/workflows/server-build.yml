@@ -54,12 +54,10 @@ jobs:
           with:
             path: dist
 
-        - uses: ncipollo/release-action@v1
+        - name: Release
+          uses: softprops/action-gh-release@v1
           with:
-            allowUpdates: true
-            artifactErrorsFailBuild: true
-            artifacts: "dist/*"
+            files: dist/*
             body: "Nightly Pre-Release for the graspit"
-            commit: true
-            tag: 0.0.1
-            name: 0.0.1
+            prerelease: true
+
