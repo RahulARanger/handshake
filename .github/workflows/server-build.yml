@@ -56,7 +56,7 @@ jobs:
 
         - uses: softprops/action-gh-release@v1
           with:
-            files: dist/*
+            files: dist/linux
             body: "Nightly Pre-Release for the graspit"
             prerelease: true
             tag_name: "0.12.0"
