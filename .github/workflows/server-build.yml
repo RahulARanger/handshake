@@ -49,12 +49,12 @@ jobs:
       permissions: read-all
 
       steps:
-        - name: Reading Version
-          uses: SebRollen/toml-action@v1.0.2
-          id: read_version
-          with:
-            file: 'pyproject.toml'
-            field: 'tools.poetry.version'
+#        - name: Reading Version
+#          uses: SebRollen/toml-action@v1.0.2
+#          id: read_version
+#          with:
+#            file: 'pyproject.toml'
+#            field: 'tools.poetry.version'
 
         - name: Generate a Release
           uses: ncipollo/release-action@v1
