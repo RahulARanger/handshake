@@ -47,7 +47,7 @@ async def helper_create_normal_suites(
 
     for index in range(3):
         suite = await helper_create_suite(
-            session_id, "suite-parent", parent_suite, retried=retried
+            session_id, f"suite-parent-{index + 1}", parent_suite, retried=retried
         )
         suites.append(suite.suiteID)
 
