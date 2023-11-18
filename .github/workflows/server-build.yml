@@ -51,38 +51,39 @@ jobs:
       name: Preparing Initial release
       runs-on: 'ubuntu-latest'
       needs: build
-      permissions:
-        contents: write
+      permissions: write-all
 
       steps:
         - uses: actions/download-artifact@v3
           with:
             path: dist
 
-        - name: Communicate the Release
+        - name: Release Prep
           id: version
           run: |
-            bash ./.github/scripts/pin-server-tag.sh
-
-        - name: Read the Release
-          run: echo ${{ steps.version.outputs.VERSION }}
+            bash ./.github/scripts/fetch-server-version.sh
 
         - uses: softprops/action-gh-release@v1
+          id: release
           with:
             files: dist/**/*
-            body: "PreR"
+            body: ":rocket: bump server release version to `${{ steps.version.outputs.VERSION }}"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
             name: ${{ steps.version.outputs.VERSION }}
+
+        - name: Post Release Post
+          run: bash ./.github/scripts/release-server-tag.sh
 
         - name: Request dashboard-build to use the latest release
           uses: peter-evans/create-pull-request@v5
           with:
             commit-message: "Requesting to use the new build for the server: ${{ steps.version.outputs.VERSION }}"
             delete-branch: true
-            branch-suffix: "server-build"
             title: "Bump Server Build"
             labels: "Automated,Server-build"
             reviewers: "RahulARanger"
+            body: ":rocket: bump release version to `${{ steps.version.outputs.VERSION }}`. 
+:magic_wand: make sure to edit this [release](${{ steps.release.outputs.url }}) once done."
             base: "dashboard-build"
             assignees: "RahulARanger"
