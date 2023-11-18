@@ -59,10 +59,30 @@ jobs:
           with:
             path: dist
 
+        - name: Communicate the Release
+          id: version
+          run: |
+            bash ./.github/scripts/pin-server-tag.sh
+
+        - name: Read the Release
+          run: echo ${{ steps.version.outputs.VERSION }}
+
         - uses: softprops/action-gh-release@v1
           with:
             files: dist/**/*
-            body: "Nightly Pre-Release for the graspit"
+            body: "PreR"
             prerelease: true
-            tag_name: "0.12.0"
-            name: "0.12.0"
+            tag_name: ${{ steps.version.outputs.VERSION }}
+            name: ${{ steps.version.outputs.VERSION }}
+
+        - name: Request dashboard-build to use the latest release
+          uses: peter-evans/create-pull-request@v5
+          with:
+            commit-message: "Requesting to use the new build for the server: ${{ steps.version.outputs.VERSION }}"
+            delete-branch: true
+            branch-suffix: "server-build"
+            title: "Bump Server Build"
+            labels: "Automated,Server-build"
+            reviewers: "RahulARanger"
+            base: "dashboard-build"
+            assignees: "RahulARanger"
