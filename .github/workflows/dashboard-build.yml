@@ -26,7 +26,6 @@ jobs:
           with:
             commit-message: "Requesting to use the new build for the server: ${{ steps.version.outputs.VERSION }}"
             delete-branch: true
-            branch-suffix: "server-build"
             title: "Bump Server Build"
             labels: "Automated,Server-build"
             reviewers: "RahulARanger"
