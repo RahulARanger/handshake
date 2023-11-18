@@ -241,7 +241,7 @@ class TestPatchSuiteJob:
                 parent_suite_3.suiteID,
             ]
         ):
-            assert await patchTestSuite(str(suite), str(test.testID)), index
+            assert await patchTestSuite(str(suite), str(test.testID)) is True, index
 
         for index, suite in enumerate(
             [
