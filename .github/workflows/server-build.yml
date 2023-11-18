@@ -49,7 +49,7 @@ jobs:
 
     release:
       name: Preparing Inital release
-      runs-on: 'windows-latest'
+      runs-on: 'ubuntu-latest'
       needs: build
       permissions:
         contents: write
@@ -57,11 +57,11 @@ jobs:
       steps:
         - uses: actions/download-artifact@v3
           with:
-            path: dist/${{ matrix.os }}
+            path: dist
 
         - uses: softprops/action-gh-release@v1
           with:
-            files: dist/${{ matrix.os }}/*
+            files: dist/**/*
             body: "Nightly Pre-Release for the graspit"
             prerelease: true
             tag_name: "0.12.0"
