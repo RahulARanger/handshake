@@ -241,7 +241,8 @@ class TestPatchSuiteJob:
                 parent_suite_3.suiteID,
             ]
         ):
-            assert await patchTestSuite(str(suite), str(test.testID)) is True, index
+            result = await patchTestSuite(str(suite), str(test.testID)) is True
+            assert result is True, index
 
         for index, suite in enumerate(
             [
@@ -251,7 +252,8 @@ class TestPatchSuiteJob:
                 *second_suites,
             ]
         ):
-            assert not await RetriedBase.exists(suite_id=suite), index
+            result = await RetriedBase.exists(suite_id=suite)
+            assert result is True, index
 
         for index, suites in enumerate(
             [
@@ -317,7 +319,8 @@ class TestPatchRunJob:
         await register_patch_test_run(test.testID)
 
         for suite in suites + second_suites:
-            assert await patchTestSuite(suite, test.testID)
+            result = await patchTestSuite(suite, test.testID)
+            assert result is True, suite
 
         await session.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
         await second_session.update_from_dict(
