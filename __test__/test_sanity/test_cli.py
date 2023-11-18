@@ -12,9 +12,9 @@ class TestCli:
         target = platform.system()
 
         if target == "Windows":
-            path /= "graspit.exe"
+            path /= f"graspit-{target}.exe"
         elif target == "Linux" or target == "Darwin":
-            path /= "graspit"
+            path /= f"graspit-{target}"
         else:
             assert False, f"{target} is not supported"
 
