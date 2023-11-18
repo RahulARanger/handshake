@@ -232,6 +232,18 @@ class TestPatchSuiteJob:
         for _ in [parent_suite, parent_suite_2, parent_suite_3]:
             await register_patch_suite(_.suiteID, test.testID)
 
+        for parent, children in [
+            [parent_suite.suiteID, first_suites],
+            [parent_suite_2.suiteID, second_suites],
+            [parent_suite_3.suiteID, third_suites],
+        ]:
+            for suite in children:
+                result = await patchTestSuite(suite, str(test.testID)) is True
+                assert result is True, "Child suite failed to be patched"
+
+            result = await patchTestSuite(parent, str(test.testID))
+            assert result is True, "Parent suite failed to be patched"
+
         for index, suite in enumerate(
             [
                 *first_suites,
