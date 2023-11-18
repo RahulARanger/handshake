@@ -1,5 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 import pathlib
+import platform
 
 a = Analysis(
     [str(pathlib.Path("graspit") / "services" / "starter.py")],
@@ -23,7 +24,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name="graspit",
+    name=f"graspit-{platform.system()}",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
