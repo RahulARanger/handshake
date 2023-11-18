@@ -14,7 +14,6 @@ from graspit.services.SchedularService.register import (
     register_patch_test_run,
 )
 from tortoise.expressions import Q
-from asyncio import gather
 
 
 @mark.usefixtures("sample_test_session")

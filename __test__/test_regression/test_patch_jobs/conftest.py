@@ -3,6 +3,7 @@ from graspit.services.DBService.models import SuiteBase, TestConfigBase, Session
 from graspit.services.DBService.models.enums import SuiteType, Status, AttachmentType
 from graspit.services.SchedularService.register import register_patch_suite
 import datetime
+from asyncio import sleep
 
 
 async def helper_create_suite(
@@ -34,6 +35,7 @@ async def helper_create_suite(
 async def helper_create_all_types_of_tests(session_id: str, parent: str, retried=0):
     for test in range(3):
         for _ in (Status.PASSED, Status.FAILED, Status.SKIPPED):
+            await sleep(0.002)
             await helper_create_suite(
                 session_id, f"test-{test}-{_}", parent, True, _, retried=retried
             )
@@ -54,6 +56,7 @@ async def helper_create_normal_suites(
         _tests = []
 
         for test in range(3):
+            await sleep(0.002)
             started = datetime.datetime.now()
             test = await SuiteBase.create(
                 session_id=session_id,
@@ -92,6 +95,7 @@ async def helper_create_test_config(test_id: str, file_retries=0):
 
 
 async def helper_create_session(test_id: str):
+    await sleep(0.0025)
     started = datetime.datetime.utcnow()
     return await SessionBase.create(
         started=started,
