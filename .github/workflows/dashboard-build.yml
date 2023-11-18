@@ -1,0 +1,25 @@
+name: 'server-build'
+
+on:
+  push:
+    branches:
+      - 'dashboard-build'
+
+permissions:
+    contents: write
+
+jobs:
+    release:
+      name: Preparing Initial release
+      runs-on: 'ubuntu-latest'
+
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Communicate the Release
+          id: version
+          run: |
+            bash ./.github/scripts/pin-server-tag.sh
+            
+        - name: Read the Release
+          run: echo ${{ steps.version.outputs.VERSION }}
