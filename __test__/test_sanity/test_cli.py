@@ -16,7 +16,7 @@ class TestCli:
         elif target == "Linux":
             possible_location /= "graspit"
         elif target == "Darwin":
-            possible_location /= "graspit.app"
+            possible_location /= "graspit"
         else:
             assert False, f"{target} is not supported"
 
