@@ -1,8 +1,8 @@
 #!/usr/bin/bash
 # root directory is in root of this project
 
-file=$(<"../../pyproject.toml");
-output="../../graspit-reporters/packages/graspit-dashboard/.version"
+file=$(<"pyproject.toml");
+output="graspit-reporters/packages/graspit-dashboard/.version"
 
 if [ -f "$output" ] ; then
     rm "$output"
