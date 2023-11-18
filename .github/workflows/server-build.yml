@@ -11,7 +11,12 @@ permissions:
 jobs:
     build:
       name: building executable
-      runs-on: ['macos-latest']
+      strategy:
+        matrix:
+          os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
+
+
+      runs-on: ${{ matrix.os }}
       steps:
         - uses: actions/checkout@v3
 
@@ -38,8 +43,8 @@ jobs:
         - name: Upload Executable
           uses: actions/upload-artifact@v3
           with:
-            name: linux
-            path: dist/graspit
+            name: ${{ matrix.os }}
+            path: dist/${{ matrix.os }}
             retention-days: 5
 
     release:
@@ -52,11 +57,11 @@ jobs:
       steps:
         - uses: actions/download-artifact@v3
           with:
-            path: dist
+            path: dist/${{ matrix.os }}
 
         - uses: softprops/action-gh-release@v1
           with:
-            files: dist/**
+            files: dist/${{ matrix.os }}/*
             body: "Nightly Pre-Release for the graspit"
             prerelease: true
             tag_name: "0.12.0"
