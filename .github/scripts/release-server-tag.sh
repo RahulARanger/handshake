@@ -7,4 +7,4 @@ if [ -f "$output" ] ; then
     rm "$output"
 fi
 
-echo "${{ steps.release.outputs.assets }}" > $output
+echo "${ASSETS}" > $output
