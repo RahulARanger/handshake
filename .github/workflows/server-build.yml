@@ -48,7 +48,7 @@ jobs:
             retention-days: 1
 
     release:
-      name: Preparing Initial release
+      name: Preparing pre-release
       runs-on: 'ubuntu-latest'
       needs: build
       permissions: write-all
@@ -68,7 +68,7 @@ jobs:
           id: release
           with:
             files: dist/**/*
-            body: ":rocket: bump server release version to `${{ steps.version.outputs.VERSION }}"
+            body: ":rocket: bump server release version to `${{ steps.version.outputs.VERSION }}`"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
             name: ${{ steps.version.outputs.VERSION }}

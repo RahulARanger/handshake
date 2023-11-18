@@ -7,4 +7,4 @@ if [ -f "$output" ] ; then
     rm "$output"
 fi
 
-"${{steps.release.outputs}}" >> "$output"
+echo "${{steps.release.outputs}}" >> "$output"
