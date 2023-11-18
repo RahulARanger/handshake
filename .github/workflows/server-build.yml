@@ -44,7 +44,7 @@ jobs:
 
         - name: Post Release Post
           env:
-            ASSETS: ${{ steps.release.outputs.assets }}
+            ASSETS: ${{ steps.release.outputs }}
           run: bash ./.github/scripts/release-server-tag.sh
 
         - name: Request dashboard-build to use the latest release
