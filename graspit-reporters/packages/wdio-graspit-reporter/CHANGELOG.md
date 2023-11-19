@@ -1,5 +1,11 @@
 # wdio-graspit-reporter
 
+## 2.0.0
+
+### Major Changes
+
+- working on the release to include the binary
+
 ## 1.5.0
 
 ### Patch Changes

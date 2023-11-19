@@ -1,5 +1,23 @@
 # graspit
 
+## 3.0.2
+
+### Patch Changes
+
+- Minor Patch for pre-build installation
+
+## 3.0.1
+
+### Patch Changes
+
+- ignoring the build
+
+## 3.0.0
+
+### Major Changes
+
+- working on the release
+
 ## 2.2.2
 
 ### Patch Changes

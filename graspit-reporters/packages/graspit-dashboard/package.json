@@ -1,12 +1,16 @@
 {
     "name": "graspit",
-    "version": "2.2.2",
+    "version": "3.0.2",
     "license": "MIT",
+    "bin": {
+        "graspit": "./graspit"
+    },
     "scripts": {
         "dev": "next dev",
         "build": "npm run lint",
         "start": "next start",
         "lint": "next lint",
+        "preinstall": "node ./scripts/downloadBuild.js",
         "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.ts",
         "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.ts",
         "export": "cross-env NODE_ENV=production next build --no-lint",
