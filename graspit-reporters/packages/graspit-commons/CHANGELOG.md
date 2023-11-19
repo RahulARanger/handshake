@@ -1,5 +1,24 @@
 # graspit-commons
 
+## 2.1.1
+
+### Patch Changes
+
+- bump package version
+- Updated dependencies
+  - graspit@3.1.1
+
+## 2.1.0
+
+### Minor Changes
+
+- test e2e
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@3.1.0
+
 ## 1.5.0
 
 ### Minor Changes
