@@ -17,8 +17,8 @@
 		"wdio-graspit-reporter": "2.0.0"
 	},
 	"devDependencies": {
-		"@wdio/local-runner": "^8.21.0",
-		"@wdio/mocha-framework": "^8.21.0",
-		"@wdio/spec-reporter": "^8.21.0"
+		"@wdio/local-runner": "^8.23.1",
+		"@wdio/mocha-framework": "^8.23.1",
+		"@wdio/spec-reporter": "^8.23.1"
 	}
 }

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "graspit"
-version = "0.12.2"
+version = "0.12.3"
 description = "service for working with your test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"

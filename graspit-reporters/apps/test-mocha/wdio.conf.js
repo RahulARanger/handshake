@@ -1,4 +1,4 @@
-import { dirname, join } from 'node:path';
+import { join, dirname } from 'node:path';
 import { attachReporter } from "wdio-graspit-reporter"
 
 // eslint-disable-next-line import/prefer-default-export
@@ -45,8 +45,10 @@ export const config = attachReporter(metaConfig, {
     collectionName: "TestResults",
     projectName: "NeXtReporter:Mocha",
     port: 6969,
-    timeout: 30e3,
+    timeout: 360e3,
     root,
-    exePath: join(root, "dist", "graspit"),
-    addScreenshots: true
+    addScreenshots: true,
+    export: {
+        out: join(root, "TestReports")
+    }
 });

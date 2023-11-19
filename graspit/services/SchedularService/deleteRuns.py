@@ -61,7 +61,7 @@ async def deleteOldRuns(db_path: Path, punch_out: List[bool]):
         rmtree(entry)
 
     await ConfigBase.update_or_create(
-        dict(key=ConfigKeys.recentlyDeleted, value=str(recently_deleted))
+        key=ConfigKeys.recentlyDeleted, value=str(recently_deleted)
     )
     logger.info("Delete job is completed.")
     return punch_out.pop()
