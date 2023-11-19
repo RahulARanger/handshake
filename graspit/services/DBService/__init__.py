@@ -1,1 +1,1 @@
-DB_VERSION = 2
+DB_VERSION = 3

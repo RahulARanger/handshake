@@ -10,6 +10,7 @@ dist/*
 results
 test-results/*
 TestResults/*
+TestReports/*
 
 jest-init-tests
 test-jest-reports
@@ -17,6 +18,7 @@ test-jest-reports
 **logs/
 # production
 /build
+/dist
 
 # misc
 .DS_Store
@@ -28,7 +30,7 @@ yarn-debug.log*
 yarn-error.log*
 
 # local env files
-.env*.local
+.env*.development
 *.env   
 venv/*
 
@@ -53,3 +55,5 @@ graspit-reporters/packages/graspit-dashboard/src/styles/antd.min.css
 
 # Misc
 .DS_Store
+graspit-reporters/packages/graspit-commons/graspit.exe
+graspit-reporters/packages/graspit-commons/graspit

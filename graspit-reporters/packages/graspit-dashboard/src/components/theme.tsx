@@ -3,20 +3,27 @@ import theme from 'antd/lib/theme';
 import ConfigProvider from 'antd/lib/config-provider';
 import React, { type ReactNode } from 'react';
 
-const customTheme: ThemeConfig = {
-    token: {
-        colorPrimary: '#f66a00',
-        colorInfo: '#f66a00',
-    },
-    algorithm: theme.darkAlgorithm,
-};
+const withTheme = (node: ReactNode): JSX.Element => {
+    // const selectedFont = Roboto({
+    //     weight: '300',
+    //     subsets: ['latin'],
+    // });
 
-const withTheme = (node: ReactNode): JSX.Element => (
-    <>
-        <ConfigProvider theme={customTheme} wave={{}}>
-            {node}
-        </ConfigProvider>
-    </>
-);
+    const customTheme: ThemeConfig = {
+        token: {
+            colorPrimary: '#f66a00',
+            colorInfo: '#f66a00',
+            // fontFamily: selectedFont.style.fontFamily,
+        },
+        algorithm: theme.darkAlgorithm,
+    };
+    return (
+        <>
+            <ConfigProvider theme={customTheme} wave={{}}>
+                {node}
+            </ConfigProvider>
+        </>
+    );
+};
 
 export default withTheme;

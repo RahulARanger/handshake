@@ -93,8 +93,8 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                             <RenderDuration
                                 value={item.Duration}
                                 style={{
-                                    minWidth: '80px',
-                                    maxWidth: '80px',
+                                    minWidth: '90px',
+                                    maxWidth: '90px',
                                 }}
                             />
                         </Space>
@@ -211,6 +211,7 @@ function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
             items={data}
             defaultActiveKey={['Latest Run']}
             bordered
+            style={{ height: '100%' }}
         />
     );
 }
@@ -333,11 +334,7 @@ export default function GridOfRuns(props: {
             }}
         >
             <Layout.Header className={HeaderStyles.header} spellCheck>
-                <Space
-                    align="baseline"
-                    size="large"
-                    style={{ marginTop: '6px' }}
-                >
+                <Space align="baseline" size="large">
                     <BreadCrumb items={crumbs(false, filteredRuns.length)} />
                     <Divider type="vertical" />
                     <Tooltip title="Filters are on the right">

@@ -1,4 +1,4 @@
-import { dirname } from 'node:path';
+import { join, dirname } from 'node:path';
 import { attachReporter } from "wdio-graspit-reporter"
 
 // eslint-disable-next-line import/prefer-default-export
@@ -6,11 +6,11 @@ const metaConfig = {
     reporterSyncTimeout: 40e3, // IMPORTANT
     runner: 'local',
     specs: [
-        ['./test-mocha/specs/test.e2e.js', './test-mocha/specs/package-version.e2e.js'],
         './test-mocha/specs/test.e2e.js',
         './test-mocha/specs/package-version.e2e.js',
     ],
     maxInstances: 10,
+    specFileRetries: 1,
     //
     capabilities: [{
         browserName: 'chrome',
@@ -40,11 +40,15 @@ const metaConfig = {
     }
 }
 
+const root = dirname(dirname(dirname(process.cwd())))
 export const config = attachReporter(metaConfig, {
     collectionName: "TestResults",
     projectName: "NeXtReporter:Mocha",
     port: 6969,
-    timeout: 30e3,
-    root: dirname(dirname(dirname(process.cwd()))),
-    addScreenshots: true
+    timeout: 360e3,
+    root,
+    addScreenshots: true,
+    export: {
+        out: join(root, "TestReports")
+    }
 });

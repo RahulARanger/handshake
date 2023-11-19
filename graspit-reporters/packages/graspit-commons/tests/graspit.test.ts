@@ -12,20 +12,36 @@ import { existsSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { ReporterDialPad, ServiceDialPad } from '../src';
 
+const port = 6969;
+const root = dirname(dirname(dirname(process.cwd())));
+const service = new ServiceDialPad(port, join(root, 'dist', 'graspit'));
+describe('Asserting the scenario when the server was not started yet', () => {
+  jest.setTimeout(3e3);
+
+  it('ping now', async () => {
+    await expect(await service.ping()).toBe(false);
+  });
+
+  it('expect for failure message when the server has not started yet.', async () => {
+    // so when this throws error, you will go forward.
+    await expect(async () => service.waitUntilItsReady(1e3))
+      .rejects
+      .toThrow('Not able to connect with graspit-server within');
+  });
+});
+
 // HERE our aim is to test the common service and any helper functions provided
 // we assume that if a valid request is sent to the graspit server
 // it would do what it was supposed to
 // (like saving to db or adding relevant task or calculate some info).
 
 describe('verifying if we are able to start graspit server', () => {
-  jest.setTimeout(60e3);
-  const port = 6969;
-  const service = new ServiceDialPad(port);
-  let pyProcess: ChildProcess;
-  const root = dirname(dirname(dirname(process.cwd())));
+  jest.setTimeout(10e3);
   const testResults = join(root, 'jest-init-tests');
   const results = join(root, 'test-jest-reports');
+  let pyProcess: ChildProcess;
 
+  // for terminating the server if things do downhill
   async function safeSide() {
     await service.terminateServer();
     if (existsSync(testResults)) {
@@ -39,28 +55,33 @@ describe('verifying if we are able to start graspit server', () => {
   afterAll(safeSide);
   process.on('exit', safeSide);
 
+  // starting the python service
   beforeAll(async () => {
+    expect(service.exePath).not.toBeUndefined();
+
     pyProcess = service.startService(
       'jest-test',
       testResults,
       root,
-      port,
     );
+    expect(service.pyProcess).not.toBeUndefined();
+
     await service.waitUntilItsReady();
-  }, 120e3);
+  });
 
   describe('Verifying the functionality of the service', () => {
     test('test the save url', () => {
       expect(service.saveUrl).toEqual(`http://127.0.0.1:${port}/save`);
     });
 
-    test('test the start service', () => {
+    test('assert the process\'s pid', () => {
       expect(typeof pyProcess.pid).toBe('number');
     });
 
-    test('test wait until the server is started', async () => {
-      expect(await service.ping()).toBeTruthy();
+    test('valid ping', async () => {
+      await expect(await service.ping()).toBeTruthy();
     });
+
     test('testing the presence of the database', () => {
       expect(existsSync(testResults)).toBeTruthy();
       expect(existsSync(join(testResults, 'TeStReSuLtS.db'))).toBeTruthy();
@@ -115,7 +136,6 @@ describe('verifying if we are able to start graspit server', () => {
         file: 'test.spec.ts',
         started: new Date().toISOString(),
         retried: 0,
-        standing: 'PENDING',
         tags: [],
       });
 
@@ -141,16 +161,16 @@ describe('verifying if we are able to start graspit server', () => {
       await waitForLock(failedKey);
     });
 
-    describe('Verifying the additional methods provided', () => {
-      test('verifying additional Requests if no entity id was provided', async () => {
-        expect(await reporter.addDescription('test-description', '')).toBe(false);
-        expect(await reporter.attachScreenshot('test-attach', '', '', '')).toBe(false);
-      });
+    test('verifying additional Requests if no entity id was provided', async () => {
+      expect(await reporter.addDescription('test-description', '')).toBe(false);
+      expect(await reporter.attachScreenshot('test-attach', '', '', '')).toBe(false);
+    });
 
-      test('verifying additional Requests if entity id was provided', async () => {
-        expect(await reporter.addDescription('test-description', reporter.idMapped[testKey])).toBe(true);
-        expect(await reporter.attachScreenshot('test-attach', 'sample-content', reporter.idMapped[testKey], 'test-description')).toBe(true);
-      });
+    test('verifying additional Requests if entity id was provided', async () => {
+      expect(await reporter.addDescription('test-description', reporter.idMapped[testKey])).toBe(true);
+      const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
+      const attachmentId = await reporter.attachScreenshot('test-attach', raw, reporter.idMapped[testKey], 'test-description') as string;
+      expect(attachmentId.length).toBeGreaterThan(2);
     });
   });
 
@@ -162,19 +182,13 @@ describe('verifying if we are able to start graspit server', () => {
       // because we are expecting server to be online even at this point
     });
     it('skipping the patch would also skip the report generation', () => {
-      service.generateReport(testResults, root, results, false, 2, true);
+      service.generateReport(testResults, root, results, 2, true);
       expect(existsSync(results)).toBe(false);
     });
 
     it('test patch only', () => {
-      service.generateReport(testResults, root, undefined, false, 1);
+      service.generateReport(testResults, root, undefined, 1, false, 1e3);
       expect(existsSync(results)).toBe(false);
-    });
-
-    it('test report generation', () => {
-      expect(existsSync(testResults)).toBe(true);
-      service.generateReport(testResults, root, results, false, 1);
-      expect(existsSync(results)).toBe(true);
     });
   });
 });

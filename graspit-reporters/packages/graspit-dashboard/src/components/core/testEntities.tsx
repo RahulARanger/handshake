@@ -2,10 +2,15 @@ import { gridViewMode, treeViewMode } from 'src/types/uiConstants';
 import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import { parseDetailedTestEntity } from '../parseUtils';
-import { getSuites, getSessions } from 'src/Generators/helper';
+import {
+    getSuites,
+    getSessions,
+    getTestRun,
+} from 'src/components/scripts/helper';
 import type { possibleEntityNames } from 'src/types/sessionRecords';
 import type { PreviewForDetailedEntities } from 'src/types/parsedRecords';
 import RenderTimeRelativeToStart, {
+    RenderDuration,
     RenderEntityType,
     RenderStatus,
 } from '../utils/renderers';
@@ -15,7 +20,7 @@ import TestEntityDrawer from './TestEntity';
 import ProjectStructure from './TestRun/Structure';
 
 import React, { useContext, type ReactNode, useState } from 'react';
-import { type Dayjs } from 'dayjs';
+import dayjs, { type Dayjs } from 'dayjs';
 import useSWR from 'swr';
 
 import Table from 'antd/lib/table/Table';
@@ -27,6 +32,10 @@ import Segmented, {
     type SegmentedLabeledOption,
 } from 'antd/lib/segmented/index';
 import Space from 'antd/lib/space/index';
+import type { Duration } from 'dayjs/plugin/duration';
+import Typography from 'antd/lib/typography/Typography';
+import { timeFormatUsed } from '../utils/Datetime/format';
+import type TestRunRecord from 'src/types/testRunRecords';
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
@@ -40,7 +49,11 @@ function extractSuiteTree(
     sessions: SessionDetails,
 ): undefined | SuiteNode[] {
     const result = suites['@order']
-        .filter((suiteID) => parent === suites[suiteID].parent)
+        .filter(
+            (suiteID) =>
+                parent === suites[suiteID].parent &&
+                suites[suiteID].standing !== 'RETRIED',
+        )
         .map((suiteID) => ({
             children: extractSuiteTree(suites, suiteID, startDate, sessions),
             key: suiteID,
@@ -53,11 +66,20 @@ function extractSuiteTree(
     return result.length > 0 ? result : undefined;
 }
 
-export default function TestEntities(props: {
-    startDate: Dayjs;
-    setIcon: (viewMode: string) => void;
-}): ReactNode {
+export function TestRunStarted(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
+    const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    if (data == null) return <></>;
+    return (
+        <Typography>{`Test Run Started at: ${dayjs(data.started).format(
+            timeFormatUsed,
+        )}`}</Typography>
+    );
+}
+
+export default function TestEntities(): ReactNode {
+    const { port, testID } = useContext(MetaCallContext);
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
@@ -70,9 +92,10 @@ export default function TestEntities(props: {
         setShowEntity(false);
     };
 
-    if (suites == null || sessions == null) return <></>;
+    if (run == null || suites == null || sessions == null) return <></>;
 
-    const data = extractSuiteTree(suites, '', props.startDate, sessions);
+    const data = extractSuiteTree(suites, '', dayjs(run.started), sessions);
+
     const options: SegmentedLabeledOption[] = [
         {
             label: 'Grid',
@@ -93,17 +116,28 @@ export default function TestEntities(props: {
 
     return (
         <>
-            <Space direction="vertical" style={{ width: '100%' }}>
-                <Segmented
-                    options={options}
-                    defaultValue={viewMode}
-                    onChange={(value) => {
-                        const selected = value.toString();
-                        setViewMode(selected);
-                        props.setIcon(selected);
+            <Space
+                direction="vertical"
+                style={{ width: '99%', marginTop: '6px' }}
+            >
+                <Space
+                    style={{
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        alignItems: 'center',
                     }}
-                    style={{ marginBottom: '10px' }}
-                />
+                >
+                    <Segmented
+                        options={options}
+                        defaultValue={viewMode}
+                        onChange={(value) => {
+                            const selected = value.toString();
+                            setViewMode(selected);
+                        }}
+                        style={{ marginBottom: '5px' }}
+                    />
+                    <TestRunStarted />
+                </Space>
                 {viewMode === gridViewMode ? (
                     <Table
                         dataSource={data}
@@ -114,24 +148,60 @@ export default function TestEntities(props: {
                         <Table.Column
                             title="Status"
                             width={40}
-                            align="center"
+                            align="justify"
                             dataIndex="Status"
                             render={(value: statusOfEntity) => (
                                 <RenderStatus value={value} />
                             )}
                             fixed="left"
+                            filterMode="menu"
+                            filterMultiple
+                            filters={['PASSED', 'FAILED', 'SKIPPED'].map(
+                                (status) => ({
+                                    text: (
+                                        <Space>
+                                            <RenderStatus value={status} />
+                                            {`${status.at(0)}${status
+                                                .slice(1)
+                                                .toLowerCase()}`}
+                                        </Space>
+                                    ),
+                                    value: status,
+                                }),
+                            )}
+                            onFilter={(value, record: SuiteNode) =>
+                                value === record.Status
+                            }
                         />
                         <Table.Column
                             title="Name"
                             dataIndex="Title"
-                            width={120}
+                            width={220}
+                            fixed="left"
+                            filterSearch={true}
+                            filters={Array.from(
+                                new Set(data?.map((suite) => suite.Title)),
+                            )?.map((suite) => ({
+                                text: suite,
+                                value: suite,
+                            }))}
+                            onFilter={(value, record: SuiteNode) =>
+                                value === record.Title
+                            }
                         />
                         <Table.Column
                             title="Rate"
                             dataIndex="Rate"
-                            width={120}
+                            width={100}
+                            sorter={(a: SuiteNode, b: SuiteNode) => {
+                                return a.Rate[0] - b.Rate[0];
+                            }}
                             render={(value: [number, number, number]) => (
-                                <RenderPassedRate value={value} />
+                                <RenderPassedRate
+                                    value={value}
+                                    width={100}
+                                    immutable={true}
+                                />
                             )}
                         />
                         <Table.Column
@@ -139,36 +209,90 @@ export default function TestEntities(props: {
                             align="center"
                             dataIndex="Tests"
                             width={25}
+                            sorter={(a: SuiteNode, b: SuiteNode) => {
+                                return a.Tests - b.Tests;
+                            }}
+                        />
+                        <Table.Column
+                            title="Retried"
+                            align="center"
+                            dataIndex="Retried"
+                            width={25}
+                            sorter={(a: SuiteNode, b: SuiteNode) => {
+                                return a.Retried - b.Retried;
+                            }}
                         />
                         <Table.Column
                             dataIndex="Started"
                             title="Started"
-                            width={100}
+                            width={130}
                             render={(value: [Dayjs, Dayjs]) => (
                                 <RenderTimeRelativeToStart value={value} />
                             )}
+                            sorter={(a: SuiteNode, b: SuiteNode) => {
+                                return Number(
+                                    a.Started[0].isBefore(b.Started[0]),
+                                );
+                            }}
                         />
                         <Table.Column
                             title="Ended"
-                            width={100}
+                            width={130}
                             dataIndex="Ended"
                             render={(value: [Dayjs, Dayjs]) => (
-                                <RenderTimeRelativeToStart value={value} />
+                                <RenderTimeRelativeToStart
+                                    value={value}
+                                    style={{ maxWidth: 'unset' }}
+                                />
+                            )}
+                        />
+                        <Table.Column
+                            title="Duration"
+                            width={60}
+                            dataIndex="Duration"
+                            render={(value: Duration) => (
+                                <RenderDuration value={value} />
                             )}
                         />
                         <Table.Column
                             title="Entity"
-                            width={100}
+                            width={25}
                             dataIndex="entityName"
                             align="center"
                             render={(value: possibleEntityNames) => (
                                 <RenderEntityType entityName={value} />
                             )}
+                            filterMode="menu"
+                            filterMultiple
+                            filters={['chrome'].map((status) => ({
+                                text: (
+                                    <Space>
+                                        <RenderEntityType entityName={status} />
+                                        {`${status.at(0)}${status
+                                            .slice(1)
+                                            .toLowerCase()}`}
+                                    </Space>
+                                ),
+                                value: status,
+                            }))}
+                            onFilter={(value, record: SuiteNode) =>
+                                record.entityName.toLowerCase() == value
+                            }
                         />
                         <Table.Column
                             dataIndex="File"
                             title="File"
-                            width={100}
+                            width={30}
+                            filterSearch={true}
+                            filters={Array.from(
+                                new Set(data?.map((suite) => suite.File)),
+                            )?.map((suite) => ({
+                                text: suite,
+                                value: suite,
+                            }))}
+                            onFilter={(value, record: SuiteNode) =>
+                                value === record.File
+                            }
                         />
                         <Table.Column
                             dataIndex=""

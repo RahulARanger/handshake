@@ -1,8 +1,6 @@
-from graspit.services.DBService.models.config_base import (
-    TestConfigBase,
-    ValueForTestRunConfigBase,
-    ConfigBase,
-)
+from graspit.services.DBService.models.static_base import TestConfigBase
+from graspit.services.DBService.models.config_base import ConfigBase
+from graspit.services.DBService.models.types import ValueForTestRunConfigBase
 from graspit.services.DBService import DB_VERSION
 from graspit.services.DBService.models.result_base import RunBase
 from graspit.services.DBService.models.enums import AttachmentType, ConfigKeys
@@ -50,9 +48,6 @@ async def set_default_config():
         record = await ConfigBase.filter(key=str(key)).first()
         if not record:
             await ConfigBase.create(key=key, value=value)
-        else:
-            record.value = value
-            await record.save()
 
 
 async def close_connection():

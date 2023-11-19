@@ -1,15 +1,27 @@
-import runLink from 'src/Generators/linkProviders';
-import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import { runPage } from 'src/components/scripts/helper';
+import type {
+    Attachment,
+    SuiteRecordDetails,
+} from 'src/types/testEntityRelated';
 import type {
     QuickPreviewForScenarios,
     QuickPreviewForTestRun,
     PreviewForDetailedEntities,
     PreviewForTests,
+    QuickPreviewForAttachments,
 } from 'src/types/parsedRecords';
 import type TestRunRecord from 'src/types/testRunRecords';
 import type SessionRecordDetails from 'src/types/sessionRecords';
 import dayjs, { type Dayjs } from 'dayjs';
 import duration from 'dayjs/plugin/duration';
+import {
+    greenGradient,
+    redGradient,
+    skippedGradient,
+} from './charts/constants';
+import type { statusOfEntity } from 'src/types/sessionRecords';
+import type { BadgeProps } from 'antd';
+import type { TimelineItemProps } from 'antd/lib';
 
 dayjs.extend(duration);
 
@@ -87,8 +99,53 @@ export function parseDetailedTestRun(
         Tests: testRun.tests,
         SuitesSummary: [summary.passed, summary.failed, summary.skipped],
         Suites: summary.count,
-        Link: runLink(testRun.testID),
+        Link: runPage(testRun.testID),
     };
 }
 
-export const statusColors = ['green', '#FC4349', '#2C3E50'];
+export function parseAttachment(
+    attached: Attachment,
+): QuickPreviewForAttachments {
+    return {
+        ...attached,
+        parsed: JSON.parse(attached.attachmentValue),
+    };
+}
+
+export function convertForWrittenAttachments(
+    prefix: string,
+    testID: string,
+    attachmentID: string,
+): string {
+    return [prefix, testID, attachmentID].join('/');
+}
+
+export const statusColors = [greenGradient, redGradient, skippedGradient];
+
+export function badgeStatus(status: string): BadgeProps['status'] {
+    switch (status as statusOfEntity) {
+        case 'FAILED':
+            return 'error';
+        case 'PASSED':
+            return 'success';
+        case 'PENDING':
+            return 'processing';
+        case 'SKIPPED':
+            return 'warning';
+    }
+}
+
+export function timelineColor(status: string): TimelineItemProps['color'] {
+    switch (status as statusOfEntity) {
+        case 'FAILED':
+            return 'red';
+        case 'PASSED':
+            return 'green';
+        case 'PENDING':
+            return 'blue';
+        case 'SKIPPED':
+            return 'gray';
+    }
+}
+
+export const optionsForEntities = ['Timeline'];

@@ -1,115 +1,240 @@
-import { RenderStatus } from 'src/components/utils/renderers';
-import type { Attachment } from 'src/types/testEntityRelated';
-import GalleryOfImages, {
-    CardForAImage,
-} from 'src/components/utils/ImagesWithThumbnails';
-import type { PreviewForTests } from 'src/types/parsedRecords';
+import { CardForAImage } from 'src/components/utils/ImagesWithThumbnails';
+import type { AttachedError, PreviewForTests } from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
-
-import React, { type ReactNode } from 'react';
+import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
-import Card, { type CardProps } from 'antd/lib/card/Card';
-
+import Text from 'antd/lib/typography/Text';
 import List from 'antd/lib/list';
-import Modal from 'antd/lib/modal/Modal';
 import Space from 'antd/lib/space';
 import Alert from 'antd/lib/alert/Alert';
+import PreviewGroup from 'antd/lib/image/PreviewGroup';
+import {
+    convertForWrittenAttachments,
+    parseAttachment,
+} from 'src/components/parseUtils';
+import MetaCallContext from '../TestRun/context';
+import useSWR from 'swr';
+import {
+    getSuites,
+    getTestRun,
+    getTests,
+    getWrittenAttachments,
+} from 'src/components/scripts/helper';
+import Drawer from 'antd/lib/drawer/index';
+import Tabs from 'antd/lib/tabs/index';
+import type TestRunRecord from 'src/types/testRunRecords';
+import type {
+    AttachmentDetails,
+    SuiteDetails,
+    TestDetails,
+} from 'src/types/generatedResponse';
+import Typography from 'antd/lib/typography/index';
+import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
 
-function ErrorMessage(props: { item: Error; converter: Convert }): ReactNode {
-    return (
-        <Alert
-            message={
-                <div
-                    dangerouslySetInnerHTML={{
-                        __html: props.converter.toHtml(props.item.message),
-                    }}
-                />
-            }
-            showIcon
-            type="error"
-            description={
-                <div
-                    dangerouslySetInnerHTML={{
-                        __html: props.converter.toHtml(props.item.stack ?? ''),
-                    }}
-                />
-            }
-        />
-    );
-}
-
-export default function MoreDetailsOnEntity(props: {
-    item?: PreviewForTests;
-    open: boolean;
-    items: Attachment[];
-    onClose: () => void;
+function ErrorMessage(props: {
+    item: AttachedError;
+    converter: Convert;
+    setTestID: (testID: string) => void;
 }): ReactNode {
-    if (props.item == null) return <></>;
-    const converter = new Convert();
+    const { port, testID } = useContext(MetaCallContext);
+    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
+    const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
 
-    const tabList: CardProps['tabList'] = [];
-
-    if (props.item.Errors?.length > 0) {
-        tabList.push({
-            key: 'errors',
-            label: 'Errors',
-            children: (
-                <List
-                    itemLayout="vertical"
-                    dataSource={props.item.Errors}
-                    renderItem={(item) => (
-                        <List.Item>
-                            <ErrorMessage converter={converter} item={item} />
-                        </List.Item>
-                    )}
-                />
-            ),
-        });
-    }
-
-    const images = props.items?.filter((item) => item.type === 'PNG');
-    if (images?.length > 0) {
-        tabList.push({
-            key: 'images',
-            label: 'Images',
-            children: (
-                <GalleryOfImages loop={true}>
-                    {images.map((image, index) => (
-                        <CardForAImage
-                            image={image}
-                            index={index}
-                            key={index}
-                        />
-                    ))}
-                </GalleryOfImages>
-            ),
-        });
-    }
+    if (tests == null || suites == null) return <></>;
 
     return (
-        <Modal
-            title={
-                <Space>
-                    {props.item.Title}
-                    <BadgeForSuiteType
-                        text={props.item.type}
-                        color={
-                            props.item.type === 'SUITE' ? 'magenta' : 'purple'
+        <List.Item
+            key={props.item.name}
+            actions={[
+                props.item.mailedFrom ? (
+                    <Breadcrumb
+                        items={props.item.mailedFrom
+                            .toReversed()
+                            .map((suite) => ({
+                                key: suite,
+                                title: (
+                                    <Typography
+                                        style={{
+                                            fontStyle: 'italic',
+                                            cursor:
+                                                suites[suite] == null
+                                                    ? undefined
+                                                    : 'pointer',
+                                        }}
+                                    >
+                                        {(tests[suite] ?? suites[suite]).title}
+                                    </Typography>
+                                ),
+                                onClick: suites[suite]
+                                    ? () => {
+                                          props.setTestID(
+                                              suites[suite].suiteID,
+                                          );
+                                      }
+                                    : undefined,
+                            }))}
+                    />
+                ) : (
+                    <></>
+                ),
+            ]}
+        >
+            <List.Item.Meta
+                description={
+                    <Alert
+                        type="error"
+                        message={
+                            <Text>
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: props.converter.toHtml(
+                                            props.item.message,
+                                        ),
+                                    }}
+                                />
+                            </Text>
+                        }
+                        description={
+                            <Text>
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: props.converter.toHtml(
+                                            props.item.stack ?? '',
+                                        ),
+                                    }}
+                                />
+                            </Text>
                         }
                     />
+                }
+            />
+        </List.Item>
+    );
+}
+export const errorsTab = 'errors';
+export const imagesTab = 'images';
+
+export default function MoreDetailsOnEntity(props: {
+    selected?: PreviewForTests;
+    open: boolean;
+    setTestID: (required: string) => void;
+    onClose: () => void;
+    setTab: (tab: string) => void;
+    tab: string;
+}): ReactNode {
+    const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    const { data: writtenAttachments } = useSWR<AttachmentDetails>(
+        getWrittenAttachments(port, testID),
+    );
+    const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
+
+    if (
+        props.selected == null ||
+        attachmentPrefix == null ||
+        testID == null ||
+        tests == null ||
+        writtenAttachments == null ||
+        run == null
+    )
+        return <></>;
+
+    const current = props.selected.id;
+    const needed = [current];
+
+    if (props.selected.type === 'SUITE') {
+        Object.keys(tests).forEach(
+            (key) => tests[key]?.parent === current && needed.push(key),
+        );
+    }
+
+    const converter = new Convert();
+    const images = needed
+        .map((key) => writtenAttachments[key])
+        .flat()
+        ?.filter((item) => item?.type === 'PNG')
+        ?.map(parseAttachment);
+
+    return (
+        <Drawer
+            title={
+                <Space align="start">
+                    <BadgeForSuiteType
+                        text={props.selected.type}
+                        color={
+                            props.selected.type === 'SUITE'
+                                ? 'magenta'
+                                : 'purple'
+                        }
+                    />
+                    <Text>{props.selected.Title}</Text>
                 </Space>
             }
+            style={{ width: '500px' }}
+            styles={{ body: { padding: '15px', paddingTop: '10px' } }}
             open={props.open}
-            onCancel={props.onClose}
-            destroyOnClose
-            cancelText="Close"
-            closeIcon={<RenderStatus value={props.item.Status} />}
-            width={600}
-            okButtonProps={{
-                style: { display: 'none' },
-            }}
+            onClose={props.onClose}
+            mask={false}
+            placement="left"
         >
-            <Card tabList={tabList} size="small" bordered />
-        </Modal>
+            <Tabs
+                animated
+                type="card"
+                onChange={props.setTab}
+                activeKey={props.tab}
+                tabBarStyle={{ margin: '0px', padding: '0px' }}
+                items={[
+                    {
+                        key: errorsTab,
+                        label: 'Errors',
+                        children: (
+                            <List
+                                size="small"
+                                bordered
+                                itemLayout="vertical"
+                                dataSource={props.selected.Errors}
+                                renderItem={(item) => (
+                                    <ErrorMessage
+                                        setTestID={props.setTestID}
+                                        converter={converter}
+                                        item={item}
+                                    />
+                                )}
+                            />
+                        ),
+                    },
+                    {
+                        key: imagesTab,
+                        label: 'Images',
+                        children: (
+                            <PreviewGroup>
+                                <List
+                                    size="small"
+                                    bordered
+                                    itemLayout="vertical"
+                                    dataSource={images}
+                                    renderItem={(image, index) => (
+                                        <List.Item>
+                                            <CardForAImage
+                                                index={index}
+                                                key={index}
+                                                title={image.parsed.title}
+                                                maxHeight={'250px'}
+                                                url={convertForWrittenAttachments(
+                                                    attachmentPrefix,
+                                                    testID,
+                                                    image.parsed.value,
+                                                )}
+                                                desc={image.description}
+                                            />
+                                        </List.Item>
+                                    )}
+                                />
+                            </PreviewGroup>
+                        ),
+                    },
+                ]}
+            />
+        </Drawer>
     );
 }

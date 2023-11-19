@@ -1,8 +1,4 @@
 import { join } from 'node:path';
-import {
-  setTimeout,
-  clearTimeout,
-} from 'node:timers';
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Options, Services } from '@wdio/types';
 import { ContactsForService } from './contacts';
@@ -22,11 +18,35 @@ export default class GraspItService
     return join('venv', 'Scripts', 'activate');
   }
 
+  async flagToPyThatsItsDone() {
+    // closing graspit server for now.
+    await this.supporter.terminateServer();
+
+    const hasError = this.supporter.generateReport(
+      this.resultsDir,
+      this.options.root || process.cwd(),
+      this.options?.export?.out,
+      this.options?.export?.maxTestRuns,
+      this.options?.export?.skipPatch,
+      this.options.timeout,
+    );
+    if (hasError) {
+      this.logger.error(`Failed to patch results, because of ${hasError.message}`);
+      return;
+    }
+
+    this.logger.info(
+      this.options.export?.out
+        ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.export?.out}"`
+        : 'Results are patched 🤩. Now we are ready to export it.',
+    );
+  }
+
   onPrepare(options: Options.Testrunner)
   // capabilities: Capabilities.RemoteCapabilities
     : void {
-    const { root: rootDir, port, projectName } = this.options;
-    this.logger.info('Starting py-process 🚚...');
+    const { root: rootDir, projectName } = this.options;
+    this.logger.info('😇 Starting py-process.');
     const { resultsDir } = this;
 
     if (!existsSync(resultsDir)) {
@@ -37,50 +57,11 @@ export default class GraspItService
       projectName ?? options.framework ?? 'unknown',
       resultsDir,
       rootDir,
-      port ?? 6969,
     );
   }
 
   async onWorkerStart(): Promise<unknown> {
-    await Promise.resolve(this.supporter.waitUntilItsReady);
-    return {};
-  }
-
-  async flagToPyThatsItsDone(): Promise<void> {
-    // closing graspit server for now.
-    await this.supporter.terminateServer();
-
-    const reportError = new Error(
-      'Failed to generate Report on time 😢, please note the errors if any seen.',
-    );
-    return new Promise((resolve, reject) => {
-      const bomb = setTimeout(async () => {
-        reject(reportError);
-      }, this.options.timeout);
-
-      const hasError = this.supporter.generateReport(
-        this.resultsDir,
-        this.options.root || process.cwd(),
-        this.options?.export?.out,
-        this.options?.export?.isDynamic,
-        this.options?.export?.maxTestRuns,
-        this.options?.export?.skipPatch,
-      );
-
-      if (hasError) {
-        this.logger.error(`Failed to patch results, because of ${hasError.message}`);
-        reject(reportError);
-        return;
-      }
-
-      clearTimeout(bomb);
-      this.logger.info(
-        this.options.export?.out
-          ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.export?.out}"`
-          : 'Results are patched 🤩. Now we are ready to export it.',
-      );
-      resolve();
-    });
+    return this.supporter.waitUntilItsReady();
   }
 
   async onComplete(
@@ -94,6 +75,13 @@ export default class GraspItService
     await this.supporter.updateRunConfig({
       maxInstances: config.maxInstances ?? 1,
       platformName,
+      framework: config.framework ?? 'WebdriverIO',
+      fileRetries: config.specFileRetries ?? 0,
+      saveOptions: {
+        bail: config.bail,
+        protocol: config.baseUrl,
+      },
+      exitCode,
     });
 
     const completed = this.supporter.pyProcess?.killed;

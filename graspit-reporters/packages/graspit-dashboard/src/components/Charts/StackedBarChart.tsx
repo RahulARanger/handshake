@@ -3,30 +3,29 @@ import HighchartsExporting from 'highcharts/modules/exporting';
 import HighchartsReact from 'highcharts-react-official';
 import React, { type ReactNode } from 'react';
 import { statusColors } from '../parseUtils';
-import brandDark from 'highcharts/themes/brand-dark';
+import highContrastDark from 'highcharts/themes/high-contrast-dark';
+import { toolTipFormats } from '../utils/counter';
 
 if (typeof Highcharts === 'object') {
     HighchartsExporting(Highcharts);
-    brandDark(Highcharts);
+    highContrastDark(Highcharts);
 }
 
 export default function RenderPassedRate(props: {
     value: [number, number, number];
     width?: number;
+    immutable?: boolean;
 }): ReactNode {
     const options: Highcharts.Options = {
         chart: {
             type: 'bar',
             height: 30,
-            borderWidth: 0,
             width: props.width ?? 220,
+            borderWidth: 0,
             margin: 0,
             backgroundColor: 'transparent',
-            style: {
-                padding: '1px',
-            },
+            reflow: true,
         },
-
         credits: { enabled: false },
         title: {
             text: undefined,
@@ -41,6 +40,7 @@ export default function RenderPassedRate(props: {
             outside: true,
             pointFormat:
                 '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+            ...toolTipFormats,
         },
         yAxis: {
             min: 0,
@@ -52,10 +52,22 @@ export default function RenderPassedRate(props: {
         },
         plotOptions: {
             series: {
+                crisp: true,
+                opacity: 0.96,
+                borderWidth: 0,
                 stacking: 'percent',
                 dataLabels: {
                     enabled: true,
                     color: 'white',
+                    shadow: false,
+                    filter: {
+                        property: 'percentage',
+                        operator: '>',
+                        value: 0,
+                    },
+                    style: {
+                        textOutline: 'none',
+                    },
                 },
             },
         },
@@ -78,5 +90,15 @@ export default function RenderPassedRate(props: {
             },
         ],
     };
-    return <HighchartsReact highcharts={Highcharts} options={options} />;
+    return (
+        <HighchartsReact
+            highcharts={Highcharts}
+            options={options}
+            immutable={props.immutable}
+            allowChartUpdate={!props.immutable}
+            containerProps={{
+                style: { width: '100%', height: '25px' },
+            }}
+        />
+    );
 }

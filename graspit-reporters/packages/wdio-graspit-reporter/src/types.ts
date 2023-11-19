@@ -5,11 +5,12 @@ export interface ReporterOptions {
 export interface GraspItServiceOptions {
   port: number;
   root: string;
+  exePath?:string;
   collectionName: string;
   timeout?: number;
   projectName: string;
   export?: {
-    out: string;
+    out?: string;
     maxTestRuns: number;
     isDynamic?: boolean;
     skipPatch?: boolean;

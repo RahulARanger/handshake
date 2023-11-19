@@ -5,7 +5,12 @@ export type possibleEntityNames =
     | 'edge'
     | 'others';
 
-export type statusOfEntity = 'PASSED' | 'FAILED' | 'PENDING' | 'SKIPPED';
+export type statusOfEntity =
+    | 'PASSED'
+    | 'FAILED'
+    | 'PENDING'
+    | 'SKIPPED'
+    | 'RETRIED';
 
 export interface RecurringFields {
     started: string;
@@ -17,6 +22,11 @@ export interface RecurringFields {
     retried: number;
     standing: statusOfEntity;
     tests: number;
+
+    rollup_tests?: number;
+    rollup_passed?: number;
+    rollup_failed?: number;
+    rollup_skipped?: number;
 }
 
 export default interface SessionRecordDetails extends RecurringFields {

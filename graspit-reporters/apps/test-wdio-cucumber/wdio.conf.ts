@@ -128,7 +128,7 @@ const metaConfig: Options.Testrunner = {
   framework: 'cucumber',
   //
   // The number of times to retry the entire specfile when it fails as a whole
-  // specFileRetries: 1,
+  specFileRetries: 1,
   //
   // Delay in seconds between the spec file retry attempts
   // specFileRetriesDelay: 0,
@@ -192,7 +192,6 @@ export const config = attachReporter(metaConfig, {
   // does not depend on this as we have explicitly mentioned when to add screenshots
   export: {
     maxTestRuns: 5,
-    out: './dist',
-    skipPatch: true,
+    skipPatch: false,
   },
 });

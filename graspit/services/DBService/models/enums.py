@@ -10,6 +10,7 @@ class Status(StrEnum):
         "YET_TO_CALC"  # needs to be updated by our server to either passed or failed
     )
     # yet_to_calc is mostly seen for the suite
+    RETRIED = "RETRIED"
 
 
 class SuiteType(StrEnum):
@@ -25,6 +26,7 @@ class AttachmentType(StrEnum):
     ERROR = "ERROR"
     PNG = "PNG"
     DESC = "DESC"
+    IMG = "IMAGE"
 
 
 class PrunedRecords(StrEnum):
@@ -34,3 +36,4 @@ class PrunedRecords(StrEnum):
 class ConfigKeys(StrEnum):
     maxRuns = "MAX_RUNS"
     version = "VERSION"
+    recentlyDeleted = "RECENTLY_DELETED"

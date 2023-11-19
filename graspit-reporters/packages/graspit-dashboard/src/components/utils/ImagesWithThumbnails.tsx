@@ -2,10 +2,6 @@ import React, { type ReactNode } from 'react';
 import carouselStyles from '../../styles/carousel.module.css';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import type {
-    Attachment,
-    AttachmentContent,
-} from 'src/types/testEntityRelated';
 import Image from 'antd/lib/image';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Text from 'antd/lib/typography/Text';
@@ -15,37 +11,37 @@ import Ribbon from 'antd/lib/badge/Ribbon';
 import Tooltip from 'antd/lib/tooltip/index';
 
 export function CardForAImage(props: {
-    image: Attachment;
-    index: number;
+    url: string;
+    title: string;
+    desc?: string;
+    index?: number;
     maxHeight?: string;
-    hideDesc?: boolean;
-    isRaw?: boolean;
 }) {
-    const image = props.image;
-    const content: AttachmentContent = JSON.parse(image.attachmentValue);
-
-    const rawImage = !props.isRaw ? (
-        <Ribbon placement="start" color="orange-inverse" text={props.index + 1}>
-            <Image
-                height={'95%'}
-                style={{
-                    maxHeight: props.maxHeight ?? '250px',
-                    objectFit: 'cover',
-                    objectPosition: 'top',
-                }}
-                width={'95%'}
-                alt="Screenshot attached"
-                src={`data:image/${image.type.toLowerCase()};base64, ${
-                    content.value
-                }`}
-            />
-        </Ribbon>
-    ) : (
-        <Image src={content.value} />
-    );
+    const rawImage =
+        props.index != null ? (
+            <Ribbon
+                placement="start"
+                color="orange-inverse"
+                text={props.index + 1}
+            >
+                <Image
+                    height={'95%'}
+                    style={{
+                        maxHeight: props.maxHeight ?? '250px',
+                        objectFit: 'cover',
+                        objectPosition: 'top',
+                    }}
+                    width={'95%'}
+                    alt={`Image Attached: ${props.title}`}
+                    src={props.url}
+                />
+            </Ribbon>
+        ) : (
+            <Image src={props.url} />
+        );
 
     const desc =
-        props.hideDesc === true ? (
+        props.desc == null ? (
             <> </>
         ) : (
             <Meta
@@ -57,7 +53,7 @@ export function CardForAImage(props: {
                             expandable: true,
                         }}
                     >
-                        {image.description}
+                        {props.desc}
                     </Paragraph>
                 }
             />
@@ -66,12 +62,12 @@ export function CardForAImage(props: {
     return (
         <Card
             title={
-                <Tooltip title={content.title}>
+                <Tooltip title={props.title}>
                     <Text
                         style={{ maxWidth: '350px' }}
                         suppressHydrationWarning
                     >
-                        {content.title}
+                        {props.title}
                     </Text>
                 </Tooltip>
             }
@@ -97,7 +93,6 @@ export default function GalleryOfImages(props: {
         {
             loop: props.loop,
             align: 'center',
-            dragFree: true,
         },
         [Autoplay({})],
     );

@@ -9,7 +9,6 @@ import React, {
 } from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import Button from 'antd/lib/button/button';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import { type Duration } from 'dayjs/plugin/duration';
@@ -28,25 +27,36 @@ export default function RelativeTo(props: {
     format?: string;
     style?: CSSProperties;
 }): ReactNode {
-    const [emblaRef] = useEmblaCarousel({ loop: true }, [
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
         Autoplay({ stopOnInteraction: false }),
     ]);
+    const [hover, setHover] = useState<boolean>(false);
     const formatter = (): string =>
         props.wrt != null
             ? props.dateTime.from(props.wrt)
             : props.dateTime.fromNow();
+
     const [formatted, setFormatted] = useState(formatter());
     const [isClient, setIsClient] = useState(false);
 
     useEffect(() => {
         setIsClient(true);
-    }, []);
+        if (!emblaApi) {
+            return;
+        }
+        emblaApi.on('pointerUp', () => setHover(false));
+        emblaApi.on('pointerDown', () => setHover(true));
+    }, [setHover, emblaApi]);
 
     return (
         <div
             className={carouselStyles.embla}
             ref={emblaRef}
-            style={{ maxWidth: '120px', ...(props.style ?? {}) }}
+            style={{
+                maxWidth: '120px',
+                cursor: hover ? 'grabbing' : 'grab',
+                ...(props.style ?? {}),
+            }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
                 <Typography className={carouselStyles.slide}>
@@ -60,27 +70,25 @@ export default function RelativeTo(props: {
                             : ''
                     }`}
                 </Typography>
-                <Tooltip
-                    title={
-                        props.wrt != null
-                            ? `Relative to ${props.wrt.format(
-                                  props.format ?? timeFormatUsed,
-                              )}`
-                            : 'Click me to update!'
-                    }
-                    className={carouselStyles.slide}
-                >
-                    <Button
-                        onClick={() => {
-                            setFormatted(formatter());
-                        }}
-                        suppressHydrationWarning
-                        size="small"
-                        type="text"
+                {props.wrt != null ? (
+                    <Tooltip
+                        title={`Relative to ${props.wrt.format(
+                            props.format ?? timeFormatUsed,
+                        )}`}
+                        className={carouselStyles.slide}
                     >
                         {isClient ? formatted : ''}
-                    </Button>
-                </Tooltip>
+                    </Tooltip>
+                ) : (
+                    <span
+                        className={carouselStyles.slide}
+                        onMouseEnter={() => {
+                            setFormatted(formatter());
+                        }}
+                    >
+                        {isClient ? formatted : ''}
+                    </span>
+                )}
             </div>
         </div>
     );
@@ -90,9 +98,19 @@ export function HumanizeDuration(props: {
     duration?: Duration;
     style?: CSSProperties;
 }): ReactNode {
-    const [emblaRef] = useEmblaCarousel({ loop: true }, [
+    const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true }, [
         Autoplay({ stopOnInteraction: false }),
     ]);
+    const [hover, setHover] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (!emblaApi) {
+            return;
+        }
+        emblaApi.on('pointerUp', () => setHover(false));
+        emblaApi.on('pointerDown', () => setHover(true));
+    }, [setHover, emblaApi]);
+
     return (
         <div
             className={carouselStyles.embla}
@@ -100,6 +118,7 @@ export function HumanizeDuration(props: {
             style={{
                 maxWidth: '150px',
                 minWidth: '100px',
+                cursor: hover ? 'grabbing' : 'grab',
                 ...(props.style ?? {}),
             }}
         >

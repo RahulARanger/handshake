@@ -1,2 +1,9 @@
-# it's an empty file
-# or think of it as a file which was skipped based on the user's requested
+# @sanity
+
+# Feature: Dummy File
+
+# Scenario: Dummy ScenarioWritten
+
+# Given I am in the Dummy Step
+# Then I will skip the file
+# When I have these lines commented

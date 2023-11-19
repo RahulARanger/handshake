@@ -9,6 +9,7 @@ from tortoise.fields import (
     CharField,
     ReverseRelation,
     ForeignKeyField,
+    BooleanField,
     ForeignKeyRelation,
     TextField,
 )
@@ -46,8 +47,7 @@ class CommonDetailedFields(CommandReportFields):
 
 
 class EntityBaseSpecific:
-    error = JSONField(description="Error found", default={}, null=True)
-    errors = JSONField(description="Errors found", default={}, null=True)
+    errors = JSONField(description="Errors found", default=[], null=True)
 
     class Meta:
         abstract = True
@@ -76,6 +76,11 @@ class SessionBase(CommonDetailedFields):
     table = "SessionBase"
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
         "models.RunBase", related_name="sessions", to_field="testID"
+    )
+    retried = BooleanField(
+        description="was this session omitted, because there would be one more retried session",
+        default=False,
+        required=False,
     )
     suites = ReverseRelation["SuiteBase"]
     sessionID = UUIDField(pk=True)
@@ -109,6 +114,40 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
     )
     parent = CharField(max_length=45, description="Parent Suite's ID", default="")
     tags = JSONField(description="list of all tags", default=[])
+    modified = DatetimeField(
+        auto_now=True, description="Modified timestamp", null=False
+    )
+
+
+class RollupBase(Model):
+    tests = IntField(default=0, null=False, description="Rolled up Test Entities")
+    passed = IntField(
+        default=0, null=False, description="Rolled up Passed test entities"
+    )
+    failed = IntField(
+        default=0, null=False, description="Rolled up Failed test entities"
+    )
+    skipped = IntField(
+        default=0, null=False, description="Rolled up test entities that were skipped"
+    )
+    suite: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
+        "models.SuiteBase", related_name="rollup", to_field="suiteID"
+    )
+
+
+class RetriedBase(Model):
+    tests = JSONField(
+        default=[],
+        description="details of all suites which were retried for a particular test case",
+    )
+    suite: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
+        "models.SuiteBase", related_name="retries", to_field="suiteID"
+    )
+
+    length = IntField(
+        description="Just the length of the tests cols", default=1, null=False
+    )
+
     modified = DatetimeField(
         auto_now=True, description="Modified timestamp", null=False
     )

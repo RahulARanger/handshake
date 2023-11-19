@@ -1,51 +1,82 @@
 import log4js from 'log4js';
 import superagent from 'superagent';
-import { spawn, spawnSync } from 'node:child_process';
-import { join } from 'node:path';
+import {
+  spawn, spawnSync,
+} from 'node:child_process';
+// import { join } from 'node:path';
 import {
   setTimeout,
   setInterval,
   clearTimeout,
 } from 'node:timers';
-import type { ChildProcess } from 'node:child_process';
+import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
+import { dirname, join } from 'node:path';
 import DialPad from './dialPad';
+import { UpdateTestRunConfig } from './payload';
 
 const logger = log4js.getLogger('graspit-service-commons');
 
-const isWindows = () => process.platform === 'win32' || /^(msys|cygwin)$/.test(process.env.OSTYPE ?? '');
+// const isWindows =
+//  () => process.platform === 'win32' || /^(msys|cygwin)$/.test(process.env.OSTYPE ?? '');
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
   pyProcess?: ChildProcess;
 
   // eslint-disable-next-line class-methods-use-this
-  get venv() {
-    return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
-  }
+  // get venv() {
+  //   return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
+  // }
 
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
   }
 
-  get activateVenvScript() {
-    return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
+  // get activateVenvScript() {
+  //   return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
+  // }
+
+  static get defaultExe() {
+    return join(dirname(dirname(__filename)), 'graspit');
   }
+
+  executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
+    const starter = isSync ? spawnSync : spawn;
+
+    // if (...for venv) {
+    //   // not recommended unless if a use case was shared
+    //   const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
+    //   logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
+    //   return starter(command, {
+    //     timeout, shell: true, stdio: 'inherit', cwd,
+    //   });
+    // }
+
+    logger.info(`🪖 Execute with ${args} for ${this.exePath ?? ServiceDialPad.defaultExe} from ${cwd} => ${args.join(' ')}`);
+
+    return starter(
+      this.exePath ?? ServiceDialPad.defaultExe,
+      args,
+      {
+        timeout, shell: false, cwd, stdio: 'inherit', detached: false,
+      },
+    );
+  }
+
+  // patchArgPath(arg: string) {
+  //   return this.exePath ? arg : `"${arg}"`;
+  // }
 
   startService(
     projectName: string,
     resultsDir: string,
     rootDir: string,
-    port: number,
   ): ChildProcess {
-    const command = `"${this.activateVenvScript}" && graspit run-app ${projectName} "${resultsDir}" -p ${port} -w 2`;
-    logger.warn(`Requesting a graspit server, command used: ${command} from ${rootDir}`);
+    const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', '2'];
+    logger.warn(`Requesting a graspit server, command used: ${args.join(' ')} from ${rootDir}`);
 
-    const pyProcess = spawn(command, {
-      shell: true,
-      stdio: 'inherit',
-      cwd: rootDir,
-    });
-
+    const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
+    this.pyProcess = pyProcess;
     pyProcess.stdout?.on('data', (chunk) => logger.info(chunk.toString()));
     pyProcess.stderr?.on('data', (chunk) => logger.error(chunk.toString()));
 
@@ -76,37 +107,37 @@ export class ServiceDialPad extends DialPad {
 
   async ping(): Promise<boolean> {
     logger.warn('pinging py-server 👆...');
-
-    try {
-      const resp = await superagent.get(`${this.url}/`);
-      return resp.statusCode === 200;
-    } catch {
-      return false;
-    }
+    const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
+    return resp?.statusCode === 200;
   }
 
-  async waitUntilItsReady(): Promise<unknown> {
+  async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
       'Not able to connect with graspit-server within 10 seconds 😢, Please start again without interruption.',
     );
     return new Promise((resolve, reject) => {
-      const bomb = setTimeout(() => {
+      let timer: NodeJS.Timeout;
+      let bomb: NodeJS.Timeout;
+      const cleanup = () => { clearTimeout(bomb); clearInterval(timer); };
+
+      bomb = setTimeout(async () => {
+        cleanup();
+        await this.terminateServer();
         reject(waitingForTheServer);
-      }, 10e3);
+      }, force ?? 10e3);
 
-      const timer = setInterval(async () => {
+      timer = setInterval(async () => {
         const isOnline = await this.ping();
-        if (isOnline) {
-          clearTimeout(bomb);
-          clearInterval(timer);
 
+        if (isOnline) {
+          cleanup();
           logger.info('Server is online! 😀');
           resolve({});
         } else {
           logger.warn('😓 pinging server again...');
         }
       }, 3e3);
-    }).catch(this.terminateServer.bind(this));
+    });
   }
 
   async isServerTerminated(): Promise<boolean> {
@@ -118,7 +149,7 @@ export class ServiceDialPad extends DialPad {
   }
 
   async terminateServer() {
-    if (this.pyProcess?.killed) {
+    if (!this.pyProcess || this.pyProcess?.killed) {
       logger.warn('🙀 graspit process was already terminated.');
       return;
     }
@@ -127,26 +158,31 @@ export class ServiceDialPad extends DialPad {
     for (let worker = 0; worker < 2; worker += 1) {
       logger.info('📞 Requesting for worker termination');
       results.push(
-        superagent.post(`${this.url}/bye`).retry(2).catch(() => {
-          logger.info('→ Py Process was closed 😪');
-        }),
+        superagent
+          .post(`${this.url}/bye`)
+          .retry(2)
+          .catch(() => {
+            logger.info('→ Py Process was closed 😪');
+          }),
       );
     }
     await Promise.all(results);
   }
 
-  async updateRunConfig(payload: any) {
+  async updateRunConfig(payload: UpdateTestRunConfig) {
     logger.info(
       `📃 Updating config for this current test run with ${payload}.`,
     );
-
     const resp = await superagent
       .put(this.updateRunConfigUrl)
-      .send(JSON.stringify(payload));
+      .send(JSON.stringify(payload))
+      .catch((err) => logger.error(`⚠️ Failed to update the config: ${err}`));
 
-    logger.info(
-      `Updated config 🐰 for the test run: ${resp.text}`,
-    );
+    if (resp) {
+      logger.info(
+        `Updated config 🐰 for the test run: ${resp.text}`,
+      );
+    }
     return resp;
   }
 
@@ -154,42 +190,45 @@ export class ServiceDialPad extends DialPad {
     resultsDir: string,
     rootDir: string,
     outDir?: string,
-    isDynamic?: boolean,
     maxTestRuns?: number,
     skipPatch?: boolean,
+    timeout?:number,
   ): false | Error | undefined {
     if (skipPatch) {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
       return false;
     }
-    const patchScript = `"${this.activateVenvScript}" && graspit patch "${resultsDir}"`;
-    const exportScript = isDynamic ? `graspit export "${resultsDir}" --out "${outDir}" -d` : `graspit export "${resultsDir}" --out "${outDir}" -r ${maxTestRuns ?? 100}`;
-
-    const script = outDir
-      ? `${patchScript} && cd "${process.cwd()}" && ${exportScript}`
-      : patchScript;
-
+    const patchArgs = ['patch', resultsDir];
     if (outDir == null) {
-      logger.info(`Patching the results ⛑️, passing the command ${script}`);
-    } else {
-      logger.info(`Generating Report 📃, passing the command: ${script}`);
+      logger.info(`Patching the results ⛑️, passing the command ${patchArgs}`);
     }
 
-    return spawnSync(
-      script,
-      {
-        shell: true,
-        cwd: rootDir,
-        stdio: 'inherit',
-      },
-    ).error;
+    // for patching
+    let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
+
+    if (outDir != null && result.error == null) {
+      const exportArgs = ['export', resultsDir, '--out', outDir, '-r', (maxTestRuns ?? 100).toString()];
+      logger.info(`Generating Report 📃, passing the command: ${exportArgs}`);
+
+      result = this.executeCommand(
+        exportArgs,
+        true,
+        process.cwd(),
+        timeout,
+      ) as SpawnSyncReturns<Buffer>;
+      return result.error;
+    }
+    return result.error;
   }
 
   async markTestRunCompletion() {
-    await superagent.put(`${this.url}/done`).retry(3).then(
-      async (data) => {
-        logger.info(`Marked Test Run: ${data.text} for patching.`);
-      },
-    );
+    await superagent
+      .put(`${this.url}/done`)
+      .retry(3)
+      .then(
+        async (data) => {
+          logger.info(`Marked Test Run: ${data.text} for patching.`);
+        },
+      ).catch((err) => logger.error(`⚠️ Failed to mark test run completion: ${err}`));
   }
 }

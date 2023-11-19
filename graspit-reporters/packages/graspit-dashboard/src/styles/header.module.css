@@ -1,26 +1,33 @@
 .header {
-    transition: all 0.5s ease-in-out !important;
-    padding-left: 12px !important;
     line-height: unset !important;
-}
-
-.tabList {
-    transition: all 0.5s ease-in-out !important;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-}
-
-.tabListHeader {
-    background-color: transparent !important;
-    background: none;
-    position: sticky;
-    bottom: 0%;
     display: flex !important;
-    align-items: flex-end;
+    flex-direction: row !important;
+    align-items: center;
+    justify-content: space-between !important;
+    padding: 0px !important;
+    padding-left: 12px !important;
+    margin-top: 3px !important;
+    column-gap: 12px;
+    /* background-color: transparent !important; */
+    transition: all 0.5s ease-in-out !important;
+    height: 45px;
+
+    color: hsl(0 0% 100%);
+    border-radius: 1rem;
+    border: 1px solid rgba(256, 256, 256, 0.15);
+    background: hsl(0 0% 6%);
+    box-shadow: 1px 1px hsl(0 0% 100% / 0.25) inset;
+    background-color: ((240 4% 46%) / 1);
+    backdrop-filter: blur(10px);
 }
 
-.header {
-    background-color: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(5px);
-    height: 45px;
+.header:hover {
+    border: 1px solid rgba(256, 256, 256, 0.3);
+}
+
+.tab {
+    flex-grow: 2;
+    border: 1px solid rgba(256, 256, 256, 0.15);
+    height: 27px;
+    padding-top: 3px;
 }

@@ -1,10 +1,11 @@
 import type BasicDetails from './testEntityRelated';
-import type { suiteType } from './testEntityRelated';
+import type { Attachment, suiteType } from './testEntityRelated';
 
 // getStaticPaths to [id] root page
 export interface ShareToOtherPages {
-    test_id: string;
-    port: string;
+    testID?: string;
+    port?: string;
+    attachmentPrefix?: string;
 }
 
 export interface QuickPreviewForTestRun extends BasicDetails {
@@ -19,10 +20,14 @@ export interface QuickPreviewForScenarios extends BasicDetails {
     Tests: number;
 }
 
+export interface AttachedError extends Error {
+    mailedFrom: string[];
+}
+
 export interface PreviewForTests extends BasicDetails {
     Description: string;
     id: string;
-    Errors: Error[];
+    Errors: AttachedError[];
     type: suiteType;
 }
 
@@ -33,4 +38,8 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
     id: string;
     entityName: string;
     entityVersion: string;
+}
+
+export interface QuickPreviewForAttachments extends Attachment {
+    parsed: { title: string; value: string };
 }

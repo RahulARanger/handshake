@@ -10,7 +10,6 @@ export interface RegisterTestEntity {
   title: string;
   description: string;
   file: string;
-  standing: string;
   tags: Array<{ astNodeId: string, name: string }>;
   started: string;
   suiteType: SuiteType;
@@ -22,7 +21,6 @@ export interface RegisterTestEntity {
 export interface MarkTestEntity {
   duration: number;
   suiteID: string;
-  error?: Error;
   errors: Error[];
   standing: string;
 }
@@ -39,4 +37,13 @@ export interface MarkTestSession {
   entityName: string;
   entityVersion: string;
   simplified: string;
+}
+
+export interface UpdateTestRunConfig {
+  maxInstances?:number;
+  framework:string;
+  platformName: string;
+  exitCode:number;
+  fileRetries:number;
+  saveOptions: object;
 }
