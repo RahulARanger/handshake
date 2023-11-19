@@ -26,13 +26,14 @@ jobs:
             python-version: "3.11"
 
         - name: Set up venv
+          working-directory:
           run: |
             python -m venv venv
 
         - name: Activate venv if not Windows
           if: ${{ matrix.os != 'windows-latest' }}
           run: | 
-            source ./venv/scripts/activate
+            source ./venv/bin/activate
 
         - name: Activate venv if Windows
           if: ${{ matrix.os == 'windows-latest' }}
