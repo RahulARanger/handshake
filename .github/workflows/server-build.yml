@@ -8,10 +8,6 @@ on:
 permissions:
     contents: write
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ steps.checkTag.outputs.exists == 'true' }}
-
 jobs:
     pre:
       name: check if build is required
@@ -30,6 +26,10 @@ jobs:
           id: checkTag
           with:
             tag: ${{steps.current.outputs.VERSION}}
+
+        - name: Force cancel the workflow
+          if: ${{ steps.checkTag.outputs.exists == 'true' }}
+          run: exit 1
 
     build:
       name: building executable
