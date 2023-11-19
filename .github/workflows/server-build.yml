@@ -27,7 +27,8 @@ jobs:
           with:
             tag: ${{steps.current.outputs.VERSION}}
 
-        - name: Assertion
+        - name: Force cancel the workflow
+          if: ${{ steps.checkTag.outputs.exists == 'true' }}
           run: exit 1
 
     build:
