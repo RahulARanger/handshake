@@ -1,5 +1,29 @@
 # graspit
 
+## 3.0.6
+
+### Patch Changes
+
+- planned tests for graspit installation
+
+## 3.0.5
+
+### Patch Changes
+
+- fix the way we would name the downloaded executable for windows
+
+## 3.0.4
+
+### Patch Changes
+
+- take 4 for package installation
+
+## 3.0.3
+
+### Patch Changes
+
+- take 3 for installation test
+
 ## 3.0.2
 
 ### Patch Changes

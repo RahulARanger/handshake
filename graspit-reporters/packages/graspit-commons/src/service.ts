@@ -3,52 +3,59 @@ import superagent from 'superagent';
 import {
   spawn, spawnSync,
 } from 'node:child_process';
-import { join } from 'node:path';
+// import { join } from 'node:path';
 import {
   setTimeout,
   setInterval,
   clearTimeout,
 } from 'node:timers';
 import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
+import { dirname, join } from 'node:path';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
 
 const logger = log4js.getLogger('graspit-service-commons');
 
-const isWindows = () => process.platform === 'win32' || /^(msys|cygwin)$/.test(process.env.OSTYPE ?? '');
+// const isWindows =
+//  () => process.platform === 'win32' || /^(msys|cygwin)$/.test(process.env.OSTYPE ?? '');
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
   pyProcess?: ChildProcess;
 
   // eslint-disable-next-line class-methods-use-this
-  get venv() {
-    return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
-  }
+  // get venv() {
+  //   return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
+  // }
 
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
   }
 
-  get activateVenvScript() {
-    return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
+  // get activateVenvScript() {
+  //   return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
+  // }
+
+  static get defaultExe() {
+    return join(dirname(dirname(__filename)), 'graspit');
   }
 
   executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
     const starter = isSync ? spawnSync : spawn;
 
-    if (this.exePath == null) {
-      // not recommended unless if a use case was shared
-      const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
-      logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
-      return starter(command, {
-        timeout, shell: true, stdio: 'inherit', cwd,
-      });
-    }
-    logger.info(`🪖 Execute with ${args} for ${this.exePath} from ${cwd} => ${args.join(' ')}`);
+    // if (...for venv) {
+    //   // not recommended unless if a use case was shared
+    //   const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
+    //   logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
+    //   return starter(command, {
+    //     timeout, shell: true, stdio: 'inherit', cwd,
+    //   });
+    // }
+
+    logger.info(`🪖 Execute with ${args} for ${this.exePath ?? ServiceDialPad.defaultExe} from ${cwd} => ${args.join(' ')}`);
 
     return starter(
-      this.exePath,
+      this.exePath ?? ServiceDialPad.defaultExe,
       args,
       {
         timeout, shell: false, cwd, stdio: 'inherit', detached: false,
@@ -56,16 +63,16 @@ export class ServiceDialPad extends DialPad {
     );
   }
 
-  patchArgPath(arg: string) {
-    return this.exePath ? arg : `"${arg}"`;
-  }
+  // patchArgPath(arg: string) {
+  //   return this.exePath ? arg : `"${arg}"`;
+  // }
 
   startService(
     projectName: string,
     resultsDir: string,
     rootDir: string,
   ): ChildProcess {
-    const args = ['run-app', projectName, this.patchArgPath(resultsDir), '-p', this.port.toString(), '-w', '2'];
+    const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', '2'];
     logger.warn(`Requesting a graspit server, command used: ${args.join(' ')} from ${rootDir}`);
 
     const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
@@ -191,7 +198,7 @@ export class ServiceDialPad extends DialPad {
       logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
       return false;
     }
-    const patchArgs = ['patch', this.patchArgPath(resultsDir)];
+    const patchArgs = ['patch', resultsDir];
     if (outDir == null) {
       logger.info(`Patching the results ⛑️, passing the command ${patchArgs}`);
     }
@@ -199,7 +206,7 @@ export class ServiceDialPad extends DialPad {
     let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
     // for patching
     if (outDir != null && result.error == null) {
-      const exportArgs = ['export', this.patchArgPath(resultsDir), '--out', this.patchArgPath(outDir), '-r', (maxTestRuns ?? 100).toString()];
+      const exportArgs = ['export', resultsDir, '--out', outDir, '-r', (maxTestRuns ?? 100).toString()];
       logger.info(`Generating Report 📃, passing the command: ${exportArgs}`);
 
       result = this.executeCommand(

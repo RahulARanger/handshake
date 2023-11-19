@@ -1,16 +1,12 @@
 {
     "name": "graspit",
-    "version": "3.0.2",
+    "version": "3.0.6",
     "license": "MIT",
-    "bin": {
-        "graspit": "./graspit"
-    },
     "scripts": {
         "dev": "next dev",
         "build": "npm run lint",
         "start": "next start",
         "lint": "next lint",
-        "preinstall": "node ./scripts/downloadBuild.js",
         "predev": "ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.ts",
         "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/genAntdCss.ts",
         "export": "cross-env NODE_ENV=production next build --no-lint",
@@ -20,11 +16,11 @@
     "dependencies": {
         "@ant-design/icons": "^5.2.6",
         "@tsconfig/node18": "^18.2.2",
-        "@types/node": "20.9.0",
+        "@types/node": "20.9.2",
         "@types/react": "18.2.37",
         "@types/react-dom": "18.2.15",
         "ansi-to-html": "^0.7.2",
-        "antd": "^5.11.1",
+        "antd": "^5.11.2",
         "clsx": "^2.0.0",
         "cross-env": "^7.0.3",
         "dayjs": "^1.11.10",
@@ -33,7 +29,7 @@
         "highcharts": "^11.2.0",
         "highcharts-react-official": "^3.2.1",
         "log4js": "^6.9.1",
-        "next": "^14.0.2",
+        "next": "^14.0.3",
         "react": "18.2.0",
         "react-countup": "^6.5.0",
         "react-dom": "18.2.0",
@@ -45,10 +41,10 @@
     },
     "devDependencies": {
         "@ant-design/static-style-extract": "~1.0.2",
-        "@next/eslint-plugin-next": "^14.0.2",
+        "@next/eslint-plugin-next": "^14.0.3",
         "@typescript-eslint/eslint-plugin": "^6.11.0",
         "@typescript-eslint/parser": "^6.11.0",
-        "eslint": "^8.53.0",
+        "eslint": "^8.54.0",
         "eslint-config-prettier": "^9.0.0",
         "eslint-plugin-jsx-a11y": "^6.8.0",
         "eslint-plugin-react": "^7.33.2",
