@@ -1,6 +1,6 @@
 {
 	"name": "graspit-commons",
-	"version": "1.5.0",
+	"version": "2.1.1",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -13,8 +13,8 @@
 	"readme": "../../README.md",
 	"description": "This package has some common functions or constants required for interacting with graspit-server",
 	"bin": {
-        "graspit": "graspit"
-    },
+		"graspit": "graspit"
+	},
 	"scripts": {
 		"lint": "eslint src/**",
 		"test": "jest",
@@ -25,7 +25,7 @@
 		"async-lock": "^1.4.0",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit": "3.0.6",
+		"graspit": "3.1.1",
 		"cross-env": "^7.0.3"
 	},
 	"devDependencies": {

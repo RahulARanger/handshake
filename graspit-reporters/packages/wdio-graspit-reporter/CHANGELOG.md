@@ -1,5 +1,24 @@
 # wdio-graspit-reporter
 
+## 2.1.1
+
+### Patch Changes
+
+- bump package version
+- Updated dependencies
+  - graspit-commons@2.1.1
+
+## 2.1.0
+
+### Minor Changes
+
+- test e2e
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit-commons@2.1.0
+
 ## 2.0.0
 
 ### Major Changes

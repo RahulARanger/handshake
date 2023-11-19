@@ -1,5 +1,17 @@
 # graspit
 
+## 3.1.1
+
+### Patch Changes
+
+- bump package version
+
+## 3.1.0
+
+### Minor Changes
+
+- test e2e
+
 ## 3.0.6
 
 ### Patch Changes
