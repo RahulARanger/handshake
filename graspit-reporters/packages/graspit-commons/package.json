@@ -25,11 +25,11 @@
 		"async-lock": "^1.4.0",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit": "3.0.6"
+		"graspit": "3.0.6",
+		"cross-env": "^7.0.3"
 	},
 	"devDependencies": {
 		"@jest/globals": "^29.7.0",
-		"cross-env": "^7.0.3",
 		"@tsconfig/node18": "^18.2.2",
 		"@types/async-lock": "^1.4.2",
 		"@types/jest": "^29.5.8",

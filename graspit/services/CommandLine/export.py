@@ -17,7 +17,7 @@ async def createExportTicket(maxTestRuns: int, path: Path, store: List[str]):
     ticket = await ExportBase.create(maxTestRuns=maxTestRuns)
 
     await close_connection()
-    store.append(ticket.ticketID)
+    store.append(str(ticket.ticketID))
 
 
 @handle_cli.command(
@@ -34,10 +34,10 @@ async def createExportTicket(maxTestRuns: int, path: Path, store: List[str]):
     help="Asks Sanic to set the use max. number of workers",
 )
 @option("--out", type=C_Path(dir_okay=True), required=True)
-def export(path, runs, out):
-    saved_db_path = db_path(path)
+def export(collection_path, runs, out):
+    saved_db_path = db_path(collection_path)
     if not saved_db_path.exists():
-        raise FileNotFoundError(f"DB file not in {path}")
+        raise FileNotFoundError(f"DB file not in {collection_path}")
 
     resolved = Path(out).resolve()
     resolved.mkdir(exist_ok=True)
@@ -69,17 +69,14 @@ def export(path, runs, out):
     secho(f"Exporting results to {relpath(resolved, graspit)}", fg="yellow")
     secho(
         f'Raising a request with command: "npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, graspit)}'
-        f' DB_PATH={relpath(saved_db_path, graspit)} npm run build"',
+        f' DB_PATH={relpath(saved_db_path, graspit)} npm run export"',
         fg="blue",
     )
 
     call(
-        f"npm run export",
+        f"npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, graspit)} DB_PATH={relpath(saved_db_path, graspit)} npm run export",
         cwd=graspit,
         shell=True,
-        env=dict(
-            EXPORT_DIR=relpath(resolved, graspit),
-            TICKET_ID=ticket_i_ds[0],
-            DB_PATH=relpath(saved_db_path, graspit),
-        ),
     )
+
+    # TODO: delete the export ticket

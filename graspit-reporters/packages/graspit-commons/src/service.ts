@@ -203,8 +203,9 @@ export class ServiceDialPad extends DialPad {
       logger.info(`Patching the results ⛑️, passing the command ${patchArgs}`);
     }
 
-    let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
     // for patching
+    let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
+
     if (outDir != null && result.error == null) {
       const exportArgs = ['export', resultsDir, '--out', outDir, '-r', (maxTestRuns ?? 100).toString()];
       logger.info(`Generating Report 📃, passing the command: ${exportArgs}`);
