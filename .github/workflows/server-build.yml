@@ -22,18 +22,16 @@ jobs:
           run: |
             bash ./.github/scripts/fetch-server-version.sh
 
-        - uses: mukunku/tag-exists-action@v1.4.0
+        - name: Check if release already exists
+          uses: mukunku/tag-exists-action@v1.4.0
           id: checkTag
           with:
             tag: ${{steps.current.outputs.VERSION}}
 
-        - name: Force cancel the workflow
-          if: ${{ steps.checkTag.outputs.exists == 'true' }}
-          run: exit 1
-
     build:
-      name: building executable
+      name: Building Executable
       needs: pre
+      if: ${{ steps.checkTag.outputs.exists == 'false' }}
       strategy:
         matrix:
           os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
@@ -41,7 +39,6 @@ jobs:
       runs-on: ${{ matrix.os }}
       steps:
         - uses: actions/checkout@v3
-
         - name: Set up Python 3.11
           uses: actions/setup-python@v3
           with:
@@ -83,8 +80,9 @@ jobs:
             retention-days: 1
 
     release:
-      name: Preparing pre-release
+      name: Preparing for next step
       runs-on: 'ubuntu-latest'
+      if: ${{ steps.checkTag.outputs.exists == 'false' }}
       needs: build
       permissions: write-all
 
