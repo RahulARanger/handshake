@@ -13,6 +13,8 @@ jobs:
       name: check if build is required
       runs-on: 'ubuntu-latest'
       permissions: write-all
+      outputs:
+        exists : ${{ steps.checkTag.output.exists }} # str, "false" or "true
 
       steps:
         - uses: actions/checkout@v3
@@ -31,12 +33,16 @@ jobs:
     build:
       name: Building Executable
       needs: pre
-      if: ${{ steps.checkTag.outputs.exists == 'false' }}
+      if: ${{ needs.pre.outputs.exists == 'false' }}
+      runs-on: ${{ matrix.os }}
+
+      outputs:
+        skipped: ${{ needs.pre.outputs.exists }} # 'false' or 'true', false means executed
+
       strategy:
         matrix:
           os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
 
-      runs-on: ${{ matrix.os }}
       steps:
         - uses: actions/checkout@v3
         - name: Set up Python 3.11
@@ -82,9 +88,10 @@ jobs:
     release:
       name: Preparing for next step
       runs-on: 'ubuntu-latest'
-      if: ${{ steps.checkTag.outputs.exists == 'false' }}
       needs: build
       permissions: write-all
+
+      if: ${{ needs.build.outputs.skipped == 'false' }}
 
       steps:
         - uses: actions/checkout@v3
