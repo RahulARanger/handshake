@@ -197,7 +197,7 @@ async def patchTestSuite(suiteID: str, testID: str):
             test_config_record.attachmentValue, strict=False
         )
     )
-    if test_config and test_config.fileRetries > 0 and suite.standing == Status.FAILED:
+    if test_config and test_config.fileRetries > 0:
         await handleRetries(suiteID, testID)
 
     logger.info("Successfully processed suite: {}", suite.suiteID)

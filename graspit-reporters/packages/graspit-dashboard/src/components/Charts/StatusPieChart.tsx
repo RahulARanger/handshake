@@ -8,7 +8,11 @@ import { greenGradient, redGradient, skippedGradient } from './constants';
 import { toolTipFormats } from '../utils/counter';
 import { REM } from 'next/font/google';
 
-const serif = REM({ subsets: ['latin'], weight: '300' });
+const serif = REM({
+    subsets: ['latin'],
+    weight: '300',
+    adjustFontFallback: true,
+});
 
 if (typeof Highcharts === 'object') {
     highContrastDark(Highcharts);
