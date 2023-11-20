@@ -1,5 +1,11 @@
 # graspit
 
+## 3.1.3
+
+### Patch Changes
+
+- support server-build 0.12.4
+
 ## 3.1.2
 
 ### Patch Changes

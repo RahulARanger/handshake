@@ -1,5 +1,13 @@
 # graspit-commons
 
+## 2.1.16
+
+### Patch Changes
+
+- support server-build 0.12.4
+- Updated dependencies
+  - graspit@3.1.3
+
 ## 2.1.15
 
 ### Patch Changes
