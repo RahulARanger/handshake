@@ -1,5 +1,83 @@
 # graspit-commons
 
+## 2.1.14
+
+### Patch Changes
+
+- patched required things
+
+## 2.1.13
+
+### Patch Changes
+
+- script for feeding exe args
+
+## 2.1.12
+
+### Patch Changes
+
+- edit for the feed.cjs
+
+## 2.1.11
+
+### Patch Changes
+
+- added feeder script for the exe file
+
+## 2.1.10
+
+### Patch Changes
+
+- fix: test items
+
+## 2.1.9
+
+### Patch Changes
+
+- fix: relative path in preinstall script
+
+## 2.1.8
+
+### Patch Changes
+
+- fix the script for preinstall
+
+## 2.1.7
+
+### Patch Changes
+
+- fix the path for preinstall script
+
+## 2.1.6
+
+### Patch Changes
+
+- removed files part
+
+## 2.1.5
+
+### Patch Changes
+
+- fix files
+
+## 2.1.4
+
+### Patch Changes
+
+- preinstall -> postinstallation of build
+
+## 2.1.3
+
+### Patch Changes
+
+- download file path
+
+## 2.1.2
+
+### Patch Changes
+
+- fix installatiom
+
 ## 2.1.1
 
 ### Patch Changes
