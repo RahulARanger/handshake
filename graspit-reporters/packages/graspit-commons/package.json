@@ -1,31 +1,29 @@
 {
 	"name": "graspit-commons",
-	"version": "1.5.0",
+	"version": "2.1.14",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
-	"files": [
-		"./scripts/downloadBuild.js"
-	],
 	"type": "module",
 	"private": false,
 	"license": "MIT",
 	"readme": "../../README.md",
 	"description": "This package has some common functions or constants required for interacting with graspit-server",
 	"bin": {
-        "graspit": "graspit"
-    },
+		"graspit": "./feed.cjs"
+	},
 	"scripts": {
 		"lint": "eslint src/**",
 		"test": "jest",
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts",
-		"preinstall": "node ./scripts/downloadBuild.js"
+		"preinstall": "node ./downloadBuild.cjs",
+		"preuninstall": "node ./removeBuild.cjs"
 	},
 	"dependencies": {
 		"async-lock": "^1.4.0",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit": "3.0.6",
+		"graspit": "3.1.1",
 		"cross-env": "^7.0.3"
 	},
 	"devDependencies": {

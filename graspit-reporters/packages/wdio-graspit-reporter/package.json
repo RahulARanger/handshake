@@ -1,6 +1,6 @@
 {
 	"name": "wdio-graspit-reporter",
-	"version": "2.0.0",
+	"version": "2.1.14",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -14,15 +14,15 @@
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts && node build.cjs"
 	},
 	"dependencies": {
-		"@wdio/reporter": "^8.17.0",
-		"@wdio/types": "^8.17.0",
+		"@wdio/reporter": "^8.23.1",
+		"@wdio/types": "^8.23.1",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit-commons": "1.5.0"
+		"graspit-commons": "2.1.14"
 	},
 	"devDependencies": {
-		"@types/async-lock": "^1.4.0",
-		"@types/superagent": "^4.1.19",
-		"@types/node": "^20.8.6"
+		"@types/async-lock": "^1.4.2",
+		"@types/superagent": "^4.1.22",
+		"@types/node": "^20.9.2"
 	}
 }
