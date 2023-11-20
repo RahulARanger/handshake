@@ -1,5 +1,11 @@
 # graspit
 
+## 3.1.2
+
+### Patch Changes
+
+- support server patch for exporting results
+
 ## 3.1.1
 
 ### Patch Changes

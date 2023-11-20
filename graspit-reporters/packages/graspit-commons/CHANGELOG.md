@@ -1,5 +1,13 @@
 # graspit-commons
 
+## 2.1.15
+
+### Patch Changes
+
+- support server patch for exporting results
+- Updated dependencies
+  - graspit@3.1.2
+
 ## 2.1.14
 
 ### Patch Changes
