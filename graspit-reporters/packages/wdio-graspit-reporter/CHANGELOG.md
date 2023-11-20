@@ -1,5 +1,21 @@
 # wdio-graspit-reporter
 
+## 2.1.16
+
+### Patch Changes
+
+- support server-build 0.12.4
+- Updated dependencies
+  - graspit-commons@2.1.16
+
+## 2.1.15
+
+### Patch Changes
+
+- support server patch for exporting results
+- Updated dependencies
+  - graspit-commons@2.1.15
+
 ## 2.1.14
 
 ### Patch Changes

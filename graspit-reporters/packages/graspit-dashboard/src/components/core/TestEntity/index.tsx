@@ -274,18 +274,6 @@ export default function TestEntityDrawer(props: {
         },
     ];
 
-    if (tags.length > 0)
-        aboutSuite.push({
-            key: 'tags',
-            label: 'Tags',
-            children: (
-                <Space>
-                    <>Tags:</>
-                    {tags}
-                </Space>
-            ),
-        });
-
     const statusOptions: SelectProps['options'] = [
         'Passed',
         'Failed',
