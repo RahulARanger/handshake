@@ -5,3 +5,9 @@ build.cjs
 .turbo
 graspit
 graspit.exe
+jest.config.cjs
+tests/*
+.turbo
+.coverage
+tsconfig.json
+node.json

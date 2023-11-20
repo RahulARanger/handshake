@@ -1,21 +1,25 @@
-/* eslint-disable @typescript-eslint/no-var-requires */
-import { createWriteStream, readFileSync } from 'node:fs';
-import { get } from 'node:https';
-import { platform } from 'node:os';
-import { exit } from 'node:process';
+const {
+  createWriteStream, readFileSync,
+} = require('node:fs');
+const superagent = require('superagent');
+const { platform } = require('node:os');
+const { exit } = require('node:process');
+const { join, dirname } = require('node:path');
 
 /**
  * @typedef {{url: string;
  *  id: number; name: 'Windows.exe' | 'Darwin';
  * label: string; content_type: string; state: 'uploaded'; size: number; download_count: number;
 * created_at: string;
-*updated_at: string;
+* updated_at: string;
 *   browser_download_url: string;}} Asset
  * @type {Record<string, Asset>}
  */
 const versionFromNames = {};
 
-(JSON.parse(readFileSync('./.version').toString())).forEach(
+const root = dirname(__filename);
+
+(JSON.parse(readFileSync(join(root, '.version')).toString())).forEach(
   (dist) => { versionFromNames[dist.name] = dist; },
 );
 
@@ -38,13 +42,8 @@ switch (platform()) {
   }
 }
 
-const file = createWriteStream(exeName);
+const stream = createWriteStream(join(root, exeName));
 
-get(versionFromNames[interest].browser_download_url, (resp) => {
-  resp.pipe(file);
-
-  file.on('finish', () => {
-    console.log('Thanks for waiting');
-    file.close();
-  });
-});
+superagent
+  . get(versionFromNames[interest].browser_download_url)
+  .pipe(stream);
