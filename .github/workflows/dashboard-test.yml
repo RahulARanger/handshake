@@ -11,7 +11,7 @@ permissions:
 jobs:
     test:
       name: Test Dashboard
-      runs-on: 'macos-latest'
+      runs-on: 'ubuntu-latest'
       permissions: write-all
 
       steps:
@@ -22,6 +22,10 @@ jobs:
           uses: actions/setup-node@v3
           with:
             node-version: "18.x"
+
+        - name: Setup Turbo Repo
+          working-directory: ./graspit-reporters
+          run: npm install && npm run build
 
         - name: Install all required dependencies for test
           working-directory: ./graspit-reporters/apps/test-mocha
