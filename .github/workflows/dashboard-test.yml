@@ -27,6 +27,10 @@ jobs:
           working-directory: ./graspit-reporters
           run: npm install
 
+        - name: Install all required dependencies for test
+          working-directory: ./graspit-reporters/apps/test-mocha
+          run: npm install
+
         - name: Install dependencies
           working-directory: ./graspit-reporters/apps/test-mocha
-          run: npm run test-mocha
+          run: npm run test:mocha
