@@ -2,30 +2,26 @@
 	"name": "test-wdio-cucumber",
 	"version": "1.0.0",
 	"description": "",
-	"private": true,
+	"type": "module",
 	"main": "index.js",
 	"scripts": {
-		"test": "wdio run ./wdio.conf.ts --cucumberOpts.tagExpressions=\"sanity\" || exit 0",
-		"test:regression": "npm run test:cucumber --cucumberOpts.tags=\"regression\" || exit 0",
-		"test:cucumber": "wdio run ./wdio.conf.ts",
-		"lint": "eslint features/**/*.ts wdio.conf.ts",
-		"wdio": "wdio run ./wdio.conf.ts",
-		"activate": ".\\\"../../../venv/scripts/activate\"",
-		"patch": "npm run activate && graspit patch \"../../../TestResults\"",
-		"display": "npm run activate && graspit display ./dist",
-		"test-display": "npm run activate && python -m http.server -d ./dist",
-		"test-generate": "npm run activate && graspit export \"../../../TestResults\" --out ./dist"
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"wdio": "wdio run ./wdio.conf.ts"
 	},
 	"author": "",
 	"license": "ISC",
-	"dependencies": {
-		"wdio-graspit-reporter": "2.1.17",
-		"@wdio/cucumber-framework": "^8.19.0"
-	},
 	"devDependencies": {
-		"@wdio/local-runner": "^8.19.0",
-		"@wdio/spec-reporter": "^8.19.0",
+		"@types/node": "^20.9.3",
+		"@wdio/cucumber-framework": "^8.23.1",
+		"@wdio/dot-reporter": "^8.23.1",
+		"@wdio/local-runner": "^8.23.3",
+		"@wdio/spec-reporter": "^8.23.1",
+		"chromedriver": "^119.0.1",
 		"ts-node": "^10.9.1",
-		"typescript": "^5.2.2"
+		"typescript": "^5.3.2",
+		"wdio-wait-for": "^3.0.9"
+	},
+	"dependencies": {
+		"wdio-graspit-reporter": "^2.1.18"
 	}
 }
