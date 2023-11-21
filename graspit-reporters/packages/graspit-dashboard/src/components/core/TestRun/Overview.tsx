@@ -361,88 +361,72 @@ function TimelineView(): ReactNode {
     );
     if (relatedRuns == null) return <></>;
 
-    const items: TimelineProps['items'] = relatedRuns
-        .toReversed()
-        .map((run) => ({
-            children:
-                testID === run.testID ? (
-                    <Badge
+    const items: TimelineProps['items'] = relatedRuns.map((run) => ({
+        children:
+            testID === run.testID ? (
+                <Badge size="small" color="orange" style={{ zoom: 1.5 }} dot>
+                    <Button
+                        type="text"
                         size="small"
-                        color="orange"
-                        style={{ zoom: 1.5 }}
-                        dot
+                        style={{ marginLeft: '-10px', cursor: 'alias' }}
                     >
+                        {dayjs(run.started).fromNow()}
+                    </Button>
+                </Badge>
+            ) : (
+                <Popover
+                    content={
+                        <Space direction="vertical" style={{ padding: '2px' }}>
+                            <Space
+                                align="baseline"
+                                split={<Divider type="vertical" />}
+                            >
+                                <Typography>
+                                    {dayjs(run.started).format(dateFormatUsed)}
+                                </Typography>
+                                <RenderDuration
+                                    value={dayjs.duration(run.duration)}
+                                    style={{
+                                        maxWidth: '65px',
+                                        minWidth: '65px',
+                                    }}
+                                />
+                            </Space>
+                            <RelativeTo
+                                dateTime={dayjs(run.started)}
+                                style={{
+                                    maxWidth: '180px',
+                                }}
+                                secondDateTime={dayjs(run.ended)}
+                            />
+                        </Space>
+                    }
+                    title={
+                        <Space>
+                            <RenderPassedRate
+                                value={[run.passed, run.failed, run.skipped]}
+                            />
+                        </Space>
+                    }
+                >
+                    {run.testID !== testID ? (
                         <Button
-                            type="text"
+                            type={'text'}
                             size="small"
-                            style={{ marginLeft: '-10px', cursor: 'alias' }}
+                            style={{ marginLeft: '-10px' }}
+                            href={runPage(run.testID)}
+                            target="_blank"
                         >
                             {dayjs(run.started).fromNow()}
                         </Button>
-                    </Badge>
-                ) : (
-                    <Popover
-                        content={
-                            <Space
-                                direction="vertical"
-                                style={{ padding: '2px' }}
-                            >
-                                <Space
-                                    align="baseline"
-                                    split={<Divider type="vertical" />}
-                                >
-                                    <Typography>
-                                        {dayjs(run.started).format(
-                                            dateFormatUsed,
-                                        )}
-                                    </Typography>
-                                    <RenderDuration
-                                        value={dayjs.duration(run.duration)}
-                                        style={{
-                                            maxWidth: '65px',
-                                            minWidth: '65px',
-                                        }}
-                                    />
-                                </Space>
-                                <RelativeTo
-                                    dateTime={dayjs(run.started)}
-                                    style={{
-                                        maxWidth: '180px',
-                                    }}
-                                    secondDateTime={dayjs(run.ended)}
-                                />
-                            </Space>
-                        }
-                        title={
-                            <Space>
-                                <RenderPassedRate
-                                    value={[
-                                        run.passed,
-                                        run.failed,
-                                        run.skipped,
-                                    ]}
-                                />
-                            </Space>
-                        }
-                    >
-                        {run.testID !== testID ? (
-                            <Button
-                                type={'text'}
-                                size="small"
-                                style={{ marginLeft: '-10px' }}
-                                href={runPage(run.testID)}
-                                target="_blank"
-                            >
-                                {dayjs(run.started).fromNow()}
-                            </Button>
-                        ) : (
-                            <></>
-                        )}
-                    </Popover>
-                ),
-            key: run.testID,
-            color: timelineColor(run.standing),
-        }));
+                    ) : (
+                        <></>
+                    )}
+                </Popover>
+            ),
+        key: run.testID,
+        color: timelineColor(run.standing),
+    }));
 
     return (
         <>
