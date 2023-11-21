@@ -21,16 +21,12 @@ jobs:
         - name: Use Node.js
           uses: actions/setup-node@v3
           with:
-            node-version: "18.x"
+            node-version: 20.9.0
 
         - name: Setup Turbo Repo
-          working-directory: ./graspit-reporters
-          run: npm install && npm run build
+          run: cd graspit-reporters && npm install && npm run build
 
-        - name: Install all required dependencies for test
+        - name: Install all and Run Tests
           working-directory: ./graspit-reporters/apps/test-mocha
-          run: npm install
+          run: npm install && npm run test:mocha
 
-        - name: Run E2E tests
-          working-directory: ./graspit-reporters/apps/test-mocha
-          run: npm run test:mocha
