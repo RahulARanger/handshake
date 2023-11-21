@@ -14,8 +14,6 @@ jobs:
       runs-on: 'macos-latest'
       permissions: write-all
 
-      if: ${{ needs.build.outputs.skipped == 'false' }}
-
       steps:
         - name: Checkout code
           uses: actions/checkout@v3
