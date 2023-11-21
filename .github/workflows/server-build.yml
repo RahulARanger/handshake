@@ -9,24 +9,48 @@ permissions:
     contents: write
 
 jobs:
+    pre:
+      name: check if build is required
+      runs-on: 'ubuntu-latest'
+      permissions: write-all
+      outputs:
+        exists : ${{ steps.checkTag.outputs.exists }} # str, "false" or "true
+
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Release Prep
+          id: current
+          run: |
+            bash ./.github/scripts/fetch-server-version.sh
+
+        - name: Check if release already exists
+          uses: mukunku/tag-exists-action@v1.4.0
+          id: checkTag
+          with:
+            tag: ${{steps.current.outputs.VERSION}}
+
     build:
-      name: building executable
+      name: Building Executable
+      needs: pre
+      if: ${{ needs.pre.outputs.exists == 'false' }}
+      runs-on: ${{ matrix.os }}
+
+      outputs:
+        skipped: ${{ needs.pre.outputs.exists }} # 'false' or 'true', false means executed
+
       strategy:
         matrix:
           os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
 
-
-      runs-on: ${{ matrix.os }}
       steps:
         - uses: actions/checkout@v3
-
         - name: Set up Python 3.11
           uses: actions/setup-python@v3
           with:
             python-version: "3.11"
 
         - name: Set up venv
-          working-directory:
           run: |
             python -m venv venv
 
@@ -62,10 +86,12 @@ jobs:
             retention-days: 1
 
     release:
-      name: Preparing pre-release
+      name: Preparing for next step
       runs-on: 'ubuntu-latest'
       needs: build
       permissions: write-all
+
+      if: ${{ needs.build.outputs.skipped == 'false' }}
 
       steps:
         - uses: actions/checkout@v3
@@ -82,10 +108,11 @@ jobs:
           id: release
           with:
             files: dist/**/*
-            body: ":rocket: bump server release version to `${{ steps.version.outputs.VERSION }}`"
+            body: ":rocket: Bump graspit-server version to `${{ steps.version.outputs.VERSION }}`"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
-            name: ${{ steps.version.outputs.VERSION }}
+            name: "Graspit - ${{ steps.version.outputs.VERSION }}"
+            generate_release_notes: true
 
         - name: Post Release Post
           env:
@@ -100,7 +127,7 @@ jobs:
             title: "Bump Server Build"
             labels: "Automated,Server-build"
             reviewers: "RahulARanger"
-            body: ":rocket: bump release version to `${{ steps.version.outputs.VERSION }}`. 
-:magic_wand: make sure to edit this [release](${{ steps.release.outputs.url }}) once done."
-            base: "dashboard-build"
+            body: ":rocket: Bumped graspit-server version to `${{ steps.version.outputs.VERSION }}`.<br/>
+:magic_wand: Make sure to edit this [release](${{ steps.release.outputs.url }}) once done."
+            base: "nodejs-reporters"
             assignees: "RahulARanger"
