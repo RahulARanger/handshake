@@ -1,0 +1,35 @@
+name: 'dashboard-test'
+
+on:
+  push:
+    branches:
+      - 'dashboard-build'
+
+permissions:
+    contents: write
+
+jobs:
+    test:
+      name: Test Dashboard
+      runs-on: 'macos-latest'
+      needs: build
+      permissions: write-all
+
+      if: ${{ needs.build.outputs.skipped == 'false' }}
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Use Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: "18.x"
+
+        - name: Install dependencies
+          working-directory: ./graspit-reporters
+          run: npm install
+
+        - name: Install dependencies
+          working-directory: ./graspit-reporters/apps/test-mocha
+          run: npm run test-mocha
