@@ -1,5 +1,23 @@
 # graspit
 
+## 3.1.4
+
+### Patch Changes
+
+- fix: query for fetching related runs, sorted it
+
+## 3.1.3
+
+### Patch Changes
+
+- support server-build 0.12.4
+
+## 3.1.2
+
+### Patch Changes
+
+- support server patch for exporting results
+
 ## 3.1.1
 
 ### Patch Changes

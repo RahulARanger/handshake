@@ -19,7 +19,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"wdio-graspit-reporter": "2.1.14",
+		"wdio-graspit-reporter": "2.1.17",
 		"@wdio/cucumber-framework": "^8.19.0"
 	},
 	"devDependencies": {

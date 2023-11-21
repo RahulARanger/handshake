@@ -48,7 +48,7 @@ export async function getDetailsOfRelatedRuns(
     const sqlHelperForRuns = `(${runs.map(() => '?').join(',')})`;
 
     return connection.all<TestRunRecord[]>(
-        `SELECT * from runbase where projectName = ? and testID in ${sqlHelperForRuns};`,
+        `SELECT * from runbase where projectName = ? and testID in ${sqlHelperForRuns} order by started desc;`,
         projectName,
         ...runs,
     );
