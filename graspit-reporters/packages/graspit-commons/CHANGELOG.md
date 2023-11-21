@@ -1,5 +1,12 @@
 # graspit-commons
 
+## 2.1.17
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@3.1.4
+
 ## 2.1.16
 
 ### Patch Changes

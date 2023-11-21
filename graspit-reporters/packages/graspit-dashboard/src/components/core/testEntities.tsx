@@ -280,21 +280,6 @@ export default function TestEntities(): ReactNode {
                             }
                         />
                         <Table.Column
-                            dataIndex="File"
-                            title="File"
-                            width={30}
-                            filterSearch={true}
-                            filters={Array.from(
-                                new Set(data?.map((suite) => suite.File)),
-                            )?.map((suite) => ({
-                                text: suite,
-                                value: suite,
-                            }))}
-                            onFilter={(value, record: SuiteNode) =>
-                                value === record.File
-                            }
-                        />
-                        <Table.Column
                             dataIndex=""
                             title="Open"
                             width={50}
@@ -308,6 +293,24 @@ export default function TestEntities(): ReactNode {
                                     }}
                                 />
                             )}
+                        />
+                        <Table.Column
+                            dataIndex="File"
+                            title="File"
+                            width={30}
+                            filterSearch={true}
+                            filters={Array.from(
+                                new Set(data?.map((suite) => suite.File)),
+                            )?.map((suite) => ({
+                                text: suite,
+                                value: suite,
+                            }))}
+                            onFilter={(value, record: SuiteNode) =>
+                                value === record.File
+                            }
+                            render={(value) =>
+                                (value as string).replace(/^.*[\\/]/, '')
+                            }
                         />
                     </Table>
                 ) : (
