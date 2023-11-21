@@ -31,6 +31,10 @@ jobs:
           working-directory: ./graspit-reporters/apps/test-mocha
           run: npm install
 
+        - name: Install the wdio-graspit-reporter
+          working-directory: ./graspit-reporters
+          run: npm install wdio-graspit-reporter
+
         - name: Run E2E tests
           working-directory: ./graspit-reporters/apps/test-mocha
           run: npm run test:mocha
