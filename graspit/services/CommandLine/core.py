@@ -132,13 +132,6 @@ def run_app(
     "in static_path",
     short_help="serves generated report",
 )
-@option(
-    "root",
-    "-r",
-    required=False,
-    type=Path(exists=True, dir_okay=True),
-    help="[ROOT_DIR]",
-)
 @argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
 def display(
     static_path: Union[Literal[False], P_Path] = False,
