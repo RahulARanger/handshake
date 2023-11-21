@@ -12,7 +12,6 @@ jobs:
     test:
       name: Test Dashboard
       runs-on: 'macos-latest'
-      needs: build
       permissions: write-all
 
       if: ${{ needs.build.outputs.skipped == 'false' }}
