@@ -16,7 +16,7 @@
 		"lint": "eslint src/**",
 		"test": "jest",
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts",
-		"preinstall": "node ./downloadBuild.cjs"
+		"postinstall": "node ./downloadBuild.cjs"
 	},
 	"dependencies": {
 		"async-lock": "^1.4.0",
