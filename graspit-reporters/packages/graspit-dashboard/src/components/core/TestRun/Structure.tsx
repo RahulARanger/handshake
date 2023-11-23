@@ -51,7 +51,7 @@ function treeData(
         childParts.forEach((child) => {
             const childNode = {
                 key: child,
-                title: child,
+                title: <Space>{child} </Space>,
                 children: [],
             };
             childrenSpace.push(childNode);
@@ -74,23 +74,15 @@ function treeData(
             const treeNode: DataNode = {
                 key: suiteID,
                 title: (
-                    <Space direction="vertical">
+                    <Space direction="vertical" style={{ marginLeft: '5px' }}>
                         <Space
                             align="baseline"
-                            style={{ alignItems: 'center' }}
+                            style={{
+                                alignItems: 'center',
+                            }}
                         >
                             <RenderEntityType entityName={suite.entityName} />
-                            <Typography>{suite.Title}</Typography>
-                        </Space>
-                        <Space>
-                            <RenderPassedRate value={suite.Rate} />
-                            <Text
-                                italic
-                            >{`Executed from ${suite.Started[0].format(
-                                timeFormatUsed,
-                            )} to ${suite.Ended[0].format(
-                                timeFormatUsed,
-                            )} for ${suite.Duration.humanize()}`}</Text>
+                            <Typography>{suite.Title}</Typography>{' '}
                             <Button
                                 icon={<ExpandAltOutlined />}
                                 shape="circle"
@@ -100,9 +92,19 @@ function treeData(
                                 size="small"
                             />
                         </Space>
+                        <Space style={{ marginLeft: '5px' }}>
+                            <RenderPassedRate value={suite.Rate} />
+                            <Text
+                                italic
+                            >{`Executed from ${suite.Started[0].format(
+                                timeFormatUsed,
+                            )} to ${suite.Ended[0].format(
+                                timeFormatUsed,
+                            )} for ${suite.Duration.humanize()}`}</Text>
+                        </Space>
                     </Space>
                 ),
-                icon: <RenderStatus value={suite.Status} />,
+                icon: <RenderStatus value={suite.Status} marginTop="6px" />,
                 children: [],
             };
             treeNodes[suiteID] = treeNode;

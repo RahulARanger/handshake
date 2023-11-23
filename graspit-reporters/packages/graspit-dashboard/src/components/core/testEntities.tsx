@@ -248,7 +248,7 @@ export default function TestEntities(): ReactNode {
                         />
                         <Table.Column
                             title="Duration"
-                            width={60}
+                            width={50}
                             dataIndex="Duration"
                             render={(value: Duration) => (
                                 <RenderDuration value={value} />
