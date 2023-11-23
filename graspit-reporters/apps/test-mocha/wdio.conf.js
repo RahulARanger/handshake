@@ -49,6 +49,6 @@ export const config = attachReporter(metaConfig, {
     root,
     addScreenshots: true,
     export: {
-        out: join(root, "TestReports")
+        out: process.env.SANITY ? undefined : join(root, "TestReports")
     }
 });

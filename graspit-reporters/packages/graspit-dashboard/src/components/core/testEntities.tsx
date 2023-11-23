@@ -190,7 +190,7 @@ export default function TestEntities(): ReactNode {
                             }
                         />
                         <Table.Column
-                            title="Rate"
+                            title="Tests"
                             dataIndex="Rate"
                             width={100}
                             sorter={(a: SuiteNode, b: SuiteNode) => {
@@ -205,7 +205,7 @@ export default function TestEntities(): ReactNode {
                             )}
                         />
                         <Table.Column
-                            title="Tests"
+                            title="Count"
                             align="center"
                             dataIndex="Tests"
                             width={25}
@@ -248,7 +248,7 @@ export default function TestEntities(): ReactNode {
                         />
                         <Table.Column
                             title="Duration"
-                            width={60}
+                            width={50}
                             dataIndex="Duration"
                             render={(value: Duration) => (
                                 <RenderDuration value={value} />

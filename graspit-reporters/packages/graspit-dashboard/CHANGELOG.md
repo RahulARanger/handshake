@@ -1,5 +1,11 @@
 # graspit
 
+## 3.1.5
+
+### Patch Changes
+
+- added built antd script
+
 ## 3.1.4
 
 ### Patch Changes

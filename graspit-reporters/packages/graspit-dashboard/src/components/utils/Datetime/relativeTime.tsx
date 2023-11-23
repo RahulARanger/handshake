@@ -127,7 +127,7 @@ export function HumanizeDuration(props: {
                     suppressHydrationWarning
                     className={carouselStyles.slide}
                 >
-                    {`${props?.duration?.asSeconds() ?? '--'} s`}
+                    {`${props?.duration?.asSeconds().toFixed(2) ?? '--'} s`}
                 </Typography>
                 <Typography
                     suppressHydrationWarning

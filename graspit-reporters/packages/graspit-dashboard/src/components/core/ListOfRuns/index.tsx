@@ -84,11 +84,11 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                         >
                             <RenderTimeRelativeToStart
                                 value={item.Started}
-                                style={{ maxWidth: '100px' }}
+                                style={{ maxWidth: '103px' }}
                             />
                             <RenderTimeRelativeToStart
                                 value={item.Ended}
-                                style={{ maxWidth: '100px' }}
+                                style={{ maxWidth: '103px' }}
                             />
                             <RenderDuration
                                 value={item.Duration}

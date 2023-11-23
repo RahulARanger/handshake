@@ -1,5 +1,5 @@
 const {
-  createWriteStream, readFileSync,
+  createWriteStream, readFileSync, chmodSync, mkdirSync, existsSync,
 } = require('node:fs');
 const superagent = require('superagent');
 const { platform } = require('node:os');
@@ -17,9 +17,13 @@ const { join, dirname } = require('node:path');
  */
 const versionFromNames = {};
 
-const root = dirname(__filename);
+const root = join(dirname(__filename), 'bin');
 
-(JSON.parse(readFileSync(join(root, '.version')).toString())).forEach(
+if (!existsSync(root)) {
+  mkdirSync(root);
+}
+
+(JSON.parse(readFileSync(join(dirname(__filename), '.version')).toString())).forEach(
   (dist) => { versionFromNames[dist.name] = dist; },
 );
 
@@ -36,14 +40,21 @@ switch (platform()) {
     interest = 'graspit-Darwin';
     break;
   }
+  case 'linux': {
+    interest = 'graspit-Linux';
+    break;
+  }
   default: {
     console.warn(`yet to supported for: ${platform()}`);
     exit(0);
   }
 }
 
-const stream = createWriteStream(join(root, exeName));
+const exe = join(root, exeName);
+const stream = createWriteStream(exe);
 
 superagent
-  . get(versionFromNames[interest].browser_download_url)
-  .pipe(stream);
+  .get(versionFromNames[interest].browser_download_url)
+  .pipe(stream).on('close', () => {
+    if (!exe.endsWith('.exe')) chmodSync(exe, 755);
+  });

@@ -1,5 +1,11 @@
 # wdio-graspit-reporter
 
+## 2.1.18
+
+### Patch Changes
+
+- graspit-commons@2.1.18
+
 ## 2.1.17
 
 ### Patch Changes

@@ -1,5 +1,10 @@
 import {
-  describe, expect, beforeAll, test, afterAll, jest,
+  describe,
+  expect,
+  beforeAll,
+  test,
+  afterAll,
+  jest,
 } from '@jest/globals';
 import { type ChildProcess } from 'node:child_process';
 import {
@@ -14,7 +19,7 @@ import { ReporterDialPad, ServiceDialPad } from '../src';
 
 const port = 6969;
 const root = dirname(dirname(dirname(process.cwd())));
-const service = new ServiceDialPad(port, join(root, 'dist', 'graspit'));
+const service = new ServiceDialPad(port);
 describe('Asserting the scenario when the server was not started yet', () => {
   jest.setTimeout(3e3);
 
@@ -24,9 +29,7 @@ describe('Asserting the scenario when the server was not started yet', () => {
 
   it('expect for failure message when the server has not started yet.', async () => {
     // so when this throws error, you will go forward.
-    await expect(async () => service.waitUntilItsReady(1e3))
-      .rejects
-      .toThrow('Not able to connect with graspit-server within');
+    await expect(async () => service.waitUntilItsReady(1e3)).rejects.toThrow('Not able to connect with graspit-server within');
   });
 });
 
@@ -45,10 +48,18 @@ describe('verifying if we are able to start graspit server', () => {
   async function safeSide() {
     await service.terminateServer();
     if (existsSync(testResults)) {
-      rmSync(testResults, { recursive: true, retryDelay: 200, maxRetries: 3 });
+      rmSync(testResults, {
+        recursive: true,
+        retryDelay: 200,
+        maxRetries: 3,
+      });
     }
     if (existsSync(results)) {
-      rmSync(results, { recursive: true, retryDelay: 200, maxRetries: 3 });
+      rmSync(results, {
+        recursive: true,
+        retryDelay: 200,
+        maxRetries: 3,
+      });
     }
   }
 
@@ -59,11 +70,7 @@ describe('verifying if we are able to start graspit server', () => {
   beforeAll(async () => {
     expect(service.exePath).not.toBeUndefined();
 
-    pyProcess = service.startService(
-      'jest-test',
-      testResults,
-      root,
-    );
+    pyProcess = service.startService('jest-test', testResults, root);
     expect(service.pyProcess).not.toBeUndefined();
 
     await service.waitUntilItsReady();
@@ -74,7 +81,7 @@ describe('verifying if we are able to start graspit server', () => {
       expect(service.saveUrl).toEqual(`http://127.0.0.1:${port}/save`);
     });
 
-    test('assert the process\'s pid', () => {
+    test("assert the process's pid", () => {
       expect(typeof pyProcess.pid).toBe('number');
     });
 
@@ -84,7 +91,9 @@ describe('verifying if we are able to start graspit server', () => {
 
     test('testing the presence of the database', () => {
       expect(existsSync(testResults)).toBeTruthy();
-      expect(existsSync(join(testResults, 'TeStReSuLtS.db'))).toBeTruthy();
+      expect(
+        existsSync(join(testResults, 'TeStReSuLtS.db')),
+      ).toBeTruthy();
     });
   });
 
@@ -118,7 +127,11 @@ describe('verifying if we are able to start graspit server', () => {
 
     test('verifying endpoint for registering session', async () => {
       expect(reporter.idMapped.session).toBeUndefined();
-      reporter.requestRegisterSession({ retried: 0, started: new Date().toISOString(), specs: ['test.spec.ts'] });
+      reporter.requestRegisterSession({
+        retried: 0,
+        started: new Date().toISOString(),
+        specs: ['test.spec.ts'],
+      });
       expect(reporter.idMapped.session).toBeUndefined();
       expect(reporter.lock.isBusy()).toBeTruthy();
       await waitForLock('session');
@@ -144,32 +157,53 @@ describe('verifying if we are able to start graspit server', () => {
       expect(reporter.idMapped[testKey]).not.toBeUndefined();
     });
 
-    test.failing('test for acceptance of ISO string for date-time not UTC ones', async () => {
-      const failedKey = `${testKey}-failed`;
-      reporter.feed(reporter.registerSuite, {
-        title: 'sample-test',
-        description: 'dummy-test',
-        suiteType: 'TEST',
-        parent: '',
-        retried: 0,
-        started: new Date().toUTCString(),
-        session_id: reporter.idMapped.session,
-        file: 'test.spec.ts',
-        standing: 'PENDING',
-        tags: [],
-      }, failedKey);
-      await waitForLock(failedKey);
-    });
+    test.failing(
+      'test for acceptance of ISO string for date-time not UTC ones',
+      async () => {
+        const failedKey = `${testKey}-failed`;
+        reporter.feed(
+          reporter.registerSuite,
+          {
+            title: 'sample-test',
+            description: 'dummy-test',
+            suiteType: 'TEST',
+            parent: '',
+            retried: 0,
+            started: new Date().toUTCString(),
+            session_id: reporter.idMapped.session,
+            file: 'test.spec.ts',
+            standing: 'PENDING',
+            tags: [],
+          },
+          failedKey,
+        );
+        await waitForLock(failedKey);
+      },
+    );
 
     test('verifying additional Requests if no entity id was provided', async () => {
-      expect(await reporter.addDescription('test-description', '')).toBe(false);
-      expect(await reporter.attachScreenshot('test-attach', '', '', '')).toBe(false);
+      expect(await reporter.addDescription('test-description', '')).toBe(
+        false,
+      );
+      expect(
+        await reporter.attachScreenshot('test-attach', '', '', ''),
+      ).toBe(false);
     });
 
     test('verifying additional Requests if entity id was provided', async () => {
-      expect(await reporter.addDescription('test-description', reporter.idMapped[testKey])).toBe(true);
+      expect(
+        await reporter.addDescription(
+          'test-description',
+          reporter.idMapped[testKey],
+        ),
+      ).toBe(true);
       const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
-      const attachmentId = await reporter.attachScreenshot('test-attach', raw, reporter.idMapped[testKey], 'test-description') as string;
+      const attachmentId = (await reporter.attachScreenshot(
+        'test-attach',
+        raw,
+        reporter.idMapped[testKey],
+        'test-description',
+      )) as string;
       expect(attachmentId.length).toBeGreaterThan(2);
     });
   });

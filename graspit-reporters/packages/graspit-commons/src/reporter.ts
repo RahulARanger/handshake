@@ -204,4 +204,34 @@ export class ReporterDialPad extends DialPad {
 
     return resp?.ok;
   }
+
+  async addLink(
+    url: string,
+    title: string,
+    entity_id: string,
+  ) {
+    if (!entity_id) {
+      logger.warn('😕 Skipping!, we have not added a link for unknown entity');
+      return false;
+    }
+    const payload = JSON.stringify({
+      title,
+      value: url,
+      type: 'LINK',
+      entityID: entity_id,
+    });
+
+    const resp = await superagent
+      .put(this.addAttachmentForEntity)
+      .send(payload)
+      .on('response', (result) => {
+        if (result.ok) {
+          logger.info(`👍 Attached a Link for ${entity_id}`);
+        } else {
+          logger.error(`💔 Failed to attach a link: ${url} for ${entity_id}, because of ${result?.text}`);
+        }
+      });
+
+    return resp?.ok;
+  }
 }
