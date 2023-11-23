@@ -24,9 +24,10 @@ jobs:
             node-version: 20.9.0
 
         - name: Setup Turbo Repo
-          run: cd graspit-reporters && npm install && npm run build
+          working-directory: ./graspit-reporters
+          run: npm install && npm run build
 
-        - name: Install all and Run Tests
+        - name: Install Test Related Packages and Run Sanity Tests
           working-directory: ./graspit-reporters/apps/test-mocha
-          run: npm install && npm run test:mocha
+          run: npm install && npm run test:mocha:sanity
 

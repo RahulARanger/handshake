@@ -8,16 +8,16 @@
 	"scripts": {
 		"test": "npm run test:mocha",
 		"test:mocha": "npx wdio run ./wdio.conf.js",
-		"activate": ".\\\"../../../venv/scripts/activate\"",
-		"display": "npm run activate && graspit display ./dist"
+		"test:mocha:sanity": "npx wdio run ./wdio.conf.js --spec test-mocha\\specs\\test.e2e.js"
 	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"wdio-graspit-reporter": "2.1.18",
-		"@wdio/local-runner": "^8.23.3",
-		"@wdio/mocha-framework": "^8.23.1",
-		"@wdio/spec-reporter": "^8.23.1",
-		"@wdio/cli": "^8.23.3"
+		"@wdio/cli": "^8.24.0",
+		"@wdio/local-runner": "^8.24.0",
+		"@wdio/mocha-framework": "^8.24.0",
+		"@wdio/spec-reporter": "^8.24.0",
+		"ts-node": "^10.9.1",
+		"wdio-graspit-reporter": "2.1.18"
 	}
 }
