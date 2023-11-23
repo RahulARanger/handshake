@@ -28,6 +28,7 @@ class AttachmentType(StrEnum):
     DESC = "DESC"
     IMG = "IMAGE"
     LINK = "LINK"
+    ASSERT = "ASSERT"
 
 
 class PrunedRecords(StrEnum):
