@@ -1,5 +1,13 @@
 # graspit-commons
 
+## 3.1.6
+
+### Patch Changes
+
+- handled permission and attached links
+- Updated dependencies
+  - graspit@3.1.6
+
 ## 2.1.18
 
 ### Patch Changes

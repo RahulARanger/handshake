@@ -1,6 +1,6 @@
 {
 	"name": "wdio-graspit-reporter",
-	"version": "2.1.18",
+	"version": "3.1.6",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -18,7 +18,7 @@
 		"@wdio/types": "^8.24.0",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit-commons": "2.1.18"
+		"graspit-commons": "3.1.6"
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.2",
