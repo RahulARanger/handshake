@@ -53,13 +53,8 @@ switch (platform()) {
 const exe = join(root, exeName);
 const stream = createWriteStream(exe);
 
-function fixFilePermissions() {
-  // Check that the binary is user-executable and fix it if it isn't (problems with unzip library)
-  if (process.platform !== 'win32') {
-    chmodSync(root, 755);
-  }
-}
-
 superagent
   .get(versionFromNames[interest].browser_download_url)
-  .pipe(stream).on('close', fixFilePermissions);
+  .pipe(stream).on('close', () => {
+    if (!exe.endsWith('.exe')) chmodSync(exe, 755);
+  });

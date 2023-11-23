@@ -51,7 +51,7 @@ function treeData(
         childParts.forEach((child) => {
             const childNode = {
                 key: child,
-                title: <Space>{child} </Space>,
+                title: child,
                 children: [],
             };
             childrenSpace.push(childNode);
