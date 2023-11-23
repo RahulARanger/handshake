@@ -28,7 +28,6 @@ const metaConfig = {
     // Default request retries count
     connectionRetryCount: 3,
     framework: 'mocha',
-    services: ["chromedriver"],
     mochaOpts: {
         ui: 'bdd',
         timeout: 60000,
