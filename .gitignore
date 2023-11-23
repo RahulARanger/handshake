@@ -55,5 +55,4 @@ graspit-reporters/packages/graspit-dashboard/src/styles/antd.min.css
 
 # Misc
 .DS_Store
-graspit-reporters/packages/graspit-commons/graspit.exe
-graspit-reporters/packages/graspit-commons/graspit
+graspit-reporters/packages/graspit-commons/bin

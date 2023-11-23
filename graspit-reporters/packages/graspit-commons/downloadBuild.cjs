@@ -1,5 +1,5 @@
 const {
-  createWriteStream, readFileSync, chmodSync,
+  createWriteStream, readFileSync, chmodSync, statSync, mkdirSync, existsSync,
 } = require('node:fs');
 const superagent = require('superagent');
 const { platform } = require('node:os');
@@ -17,9 +17,13 @@ const { join, dirname } = require('node:path');
  */
 const versionFromNames = {};
 
-const root = dirname(__filename);
+const root = join(dirname(__filename), 'bin');
 
-(JSON.parse(readFileSync(join(root, '.version')).toString())).forEach(
+if (!existsSync(root)) {
+  mkdirSync(root);
+}
+
+(JSON.parse(readFileSync(join(dirname(__filename), '.version')).toString())).forEach(
   (dist) => { versionFromNames[dist.name] = dist; },
 );
 
@@ -49,10 +53,19 @@ switch (platform()) {
 const exe = join(root, exeName);
 const stream = createWriteStream(exe);
 
+function fixFilePermissions() {
+  // Check that the binary is user-executable and fix it if it isn't (problems with unzip library)
+  if (process.platform !== 'win32') {
+    const stat = statSync(root);
+
+    // 64 == 0100 (no octal literal in strict mode)
+    // eslint-disable-next-line no-bitwise
+    if (!(stat.mode & 64)) {
+      chmodSync(root, '755');
+    }
+  }
+}
+
 superagent
   .get(versionFromNames[interest].browser_download_url)
-  .pipe(stream).on('close', () => {
-    if (!exeName.endsWith('.exe')) {
-      chmodSync(exe, 755);
-    }
-  });
+  .pipe(stream).on('close', fixFilePermissions);

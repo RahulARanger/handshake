@@ -3,8 +3,7 @@ build.cjs
 .eslintrc.cjs
 .vscode
 .turbo
-graspit
-graspit.exe
+bin
 jest.config.cjs
 tests/*
 .turbo
