@@ -1,5 +1,5 @@
 const {
-  createWriteStream, readFileSync,
+  createWriteStream, readFileSync, chmodSync,
 } = require('node:fs');
 const superagent = require('superagent');
 const { platform } = require('node:os');
@@ -36,14 +36,23 @@ switch (platform()) {
     interest = 'graspit-Darwin';
     break;
   }
+  case 'linux': {
+    interest = 'graspit-Linux';
+    break;
+  }
   default: {
     console.warn(`yet to supported for: ${platform()}`);
     exit(0);
   }
 }
 
-const stream = createWriteStream(join(root, exeName));
+const exe = join(root, exeName);
+const stream = createWriteStream(exe);
 
 superagent
-  . get(versionFromNames[interest].browser_download_url)
-  .pipe(stream);
+  .get(versionFromNames[interest].browser_download_url)
+  .pipe(stream).on('close', () => {
+    if (!exeName.endsWith('.exe')) {
+      chmodSync(exe, 777);
+    }
+  });

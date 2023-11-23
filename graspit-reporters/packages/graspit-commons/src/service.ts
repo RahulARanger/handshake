@@ -207,7 +207,7 @@ export class ServiceDialPad extends DialPad {
     let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
 
     if (outDir != null && result.error == null) {
-      const exportArgs = ['export', resultsDir, '--out', outDir, '-r', (maxTestRuns ?? 100).toString()];
+      const exportArgs = ['export', resultsDir, '--out', outDir, '-mr', (maxTestRuns ?? 100).toString()];
       logger.info(`Generating Report 📃, passing the command: ${exportArgs}`);
 
       result = this.executeCommand(

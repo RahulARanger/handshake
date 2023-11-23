@@ -1,0 +1,32 @@
+name: 'e2e-graspit-commons'
+
+on:
+  pull_request:
+    branches:
+      - 'nodejs-reporters'
+
+permissions:
+    contents: write
+
+jobs:
+    test:
+      name: Test Dashboard
+      runs-on: 'macos-latest'
+      permissions: write-all
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Use Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: 20.9.0
+
+        - name: Setup Turbo Repo
+          working-directory: ./graspit-reporters
+          run: npm install && npm run build
+
+        - name: Install Test Related Packages and Run Sanity Tests
+          working-directory: ./graspit-reporters/apps/test-mocha
+          run: sudo npm install && sudo npm run test:mocha:sanity
