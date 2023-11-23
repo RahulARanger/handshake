@@ -52,11 +52,10 @@ import Typography from 'antd/lib/typography/Typography';
 import Counter, { StaticPercent } from 'src/components/utils/counter';
 import CheckboxGroup from 'antd/lib/checkbox/Group';
 import Divider from 'antd/lib/divider/index';
-import TreeSelectionOfSuites from './treeSelectDropdown';
 import Card from 'antd/lib/card/Card';
 import Badge from 'antd/lib/badge/index';
 import Meta from 'antd/lib/card/Meta';
-import { NavigationButtons } from './header';
+import TreeSelectionOfSuites, { NavigationButtons } from './header';
 import { EntityCollapsibleItem, EntityTimeline } from './entityItem';
 
 export default function TestEntityDrawer(props: {

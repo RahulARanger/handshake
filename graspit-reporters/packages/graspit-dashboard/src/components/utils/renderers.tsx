@@ -32,12 +32,19 @@ export function RenderDuration(props: {
     return <HumanizeDuration duration={props.value} style={props.style} />;
 }
 
-export function RenderStatus(props: { value: string }): ReactNode {
+export function RenderStatus(props: {
+    value: string;
+    marginTop?: string;
+}): ReactNode {
     switch (props.value as statusOfEntity) {
         case 'PASSED': {
             return (
                 <CheckCircleFilled
-                    style={{ fontSize: '16px', color: 'green' }}
+                    style={{
+                        fontSize: '16px',
+                        color: 'green',
+                        marginTop: props.marginTop,
+                    }}
                     title="Passed"
                 />
             );
@@ -46,7 +53,11 @@ export function RenderStatus(props: { value: string }): ReactNode {
             return (
                 <CloseOutlined
                     spin
-                    style={{ fontSize: '16px', color: 'red' }}
+                    style={{
+                        fontSize: '16px',
+                        color: 'red',
+                        marginTop: props.marginTop,
+                    }}
                     title="Failed"
                 />
             );
@@ -54,7 +65,11 @@ export function RenderStatus(props: { value: string }): ReactNode {
         case 'SKIPPED': {
             return (
                 <WarningFilled
-                    style={{ fontSize: '16px', color: 'yellow' }}
+                    style={{
+                        fontSize: '16px',
+                        color: 'yellow',
+                        marginTop: props.marginTop,
+                    }}
                     title="Skipped"
                 />
             );
@@ -62,7 +77,11 @@ export function RenderStatus(props: { value: string }): ReactNode {
         case 'PENDING': {
             return (
                 <LoadingOutlined
-                    style={{ fontSize: '16px', color: 'yellow' }}
+                    style={{
+                        fontSize: '16px',
+                        color: 'yellow',
+                        marginTop: props.marginTop,
+                    }}
                     title="Pending"
                 />
             );
@@ -70,7 +89,11 @@ export function RenderStatus(props: { value: string }): ReactNode {
         case 'RETRIED': {
             return (
                 <ReloadOutlined
-                    style={{ fontSize: '16px', color: 'orangered' }}
+                    style={{
+                        fontSize: '16px',
+                        color: 'orangered',
+                        marginTop: props.marginTop,
+                    }}
                     spin
                     title="Retried Suite"
                 />
