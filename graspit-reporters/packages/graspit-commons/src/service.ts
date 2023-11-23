@@ -37,7 +37,7 @@ export class ServiceDialPad extends DialPad {
   // }
 
   static get defaultExe() {
-    return join(dirname(dirname(__filename)), 'graspit');
+    return join(dirname(__dirname), 'bin', 'graspit');
   }
 
   executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
