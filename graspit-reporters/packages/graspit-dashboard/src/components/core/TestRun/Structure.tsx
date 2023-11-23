@@ -82,7 +82,7 @@ function treeData(
                             }}
                         >
                             <RenderEntityType entityName={suite.entityName} />
-                            <Typography>{suite.Title}</Typography>{' '}
+                            <Typography>{suite.Title}</Typography>
                             <Button
                                 icon={<ExpandAltOutlined />}
                                 shape="circle"

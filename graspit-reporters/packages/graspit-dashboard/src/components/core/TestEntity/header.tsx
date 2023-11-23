@@ -15,7 +15,6 @@ import { Badge } from 'antd/lib';
 import { getSuites } from 'src/components/scripts/helper';
 import TreeSelect from 'antd/lib/tree-select/index';
 import { badgeStatus } from 'src/components/parseUtils';
-import Typography from 'antd/lib/typography/Typography';
 
 export function NavigationButtons(props: {
     selectedSuite: SuiteRecordDetails;

@@ -197,7 +197,7 @@ describe('verifying if we are able to start graspit server', () => {
           reporter.idMapped[testKey],
         ),
       ).toBe(true);
-      const raw =				'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
+      const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
       const attachmentId = (await reporter.attachScreenshot(
         'test-attach',
         raw,

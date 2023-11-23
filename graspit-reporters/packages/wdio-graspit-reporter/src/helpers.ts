@@ -82,3 +82,15 @@ export async function addDescription(content: string) {
     currentReporter?.currentTestID ?? '',
   );
 }
+
+export async function addLink(url: string, title: string) {
+  if (skipIfRequired()) {
+    return;
+  }
+
+  await currentReporter?.supporter?.addLink(
+    url,
+    title,
+    currentReporter?.currentTestID ?? '',
+  );
+}

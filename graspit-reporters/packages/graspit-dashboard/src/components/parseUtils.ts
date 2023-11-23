@@ -51,7 +51,11 @@ export function parseDetailedTestEntity(
         Status: testORSuite.standing,
         Title: testORSuite.title,
         Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
+        Rate: [
+            testORSuite.rollup_passed ?? 0,
+            testORSuite.rollup_failed ?? 0,
+            testORSuite.rollup_skipped ?? 0,
+        ],
         Tests: testORSuite.tests,
         File: testORSuite.file,
         Retried: testORSuite.retried,

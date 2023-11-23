@@ -95,7 +95,7 @@ export default class GraspItReporter extends ReporterContacts {
       this.supporter.registerSession,
       {
         started: runnerStats.start.toISOString(),
-        specs: sanitizePaths(runnerStats.specs)
+        specs: sanitizePaths(runnerStats.specs),
       },
       'session',
     );
@@ -199,4 +199,12 @@ export default class GraspItReporter extends ReporterContacts {
       );
     }
   }
+
+  // async onAfterAssertion(assertionArgs: Assertion): void {
+  //   const extract = {
+  //     matcherName: assertionArgs.matcherName,
+  //     expected: assertionArgs.expected,
+  //     options: assertionArgs.options,
+  //   };
+  // }
 }
