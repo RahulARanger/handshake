@@ -1,5 +1,11 @@
 # graspit
 
+## 3.1.6
+
+### Patch Changes
+
+- handled permission and attached links
+
 ## 3.1.5
 
 ### Patch Changes
