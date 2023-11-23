@@ -1,9 +1,9 @@
-name: 'e2e-graspit-commons'
+name: 'sanity-e2e'
 
 on:
-  pull_request:
+  push:
     branches:
-      - 'nodejs-reporters'
+      - "dashboard-build"
 
 permissions:
     contents: write
@@ -27,6 +27,10 @@ jobs:
           working-directory: ./graspit-reporters
           run: npm install && npm run build
 
+        - name: Download required for Dashboard
+          working-directory: ./graspit-reporters/packages/graspit-dashboard
+          run: npm install
+
         - name: Install Test Related Packages and Run Sanity Tests
           working-directory: ./graspit-reporters/apps/test-mocha
-          run: sudo npm install && sudo npm run test:mocha:sanity
+          run: npm install && sudo npm run test:mocha:sanity

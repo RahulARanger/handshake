@@ -51,8 +51,4 @@ const stream = createWriteStream(exe);
 
 superagent
   .get(versionFromNames[interest].browser_download_url)
-  .pipe(stream).on('close', () => {
-    if (!exeName.endsWith('.exe')) {
-      chmodSync(exe, 777);
-    }
-  });
+  .pipe(stream);
