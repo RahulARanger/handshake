@@ -1,5 +1,16 @@
 # graspit-commons
 
+## 3.2.0
+
+### Minor Changes
+
+- added support for links and assertions
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@3.2.0
+
 ## 3.1.6
 
 ### Patch Changes

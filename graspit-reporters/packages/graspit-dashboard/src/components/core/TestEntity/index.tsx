@@ -199,6 +199,9 @@ export default function TestEntityDrawer(props: {
                     attachmentsForDescription={attachments[parsed.id]?.filter(
                         (item) => item.type === 'DESC',
                     )}
+                    attachmentsForLinks={attachments[parsed.id]?.filter(
+                        (item) => item.type === 'LINK',
+                    )}
                 />
             ),
             extra: <Space>{actions}</Space>,

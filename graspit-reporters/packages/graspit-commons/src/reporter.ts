@@ -4,7 +4,7 @@ import superagent from 'superagent';
 import DialPad from './dialPad';
 import {
   RegisterSession,
-  MarkTestEntity, MarkTestSession, RegisterTestEntity,
+  MarkTestEntity, MarkTestSession, RegisterTestEntity, Assertion,
 } from './payload';
 
 const logger = log4js.getLogger('graspit-commons');
@@ -226,9 +226,38 @@ export class ReporterDialPad extends DialPad {
       .send(payload)
       .on('response', (result) => {
         if (result.ok) {
-          logger.info(`👍 Attached a Link for ${entity_id}`);
+          logger.info(`Attached a 🔗 Link for ${entity_id}`);
         } else {
           logger.error(`💔 Failed to attach a link: ${url} for ${entity_id}, because of ${result?.text}`);
+        }
+      });
+
+    return resp?.ok;
+  }
+
+  async addAssertion(
+    assertion: Assertion,
+    entity_id: string,
+  ) {
+    if (!entity_id) {
+      logger.warn('😕 Skipping!, we have not added a link for unknown entity');
+      return false;
+    }
+    const payload = JSON.stringify({
+      type: 'ASSERT',
+      value: JSON.stringify(assertion),
+      entityID: entity_id,
+      title: assertion.matcherName,
+    });
+
+    const resp = await superagent
+      .put(this.addAttachmentForEntity)
+      .send(payload)
+      .on('response', (result) => {
+        if (result.ok) {
+          logger.info(`Added an 🧪 assertion: ${assertion.matcherName} for ${entity_id}`);
+        } else {
+          logger.error(`💔 Failed to attach an assertion; ${assertion.matcherName} for ${entity_id}, because of ${result?.text}`);
         }
       });
 

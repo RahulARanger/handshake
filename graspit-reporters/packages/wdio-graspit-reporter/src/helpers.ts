@@ -1,5 +1,6 @@
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
+import { Assertion } from 'graspit-commons';
 import { GraspItServiceOptions, ReporterOptions } from './types';
 import GraspItService from './service';
 import { currentReporter } from './contacts';
@@ -91,6 +92,17 @@ export async function addLink(url: string, title: string) {
   await currentReporter?.supporter?.addLink(
     url,
     title,
+    currentReporter?.currentTestID ?? '',
+  );
+}
+
+export async function addAssertion(assertion: Assertion) {
+  if (skipIfRequired()) {
+    return;
+  }
+
+  await currentReporter?.supporter?.addAssertion(
+    assertion,
     currentReporter?.currentTestID ?? '',
   );
 }

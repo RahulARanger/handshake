@@ -24,11 +24,18 @@ export interface AttachedError extends Error {
     mailedFrom: string[];
 }
 
+export interface Assertion {
+    matcherName: string;
+    result: { pass: boolean };
+    expectedValue: string;
+}
+
 export interface PreviewForTests extends BasicDetails {
     Description: string;
     id: string;
     Errors: AttachedError[];
     type: suiteType;
+    Parent: string;
 }
 
 export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
