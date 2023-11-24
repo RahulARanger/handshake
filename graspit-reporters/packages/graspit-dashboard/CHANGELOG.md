@@ -1,5 +1,11 @@
 # graspit
 
+## 3.2.0
+
+### Minor Changes
+
+- added support for links and assertions
+
 ## 3.1.6
 
 ### Patch Changes
