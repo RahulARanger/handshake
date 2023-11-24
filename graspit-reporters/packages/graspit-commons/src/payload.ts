@@ -47,3 +47,9 @@ export interface UpdateTestRunConfig {
   fileRetries:number;
   saveOptions: object;
 }
+
+export interface Assertion {
+  matcherName: string;
+  expected: any;
+  options: any;
+}
