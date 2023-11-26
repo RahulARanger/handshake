@@ -34,7 +34,7 @@ function treeData(
     const root: DataNode = { title: 'Root', key: '', children: [] };
     const structure: DataNode[] = [root];
     const pulled = new Set(suites['@order']);
-    const nodes = [{ node, childrenSpace: root.children }];
+    const nodes = [{ node, childrenSpace: root.children, pathNode: root }];
     const treeNodes: Record<string, DataNode> = {};
 
     while (nodes.length > 0) {
@@ -58,8 +58,13 @@ function treeData(
             nodes.push({
                 node: node[child],
                 childrenSpace: childNode.children,
+                pathNode: childNode,
             });
         });
+
+        let passed = 0;
+        let failed = 0;
+        let skipped = 0;
 
         // these are suites
         pulled.forEach((suiteID) => {
@@ -70,7 +75,15 @@ function treeData(
             );
             const parent = suites[suiteID].parent;
 
-            if (suite.Status === 'RETRIED' || suite.File !== current) return;
+            if (suite.Status === 'RETRIED' || !suite.File.startsWith(current))
+                return;
+
+            passed += suite.Rate[0];
+            failed += suite.Rate[1];
+            skipped += suite.Rate[2];
+
+            if (suite.File !== current) return;
+
             const treeNode: DataNode = {
                 key: suiteID,
                 title: (
@@ -113,6 +126,13 @@ function treeData(
 
             pulled.delete(suiteID);
         });
+
+        result.pathNode.title = (
+            <Space align="center" style={{ columnGap: '12px' }}>
+                <Text>{(result.pathNode.title as string) ?? ''}</Text>
+                <RenderPassedRate value={[passed, failed, skipped]} />
+            </Space>
+        );
     }
 
     return structure;
@@ -133,8 +153,10 @@ export default function ProjectStructure(props: {
     if (sessions == null || detailsOfTestRun == null || suites == null)
         return <></>;
 
-    const projectStructure: DataNode[] = treeData(
-        JSON.parse(detailsOfTestRun.specStructure),
+    const structure: specNode = JSON.parse(detailsOfTestRun.specStructure);
+
+    const projectStructure = treeData(
+        structure,
         suites,
         props.setTestID,
         dayjs(detailsOfTestRun.started),
@@ -146,6 +168,7 @@ export default function ProjectStructure(props: {
             treeData={projectStructure}
             showLine
             selectable={false}
+            defaultExpandedKeys={suites['@order']}
         />
     );
 }
