@@ -1,4 +1,4 @@
-import React, { useContext, type ReactNode } from 'react';
+import React, { useState, useContext, type ReactNode } from 'react';
 import type { SuiteDetails } from 'src/types/generatedResponse';
 import type TestRunRecord from 'src/types/testRunRecords';
 import useSWR from 'swr';
@@ -18,6 +18,7 @@ import { getSuites, getTestRun } from '../scripts/helper';
 import Card from 'antd/lib/card/Card';
 
 import { REM } from 'next/font/google';
+import TestEntityDrawer from '../core/TestEntity';
 
 const serif = REM({
     subsets: ['latin'],
@@ -31,16 +32,21 @@ if (typeof HighChartsForGantt === 'object') {
     HighChartsAccessibility(HighChartsForGantt);
 }
 
-export default function GanttChartForTestEntities(props: {
-    setOpenDrilldown: (id: string | undefined) => void;
-}): ReactNode {
+export default function GanttChartForTestEntities(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: testRun } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    const [showEntity, setShowEntity] = useState<boolean>(false);
+    const [toShowTestID, setTestID] = useState<string>();
 
     if (testRun == null || suites == null) {
         return <></>;
     }
+
+    const helperToSetTestID = (testID: string): void => {
+        setTestID(testID);
+        setShowEntity(true);
+    };
 
     const data: HighChartsForGantt.GanttPointOptionsObject[] = suites[
         '@order'
@@ -87,10 +93,10 @@ export default function GanttChartForTestEntities(props: {
             },
         },
         subtitle: {
-            text: '<small>Please find your suites here</small>',
+            text: '<small>Suites are displayed in chronological order</small>',
             align: 'left',
             style: {
-                fontSize: '.89rem',
+                fontSize: '.69rem',
             },
         },
 
@@ -145,21 +151,25 @@ export default function GanttChartForTestEntities(props: {
         },
         series: [
             {
+                borderRadius: 3.69,
                 type: 'gantt',
                 name: testRun.projectName,
                 data,
                 cursor: 'pointer',
                 dataLabels: {
+                    padding: 10,
                     style: {
+                        fontWeight: 'normal',
+                        textOutline: 'none',
                         fontSize: '.69rem',
                     },
                 },
+
                 point: {
                     events: {
                         click: function (event: PointClickEventObject) {
-                            props.setOpenDrilldown(
-                                event.point.options.id ?? '',
-                            );
+                            setTestID(event.point.options.id ?? '');
+                            setShowEntity(true);
                         },
                     },
                 },
@@ -181,6 +191,14 @@ export default function GanttChartForTestEntities(props: {
                 highcharts={HighChartsForGantt}
                 options={options}
                 constructorType="ganttChart"
+            />
+            <TestEntityDrawer
+                open={showEntity}
+                onClose={(): void => {
+                    setShowEntity(false);
+                }}
+                testID={toShowTestID}
+                setTestID={helperToSetTestID}
             />
         </Card>
     );

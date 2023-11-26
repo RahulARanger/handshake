@@ -83,18 +83,12 @@ export async function getStaticProps(prepareProps: {
 }
 
 function ReturnChild(props: { tab: string }) {
-    const [toShowTestID, setTestID] = useState<string>();
     switch (props.tab) {
         case testEntitiesTab: {
-            return (
-                <TestEntities
-                    setTestID={setTestID}
-                    toShowTestID={toShowTestID}
-                />
-            );
+            return <TestEntities />;
         }
         case timelineTab: {
-            return <GanttChartForTestEntities setOpenDrilldown={setTestID} />;
+            return <GanttChartForTestEntities />;
         }
         default: {
             return <SpinFC tip="Loading..." size="large" fullscreen />;
