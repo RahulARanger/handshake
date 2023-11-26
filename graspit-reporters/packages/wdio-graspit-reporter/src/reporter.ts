@@ -3,6 +3,7 @@ import type {
   RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
 import {
+  Assertion,
   MarkTestEntity, RegisterTestEntity, SuiteType, sanitizePaths,
 } from 'graspit-commons';
 import ReporterContacts from './contacts';
@@ -200,11 +201,7 @@ export default class GraspItReporter extends ReporterContacts {
     }
   }
 
-  // async onAfterAssertion(assertionArgs: Assertion): void {
-  //   const extract = {
-  //     matcherName: assertionArgs.matcherName,
-  //     expected: assertionArgs.expected,
-  //     options: assertionArgs.options,
-  //   };
-  // }
+  async onAfterAssertion(assertionArgs: Assertion) {
+    await this.supporter.addAssertion(assertionArgs, this.currentTestID);
+  }
 }

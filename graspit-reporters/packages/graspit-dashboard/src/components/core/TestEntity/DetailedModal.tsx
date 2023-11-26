@@ -1,5 +1,9 @@
 import { CardForAImage } from 'src/components/utils/ImagesWithThumbnails';
-import type { AttachedError, PreviewForTests } from 'src/types/parsedRecords';
+import type {
+    Assertion,
+    AttachedError,
+    PreviewForTests,
+} from 'src/types/parsedRecords';
 import BadgeForSuiteType from 'src/components/utils/Badge';
 import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
@@ -15,6 +19,7 @@ import {
 import MetaCallContext from '../TestRun/context';
 import useSWR from 'swr';
 import {
+    getEntityLevelAttachment,
     getSuites,
     getTestRun,
     getTests,
@@ -30,6 +35,7 @@ import type {
 } from 'src/types/generatedResponse';
 import Typography from 'antd/lib/typography/index';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
+import { Tag } from 'antd/lib';
 
 function ErrorMessage(props: {
     item: AttachedError;
@@ -111,8 +117,32 @@ function ErrorMessage(props: {
         </List.Item>
     );
 }
+
+function AssertionComponent(props: {
+    title: string;
+    item: { value: string };
+}): ReactNode {
+    const assertValue: Assertion = JSON.parse(props.item.value);
+    return (
+        <List.Item key={assertValue.matcherName}>
+            <List.Item.Meta description={props.title} />
+            <Alert
+                showIcon
+                type={assertValue.result.pass ? 'success' : 'error'}
+                message={
+                    <Space>
+                        <Tag>{assertValue.matcherName}</Tag>
+                        <Text>{assertValue.expectedValue}</Text>
+                    </Space>
+                }
+            />
+        </List.Item>
+    );
+}
+
 export const errorsTab = 'errors';
 export const imagesTab = 'images';
+export const assertionsTab = 'assertions';
 
 export default function MoreDetailsOnEntity(props: {
     selected?: PreviewForTests;
@@ -127,6 +157,9 @@ export default function MoreDetailsOnEntity(props: {
     const { data: writtenAttachments } = useSWR<AttachmentDetails>(
         getWrittenAttachments(port, testID),
     );
+    const { data: attachments } = useSWR<AttachmentDetails>(
+        getEntityLevelAttachment(port, testID),
+    );
     const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
 
     if (
@@ -134,6 +167,7 @@ export default function MoreDetailsOnEntity(props: {
         attachmentPrefix == null ||
         testID == null ||
         tests == null ||
+        attachments == null ||
         writtenAttachments == null ||
         run == null
     )
@@ -153,6 +187,12 @@ export default function MoreDetailsOnEntity(props: {
         .map((key) => writtenAttachments[key])
         .flat()
         ?.filter((item) => item?.type === 'PNG')
+        ?.map(parseAttachment);
+
+    const assertions = needed
+        .map((key) => attachments[key])
+        .flat()
+        ?.filter((item) => item?.type === 'ASSERT')
         ?.map(parseAttachment);
 
     return (
@@ -184,6 +224,25 @@ export default function MoreDetailsOnEntity(props: {
                 activeKey={props.tab}
                 tabBarStyle={{ margin: '0px', padding: '0px' }}
                 items={[
+                    {
+                        key: assertionsTab,
+                        label: 'Assertions',
+                        children: (
+                            <List
+                                size="small"
+                                bordered
+                                itemLayout="vertical"
+                                dataSource={assertions}
+                                renderItem={(item) => (
+                                    <AssertionComponent
+                                        item={JSON.parse(item.attachmentValue)}
+                                        title={tests[item.entity_id].title}
+                                    />
+                                )}
+                            />
+                        ),
+                    },
+
                     {
                         key: errorsTab,
                         label: 'Errors',

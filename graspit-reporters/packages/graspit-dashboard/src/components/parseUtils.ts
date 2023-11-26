@@ -81,6 +81,7 @@ export function parseTestCaseEntity(
         Description: testORSuite.description,
         id: testORSuite.suiteID,
         type: testORSuite.suiteType,
+        Parent: testORSuite.parent,
     };
 }
 

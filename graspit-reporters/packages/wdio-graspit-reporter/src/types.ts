@@ -16,9 +16,3 @@ export interface GraspItServiceOptions {
     skipPatch?: boolean;
   }
 }
-
-export interface Assertion {
-  matcherName: string;
-  expected: any;
-  options: any;
-}

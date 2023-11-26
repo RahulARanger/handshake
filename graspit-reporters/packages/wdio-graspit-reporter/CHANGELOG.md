@@ -1,5 +1,24 @@
 # wdio-graspit-reporter
 
+## 3.2.0
+
+### Minor Changes
+
+- added support for links and assertions
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit-commons@3.2.0
+
+## 3.1.6
+
+### Patch Changes
+
+- handled permission and attached links
+- Updated dependencies
+  - graspit-commons@3.1.6
+
 ## 2.1.18
 
 ### Patch Changes

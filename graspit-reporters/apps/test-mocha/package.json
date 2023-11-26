@@ -18,7 +18,7 @@
 		"@wdio/mocha-framework": "^8.24.0",
 		"@wdio/spec-reporter": "^8.24.0",
 		"ts-node": "^10.9.1",
-		"wdio-graspit-reporter": "2.1.18"
+		"wdio-graspit-reporter": "3.2.0"
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.3"

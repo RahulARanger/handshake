@@ -20,10 +20,13 @@ import Description, {
 import Timeline from 'antd/lib/timeline/Timeline';
 import Text from 'antd/lib/typography/Text';
 import { dateTimeFormatUsed } from 'src/components/utils/Datetime/format';
+import { Tag } from 'antd/lib';
+import Avatar from 'antd/lib/avatar/avatar';
 
 export function EntityCollapsibleItem(props: {
     item: PreviewForTests;
     attachmentsForDescription?: Attachment[];
+    attachmentsForLinks?: Attachment[];
 }): ReactNode {
     const aboutSuite: DescriptionsProps['items'] = [
         {
@@ -57,6 +60,38 @@ export function EntityCollapsibleItem(props: {
                 style={{ overflowX: 'hidden' }}
                 size="small"
             />
+            {props.attachmentsForLinks &&
+            props.attachmentsForLinks.length > 0 ? (
+                <Space style={{ marginTop: '10px' }}>
+                    Links:
+                    {props.attachmentsForLinks?.map((attachment, index) => {
+                        const link = JSON.parse(attachment.attachmentValue);
+                        return (
+                            <Tag
+                                key={index}
+                                color="blue"
+                                icon={
+                                    <Avatar
+                                        size="small"
+                                        src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.value}`}
+                                    />
+                                }
+                            >
+                                <Button
+                                    type="link"
+                                    key={index}
+                                    href={link.value}
+                                    size="small"
+                                >
+                                    {link.title}
+                                </Button>
+                            </Tag>
+                        );
+                    })}
+                </Space>
+            ) : (
+                <></>
+            )}
         </>
     );
 }

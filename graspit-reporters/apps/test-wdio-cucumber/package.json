@@ -22,6 +22,6 @@
 		"wdio-wait-for": "^3.0.9"
 	},
 	"dependencies": {
-		"wdio-graspit-reporter": "^2.1.18"
+		"wdio-graspit-reporter": "^3.2.0"
 	}
 }
