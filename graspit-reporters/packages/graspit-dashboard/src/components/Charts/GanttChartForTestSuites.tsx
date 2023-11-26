@@ -15,6 +15,15 @@ import 'src/styles/highChartExternal.module.css';
 import MetaCallContext from '../core/TestRun/context';
 import { toolTipFormats } from '../utils/counter';
 import { getSuites, getTestRun } from '../scripts/helper';
+import Card from 'antd/lib/card/Card';
+
+import { REM } from 'next/font/google';
+
+const serif = REM({
+    subsets: ['latin'],
+    weight: '300',
+    adjustFontFallback: true,
+});
 
 if (typeof HighChartsForGantt === 'object') {
     HighchartsGantt(HighChartsForGantt);
@@ -66,7 +75,8 @@ export default function GanttChartForTestEntities(props: {
             type: 'gantt',
             plotShadow: true,
             className: 'highcharts-dark',
-            backgroundColor: 'rgba(128,128,128,0.02)',
+            backgroundColor: 'transparent',
+            style: { fontFamily: serif.style.fontFamily, color: 'white' },
         },
         credits: { enabled: false },
         title: {
@@ -128,8 +138,8 @@ export default function GanttChartForTestEntities(props: {
         tooltip: {
             pointFormat:
                 '<span style="font-weight: bold;">{point.name}</span><br>' +
-                '{point.start:%M:%S}' +
-                '{#unless point.milestone} → {point.end:%M:%S}{/unless}' +
+                '{point.start:%H:%M}' +
+                '{#unless point.milestone} → {point.end:%H:%M}{/unless}' +
                 '&nbsp;({point.duration} s)<br>',
             ...toolTipFormats,
         },
@@ -139,6 +149,11 @@ export default function GanttChartForTestEntities(props: {
                 name: testRun.projectName,
                 data,
                 cursor: 'pointer',
+                dataLabels: {
+                    style: {
+                        fontSize: '.69rem',
+                    },
+                },
                 point: {
                     events: {
                         click: function (event: PointClickEventObject) {
@@ -153,10 +168,20 @@ export default function GanttChartForTestEntities(props: {
     };
 
     return (
-        <HighchartsReact
-            highcharts={HighChartsForGantt}
-            options={options}
-            constructorType="ganttChart"
-        />
+        <Card
+            size="small"
+            bordered
+            style={{
+                marginLeft: '6px',
+                marginRight: '12px',
+                marginTop: '12px',
+            }}
+        >
+            <HighchartsReact
+                highcharts={HighChartsForGantt}
+                options={options}
+                constructorType="ganttChart"
+            />
+        </Card>
     );
 }
