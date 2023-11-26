@@ -7,13 +7,13 @@ import type TestRunRecord from 'src/types/testRunRecords';
 import RelativeTo from 'src/components/utils/Datetime/relativeTime';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import {
-    ganttChartTab,
+    timelineTab,
     gridViewMode,
     overviewTab,
     testEntitiesTab,
 } from 'src/types/uiConstants';
 
-import React, { useState, useContext, type ReactNode } from 'react';
+import React, { useContext, type ReactNode } from 'react';
 
 import useSWR from 'swr';
 import Layout from 'antd/lib/layout/index';
@@ -38,7 +38,6 @@ export default function DetailedTestRun(props: {
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
-    const [current, setCurrent] = useState<string>(props.activeTab);
 
     if (data == null) {
         return <></>;
@@ -63,8 +62,8 @@ export default function DetailedTestRun(props: {
                       ),
                   },
                   {
-                      label: 'Gantt Chart',
-                      key: ganttChartTab,
+                      label: 'Timeline',
+                      key: timelineTab,
                   },
               ]
             : [
@@ -85,7 +84,7 @@ export default function DetailedTestRun(props: {
     ];
 
     const onClick: MenuProps['onClick'] = (e) => {
-        setCurrent(e.key);
+        props.onChange && props.onChange(e.key);
     };
 
     return (
@@ -102,7 +101,7 @@ export default function DetailedTestRun(props: {
                 <Menu
                     items={items}
                     mode="horizontal"
-                    selectedKeys={[current]}
+                    selectedKeys={[props.activeTab]}
                     onClick={onClick}
                     className={HeaderStyles.tab}
                 />

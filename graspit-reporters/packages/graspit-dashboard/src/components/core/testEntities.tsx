@@ -77,15 +77,20 @@ export function TestRunStarted(): ReactNode {
     );
 }
 
-export default function TestEntities(): ReactNode {
+export default function TestEntities(props: {
+    toShowTestID: string | undefined;
+    setTestID: (_id: string | undefined) => void;
+}): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
     const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
     );
+    const toShowTestID = props.toShowTestID;
+    const setTestID = props.setTestID;
+
     const [showEntity, setShowEntity] = useState<boolean>(false);
-    const [toShowTestID, setTestID] = useState<string>();
     const [viewMode, setViewMode] = useState<number | string>(gridViewMode);
 
     const onClose = (): void => {
