@@ -4,7 +4,7 @@ const nextConfig = {
   output: 'export',
   // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
   trailingSlash: true,
-  transpilePackages: ['graspit', 'echarts'],
+  transpilePackages: ['graspit', 'echarts', 'zrender'],
   env: {
     NEXT_PY_PORT: process.env.NEXT_PY_PORT ?? '6969'
   },

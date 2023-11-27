@@ -106,7 +106,10 @@ function treeData(
                             />
                         </Space>
                         <Space style={{ marginLeft: '5px' }}>
-                            <RenderPassedRate value={suite.Rate} />
+                            <RenderPassedRate
+                                value={suite.Rate}
+                                title="Tests"
+                            />
                             <Text
                                 italic
                             >{`Executed from ${suite.Started[0].format(
@@ -130,7 +133,10 @@ function treeData(
         result.pathNode.title = (
             <Space align="center" style={{ columnGap: '12px' }}>
                 <Text>{(result.pathNode.title as string) ?? ''}</Text>
-                <RenderPassedRate value={[passed, failed, skipped]} />
+                <RenderPassedRate
+                    value={[passed, failed, skipped]}
+                    title="Tests"
+                />
             </Space>
         );
     }

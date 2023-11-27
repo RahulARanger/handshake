@@ -439,7 +439,7 @@ function TimelineView(): ReactNode {
                 style={{
                     maxHeight: '250px',
                     paddingRight: '6px',
-                    paddingTop: '10px',
+                    paddingTop: '12px',
                     overflowY: 'auto',
                     overflowX: 'hidden',
                 }}

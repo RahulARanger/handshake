@@ -193,14 +193,14 @@ export default function TestEntities(): ReactNode {
                         <Table.Column
                             title="Tests"
                             dataIndex="Rate"
-                            width={100}
+                            width={60}
                             sorter={(a: SuiteNode, b: SuiteNode) => {
                                 return a.Rate[0] - b.Rate[0];
                             }}
                             render={(value: [number, number, number]) => (
                                 <RenderPassedRate
                                     value={value}
-                                    width={100}
+                                    width={150}
                                     immutable={true}
                                 />
                             )}

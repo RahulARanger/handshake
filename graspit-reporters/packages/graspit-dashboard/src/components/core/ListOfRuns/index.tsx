@@ -44,6 +44,8 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
                     <RenderPassedRate
                         value={isTest ? item.Rate : item.SuitesSummary}
                         key={'chart'}
+                        width={235}
+                        title={isTest ? 'Tests' : 'Suites'}
                     />
                     <Switch
                         key={'switch'}
