@@ -82,7 +82,7 @@ export default function ProgressPieChart(props: {
                 name: props.isTestCases ? 'Tests' : 'Suites',
                 type: 'pie',
                 top: 80,
-                left: -25,
+                left: -35,
                 radius: ['200%', '400%'],
                 startAngle: 180,
                 itemStyle: {
@@ -92,6 +92,7 @@ export default function ProgressPieChart(props: {
                     show: true,
                     color: 'white',
                     verticalAlign: 'bottom',
+                    formatter: '{b}:{c}',
                 },
                 data: [
                     {

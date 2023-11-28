@@ -1,176 +1,167 @@
-import React, { useState, useContext, type ReactNode } from 'react';
+import React, { useContext, type ReactNode, useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts/core';
+import {
+    TitleComponent,
+    TooltipComponent,
+    DatasetComponent,
+} from 'echarts/components';
+
+import type {
+    TitleComponentOption,
+    TooltipComponentOption,
+    ToolboxComponentOption,
+} from 'echarts/components';
+import { CustomChart } from 'echarts/charts';
+
+import type { CustomSeriesOption } from 'echarts/charts';
+import type { ComposeOption } from 'echarts/core';
+
+type composed = ComposeOption<
+    | CustomSeriesOption
+    | TitleComponentOption
+    | TooltipComponentOption
+    | ToolboxComponentOption
+>;
+
+// Features like Universal Transition and Label Layout
+import { LabelLayout, UniversalTransition } from 'echarts/features';
+
+// Import the Canvas renderer
+// Note that including the CanvasRenderer or SVGRenderer is a required step
+import { SVGRenderer } from 'echarts/renderers';
+import {
+    radiantGreen,
+    radiantRed,
+    radiantYellow,
+    serif,
+    toolTipFormats,
+} from './constants';
+import MetaCallContext from '../core/TestRun/context';
+import { getSuites, getTestRun } from '../scripts/helper';
+import useSWR from 'swr';
+import dayjs from 'dayjs';
+import { Affix, Switch } from 'antd/lib';
+import Card from 'antd/lib/card/Card';
+import TestEntityDrawer from '../core/TestEntity';
 import type { SuiteDetails } from 'src/types/generatedResponse';
 import type TestRunRecord from 'src/types/testRunRecords';
-import useSWR from 'swr';
-import HighchartsReact from 'highcharts-react-official';
-import HighChartsAccessibility from 'highcharts/modules/accessibility';
-import Switch from 'antd/lib/switch';
-import HighChartsForGantt, {
-    type PointClickEventObject,
-} from 'highcharts/highcharts-gantt';
-import HighchartsGantt from 'highcharts/modules/gantt';
-import brandDark from 'highcharts/themes/brand-dark';
+import type {
+    CustomSeriesRenderItemAPI,
+    CustomSeriesRenderItemParams,
+} from 'echarts';
 
-import dayjs from 'dayjs';
-import 'src/styles/highChartExternal.module.css';
-import MetaCallContext from '../core/TestRun/context';
-import { toolTipFormats } from '../utils/counter';
-import { getSuites, getTestRun } from '../scripts/helper';
-import Card from 'antd/lib/card/Card';
-import Affix from 'antd/lib/affix/index';
+// Register the required components
+echarts.use([
+    TitleComponent,
+    SVGRenderer,
+    LabelLayout,
+    UniversalTransition,
+    CustomChart,
+    TooltipComponent,
+    DatasetComponent,
+]);
 
-import { REM } from 'next/font/google';
-import TestEntityDrawer from '../core/TestEntity';
-
-const serif = REM({
-    subsets: ['latin'],
-    weight: '300',
-    adjustFontFallback: true,
-});
-
-if (typeof HighChartsForGantt === 'object') {
-    HighchartsGantt(HighChartsForGantt);
-    brandDark(HighChartsForGantt);
-    HighChartsAccessibility(HighChartsForGantt);
-}
-
-class TimelineChart extends React.Component<{
-    data: Highcharts.GanttPointOptionsObject[];
+function TimelineChart(props: {
     helper: (id: string) => void;
     projectName: string;
+    y: string[];
+    times: Array<[number, number]>;
     changeObserved: boolean;
-}> {
-    state = { options: {} };
-    chart = React.createRef<HighchartsReact.RefObject>();
+}) {
+    const options: composed = {
+        title: {
+            text: 'Bar Chart with Negative Value',
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+            },
+        },
+        grid: {
+            top: 80,
+            bottom: 30,
+        },
+        xAxis: {
+            type: 'time',
+            splitLine: {
+                show: false,
+            },
+        },
+        yAxis: {
+            type: 'category',
+        },
+        series: [
+            {
+                type: 'custom',
+                renderItem: function (
+                    params: CustomSeriesRenderItemParams,
+                    api: CustomSeriesRenderItemAPI,
+                ) {
+                    // This method will be called for each dataItem respectively.
+                    // Notice: it does not ensure that called according to the order
+                    // of `dataItem`.
 
-    componentDidMount(): void {
-        const options: Highcharts.Options = {
-            chart: {
-                type: 'gantt',
-                plotShadow: true,
-                className: 'highcharts-dark',
-                backgroundColor: 'transparent',
-                style: { fontFamily: serif.style.fontFamily, color: 'white' },
-            },
-            credits: { enabled: false },
-            title: {
-                text: `${this.props.projectName}::Gantt Chart`,
-                align: 'left',
-                style: {
-                    fontSize: '1.35rem',
-                },
-            },
-            subtitle: {
-                text: '<small>Suites are displayed in chronological order</small>',
-                align: 'left',
-                style: {
-                    fontSize: '.69rem',
-                },
-            },
+                    // Some processes, such as coordinate conversion.
+                    // `api.value(0)` is used to retrieve the value on the first
+                    // dimension in the current `dataItem`.
+                    const categoryIndex = api.value(0);
+                    // `api.coord(...)` is used to convert data values to pixel values,
+                    // will are necessary for graphic elements rendering.
+                    const startPoint = api.coord([api.value(1), categoryIndex]);
+                    const endPoint = api.coord([api.value(2), categoryIndex]);
+                    // `api.size(...)` is used to calculate the pixel size corresponding to
+                    // the a value range that the length is 1 on Y axis.
+                    const height = api.size([0, 1])[1] * 0.6;
 
-            navigator: {
-                enabled: true,
-                series: {
-                    type: 'gantt',
-                    accessibility: {
-                        enabled: false,
-                    },
-                },
-                yAxis: {
-                    min: 0,
-                    max: 3,
-                    reversed: true,
-                    categories: [],
-                },
-            },
-            xAxis: [
-                {
-                    currentDateIndicator: {
-                        color: '#2caffe',
-                        dashStyle: 'ShortDot',
-                        width: 2,
-                        label: {
-                            format: '',
+                    // The property `shape` incicates the location and size of this
+                    // element.
+                    // `echarts.graphic.clipRectByRect` is used for clipping the
+                    // rectangular when it overflow the bounding box of the current
+                    // coordinate system (cartesian).
+                    // If the rect is totally clipped, returns undefined.
+                    const rectShape = echarts.graphic.clipRectByRect(
+                        {
+                            // position and location of the rectangular.
+                            x: startPoint[0],
+                            y: startPoint[1] - height / 2,
+                            width: endPoint[0] - startPoint[0],
+                            height: height,
                         },
-                    },
-                    dateTimeLabelFormats: {
-                        day: '%e<br><span style="opacity: 0.5; font-size: 0.7em">%a</span>',
-                    },
-                    grid: {
-                        borderWidth: 0,
-                    },
-                    gridLineWidth: 1,
-                },
-            ],
-            yAxis: {
-                grid: {
-                    borderWidth: 0,
-                },
-                gridLineWidth: 0,
-                staticScale: 31,
-                visible: false,
-            },
-            tooltip: {
-                pointFormat:
-                    '<span style="font-weight: bold;">{point.name}</span><br>' +
-                    '{point.start:%H:%M}' +
-                    '{#unless point.milestone} → {point.end:%H:%M}{/unless}' +
-                    '&nbsp;({point.duration} s)<br>',
-                ...toolTipFormats,
-            },
-            series: [
-                {
-                    borderRadius: 3.69,
-                    type: 'gantt',
-                    name: this.props.projectName,
-                    data: this.props.data,
-                    cursor: 'pointer',
-                    dataLabels: {
-                        padding: 10,
-                        style: {
-                            fontWeight: 'normal',
-                            textOutline: 'none',
-                            fontSize: '.69rem',
+                        {
+                            // Bounding box of the current cooridinate system (cartesian).
+                            x: params.coordSys.x,
+                            y: params.coordSys.y,
+                            width: params.coordSys.width,
+                            height: params.coordSys.height,
                         },
-                    },
+                    );
 
-                    point: {
-                        events: {
-                            click: (event: PointClickEventObject) => {
-                                this.props.helper(event.point.options.id ?? '');
-                            },
-                        },
-                    },
+                    // Returns definitions for the current `dataItem`.
+                    return (
+                        rectShape && {
+                            // 'rect' indicates that the graphic element is rectangular.
+                            // Can also be 'circle', 'sector', 'polygon', ...
+                            type: 'rect',
+                            shape: rectShape,
+                            // `api.style(...)` is used to obtain style settings, which
+                            // includes itemStyle settings in optino and the result of
+                            // visual mapping.
+                            style: api.style(),
+                        }
+                    );
                 },
-            ],
-        };
-        this.setState({ options });
-    }
-    componentDidUpdate(
-        prevProps: Readonly<{
-            data: Highcharts.GanttPointOptionsObject[];
-            helper: (id: string) => void;
-            projectName: string;
-            changeObserved: boolean;
-        }>,
-    ): void {
-        if (prevProps.changeObserved !== this.props.changeObserved) {
-            // this.chart.current?.chart.series[0].update({
-            //     data: this.props.data,
-            // });
-        }
-    }
+                data: [
+                    [12, 44, 55, 60], // The first dataItem.
+                    [53, 31, 21, 56], // The second dataItem.
+                    [71, 33, 10, 20], // The third dataItem.
+                ],
+            },
+        ],
+    };
 
-    render(): React.ReactNode {
-        return (
-            <HighchartsReact
-                ref={this.chart}
-                highcharts={HighChartsForGantt}
-                options={this.state.options}
-                constructorType="ganttChart"
-            />
-        );
-    }
+    return <ReactECharts option={options} />;
 }
 
 export default function GanttChartForTestEntities(): ReactNode {
@@ -184,7 +175,7 @@ export default function GanttChartForTestEntities(): ReactNode {
     if (testRun == null || suites == null) {
         return <></>;
     }
-    const data: HighChartsForGantt.GanttPointOptionsObject[] = suites['@order']
+    const data = suites['@order']
         .filter(
             (suiteID) => suites[suiteID].standing !== 'RETRIED' || showRetries,
         )
@@ -215,6 +206,10 @@ export default function GanttChartForTestEntities(): ReactNode {
                 },
             };
         });
+
+    const suitesX = suites['@order'].filter(
+        (suiteID) => suites[suiteID].standing !== 'RETRIED' || showRetries,
+    );
     const helperToSetTestID = (testID: string): void => {
         setTestID(testID);
         setShowEntity(true);
@@ -247,7 +242,12 @@ export default function GanttChartForTestEntities(): ReactNode {
             </Affix>
 
             <TimelineChart
-                data={data}
+                // data={data}
+                y={suitesX.map((suite) => suites[suite].title)}
+                times={suitesX.map((suite) => [
+                    dayjs(suites[suite].started).toDate().getTime(),
+                    dayjs(suites[suite].ended).toDate().getTime(),
+                ])}
                 helper={helperToSetTestID}
                 projectName={testRun.projectName}
                 changeObserved={showRetries}

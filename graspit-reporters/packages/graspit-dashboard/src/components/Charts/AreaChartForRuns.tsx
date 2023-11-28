@@ -1,21 +1,62 @@
 import type TestRunRecord from 'src/types/testRunRecords';
 import React, { type ReactNode } from 'react';
-import Highcharts from 'highcharts';
-import HighchartsExporting from 'highcharts/modules/exporting';
-import HighchartsReact from 'highcharts-react-official';
 import dayjs from 'dayjs';
-import brandDark from 'highcharts/themes/brand-dark';
 import DayJSUtc from 'dayjs/plugin/utc';
 import DayJSTimezone from 'dayjs/plugin/timezone';
-import { statusColors } from '../parseUtils';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts/core';
+import {
+    TitleComponent,
+    TooltipComponent,
+    DatasetComponent,
+    LegendComponent,
+} from 'echarts/components';
+
+import type {
+    TitleComponentOption,
+    TooltipComponentOption,
+    ToolboxComponentOption,
+    LegendComponentOption,
+} from 'echarts/components';
+import { LineChart } from 'echarts/charts';
+
+import type { LineSeriesOption } from 'echarts/charts';
+import type { ComposeOption } from 'echarts/core';
 
 dayjs.extend(DayJSUtc);
 dayjs.extend(DayJSTimezone);
 
-if (typeof Highcharts === 'object') {
-    HighchartsExporting(Highcharts);
-    brandDark(Highcharts);
-}
+type composed = ComposeOption<
+    | LineSeriesOption
+    | TitleComponentOption
+    | TooltipComponentOption
+    | ToolboxComponentOption
+    | LegendComponentOption
+>;
+
+// Features like Universal Transition and Label Layout
+
+// Import the Canvas renderer
+// Note that including the CanvasRenderer or SVGRenderer is a required step
+import { SVGRenderer } from 'echarts/renderers';
+import {
+    radiantGreen,
+    radiantRed,
+    radiantYellow,
+    serif,
+    toolTipFormats,
+} from './constants';
+import { dateTimeFormatUsed } from '../utils/Datetime/format';
+
+// Register the required components
+echarts.use([
+    TitleComponent,
+    SVGRenderer,
+    LegendComponent,
+    LineChart,
+    TooltipComponent,
+    DatasetComponent,
+]);
 
 export default function AreaChartsForRuns(props: {
     runs: TestRunRecord[];
@@ -23,91 +64,119 @@ export default function AreaChartsForRuns(props: {
 }): ReactNode {
     const text = props.showTest ? 'Tests' : 'Suites';
 
-    const options: Highcharts.Options = {
-        chart: {
-            type: 'area',
-            plotShadow: true,
-            backgroundColor: 'rgba(128,128,128,0.02)',
-        },
-        colors: statusColors,
+    const passed = props.runs.map((run) =>
+        props.showTest ? run.passed : JSON.parse(run.suiteSummary).passed,
+    );
+    const failed = props.runs.map((run) =>
+        props.showTest ? run.failed : JSON.parse(run.suiteSummary).failed,
+    );
+    const skipped = props.runs.map((run) =>
+        props.showTest ? run.skipped : JSON.parse(run.suiteSummary).skipped,
+    );
+
+    const options: composed = {
+        color: ['yellow', 'red', 'green'], // opposite of legend's data
         title: {
-            useHTML: true,
             text: `Cumulative ${text} Results Over Time`,
-            align: 'left',
-        },
-        subtitle: {
-            text:
-                '<a href="https://energiogklima.no/klimavakten/land-med-hoyest-utslipp/"' +
-                'target="_blank">Reference</a>',
-            align: 'left',
-        },
-        xAxis: {
-            type: 'datetime',
-            labels: {
-                format: '{value:%I %p, %d-%m}',
-            },
-            title: {
-                useHTML: true,
-                text: 'Start Date_Time (<em>month:day hr AM/PM</em>)',
-            },
-            tickInterval: 1000 * 60 * 60,
-        },
-        yAxis: {
-            title: {
-                text: 'Freq.',
-            },
         },
         tooltip: {
-            enabled: true,
-            shared: true,
-            pointFormat:
-                '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+            },
+            ...toolTipFormats,
         },
-        plotOptions: {
-            area: {
-                stacking: 'normal',
-                shadow: true,
-                lineColor: '#666666',
-                lineWidth: 1,
-                marker: {
-                    lineWidth: 1,
-                    lineColor: '#666666',
-                },
+        textStyle: { fontFamily: serif.style.fontFamily },
+        legend: {
+            data: ['Passed', 'Failed', 'Skipped'],
+            align: 'right',
+            right: 40,
+            textStyle: { color: 'white' },
+            top: 3,
+        },
+        toolbox: {
+            feature: {
+                saveAsImage: {},
             },
         },
-        credits: { enabled: false },
+        grid: {
+            left: '3%',
+            right: '4%',
+            bottom: '3%',
+            containLabel: true,
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: props.runs.map((run) =>
+                dayjs
+                    .utc(run.started)
+                    .utcOffset(0, true)
+                    .format(dateTimeFormatUsed),
+            ),
+        },
+        yAxis: [
+            {
+                type: 'value',
+            },
+        ],
         series: [
             {
-                type: 'area',
-                name: 'Passed',
-                data: props.runs.map((run) => [
-                    dayjs.utc(run.started).utcOffset(0, true).valueOf(),
-                    props.showTest
-                        ? run.passed
-                        : JSON.parse(run.suiteSummary).passed,
-                ]),
-            },
-            {
-                type: 'area',
-                name: 'Failed',
-                data: props.runs.map((run) => [
-                    dayjs.utc(run.started).utcOffset(0, true).valueOf(),
-                    props.showTest
-                        ? run.failed
-                        : JSON.parse(run.suiteSummary).failed,
-                ]),
-            },
-            {
-                type: 'area',
                 name: 'Skipped',
-                data: props.runs.map((run) => [
-                    dayjs.utc(run.started).utcOffset(0, true).valueOf(),
-                    props.showTest
-                        ? run.skipped
-                        : JSON.parse(run.suiteSummary).skippeds,
-                ]),
+                type: 'line',
+                stack: 'Total',
+                smooth: true,
+                lineStyle: {
+                    width: 0,
+                },
+                showSymbol: false,
+                areaStyle: {
+                    opacity: 0.8,
+                    color: radiantYellow,
+                },
+                emphasis: {
+                    focus: 'series',
+                },
+                data: skipped,
+            },
+
+            {
+                name: 'Failed',
+                type: 'line',
+                stack: 'Total',
+                smooth: true,
+                lineStyle: {
+                    width: 0,
+                },
+                showSymbol: false,
+                areaStyle: {
+                    opacity: 0.8,
+                    color: radiantRed,
+                },
+                emphasis: {
+                    focus: 'series',
+                },
+                data: failed,
+            },
+            {
+                name: 'Passed',
+                type: 'line',
+                stack: 'Total',
+                smooth: true,
+                lineStyle: {
+                    width: 0,
+                },
+                showSymbol: false,
+                areaStyle: {
+                    opacity: 0.8,
+                    color: radiantGreen,
+                },
+                emphasis: {
+                    focus: 'series',
+                },
+                data: passed,
             },
         ],
     };
-    return <HighchartsReact highcharts={Highcharts} options={options} />;
+    return <ReactECharts option={options} />;
 }

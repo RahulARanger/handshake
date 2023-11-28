@@ -9,9 +9,7 @@
         "lint": "next lint",
         "predev": "ts-node --project ./tsconfig.node.json ./scripts/generate-antd-css.ts",
         "prebuild": "cross-env NODE_ENV=production ts-node --project ./tsconfig.node.json ./scripts/generate-antd-css.ts",
-        "export": "cross-env NODE_ENV=production next build --no-lint",
-        "activate": ".\\\\../../../venv/Scripts/activate",
-        "serve": "npm run activate && graspit display -r ../../../TestResults"
+        "export": "cross-env NODE_ENV=production next build --no-lint"
     },
     "dependencies": {
         "@ant-design/icons": "^5.2.6",
