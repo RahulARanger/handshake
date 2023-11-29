@@ -1,5 +1,16 @@
 # graspit-commons
 
+## 3.3.0
+
+### Minor Changes
+
+- feat: migrated to echarts
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@3.3.0
+
 ## 3.2.0
 
 ### Minor Changes

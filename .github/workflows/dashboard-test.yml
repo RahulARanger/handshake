@@ -43,5 +43,5 @@ jobs:
           working-directory: ./graspit-reporters
           run: |
             sudo npm run sanity
-            sudo npx graspit patch ./TestResults 
-            sudo npx graspit export ./TestResults --out ./TestReports
+            sudo npx graspit patch ../TestResults 
+            sudo npx graspit export ../TestResults --out ../TestReports
