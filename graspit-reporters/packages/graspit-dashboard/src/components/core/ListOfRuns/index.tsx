@@ -4,7 +4,7 @@ import { parseDetailedTestRun } from 'src/components/parseUtils';
 import RenderTimeRelativeToStart, {
     RenderDuration,
 } from 'src/components/utils/renderers';
-import AreaChartForRuns from 'src/components/charts/AreaChartForRuns';
+import AreaChartForRuns from 'src/components/charts/collectionOfRuns';
 import RenderPassedRate from 'src/components/charts/StackedBarChart';
 import crumbs from './Items';
 import type { QuickPreviewForTestRun } from 'src/types/parsedRecords';
