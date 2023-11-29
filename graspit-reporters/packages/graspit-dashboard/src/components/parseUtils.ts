@@ -14,11 +14,6 @@ import type TestRunRecord from 'src/types/testRunRecords';
 import type SessionRecordDetails from 'src/types/sessionRecords';
 import dayjs, { type Dayjs } from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import {
-    greenGradient,
-    redGradient,
-    skippedGradient,
-} from './charts/constants';
 import type { statusOfEntity } from 'src/types/sessionRecords';
 import type { BadgeProps } from 'antd';
 import type { TimelineItemProps } from 'antd/lib';
@@ -124,8 +119,6 @@ export function convertForWrittenAttachments(
 ): string {
     return [prefix, testID, attachmentID].join('/');
 }
-
-export const statusColors = [greenGradient, redGradient, skippedGradient];
 
 export function badgeStatus(status: string): BadgeProps['status'] {
     switch (status as statusOfEntity) {

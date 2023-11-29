@@ -1,5 +1,11 @@
 # graspit
 
+## 3.3.1
+
+### Patch Changes
+
+- fix type issues in gantt charts
+
 ## 3.3.0
 
 ### Minor Changes
