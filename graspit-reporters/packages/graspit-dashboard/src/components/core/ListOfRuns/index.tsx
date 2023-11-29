@@ -6,7 +6,7 @@ import RenderTimeRelativeToStart, {
 } from 'src/components/utils/renderers';
 import AreaChartForRuns from 'src/components/charts/collection-of-runs';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
-import crumbs from './items';
+import crumbs from './test-items';
 import type { QuickPreviewForTestRun } from 'src/types/parsed-records';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import HeaderStyles from 'src/styles/header.module.css';

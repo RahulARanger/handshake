@@ -4,7 +4,7 @@ import type {
     AttachedError,
     PreviewForTests,
 } from 'src/types/parsed-records';
-import BadgeForSuiteType from 'src/components/utils/badge';
+import BadgeForSuiteType from 'src/components/utils/test-status-dot';
 import React, { useContext, type ReactNode } from 'react';
 import Convert from 'ansi-to-html';
 import Text from 'antd/lib/typography/Text';

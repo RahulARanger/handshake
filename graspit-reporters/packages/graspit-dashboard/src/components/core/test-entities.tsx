@@ -20,7 +20,7 @@ import RenderTimeRelativeToStart, {
 import MetaCallContext from './TestRun/context';
 import RenderPassedRate from '../charts/stacked-bar-chart';
 import TestEntityDrawer from './TestEntity';
-import ProjectStructure from './TestRun/structure';
+import ProjectStructure from './TestRun/structure-tab';
 
 import React, { useContext, type ReactNode, useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';

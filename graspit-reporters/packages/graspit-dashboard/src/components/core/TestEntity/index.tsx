@@ -18,7 +18,7 @@ import {
     getTests,
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
-import BadgeForSuiteType from 'src/components/utils/badge';
+import BadgeForSuiteType from 'src/components/utils/test-status-dot';
 import RenderTimeRelativeToStart, {
     RenderEntityType,
     RenderStatus,
