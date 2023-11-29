@@ -26,7 +26,7 @@ import RenderTimeRelativeToStart, {
 } from 'src/components/utils/renderers';
 import MetaCallContext from '../TestRun/context';
 import type { Tag as SuiteTag } from 'src/types/test-entity-related';
-import MoreDetailsOnEntity, { errorsTab, imagesTab } from './DetailedModal';
+import MoreDetailsOnEntity, { errorsTab, imagesTab } from './detailed-modal';
 
 import Input from 'antd/lib/input/Input';
 import React, {
