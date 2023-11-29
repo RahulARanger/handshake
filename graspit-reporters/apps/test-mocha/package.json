@@ -8,15 +8,16 @@
 	"scripts": {
 		"test": "npm run test:mocha",
 		"test:mocha": "npx wdio run ./wdio.conf.js",
-		"test:mocha:sanity": "cross-env SANITY=true npx wdio run ./wdio.conf.js --spec test-mocha/specs/test.e2e.js"
+		"test:mocha:sanity": "cross-env SANITY=true npx wdio run ./wdio.conf.js --spec test-mocha/specs/test.e2e.js",
+		"sanity": "npm run test:mocha:sanity"
 	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@wdio/cli": "^8.24.1",
-		"@wdio/local-runner": "^8.24.1",
-		"@wdio/mocha-framework": "^8.24.0",
-		"@wdio/spec-reporter": "^8.24.0",
+		"@wdio/cli": "^8.24.5",
+		"@wdio/local-runner": "^8.24.5",
+		"@wdio/mocha-framework": "^8.24.5",
+		"@wdio/spec-reporter": "^8.24.2",
 		"ts-node": "^10.9.1",
 		"wdio-graspit-reporter": "3.2.0"
 	},

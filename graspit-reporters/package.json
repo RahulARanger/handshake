@@ -10,6 +10,7 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
+    "sanity": "turbo run sanity --concurrency=1 --continue",
     "test": "npm run build && turbo run test --concurrency=1 --continue",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
@@ -19,8 +20,8 @@
     "view-report": "graspit display ./dist"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^6.12.0",
-    "@typescript-eslint/parser": "^6.12.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.1",
+    "@typescript-eslint/parser": "^6.13.1",
     "eslint": "^8.54.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^17.1.0",
@@ -29,7 +30,7 @@
     "tsconfig": "7.0.0",
     "turbo": "^1.10.16",
     "tsup": "^8.0.1",
-    "@changesets/cli": "^2.26.2"
+    "@changesets/cli": "^2.27.1"
   },
   "dependencies": {
     "log4js": "^6.9.1"

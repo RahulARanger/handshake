@@ -34,3 +34,7 @@ jobs:
         - name: Install Test Related Packages and Run Sanity Tests
           working-directory: ./graspit-reporters/apps/test-mocha
           run: npm install && sudo npm run test:mocha:sanity
+
+        - name: patch & export results
+          working-directory: ./graspit-reporters
+          run: npx graspit patch ./TestResults && npx graspit export ./TestResults --out ./TestReports
