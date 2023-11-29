@@ -3,7 +3,7 @@ name: 'sanity-e2e'
 on:
   push:
     branches:
-      - "dashboard-build"
+      - "nodejs-reporters"
 
 permissions:
     contents: write
