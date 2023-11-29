@@ -7,7 +7,6 @@ from tortoise.fields import (
     CharField,
     TextField,
     UUIDField,
-    BooleanField,
 )
 
 

@@ -1,5 +1,3 @@
 {
-	"editor.formatOnSave": true,
-	"eslint.validate": ["javascript"],
-	"prettier.endOfLine": "lf"
+    "editor.formatOnSave": true
 }

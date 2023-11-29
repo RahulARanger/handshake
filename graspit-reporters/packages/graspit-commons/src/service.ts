@@ -113,7 +113,7 @@ export class ServiceDialPad extends DialPad {
 
   async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
-      'Not able to connect with graspit-server within 10 seconds 😢, Please start again without interruption.',
+      'Not able to connect with graspit-server within 20 seconds 😢.',
     );
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout;
@@ -124,7 +124,7 @@ export class ServiceDialPad extends DialPad {
         cleanup();
         await this.terminateServer();
         reject(waitingForTheServer);
-      }, force ?? 10e3);
+      }, force ?? 20e3);
 
       timer = setInterval(async () => {
         const isOnline = await this.ping();

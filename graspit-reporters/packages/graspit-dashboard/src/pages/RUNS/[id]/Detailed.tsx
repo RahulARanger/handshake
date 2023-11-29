@@ -16,7 +16,7 @@ import React, { useState } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
 import EnsureFallback from 'src/components/utils/swrFallback';
-import { testEntitiesTab } from 'src/types/uiConstants';
+import { testEntitiesTab, timelineTab } from 'src/types/uiConstants';
 import {
     getDetailsOfTestRun,
     generateTestRunSummary,
@@ -25,6 +25,8 @@ import { attachmentPrefix } from 'src/components/core/TestRun/context';
 import staticPaths from 'src/components/scripts/RunPage/generatePaths';
 import TestEntities from 'src/components/core/testEntities';
 import { getDrillDownResults } from 'src/components/scripts/RunPage/detailed';
+import GanttChartForTestEntities from 'src/components/charts/GanttChartForTestSuites';
+import SpinFC from 'antd/lib/spin';
 
 export const getStaticPaths = staticPaths;
 
@@ -85,8 +87,11 @@ function ReturnChild(props: { tab: string }) {
         case testEntitiesTab: {
             return <TestEntities />;
         }
+        case timelineTab: {
+            return <GanttChartForTestEntities />;
+        }
         default: {
-            return <></>;
+            return <SpinFC tip="Loading..." size="large" fullscreen />;
         }
     }
 }
@@ -98,7 +103,7 @@ export default function TestRunResults(
     return (
         <EnsureFallback fallbackPayload={props}>
             <DetailedTestRun
-                activeTab={testEntitiesTab}
+                activeTab={current}
                 show
                 onChange={(now) => setCurrent(now)}
             >

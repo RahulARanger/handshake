@@ -2,7 +2,7 @@ import Statistic from 'antd/lib/statistic/Statistic';
 import type { CSSProperties } from 'react';
 import React, { Component, type ReactNode } from 'react';
 import CountUp from 'react-countup';
-
+import type { TooltipComponentOption } from 'echarts/components';
 export default class Counter extends Component<
     {
         style?: CSSProperties;
@@ -86,9 +86,9 @@ export function StaticPercent(props: { percent: number }): ReactNode {
     );
 }
 
-export const toolTipFormats = {
+export const toolTipFormats: TooltipComponentOption = {
     backgroundColor: 'rgb(10, 10, 10)',
     borderColor: 'rgba(128,128,128,0.1)',
     borderWidth: 1,
-    style: { color: 'white' },
+    textStyle: { color: 'white', fontSize: '.69rem' },
 };

@@ -45,7 +45,7 @@ export default class GraspItService
   onPrepare(options: Options.Testrunner)
   // capabilities: Capabilities.RemoteCapabilities
     : void {
-    const { root: rootDir, projectName } = this.options;
+    const { root: rootDir } = this.options;
     this.logger.info('😇 Starting py-process.');
     const { resultsDir } = this;
 
@@ -54,7 +54,7 @@ export default class GraspItService
     }
 
     this.supporter.startService(
-      projectName ?? options.framework ?? 'unknown',
+      this.options.testConfig.projectName ?? options.framework ?? 'unknown',
       resultsDir,
       rootDir,
     );
@@ -76,6 +76,7 @@ export default class GraspItService
       maxInstances: config.maxInstances ?? 1,
       platformName,
       framework: config.framework ?? 'WebdriverIO',
+      avoidParentSuitesInCount: this.options.testConfig.avoidParentSuitesInCount ?? false,
       fileRetries: config.specFileRetries ?? 0,
       saveOptions: {
         bail: config.bail,

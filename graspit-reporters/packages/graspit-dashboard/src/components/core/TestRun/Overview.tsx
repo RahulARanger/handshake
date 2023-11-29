@@ -346,7 +346,7 @@ function DescriptiveValues(): ReactNode {
 
     return (
         <Description
-            style={{ marginTop: '6px' }}
+            style={{ marginTop: '12px' }}
             items={extras}
             bordered
             size="small"
@@ -430,7 +430,7 @@ function TimelineView(): ReactNode {
 
     return (
         <>
-            <Typography style={{ position: 'relative' }}>
+            <Typography style={{ position: 'relative', marginTop: '10px' }}>
                 Related Runs:
             </Typography>
             <Timeline

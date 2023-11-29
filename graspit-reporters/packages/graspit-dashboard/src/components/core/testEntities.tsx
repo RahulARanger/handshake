@@ -84,8 +84,9 @@ export default function TestEntities(): ReactNode {
     const { data: sessions } = useSWR<SessionDetails>(
         getSessions(port, testID),
     );
-    const [showEntity, setShowEntity] = useState<boolean>(false);
     const [toShowTestID, setTestID] = useState<string>();
+
+    const [showEntity, setShowEntity] = useState<boolean>(false);
     const [viewMode, setViewMode] = useState<number | string>(gridViewMode);
 
     const onClose = (): void => {
@@ -192,14 +193,14 @@ export default function TestEntities(): ReactNode {
                         <Table.Column
                             title="Tests"
                             dataIndex="Rate"
-                            width={100}
+                            width={60}
                             sorter={(a: SuiteNode, b: SuiteNode) => {
                                 return a.Rate[0] - b.Rate[0];
                             }}
                             render={(value: [number, number, number]) => (
                                 <RenderPassedRate
                                     value={value}
-                                    width={100}
+                                    width={150}
                                     immutable={true}
                                 />
                             )}
@@ -287,10 +288,7 @@ export default function TestEntities(): ReactNode {
                                 <Button
                                     icon={<ExpandAltOutlined />}
                                     shape="circle"
-                                    onClick={() => {
-                                        setTestID(record.id);
-                                        setShowEntity(true);
-                                    }}
+                                    onClick={() => helperToSetTestID(record.id)}
                                 />
                             )}
                         />

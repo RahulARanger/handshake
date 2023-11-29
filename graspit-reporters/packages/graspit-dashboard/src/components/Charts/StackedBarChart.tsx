@@ -1,104 +1,121 @@
-import Highcharts from 'highcharts';
-import HighchartsExporting from 'highcharts/modules/exporting';
-import HighchartsReact from 'highcharts-react-official';
 import React, { type ReactNode } from 'react';
-import { statusColors } from '../parseUtils';
-import highContrastDark from 'highcharts/themes/high-contrast-dark';
-import { toolTipFormats } from '../utils/counter';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts/core';
+import {
+    TitleComponent,
+    TooltipComponent,
+    DatasetComponent,
+} from 'echarts/components';
 
-if (typeof Highcharts === 'object') {
-    HighchartsExporting(Highcharts);
-    highContrastDark(Highcharts);
-}
+import type {
+    TitleComponentOption,
+    TooltipComponentOption,
+    ToolboxComponentOption,
+} from 'echarts/components';
+import { BarChart } from 'echarts/charts';
+
+import type { BarSeriesOption } from 'echarts/charts';
+import type { ComposeOption } from 'echarts/core';
+
+type composed = ComposeOption<
+    | BarSeriesOption
+    | TitleComponentOption
+    | TooltipComponentOption
+    | ToolboxComponentOption
+>;
+
+// Features like Universal Transition and Label Layout
+import { LabelLayout, UniversalTransition } from 'echarts/features';
+
+// Import the Canvas renderer
+// Note that including the CanvasRenderer or SVGRenderer is a required step
+import { SVGRenderer } from 'echarts/renderers';
+import {
+    radiantGreen,
+    radiantRed,
+    radiantYellow,
+    serif,
+    toolTipFormats,
+} from './constants';
+
+// Register the required components
+echarts.use([
+    TitleComponent,
+    SVGRenderer,
+    LabelLayout,
+    UniversalTransition,
+    BarChart,
+    TooltipComponent,
+    DatasetComponent,
+]);
 
 export default function RenderPassedRate(props: {
     value: [number, number, number];
     width?: number;
     immutable?: boolean;
+    title?: string;
 }): ReactNode {
-    const options: Highcharts.Options = {
-        chart: {
-            type: 'bar',
-            height: 30,
-            width: props.width ?? 220,
-            borderWidth: 0,
-            margin: 0,
-            backgroundColor: 'transparent',
-            reflow: true,
-        },
-        credits: { enabled: false },
-        title: {
-            text: undefined,
-        },
-        colors: statusColors,
-        xAxis: {
-            categories: ['Status'],
-            visible: false,
-        },
+    const options: composed = {
         tooltip: {
-            shared: true,
-            outside: true,
-            pointFormat:
-                '<span style="color:{series.color}">{series.name}</span>: <b>{point.y}</b> ({point.percentage:.0f}%)<br/>',
+            trigger: 'axis',
+            axisPointer: {
+                type: 'shadow',
+            },
             ...toolTipFormats,
+            appendToBody: true,
+        },
+        textStyle: {
+            fontFamily: serif.style.fontFamily,
+        },
+        grid: { left: 0, right: 1 },
+        legend: { show: false },
+        xAxis: {
+            show: false,
+            type: 'value',
         },
         yAxis: {
-            min: 0,
-            visible: false,
+            show: false,
+            type: 'category',
+            data: [props.title ?? 'Tests'],
         },
-        legend: {
-            reversed: true,
-            enabled: false,
-        },
-        plotOptions: {
-            series: {
-                crisp: true,
-                opacity: 0.96,
-                borderWidth: 0,
-                stacking: 'percent',
-                dataLabels: {
-                    enabled: true,
-                    color: 'white',
-                    shadow: false,
-                    filter: {
-                        property: 'percentage',
-                        operator: '>',
-                        value: 0,
-                    },
-                    style: {
-                        textOutline: 'none',
-                    },
-                },
-            },
-        },
-        exporting: { enabled: false },
+
         series: [
             {
-                type: 'bar',
                 name: 'Passed',
+                type: 'bar',
+                color: radiantGreen,
+                stack: 'total',
+                label: { show: true, verticalAlign: 'top' },
                 data: [props.value[0]],
             },
             {
-                type: 'bar',
                 name: 'Failed',
+                type: 'bar',
+                stack: 'total',
+                color: radiantRed,
+                label: { show: true, verticalAlign: 'top' },
                 data: [props.value[1]],
             },
             {
-                type: 'bar',
                 name: 'Skipped',
+                type: 'bar',
+                color: radiantYellow,
+                stack: 'total',
+                label: { show: true, verticalAlign: 'top' },
                 data: [props.value[2]],
             },
         ],
     };
     return (
-        <HighchartsReact
-            highcharts={Highcharts}
-            options={options}
-            immutable={props.immutable}
-            allowChartUpdate={!props.immutable}
-            containerProps={{
-                style: { width: '100%', height: '25px' },
+        <ReactECharts
+            option={options}
+            style={{
+                height: '15px',
+                width: props.width ?? 180,
+                marginTop: '3px',
+                padding: '0px',
             }}
+            opts={{ renderer: 'svg' }}
         />
     );
 }

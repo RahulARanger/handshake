@@ -68,9 +68,10 @@ class ValueForTestRunConfigBase(TypedDict):
 
 
 class PydanticModalForTestRunConfigBase(BaseModel):
-    maxInstances: Optional[int]
+    maxInstances: Optional[int] = 1
     platformName: str
     framework: str
     exitCode: int
-    saveOptions: Optional[Dict]
+    saveOptions: Optional[Dict] = {}
     fileRetries: int
+    avoidParentSuitesInCount: Optional[bool] = False

@@ -132,7 +132,11 @@ export default function TreeSelectionOfSuites(props: {
                 dot
             >
                 {wasRetried ? (
-                    <Button disabled type="primary">
+                    <Button
+                        disabled
+                        type="primary"
+                        style={{ minWidth: '250px', maxWidth: '450px' }}
+                    >
                         {selected.title}
                     </Button>
                 ) : (
@@ -143,7 +147,7 @@ export default function TreeSelectionOfSuites(props: {
                         onSelect={(value) => props.setTestID(value)}
                         treeLine
                         dropdownStyle={{ minWidth: '350px' }}
-                        style={{ minWidth: '250px' }}
+                        style={{ minWidth: '250px', maxWidth: '450px' }}
                         disabled={wasRetried}
                     />
                 )}
