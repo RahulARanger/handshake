@@ -3,6 +3,8 @@ from graspit.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
 )
+from graspit.services.DBService.models.static_base import TestConfigBase, AttachmentType
+from graspit.services.DBService.models.types import PydanticModalForTestRunConfigBase
 from uuid import UUID
 from typing import Union
 from traceback import format_exc
@@ -147,10 +149,26 @@ async def patchValues(test_run: RunBase):
         .values("passed", "failed", "skipped", "tests", actual_start, actual_end)
     )
 
+    test_config = await TestConfigBase.filter(
+        test_id=test_id, type=AttachmentType.CONFIG
+    ).first()
+
+    refer = SuiteBase
+
+    if test_config:
+        # consider cucumber files
+        # if the feature file has 3 scenarios, then if user sets the avoidParentSuitesInCount
+        # we would get a value of 3 as total scenarios else 4
+        config = PydanticModalForTestRunConfigBase.model_validate(
+            test_config.attachmentValue
+        )
+        if config.avoidParentSuitesInCount:
+            refer = SuiteBase.filter(~Q(parent=""))
+
     # we want to count the number of suites status
     summary = dict(passed=0, failed=0, skipped=0)
     summary.update(
-        await SuiteBase.filter(
+        await refer.filter(
             Q(session__test_id=test_id)
             & Q(suiteType=SuiteType.SUITE)
             & ~Q(standing=Status.RETRIED)

@@ -78,9 +78,11 @@ function treeData(
             if (suite.Status === 'RETRIED' || !suite.File.startsWith(current))
                 return;
 
-            passed += suite.Rate[0];
-            failed += suite.Rate[1];
-            skipped += suite.Rate[2];
+            if (suites[suiteID].parent === '') {
+                passed += suite.Rate[0];
+                failed += suite.Rate[1];
+                skipped += suite.Rate[2];
+            }
 
             if (suite.File !== current) return;
 

@@ -78,7 +78,9 @@ async def helper_create_normal_suites(
     return tests, suites
 
 
-async def helper_create_test_config(test_id: str, file_retries=0):
+async def helper_create_test_config(
+    test_id: str, file_retries=0, avoidParentSuitesInCount=False
+):
     await TestConfigBase.create(
         type=AttachmentType.CONFIG,
         attachmentValue=dict(
@@ -88,6 +90,7 @@ async def helper_create_test_config(test_id: str, file_retries=0):
             platformName="windows",
             maxInstances=1,
             saveOptions=dict(),
+            avoidParentSuitesInCount=avoidParentSuitesInCount,
         ),
         description="sample-test",
         test_id=test_id,

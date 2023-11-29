@@ -64,6 +64,7 @@ export default function DetailedTestRun(props: {
                   {
                       label: 'Timeline',
                       key: timelineTab,
+                      disabled: true,
                   },
               ]
             : [

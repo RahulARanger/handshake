@@ -12,8 +12,13 @@ if "win" in system().lower():
     changed = True
     dist_name += ".exe"
 
-commons = Path(__file__).parent / "graspit-reporters" / "packages" / "graspit-commons"
+commons = (
+    Path(__file__).parent / "graspit-reporters" / "packages" / "graspit-commons" / "bin"
+)
 
-copyfile(src=dist / dist_name, dst=commons / ("graspit" + ".exe" if changed else ""))
+copyfile(
+    src=dist / dist_name,
+    dst=commons / (f"graspit" + ".exe" if changed else ""),
+)
 
 # make sure to run the pyinstaller starter.spec before running this script

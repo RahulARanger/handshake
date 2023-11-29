@@ -43,12 +43,13 @@ const metaConfig = {
 const root = dirname(dirname(dirname(process.cwd())))
 export const config = attachReporter(metaConfig, {
     collectionName: "TestResults",
-    projectName: "NeXtReporter:Mocha",
     port: 6969,
     timeout: 360e3,
     root,
     addScreenshots: true,
     export: {
         out: process.env.SANITY ? undefined : join(root, "TestReports")
-    }
+    },
+    testConfig: { projectName: 'WDIO:Mocha' }
+
 });

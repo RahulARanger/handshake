@@ -76,8 +76,8 @@ export default class GraspItService
       maxInstances: config.maxInstances ?? 1,
       platformName,
       framework: config.framework ?? 'WebdriverIO',
+      avoidParentSuitesInCount: this.options.testConfig.avoidParentSuitesInCount ?? false,
       fileRetries: config.specFileRetries ?? 0,
-      avoidParentSuitesInCount: this.options.testConfig.avoidParentSuitesInCount,
       saveOptions: {
         bail: config.bail,
         protocol: config.baseUrl,

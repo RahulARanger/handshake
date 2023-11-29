@@ -16,6 +16,6 @@ export interface GraspItServiceOptions {
   }
   testConfig: {
     projectName: string;
-    avoidParentSuitesInCount: boolean;
+    avoidParentSuitesInCount?: boolean;
   }
 }

@@ -23,6 +23,7 @@ export function attachReporter(
     },
   ]);
 
+
   toModify.services.push([
     GraspItService, {
       port,
@@ -31,7 +32,9 @@ export function attachReporter(
       root: options.root,
       collectionName: options.collectionName,
       export: options.export,
-      testConfig: options.testConfig,
+      testConfig: {
+        ...options.testConfig, avoidParentSuitesInCount: options.testConfig.avoidParentSuitesInCount ?? config.framework === 'cucumber'
+      },
     },
   ]);
 

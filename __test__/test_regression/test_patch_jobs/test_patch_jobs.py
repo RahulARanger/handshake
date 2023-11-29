@@ -315,6 +315,42 @@ class TestPatchRunJob:
             == empty.suiteSummary["skipped"]
         )
 
+    async def test_avoidParentSuitesInCount(
+        self,
+        sample_test_session,
+        sample_test_run,
+        create_hierarchy,
+        attach_config,
+        create_suite,
+    ):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        await attach_config(test.testID, avoidParentSuitesInCount=True)
+
+        parent_suite = await create_suite(
+            session_id
+        )  # this should not be counted in summary
+
+        _, suites = await create_hierarchy(
+            session_id, parent_suite.suiteID, test.testID
+        )
+        await register_patch_test_run(test.testID)
+
+        for suite in suites:
+            record = await patchTestSuite(suite, test.testID)
+            assert record is True, suite
+
+        assert await patchTestSuite(parent_suite.suiteID, test.testID)
+        await patchTestRun(test.testID, test.testID)
+
+        record = await RunBase.filter(testID=test.testID).first()
+        assert record.suiteSummary["count"] == 3  # notice this is not 4
+        assert record.suiteSummary["passed"] == 0
+        assert record.suiteSummary["failed"] == 3
+        assert record.suiteSummary["skipped"] == 0
+
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session
     ):
