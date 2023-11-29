@@ -1,4 +1,4 @@
-import type TestRunRecord from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
 import React, { type ReactNode } from 'react';
 import dayjs from 'dayjs';
 import DayJSUtc from 'dayjs/plugin/utc';
@@ -58,20 +58,22 @@ echarts.use([
     DatasetComponent,
 ]);
 
-export default function AreaChartsForRuns(props: {
+export default function AreaChartsForRuns(properties: {
     runs: TestRunRecord[];
     showTest: boolean;
 }): ReactNode {
-    const text = props.showTest ? 'Tests' : 'Suites';
+    const text = properties.showTest ? 'Tests' : 'Suites';
 
-    const passed = props.runs.map((run) =>
-        props.showTest ? run.passed : JSON.parse(run.suiteSummary).passed,
+    const passed = properties.runs.map((run) =>
+        properties.showTest ? run.passed : JSON.parse(run.suiteSummary).passed,
     );
-    const failed = props.runs.map((run) =>
-        props.showTest ? run.failed : JSON.parse(run.suiteSummary).failed,
+    const failed = properties.runs.map((run) =>
+        properties.showTest ? run.failed : JSON.parse(run.suiteSummary).failed,
     );
-    const skipped = props.runs.map((run) =>
-        props.showTest ? run.skipped : JSON.parse(run.suiteSummary).skipped,
+    const skipped = properties.runs.map((run) =>
+        properties.showTest
+            ? run.skipped
+            : JSON.parse(run.suiteSummary).skipped,
     );
 
     const options: composed = {
@@ -108,7 +110,7 @@ export default function AreaChartsForRuns(props: {
         xAxis: {
             type: 'category',
             boundaryGap: false,
-            data: props.runs.map((run) =>
+            data: properties.runs.map((run) =>
                 dayjs
                     .utc(run.started)
                     .utcOffset(0, true)

@@ -3,15 +3,15 @@ import {
     getTestRun,
     runPage,
 } from 'src/components/scripts/helper';
-import type TestRunRecord from 'src/types/testRunRecords';
-import RelativeTo from 'src/components/utils/Datetime/relativeTime';
+import type TestRunRecord from 'src/types/test-run-records';
+import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import {
     timelineTab,
     gridViewMode,
     overviewTab,
     testEntitiesTab,
-} from 'src/types/uiConstants';
+} from 'src/types/ui-constants';
 
 import React, { useContext, type ReactNode } from 'react';
 
@@ -19,7 +19,7 @@ import useSWR from 'swr';
 import Layout from 'antd/lib/layout/index';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import dayjs from 'dayjs';
-import { crumbsForRun } from '../ListOfRuns/Items';
+import { crumbsForRun } from '../ListOfRuns/items';
 import MetaCallContext from './context';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';
@@ -30,7 +30,7 @@ import HeaderStyles from 'src/styles/header.module.css';
 import Divider from 'antd/lib/divider/index';
 import Link from 'next/link';
 
-export default function DetailedTestRun(props: {
+export default function DetailedTestRun(properties: {
     children: ReactNode;
     activeTab: string;
     show?: boolean;
@@ -39,7 +39,7 @@ export default function DetailedTestRun(props: {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
 
-    if (data == null) {
+    if (data == undefined) {
         return <></>;
     }
 
@@ -50,7 +50,7 @@ export default function DetailedTestRun(props: {
             icon: <HomeOutlined />,
         },
 
-        ...(props.show
+        ...(properties.show
             ? [
                   {
                       label: 'Test Entities',
@@ -84,8 +84,8 @@ export default function DetailedTestRun(props: {
               ]),
     ];
 
-    const onClick: MenuProps['onClick'] = (e) => {
-        props.onChange && props.onChange(e.key);
+    const onClick: MenuProps['onClick'] = (event) => {
+        properties.onChange && properties.onChange(event.key);
     };
 
     return (
@@ -102,7 +102,7 @@ export default function DetailedTestRun(props: {
                 <Menu
                     items={items}
                     mode="horizontal"
-                    selectedKeys={[props.activeTab]}
+                    selectedKeys={[properties.activeTab]}
                     onClick={onClick}
                     className={HeaderStyles.tab}
                 />
@@ -121,7 +121,7 @@ export default function DetailedTestRun(props: {
                     overflowX: 'hidden',
                 }}
             >
-                {props.children}
+                {properties.children}
             </Layout.Content>
         </Layout>
     );

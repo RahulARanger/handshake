@@ -1,5 +1,5 @@
-import type BasicDetails from './testEntityRelated';
-import type { Attachment, suiteType } from './testEntityRelated';
+import type BasicDetails from './test-entity-related';
+import type { Attachment, suiteType } from './test-entity-related';
 
 // getStaticPaths to [id] root page
 export interface ShareToOtherPages {

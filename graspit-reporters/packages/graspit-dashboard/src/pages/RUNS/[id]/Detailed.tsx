@@ -8,40 +8,38 @@ import {
     getTests,
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
-import type { DetailedTestRunPageProps } from 'src/types/generatedResponse';
+import type { DetailedTestRunPageProperties } from 'src/types/generated-response';
 import getConnection from 'src/components/scripts/connection';
 import DetailedTestRun from 'src/components/core/TestRun';
 
 import React, { useState } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import EnsureFallback from 'src/components/utils/swrFallback';
-import { testEntitiesTab, timelineTab } from 'src/types/uiConstants';
+import EnsureFallback from 'src/components/utils/swr-fallback';
+import { testEntitiesTab, timelineTab } from 'src/types/ui-constants';
 import {
     getDetailsOfTestRun,
     generateTestRunSummary,
 } from 'src/components/scripts/RunPage/overview';
 import { attachmentPrefix } from 'src/components/core/TestRun/context';
-import staticPaths from 'src/components/scripts/RunPage/generatePaths';
-import TestEntities from 'src/components/core/testEntities';
+
+import TestEntities from 'src/components/core/test-entities';
 import { getDrillDownResults } from 'src/components/scripts/RunPage/detailed';
-import GanttChartForTestEntities from 'src/components/charts/GanttChartForTestSuites';
+import GanttChartForTestEntities from 'src/components/charts/gantt-chart-for-test-suites';
 import SpinFC from 'antd/lib/spin';
 
-export const getStaticPaths = staticPaths;
-
-export async function getStaticProps(prepareProps: {
+export async function getStaticProps(prepareProperties: {
     params: {
         id: string;
     };
-}): Promise<GetStaticPropsResult<DetailedTestRunPageProps>> {
-    const testID = prepareProps.params.id;
+}): Promise<GetStaticPropsResult<DetailedTestRunPageProperties>> {
+    const testID = prepareProperties.params.id;
 
     const connection = await getConnection();
 
     const details = await getDetailsOfTestRun(connection, testID);
 
-    if (details == null) {
+    if (details == undefined) {
         return {
             redirect: {
                 permanent: true,
@@ -82,8 +80,8 @@ export async function getStaticProps(prepareProps: {
     };
 }
 
-function ReturnChild(props: { tab: string }) {
-    switch (props.tab) {
+function ReturnChild(properties: { tab: string }) {
+    switch (properties.tab) {
         case testEntitiesTab: {
             return <TestEntities />;
         }
@@ -97,11 +95,11 @@ function ReturnChild(props: { tab: string }) {
 }
 
 export default function TestRunResults(
-    props: DetailedTestRunPageProps,
+    properties: DetailedTestRunPageProperties,
 ): ReactNode {
     const [current, setCurrent] = useState(testEntitiesTab);
     return (
-        <EnsureFallback fallbackPayload={props}>
+        <EnsureFallback fallbackPayload={properties}>
             <DetailedTestRun
                 activeTab={current}
                 show
@@ -112,3 +110,5 @@ export default function TestRunResults(
         </EnsureFallback>
     );
 }
+
+export { default as getStaticPaths } from 'src/components/scripts/RunPage/generate-path';

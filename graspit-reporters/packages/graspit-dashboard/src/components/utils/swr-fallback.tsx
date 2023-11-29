@@ -1,14 +1,14 @@
 import React, { type ReactNode } from 'react';
 import { SWRConfig } from 'swr';
 import MetaCallContext from 'src/components/core/TestRun/context';
-import type { DetailedTestRunPageProps } from 'src/types/generatedResponse';
+import type { DetailedTestRunPageProperties } from 'src/types/generated-response';
 
 export default function EnsureFallback({
     children,
     fallbackPayload,
 }: {
     children: ReactNode;
-    fallbackPayload: DetailedTestRunPageProps;
+    fallbackPayload: DetailedTestRunPageProperties;
 }) {
     return (
         <SWRConfig value={{ fallback: fallbackPayload.fallback }}>

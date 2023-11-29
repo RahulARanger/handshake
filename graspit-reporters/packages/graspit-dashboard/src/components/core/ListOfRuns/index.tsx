@@ -1,13 +1,13 @@
-import type TestRunRecord from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun } from 'src/components/parseUtils';
+import { parseDetailedTestRun } from 'src/components/parse-utils';
 import RenderTimeRelativeToStart, {
     RenderDuration,
 } from 'src/components/utils/renderers';
-import AreaChartForRuns from 'src/components/charts/AreaChartForRuns';
-import RenderPassedRate from 'src/components/charts/StackedBarChart';
-import crumbs from './Items';
-import type { QuickPreviewForTestRun } from 'src/types/parsedRecords';
+import AreaChartForRuns from 'src/components/charts/collection-of-runs';
+import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
+import crumbs from './items';
+import type { QuickPreviewForTestRun } from 'src/types/parsed-records';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import HeaderStyles from 'src/styles/header.module.css';
 
@@ -32,9 +32,9 @@ import Button from 'antd/lib/button/button';
 
 dayjs.extend(isBetween);
 
-function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
+function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
     const [isTest, showTest] = useState(true);
-    const item = props.run;
+    const item = properties.run;
 
     return (
         <List.Item
@@ -107,11 +107,11 @@ function RunCard(props: { run: QuickPreviewForTestRun }): ReactNode {
     );
 }
 
-function RawList(props: {
+function RawList(properties: {
     dataSource: Array<undefined | QuickPreviewForTestRun>;
 }): ReactNode {
     const [showMax, setShowMax] = useState<number>(10);
-    const items = props.dataSource?.slice(0, showMax);
+    const items = properties.dataSource?.slice(0, showMax);
     return (
         <List
             bordered
@@ -119,10 +119,10 @@ function RawList(props: {
             size="small"
             dataSource={items}
             renderItem={(item) =>
-                item != null ? <RunCard run={item} /> : <></>
+                item == undefined ? <></> : <RunCard run={item} />
             }
             loadMore={
-                props.dataSource.length > showMax ? (
+                properties.dataSource.length > showMax ? (
                     <Button
                         size="middle"
                         style={{ width: '100%', marginTop: '1px' }}
@@ -140,8 +140,10 @@ function RawList(props: {
     );
 }
 
-function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
-    const details = props.runs.map(parseDetailedTestRun);
+function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
+    const details = properties.runs.map((element) =>
+        parseDetailedTestRun(element),
+    );
     const firstRun = details.at(0);
     const chronological = details.slice(1);
 
@@ -151,7 +153,7 @@ function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
     const thisWeek = yesterday.subtract(yesterday.get('day') + 1, 'days');
     const thisMonth = yesterday.set('date', 1);
 
-    const forPrevMonth = chronological.filter((run) =>
+    const forPreviousMonth = chronological.filter((run) =>
         run.Started[0].isBefore(startOfThisMonth),
     );
 
@@ -194,7 +196,7 @@ function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
             label: 'This Month',
         },
         {
-            items: forPrevMonth,
+            items: forPreviousMonth,
             label: 'Prev Month',
         },
     ]
@@ -218,7 +220,7 @@ function ListOfRuns(props: { runs: TestRunRecord[] }): ReactNode {
     );
 }
 
-function ListOfCharts(props: { runs: TestRunRecord[] }): ReactNode {
+function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
     const [isTest, showTest] = useState(true);
     const areaChart = (
         <Card
@@ -237,7 +239,7 @@ function ListOfCharts(props: { runs: TestRunRecord[] }): ReactNode {
                 />
             }
         >
-            <AreaChartForRuns runs={props.runs} showTest={isTest} />
+            <AreaChartForRuns runs={properties.runs} showTest={isTest} />
         </Card>
     );
 
@@ -248,7 +250,7 @@ function ListOfCharts(props: { runs: TestRunRecord[] }): ReactNode {
     );
 }
 
-export default function GridOfRuns(props: {
+export default function GridOfRuns(properties: {
     runs: TestRunRecord[];
 }): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();
@@ -256,7 +258,7 @@ export default function GridOfRuns(props: {
         null | [null | Dayjs, null | Dayjs]
     >();
 
-    if (props.runs.length === 0) {
+    if (properties.runs.length === 0) {
         return (
             <Layout style={{ height: '100%' }}>
                 <Space
@@ -274,20 +276,18 @@ export default function GridOfRuns(props: {
         );
     }
 
-    const filteredRuns = props.runs.filter((run) => {
+    const filteredRuns = properties.runs.filter((run) => {
         const started = dayjs(run.started);
         return (
-            (selectedProjectName == null ||
+            (selectedProjectName == undefined ||
                 run.projectName === selectedProjectName) &&
-            (dateRange == null ||
+            (dateRange == undefined ||
                 started.isBetween(dateRange[0], dateRange[1], 'date', '[]'))
         );
     });
 
-    let body;
-
-    if (filteredRuns.length === 0) {
-        body = (
+    const body =
+        filteredRuns.length === 0 ? (
             <Space
                 direction="horizontal"
                 style={{ height: '100%', justifyContent: 'center' }}
@@ -297,9 +297,7 @@ export default function GridOfRuns(props: {
                     description={'No Filtered Results found'}
                 />
             </Space>
-        );
-    } else {
-        body = (
+        ) : (
             <Layout hasSider>
                 <Layout.Sider
                     width={350}
@@ -322,11 +320,10 @@ export default function GridOfRuns(props: {
                 </Layout.Content>
             </Layout>
         );
-    }
 
-    const projectNames = Array.from(
-        new Set(props.runs.map((run) => run.projectName)),
-    ).map((projectName) => ({ label: projectName, value: projectName }));
+    const projectNames = [
+        ...new Set(properties.runs.map((run) => run.projectName)),
+    ].map((projectName) => ({ label: projectName, value: projectName }));
 
     return (
         <Layout

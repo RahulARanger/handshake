@@ -1,29 +1,32 @@
-import type { dbConnection } from 'src/components/scripts/connection';
+import type { dataBaseConnection } from 'src/components/scripts/connection';
 import type {
     AttachmentDetails,
     RetriedRecords,
     SessionDetails,
     SuiteDetails,
     TestDetails,
-} from 'src/types/generatedResponse';
+} from 'src/types/generated-response';
 import type {
     Attachment,
     SuiteRecordDetails,
-} from 'src/types/testEntityRelated';
-import type SessionRecordDetails from 'src/types/sessionRecords';
+} from 'src/types/test-entity-related';
+import type SessionRecordDetails from 'src/types/session-records';
 
-export async function getAllSessions(connection: dbConnection, testID: string) {
+export async function getAllSessions(
+    connection: dataBaseConnection,
+    testID: string,
+) {
     const sessions = await connection.all<SessionRecordDetails[]>(
         'select * from sessionbase where test_id = ?',
         testID,
     );
     const resp: SessionDetails = {};
-    sessions.forEach((session) => (resp[session.sessionID] = session));
+    for (const session of sessions) resp[session.sessionID] = session;
     return resp;
 }
 
 export async function getDrillDownResults(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     testID: string,
 ): Promise<{
     suites: SuiteDetails;
@@ -45,10 +48,10 @@ export async function getDrillDownResults(
     // @ts-expect-error not sure why this one is happening
     const response: SuiteDetails = { '@order': order };
 
-    suites.forEach((suite) => {
+    for (const suite of suites) {
         response[suite.suiteID] = suite;
         order.push(suite.suiteID);
-    });
+    }
 
     const tests = await connection.all<SuiteRecordDetails[]>(
         `select * from suitebase where suiteType = 'TEST' and session_id in ${sqlHelperForSessions}`,
@@ -56,33 +59,33 @@ export async function getDrillDownResults(
     );
     const responseForTests: TestDetails = {};
 
-    tests.forEach((test) => {
+    for (const test of tests) {
         responseForTests[test.suiteID] = test;
-    });
+    }
 
     const entityIds = [...suites, ...tests].map((entity) => entity.suiteID);
     const sqlHelperForEntities = `(${entityIds.map(() => '?').join(',')})`;
 
     const attachments: AttachmentDetails = {};
-    (
-        await connection.all<Attachment[]>(
-            `SELECT * from attachmentbase where entity_id in ${sqlHelperForEntities}`,
-            entityIds,
-        )
-    ).map((attachment) => {
+    const attached = await connection.all<Attachment[]>(
+        `SELECT * from attachmentbase where entity_id in ${sqlHelperForEntities}`,
+        entityIds,
+    );
+
+    for (const attachment of attached) {
         const tray = attachments[attachment.entity_id] ?? [];
         tray.push(attachment);
         attachments[attachment.entity_id] = tray;
-    });
+    }
 
     const writtenAttachments: AttachmentDetails = {};
 
-    (
-        await connection.all<Attachment[]>(
-            `SELECT * from staticbase where entity_id in ${sqlHelperForEntities}`,
-            entityIds,
-        )
-    ).map((attachment: Attachment) => {
+    const rawFiles = await connection.all<Attachment[]>(
+        `SELECT * from staticbase where entity_id in ${sqlHelperForEntities}`,
+        entityIds,
+    );
+    // eslint-disable-next-line unicorn/no-array-for-each
+    rawFiles.forEach((attachment: Attachment) => {
         const tray = writtenAttachments[attachment.entity_id] ?? [];
         tray.push(attachment);
         writtenAttachments[attachment.entity_id] = tray;
@@ -90,24 +93,22 @@ export async function getDrillDownResults(
 
     const retriedRecords: RetriedRecords = {};
 
-    (
-        await connection.all<
-            Array<{ tests: string; suite_id: string; length: number }>
-        >(
-            `select * from retriedbase where suite_id in ${sqlHelperForEntities}`,
-            entityIds,
-        )
-    ).map((record) => {
+    const records = await connection.all<
+        Array<{ tests: string; suite_id: string; length: number }>
+    >(
+        `select * from retriedbase where suite_id in ${sqlHelperForEntities}`,
+        entityIds,
+    );
+    for (const record of records) {
         const parsedRecord = {
             suite_id: record.suite_id,
             length: record.length,
             tests: JSON.parse(record.tests) as string[],
         };
         retriedRecords[record.suite_id] = parsedRecord;
-        retriedRecords[record.suite_id].tests.forEach(
-            (test) => (retriedRecords[test] = parsedRecord),
-        );
-    });
+        for (const test of retriedRecords[record.suite_id].tests)
+            retriedRecords[test] = parsedRecord;
+    }
 
     return {
         suites: response,

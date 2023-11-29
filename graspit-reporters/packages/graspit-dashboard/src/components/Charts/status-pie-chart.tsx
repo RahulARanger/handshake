@@ -1,5 +1,5 @@
-import type TestRunRecord from 'src/types/testRunRecords';
-import type { SuiteSummary } from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
+import type { SuiteSummary } from 'src/types/test-run-records';
 import React, { type ReactNode } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts/core';
@@ -53,24 +53,30 @@ echarts.use([
     DatasetComponent,
 ]);
 
-export default function ProgressPieChart(props: {
+export default function ProgressPieChart(properties: {
     run: TestRunRecord;
     isTestCases: boolean;
 }): ReactNode {
-    const suite: SuiteSummary = JSON.parse(props.run.suiteSummary);
-    const failed = props.isTestCases ? props.run.failed : suite.failed;
-    const passed = props.isTestCases ? props.run.passed : suite.passed;
-    const skipped = props.isTestCases ? props.run.skipped : suite.skipped;
+    const suite: SuiteSummary = JSON.parse(properties.run.suiteSummary);
+    const failed = properties.isTestCases
+        ? properties.run.failed
+        : suite.failed;
+    const passed = properties.isTestCases
+        ? properties.run.passed
+        : suite.passed;
+    const skipped = properties.isTestCases
+        ? properties.run.skipped
+        : suite.skipped;
 
     const options: composed = {
         tooltip: {
             trigger: 'item',
-            formatter: (param: TopLevelFormatterParams) => {
-                const args = param as CallbackDataParams;
+            formatter: (parameter: TopLevelFormatterParams) => {
+                const arguments_ = parameter as CallbackDataParams;
                 // correct the percentage
-                return `${args.seriesName}<br/>${args.marker}  ${args.name}: ${
-                    args.value
-                } (${(args.percent ?? 0) * 2}%)`;
+                return `${arguments_.seriesName}<br/>${arguments_.marker}  ${
+                    arguments_.name
+                }: ${arguments_.value} (${(arguments_.percent ?? 0) * 2}%)`;
             },
             ...toolTipFormats,
         },
@@ -79,7 +85,7 @@ export default function ProgressPieChart(props: {
         },
         series: [
             {
-                name: props.isTestCases ? 'Tests' : 'Suites',
+                name: properties.isTestCases ? 'Tests' : 'Suites',
                 type: 'pie',
                 top: 80,
                 left: -35,

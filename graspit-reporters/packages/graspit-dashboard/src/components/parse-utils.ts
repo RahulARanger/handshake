@@ -2,24 +2,19 @@ import { runPage } from 'src/components/scripts/helper';
 import type {
     Attachment,
     SuiteRecordDetails,
-} from 'src/types/testEntityRelated';
+} from 'src/types/test-entity-related';
 import type {
     QuickPreviewForScenarios,
     QuickPreviewForTestRun,
     PreviewForDetailedEntities,
     PreviewForTests,
     QuickPreviewForAttachments,
-} from 'src/types/parsedRecords';
-import type TestRunRecord from 'src/types/testRunRecords';
-import type SessionRecordDetails from 'src/types/sessionRecords';
+} from 'src/types/parsed-records';
+import type TestRunRecord from 'src/types/test-run-records';
+import type SessionRecordDetails from 'src/types/session-records';
 import dayjs, { type Dayjs } from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import {
-    greenGradient,
-    redGradient,
-    skippedGradient,
-} from './charts/constants';
-import type { statusOfEntity } from 'src/types/sessionRecords';
+import type { statusOfEntity } from 'src/types/session-records';
 import type { BadgeProps } from 'antd';
 import type { TimelineItemProps } from 'antd/lib';
 
@@ -125,31 +120,37 @@ export function convertForWrittenAttachments(
     return [prefix, testID, attachmentID].join('/');
 }
 
-export const statusColors = [greenGradient, redGradient, skippedGradient];
-
 export function badgeStatus(status: string): BadgeProps['status'] {
     switch (status as statusOfEntity) {
-        case 'FAILED':
+        case 'FAILED': {
             return 'error';
-        case 'PASSED':
+        }
+        case 'PASSED': {
             return 'success';
-        case 'PENDING':
+        }
+        case 'PENDING': {
             return 'processing';
-        case 'SKIPPED':
+        }
+        case 'SKIPPED': {
             return 'warning';
+        }
     }
 }
 
 export function timelineColor(status: string): TimelineItemProps['color'] {
     switch (status as statusOfEntity) {
-        case 'FAILED':
+        case 'FAILED': {
             return 'red';
-        case 'PASSED':
+        }
+        case 'PASSED': {
             return 'green';
-        case 'PENDING':
+        }
+        case 'PENDING': {
             return 'blue';
-        case 'SKIPPED':
+        }
+        case 'SKIPPED': {
             return 'gray';
+        }
     }
 }
 

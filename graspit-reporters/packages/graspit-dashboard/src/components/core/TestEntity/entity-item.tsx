@@ -1,12 +1,12 @@
 import type {
     Attachment,
     SuiteRecordDetails,
-} from 'src/types/testEntityRelated';
-import { timelineColor } from 'src/components/parseUtils';
+} from 'src/types/test-entity-related';
+import { timelineColor } from 'src/components/parse-utils';
 import RenderTimeRelativeToStart, {
     RenderDuration,
 } from 'src/components/utils/renderers';
-import type { PreviewForTests } from 'src/types/parsedRecords';
+import type { PreviewForTests } from 'src/types/parsed-records';
 
 import React, { type ReactNode } from 'react';
 import dayjs from 'dayjs';
@@ -23,7 +23,7 @@ import { dateTimeFormatUsed } from 'src/components/utils/Datetime/format';
 import { Tag } from 'antd/lib';
 import Avatar from 'antd/lib/avatar/avatar';
 
-export function EntityCollapsibleItem(props: {
+export function EntityCollapsibleItem(properties: {
     item: PreviewForTests;
     attachmentsForDescription?: Attachment[];
     attachmentsForLinks?: Attachment[];
@@ -32,23 +32,27 @@ export function EntityCollapsibleItem(props: {
         {
             key: 'started',
             label: 'Started',
-            children: <RenderTimeRelativeToStart value={props.item.Started} />,
+            children: (
+                <RenderTimeRelativeToStart value={properties.item.Started} />
+            ),
         },
         {
             key: 'ended',
             label: 'Ended',
-            children: <RenderTimeRelativeToStart value={props.item.Ended} />,
+            children: (
+                <RenderTimeRelativeToStart value={properties.item.Ended} />
+            ),
         },
         {
             key: 'duration',
             label: 'Duration',
-            children: <RenderDuration value={props.item.Duration} />,
+            children: <RenderDuration value={properties.item.Duration} />,
         },
     ];
 
     return (
         <>
-            {props.attachmentsForDescription?.map((desc, index) => (
+            {properties.attachmentsForDescription?.map((desc, index) => (
                 <Paragraph key={index}>
                     {JSON.parse(desc.attachmentValue).value}
                 </Paragraph>
@@ -56,38 +60,40 @@ export function EntityCollapsibleItem(props: {
             <Description
                 items={aboutSuite}
                 bordered
-                title={props.item.Description}
+                title={properties.item.Description}
                 style={{ overflowX: 'hidden' }}
                 size="small"
             />
-            {props.attachmentsForLinks &&
-            props.attachmentsForLinks.length > 0 ? (
+            {properties.attachmentsForLinks &&
+            properties.attachmentsForLinks.length > 0 ? (
                 <Space style={{ marginTop: '10px' }}>
                     Links:
-                    {props.attachmentsForLinks?.map((attachment, index) => {
-                        const link = JSON.parse(attachment.attachmentValue);
-                        return (
-                            <Tag
-                                key={index}
-                                color="blue"
-                                icon={
-                                    <Avatar
-                                        size="small"
-                                        src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.value}`}
-                                    />
-                                }
-                            >
-                                <Button
-                                    type="link"
+                    {properties.attachmentsForLinks?.map(
+                        (attachment, index) => {
+                            const link = JSON.parse(attachment.attachmentValue);
+                            return (
+                                <Tag
                                     key={index}
-                                    href={link.value}
-                                    size="small"
+                                    color="blue"
+                                    icon={
+                                        <Avatar
+                                            size="small"
+                                            src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.value}`}
+                                        />
+                                    }
                                 >
-                                    {link.title}
-                                </Button>
-                            </Tag>
-                        );
-                    })}
+                                    <Button
+                                        type="link"
+                                        key={index}
+                                        href={link.value}
+                                        size="small"
+                                    >
+                                        {link.title}
+                                    </Button>
+                                </Tag>
+                            );
+                        },
+                    )}
                 </Space>
             ) : (
                 <></>
@@ -96,10 +102,12 @@ export function EntityCollapsibleItem(props: {
     );
 }
 
-export function EntityTimeline(props: { rawSource: SuiteRecordDetails[] }) {
+export function EntityTimeline(properties: {
+    rawSource: SuiteRecordDetails[];
+}) {
     return (
         <Timeline
-            items={props.rawSource.map((item) => ({
+            items={properties.rawSource.map((item) => ({
                 children: (
                     <Space direction="vertical">
                         <Button
@@ -114,7 +122,7 @@ export function EntityTimeline(props: { rawSource: SuiteRecordDetails[] }) {
                             }}
                             onClick={() => {
                                 document
-                                    .getElementById(item.suiteID)
+                                    .querySelector(`#${item.suiteID}`)
                                     ?.scrollIntoView({
                                         behavior: 'smooth',
                                     });

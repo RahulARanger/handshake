@@ -1,23 +1,26 @@
-import { gridViewMode, treeViewMode } from 'src/types/uiConstants';
-import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
-import type { statusOfEntity } from 'src/types/sessionRecords';
-import { parseDetailedTestEntity } from '../parseUtils';
+import { gridViewMode, treeViewMode } from 'src/types/ui-constants';
+import type {
+    SessionDetails,
+    SuiteDetails,
+} from 'src/types/generated-response';
+import type { statusOfEntity } from 'src/types/session-records';
+import { parseDetailedTestEntity } from '../parse-utils';
 import {
     getSuites,
     getSessions,
     getTestRun,
 } from 'src/components/scripts/helper';
-import type { possibleEntityNames } from 'src/types/sessionRecords';
-import type { PreviewForDetailedEntities } from 'src/types/parsedRecords';
+import type { possibleEntityNames } from 'src/types/session-records';
+import type { PreviewForDetailedEntities } from 'src/types/parsed-records';
 import RenderTimeRelativeToStart, {
     RenderDuration,
     RenderEntityType,
     RenderStatus,
 } from '../utils/renderers';
 import MetaCallContext from './TestRun/context';
-import RenderPassedRate from '../charts/StackedBarChart';
+import RenderPassedRate from '../charts/stacked-bar-chart';
 import TestEntityDrawer from './TestEntity';
-import ProjectStructure from './TestRun/Structure';
+import ProjectStructure from './TestRun/structure';
 
 import React, { useContext, type ReactNode, useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -35,7 +38,7 @@ import Space from 'antd/lib/space/index';
 import type { Duration } from 'dayjs/plugin/duration';
 import Typography from 'antd/lib/typography/Typography';
 import { timeFormatUsed } from '../utils/Datetime/format';
-import type TestRunRecord from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
@@ -69,7 +72,7 @@ function extractSuiteTree(
 export function TestRunStarted(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
-    if (data == null) return <></>;
+    if (data == undefined) return <></>;
     return (
         <Typography>{`Test Run Started at: ${dayjs(data.started).format(
             timeFormatUsed,
@@ -93,7 +96,8 @@ export default function TestEntities(): ReactNode {
         setShowEntity(false);
     };
 
-    if (run == null || suites == null || sessions == null) return <></>;
+    if (run == undefined || suites == undefined || sessions == undefined)
+        return <></>;
 
     const data = extractSuiteTree(suites, '', dayjs(run.started), sessions);
 
@@ -180,9 +184,9 @@ export default function TestEntities(): ReactNode {
                             width={220}
                             fixed="left"
                             filterSearch={true}
-                            filters={Array.from(
-                                new Set(data?.map((suite) => suite.Title)),
-                            )?.map((suite) => ({
+                            filters={[
+                                ...new Set(data?.map((suite) => suite.Title)),
+                            ]?.map((suite) => ({
                                 text: suite,
                                 value: suite,
                             }))}
@@ -297,9 +301,9 @@ export default function TestEntities(): ReactNode {
                             title="File"
                             width={30}
                             filterSearch={true}
-                            filters={Array.from(
-                                new Set(data?.map((suite) => suite.File)),
-                            )?.map((suite) => ({
+                            filters={[
+                                ...new Set(data?.map((suite) => suite.File)),
+                            ]?.map((suite) => ({
                                 text: suite,
                                 value: suite,
                             }))}
@@ -307,7 +311,7 @@ export default function TestEntities(): ReactNode {
                                 value === record.File
                             }
                             render={(value) =>
-                                (value as string).replace(/^.*[\\/]/, '')
+                                (value as string).replace(/^.*[/\\]/, '')
                             }
                         />
                     </Table>

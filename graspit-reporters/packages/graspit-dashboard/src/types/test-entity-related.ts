@@ -1,6 +1,6 @@
 import { type Dayjs } from 'dayjs';
 import type duration from 'dayjs/plugin/duration';
-import type { RecurringFields, statusOfEntity } from './sessionRecords';
+import type { RecurringFields, statusOfEntity } from './session-records';
 
 export type suiteType = 'SUITE' | 'TEST';
 

@@ -88,5 +88,5 @@ export function runPage(testID: string) {
 }
 
 export function detailedPage(testID: string) {
-    return `/RUNS/${testID}/Detailed`;
+    return `/RUNS/${testID}/detailed`;
 }

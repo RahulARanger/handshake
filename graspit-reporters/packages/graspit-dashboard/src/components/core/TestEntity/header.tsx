@@ -1,5 +1,5 @@
-import type { RetriedRecords } from 'src/types/generatedResponse';
-import type { SuiteRecordDetails } from 'src/types/testEntityRelated';
+import type { RetriedRecords } from 'src/types/generated-response';
+import type { SuiteRecordDetails } from 'src/types/test-entity-related';
 import { getRetriedRecords } from 'src/components/scripts/helper';
 import MetaCallContext from '../TestRun/context';
 import React, { useContext } from 'react';
@@ -9,14 +9,14 @@ import UpOutlined from '@ant-design/icons/UpOutlined';
 import Space from 'antd/lib/space';
 import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
-import type { SuiteDetails } from 'src/types/generatedResponse';
+import type { SuiteDetails } from 'src/types/generated-response';
 import type { TreeSelectProps } from 'antd/lib/tree-select/index';
 import { Badge } from 'antd/lib';
 import { getSuites } from 'src/components/scripts/helper';
 import TreeSelect from 'antd/lib/tree-select/index';
-import { badgeStatus } from 'src/components/parseUtils';
+import { badgeStatus } from 'src/components/parse-utils';
 
-export function NavigationButtons(props: {
+export function NavigationButtons(properties: {
     selectedSuite: SuiteRecordDetails;
     setTestID: (testID: string) => void;
 }) {
@@ -26,30 +26,31 @@ export function NavigationButtons(props: {
     );
 
     const records = retriedRecords ?? {};
-    const record = records[props.selectedSuite.suiteID] ?? {
+    const record = records[properties.selectedSuite.suiteID] ?? {
         tests: [],
         length: 0,
     };
 
-    const index = record?.tests?.indexOf(props.selectedSuite.suiteID) ?? -1;
+    const index =
+        record?.tests?.indexOf(properties.selectedSuite.suiteID) ?? -1;
 
-    const prevSuite = record.tests.at(index - 1);
+    const previousSuite = record.tests.at(index - 1);
     const nextSuite = record.tests.at(index + 1);
 
-    const hasPrevRetry = prevSuite != null && index > 0;
-    const hasNextRetry = nextSuite != null;
+    const hasPreviousRetry = previousSuite != undefined && index > 0;
+    const hasNextRetry = nextSuite != undefined;
     const hasParent =
-        props.selectedSuite?.parent != null &&
-        props.selectedSuite?.parent != '';
+        properties.selectedSuite?.parent != undefined &&
+        properties.selectedSuite?.parent != '';
 
     return (
         <Space>
             <Button
                 size="small"
                 icon={<CaretLeftOutlined />}
-                disabled={!hasPrevRetry}
-                title={hasPrevRetry ? 'Prev Retry' : 'No Retries Found'}
-                onClick={() => props.setTestID(prevSuite as string)}
+                disabled={!hasPreviousRetry}
+                title={hasPreviousRetry ? 'Prev Retry' : 'No Retries Found'}
+                onClick={() => properties.setTestID(previousSuite as string)}
             />
 
             <Button
@@ -57,7 +58,9 @@ export function NavigationButtons(props: {
                 icon={<UpOutlined />}
                 title={hasParent ? 'View Parent' : 'No Parent Entity Found  '}
                 disabled={!hasParent}
-                onClick={() => props.setTestID(props.selectedSuite.parent)}
+                onClick={() =>
+                    properties.setTestID(properties.selectedSuite.parent)
+                }
             />
 
             <Button
@@ -65,13 +68,13 @@ export function NavigationButtons(props: {
                 disabled={!hasNextRetry}
                 icon={<CaretRightOutlined />}
                 title={hasNextRetry ? 'Next Retry' : 'No Entities found'}
-                onClick={() => props.setTestID(nextSuite as string)}
+                onClick={() => properties.setTestID(nextSuite as string)}
             />
         </Space>
     );
 }
 
-export default function TreeSelectionOfSuites(props: {
+export default function TreeSelectionOfSuites(properties: {
     selected?: string;
     setTestID: (testID: string) => void;
 }) {
@@ -80,26 +83,27 @@ export default function TreeSelectionOfSuites(props: {
     const parents: Record<string, TreeSelectProps['treeData']> = {};
     const data: TreeSelectProps['treeData'] = [];
 
-    if (suites == null) return <></>;
+    if (suites == undefined) return <></>;
 
-    const selected = suites[props?.selected ?? ''];
+    const selected = suites[properties?.selected ?? ''];
 
-    let prev: undefined | string, next: undefined | string;
+    let previous: undefined | string, next: undefined | string;
 
     const wasRetried = selected?.standing === 'RETRIED';
     !wasRetried &&
+        // eslint-disable-next-line unicorn/no-array-for-each
         suites['@order'].forEach((suite, index) => {
             const toAdd = suites[suite];
             if (toAdd.standing === 'RETRIED') return;
 
             const parent = parents[toAdd.parent];
-            const addTo = parent == null ? data : parent;
+            const addTo = parent == undefined ? data : parent;
 
             parents[toAdd.suiteID] = [];
 
-            const toBe = toAdd.suiteID === props.selected;
+            const toBe = toAdd.suiteID === properties.selected;
             if (toBe) {
-                prev = suites['@order'][index - 1];
+                previous = suites['@order'][index - 1];
                 next = suites['@order'][index + 1];
             }
 
@@ -111,8 +115,8 @@ export default function TreeSelectionOfSuites(props: {
             });
         });
     if (wasRetried) {
-        const index = suites['@order'].indexOf(props.selected ?? '');
-        prev = suites['@order'][index - 1];
+        const index = suites['@order'].indexOf(properties.selected ?? '');
+        previous = suites['@order'][index - 1];
         next = suites['@order'][index + 1];
     }
 
@@ -122,8 +126,8 @@ export default function TreeSelectionOfSuites(props: {
                 size="small"
                 icon={<CaretLeftOutlined />}
                 title="Previous suite in chronological order"
-                disabled={prev == null}
-                onClick={() => prev && props.setTestID(prev)}
+                disabled={previous == undefined}
+                onClick={() => previous && properties.setTestID(previous)}
             />
             <Badge
                 title={selected.standing}
@@ -142,9 +146,9 @@ export default function TreeSelectionOfSuites(props: {
                 ) : (
                     <TreeSelect
                         treeData={data}
-                        value={props.selected}
+                        value={properties.selected}
                         title="Next suite in chronological order"
-                        onSelect={(value) => props.setTestID(value)}
+                        onSelect={(value) => properties.setTestID(value)}
                         treeLine
                         dropdownStyle={{ minWidth: '350px' }}
                         style={{ minWidth: '250px', maxWidth: '450px' }}
@@ -155,8 +159,8 @@ export default function TreeSelectionOfSuites(props: {
             <Button
                 size="small"
                 icon={<CaretRightOutlined />}
-                disabled={next == null}
-                onClick={() => next && props.setTestID(next)}
+                disabled={next == undefined}
+                onClick={() => next && properties.setTestID(next)}
             />
         </Space>
     );

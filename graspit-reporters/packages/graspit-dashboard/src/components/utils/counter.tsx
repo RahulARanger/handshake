@@ -41,23 +41,23 @@ export default class Counter extends Component<
     }
 
     componentDidUpdate(
-        prevProps: Readonly<{ end: number }>,
-        prevState: Readonly<{ start: number }>,
+        previousProperties: Readonly<{ end: number }>,
+        previousState: Readonly<{ start: number }>,
     ): void {
-        if (prevProps.end !== prevState.start)
-            this.setState({ start: prevProps.end });
+        if (previousProperties.end !== previousState.start)
+            this.setState({ start: previousProperties.end });
     }
 }
 
-export function StatisticNumber(props: {
+export function StatisticNumber(properties: {
     title?: string | ReactNode;
     end: number;
 }): ReactNode {
     return (
         <Statistic
-            title={props.title}
-            value={props.end}
-            formatter={() => <Counter end={props.end} />}
+            title={properties.title}
+            value={properties.end}
+            formatter={() => <Counter end={properties.end} />}
         />
     );
 }
@@ -76,12 +76,12 @@ export const getColorCode = (value: number) => {
     return colors.at(expected >= colors.length ? -1 : expected);
 };
 
-export function StaticPercent(props: { percent: number }): ReactNode {
+export function StaticPercent(properties: { percent: number }): ReactNode {
     return (
         <Counter
-            end={props.percent}
+            end={properties.percent}
             suffix={'%'}
-            style={{ color: getColorCode(props.percent) }}
+            style={{ color: getColorCode(properties.percent) }}
         />
     );
 }
