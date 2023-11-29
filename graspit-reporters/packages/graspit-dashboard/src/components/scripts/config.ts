@@ -1,11 +1,11 @@
-import type { dbConnection } from 'src/components/scripts/connection';
-import type ExportConfig from 'src/types/exportConfigRecords';
+import type { dataBaseConnection } from 'src/components/scripts/connection';
+import type ExportConfig from 'src/types/export-config-records';
 
 export default async function currentExportConfig(
-    connection: dbConnection,
+    connection: dataBaseConnection,
 ): Promise<ExportConfig | undefined> {
     const ticketID = process.env.TICKET_ID;
-    if (ticketID == null) {
+    if (ticketID == undefined) {
         return undefined;
     }
     const result = await connection.get<ExportConfig>(
@@ -16,14 +16,12 @@ export default async function currentExportConfig(
 }
 
 export async function getAllTestRuns(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     limit: number,
 ): Promise<string[]> {
-    const result = (
-        await connection.all<Array<{ testID: string }>>(
-            "select testID, ended from runbase where ended <> '' order by started desc limit ?;",
-            limit,
-        )
-    ).map((result) => result.testID);
-    return result;
+    const result = await connection.all<Array<{ testID: string }>>(
+        "select testID, ended from runbase where ended <> '' order by started desc limit ?;",
+        limit,
+    );
+    return result.map((result) => result.testID);
 }

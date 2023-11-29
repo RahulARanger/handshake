@@ -17,11 +17,11 @@ const MyDocument = (): ReactNode => (
     </Html>
 );
 
-MyDocument.getInitialProps = async (ctx: DocumentContext) => {
-    const initialProps = await Document.getInitialProps(ctx);
+MyDocument.getInitialProps = async (context: DocumentContext) => {
+    const initialProperties = await Document.getInitialProps(context);
     return {
-        ...initialProps,
-        styles: <>{initialProps.styles}</>,
+        ...initialProperties,
+        styles: <>{initialProperties.styles}</>,
     };
 };
 

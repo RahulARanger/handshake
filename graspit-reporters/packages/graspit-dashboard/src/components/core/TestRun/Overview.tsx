@@ -1,4 +1,4 @@
-import type TestRunRecord from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
 import {
     getOverAllAggResultsURL,
     getRelatedRuns,
@@ -10,25 +10,25 @@ import {
 import type {
     AttachmentContent,
     SuiteRecordDetails,
-} from 'src/types/testEntityRelated';
-import type { statusOfEntity } from 'src/types/sessionRecords';
+} from 'src/types/test-entity-related';
+import type { statusOfEntity } from 'src/types/session-records';
 import {
     dateFormatUsed,
     timeFormatUsed,
 } from 'src/components/utils/Datetime/format';
 import Counter, { StatisticNumber } from 'src/components/utils/counter';
-import RelativeTo from 'src/components/utils/Datetime/relativeTime';
-import ProgressPieChart from 'src/components/charts/StatusPieChart';
+import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import ProgressPieChart from 'src/components/charts/status-pie-chart';
 import {
     RenderEntityType,
     RenderDuration,
     RenderStatus,
     RenderSystemType,
 } from 'src/components/utils/renderers';
-import RenderPassedRate from 'src/components/charts/StackedBarChart';
+import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import GalleryOfImages, {
     CardForAImage,
-} from 'src/components/utils/ImagesWithThumbnails';
+} from 'src/components/utils/images-with-thumbnails';
 
 import React, { useState, type ReactNode, useContext } from 'react';
 import dayjs from 'dayjs';
@@ -51,18 +51,18 @@ import Description, {
 import type {
     AttachmentValueForConfig,
     TestRunConfig,
-} from 'src/types/testRunRecords';
+} from 'src/types/test-run-records';
 import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
 import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
-import type { SuiteDetails } from 'src/types/generatedResponse';
+import type { SuiteDetails } from 'src/types/generated-response';
 import {
     convertForWrittenAttachments,
     timelineColor,
-} from 'src/components/parseUtils';
+} from 'src/components/parse-utils';
 import { Badge, Button, Popover } from 'antd/lib';
 
-function TopSuites(props: { suites: SuiteDetails[] }): ReactNode {
-    const data = props.suites;
+function TopSuites(properties: { suites: SuiteDetails[] }): ReactNode {
+    const data = properties.suites;
     const top5Suites = data.map((suite) => ({
         key: suite.suiteID,
         ...suite,
@@ -159,7 +159,7 @@ function PreviewForImages(): ReactNode {
     const { data: aggResults } = useSWR<OverallAggResults>(
         getOverAllAggResultsURL(port, testID),
     );
-    if (testID == null || aggResults == null) return <></>;
+    if (testID == undefined || aggResults == undefined) return <></>;
     const allImages: AttachmentContent[] = aggResults.randomImages.map(
         (image) => JSON.parse(image),
     );
@@ -192,7 +192,7 @@ function PieChart(): ReactNode {
 
     const [isTest, setTest] = useState<boolean>(true);
 
-    if (testID == null || run == null) return <></>;
+    if (testID == undefined || run == undefined) return <></>;
 
     const startedAt = dayjs(run.started);
     const total = isTest ? run.tests : JSON.parse(run.suiteSummary).count;
@@ -277,19 +277,19 @@ function DescriptiveValues(): ReactNode {
     );
 
     if (
-        testID == null ||
-        aggResults == null ||
-        sessions == null ||
-        runConfig == null
+        testID == undefined ||
+        aggResults == undefined ||
+        sessions == undefined ||
+        runConfig == undefined
     )
         return <></>;
 
     const browsersUsed: Record<string, number> = {};
-    sessions.forEach((sessionObj) => {
-        if (browsersUsed[sessionObj.entityName])
-            browsersUsed[sessionObj.entityName] += sessionObj.tests;
-        else browsersUsed[sessionObj.entityName] = sessionObj.tests;
-    });
+    for (const sessionObject of sessions) {
+        if (browsersUsed[sessionObject.entityName])
+            browsersUsed[sessionObject.entityName] += sessionObject.tests;
+        else browsersUsed[sessionObject.entityName] = sessionObject.tests;
+    }
 
     const testRunConfig = runConfig
         .filter((config) => config.type === 'CONFIG')
@@ -359,7 +359,7 @@ function TimelineView(): ReactNode {
     const { data: relatedRuns } = useSWR<TestRunRecord[]>(
         getRelatedRuns(port, testID),
     );
-    if (relatedRuns == null) return <></>;
+    if (relatedRuns == undefined) return <></>;
 
     const items: TimelineProps['items'] = relatedRuns.map((run) => ({
         children:
@@ -409,7 +409,9 @@ function TimelineView(): ReactNode {
                         </Space>
                     }
                 >
-                    {run.testID !== testID ? (
+                    {run.testID === testID ? (
+                        <></>
+                    ) : (
                         <Button
                             type={'text'}
                             size="small"
@@ -419,8 +421,6 @@ function TimelineView(): ReactNode {
                         >
                             {dayjs(run.started).fromNow()}
                         </Button>
-                    ) : (
-                        <></>
                     )}
                 </Popover>
             ),
@@ -454,7 +454,7 @@ export default function Overview(): ReactNode {
         getOverAllAggResultsURL(port, testID),
     );
 
-    if (aggResults == null) return <></>;
+    if (aggResults == undefined) return <></>;
 
     return (
         <Space direction="vertical" style={{ rowGap: '10px', width: '99%' }}>

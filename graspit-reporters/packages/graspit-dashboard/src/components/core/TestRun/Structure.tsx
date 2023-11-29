@@ -1,14 +1,17 @@
-import type TestRunRecord from 'src/types/testRunRecords';
-import type { SessionDetails, SuiteDetails } from 'src/types/generatedResponse';
-import type { specNode } from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
+import type {
+    SessionDetails,
+    SuiteDetails,
+} from 'src/types/generated-response';
+import type { specNode } from 'src/types/test-run-records';
 import {
     getSessions,
     getSuites,
     getTestRun,
 } from 'src/components/scripts/helper';
 import { RenderEntityType, RenderStatus } from 'src/components/utils/renderers';
-import RenderPassedRate from 'src/components/charts/StackedBarChart';
-import MetaCallContext from '../TestRun/context';
+import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
+import MetaCallContext from './context';
 
 import React, { useContext, type ReactNode } from 'react';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
@@ -22,7 +25,7 @@ import Text from 'antd/lib/typography/Text';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { timeFormatUsed } from 'src/components/utils/Datetime/format';
-import { parseDetailedTestEntity } from 'src/components/parseUtils';
+import { parseDetailedTestEntity } from 'src/components/parse-utils';
 
 function treeData(
     node: specNode,
@@ -39,7 +42,8 @@ function treeData(
 
     while (nodes.length > 0) {
         const result = nodes.pop();
-        if (result?.node == null || result?.childrenSpace == null) continue;
+        if (result?.node == undefined || result?.childrenSpace == undefined)
+            continue;
         const { node, childrenSpace } = result;
 
         const current = node['<path>'];
@@ -48,7 +52,7 @@ function treeData(
         childParts.delete('<path>');
 
         // these are paths
-        childParts.forEach((child) => {
+        for (const child of childParts) {
             const childNode = {
                 key: child,
                 title: child,
@@ -60,14 +64,14 @@ function treeData(
                 childrenSpace: childNode.children,
                 pathNode: childNode,
             });
-        });
+        }
 
         let passed = 0;
         let failed = 0;
         let skipped = 0;
 
         // these are suites
-        pulled.forEach((suiteID) => {
+        for (const suiteID of pulled) {
             const suite = parseDetailedTestEntity(
                 suites[suiteID],
                 started,
@@ -76,7 +80,7 @@ function treeData(
             const parent = suites[suiteID].parent;
 
             if (suite.Status === 'RETRIED' || !suite.File.startsWith(current))
-                return;
+                continue;
 
             if (suites[suiteID].parent === '') {
                 passed += suite.Rate[0];
@@ -84,7 +88,7 @@ function treeData(
                 skipped += suite.Rate[2];
             }
 
-            if (suite.File !== current) return;
+            if (suite.File !== current) continue;
 
             const treeNode: DataNode = {
                 key: suiteID,
@@ -130,11 +134,11 @@ function treeData(
             else treeNodes[parent].children?.push(treeNode);
 
             pulled.delete(suiteID);
-        });
-
-        result.pathNode.title = (
+        }
+        const { pathNode } = result;
+        pathNode.title = (
             <Space align="center" style={{ columnGap: '12px' }}>
-                <Text>{(result.pathNode.title as string) ?? ''}</Text>
+                <Text>{(pathNode.title as string) ?? ''}</Text>
                 <RenderPassedRate
                     value={[passed, failed, skipped]}
                     title="Tests"
@@ -146,7 +150,7 @@ function treeData(
     return structure;
 }
 
-export default function ProjectStructure(props: {
+export default function ProjectStructure(properties: {
     setTestID: (testID: string) => void;
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
@@ -158,7 +162,11 @@ export default function ProjectStructure(props: {
     const { data: detailsOfTestRun } = useSWR<TestRunRecord>(
         getTestRun(port, testID),
     );
-    if (sessions == null || detailsOfTestRun == null || suites == null)
+    if (
+        sessions == undefined ||
+        detailsOfTestRun == undefined ||
+        suites == undefined
+    )
         return <></>;
 
     const structure: specNode = JSON.parse(detailsOfTestRun.specStructure);
@@ -166,7 +174,7 @@ export default function ProjectStructure(props: {
     const projectStructure = treeData(
         structure,
         suites,
-        props.setTestID,
+        properties.setTestID,
         dayjs(detailsOfTestRun.started),
         sessions,
     );

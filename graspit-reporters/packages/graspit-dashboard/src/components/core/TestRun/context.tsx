@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import type { ShareToOtherPages } from 'src/types/parsedRecords';
+import type { ShareToOtherPages } from 'src/types/parsed-records';
 
 const MetaCallContext = createContext<ShareToOtherPages>({});
 export default MetaCallContext;

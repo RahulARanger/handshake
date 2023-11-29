@@ -36,8 +36,8 @@ import useSWR from 'swr';
 import { Affix, Switch } from 'antd/lib';
 import Card from 'antd/lib/card/Card';
 import TestEntityDrawer from '../core/TestEntity';
-import type { SuiteDetails } from 'src/types/generatedResponse';
-import type TestRunRecord from 'src/types/testRunRecords';
+import type { SuiteDetails } from 'src/types/generated-response';
+import type TestRunRecord from 'src/types/test-run-records';
 
 // Register the required components
 echarts.use([
@@ -94,7 +94,7 @@ export default function GanttChartForTestEntities(): ReactNode {
     const [toShowTestID, setTestID] = useState<string>();
     const [showRetries, setShowRetries] = useState<boolean>(true);
 
-    if (testRun == null || suites == null) {
+    if (testRun == undefined || suites == undefined) {
         return <></>;
     }
     // const data = suites['@order']

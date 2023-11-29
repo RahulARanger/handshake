@@ -1,5 +1,5 @@
 import getConnection from 'src/components/scripts/connection';
-import type TestRunRecord from 'src/types/testRunRecords';
+import type TestRunRecord from 'src/types/test-run-records';
 import GridOfRuns from 'src/components/core/ListOfRuns';
 
 import { type GetStaticPropsResult } from 'next';
@@ -28,9 +28,9 @@ export async function getStaticProps(): Promise<
     };
 }
 
-export default function AllTestRunsDisplayedHere(props: {
+export default function AllTestRunsDisplayedHere(properties: {
     runs?: TestRunRecord[];
 }): ReactNode {
-    if (props.runs == null) return <></>;
-    return <GridOfRuns runs={props.runs} />;
+    if (properties.runs == undefined) return <></>;
+    return <GridOfRuns runs={properties.runs} />;
 }

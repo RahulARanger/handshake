@@ -1,7 +1,7 @@
-import type { dbConnection } from 'src/components/scripts/connection';
-import type { SuiteDetails } from 'src/types/generatedResponse';
-import type { TestRunConfig, TestRunSummary } from 'src/types/testRunRecords';
-import type TestRunRecord from 'src/types/testRunRecords';
+import type { dataBaseConnection } from 'src/components/scripts/connection';
+import type { SuiteDetails } from 'src/types/generated-response';
+import type { TestRunConfig, TestRunSummary } from 'src/types/test-run-records';
+import type TestRunRecord from 'src/types/test-run-records';
 
 export function generateTestRunSummary(
     _testDetails: TestRunRecord,
@@ -31,7 +31,7 @@ export interface SessionSummary {
 }
 
 export async function getSessionSummary(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     test_id: string,
 ) {
     return connection.all<SessionSummary[]>(
@@ -41,7 +41,7 @@ export async function getSessionSummary(
 }
 
 export async function getDetailsOfTestRun(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     testID: string,
 ) {
     return connection.get<TestRunRecord>(
@@ -51,7 +51,7 @@ export async function getDetailsOfTestRun(
 }
 
 export async function getTestRunConfigRecords(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     test_id: string,
 ): Promise<TestRunConfig[]> {
     return connection.all<TestRunConfig[]>(
@@ -61,15 +61,14 @@ export async function getTestRunConfigRecords(
 }
 
 export async function getAllSessionIds(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     test_id: string,
 ): Promise<string[]> {
-    return (
-        await connection.all<Array<{ sessionID: string }>>(
-            'select sessionID from sessionbase where test_id = ?',
-            test_id,
-        )
-    )?.map((session) => session.sessionID);
+    const sessions = await connection.all<Array<{ sessionID: string }>>(
+        'select sessionID from sessionbase where test_id = ?',
+        test_id,
+    );
+    return sessions?.map((session) => session.sessionID);
 }
 
 export interface OverallAggResults {
@@ -82,7 +81,7 @@ export interface OverallAggResults {
 }
 
 export async function getSomeAggResults(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     test_id: string,
 ): Promise<OverallAggResults> {
     const allSessions = await getAllSessionIds(connection, test_id);
@@ -90,46 +89,43 @@ export async function getSomeAggResults(
     const sqlHelperForSessions = `(${allSessions.map(() => '?').join(',')})`;
 
     type expectedSuites = { suiteID: string };
-    const possibleSuites = (
-        await connection.all<Array<expectedSuites>>(
-            `select suiteID from suitebase where session_id in ${sqlHelperForSessions}`,
-            allSessions,
-        )
-    ).map((suite: expectedSuites) => suite.suiteID);
+
+    const allSuites = await connection.all<Array<expectedSuites>>(
+        `select suiteID from suitebase where session_id in ${sqlHelperForSessions}`,
+        allSessions,
+    );
+    const possibleSuites = allSuites.map(
+        (suite: expectedSuites) => suite.suiteID,
+    );
 
     const sqlHelperForSuites = `(${possibleSuites.map(() => '?').join(',')})`;
 
-    const fileCount =
-        (
-            await connection.get<{ files: number }>(
-                `SELECT count(distinct json_each.value) as files FROM sessionbase JOIN json_each(specs) ON 1=1 where test_id = ?;`,
-                test_id,
-            )
-        )?.files ?? 0;
+    const config = await connection.get<{ files: number }>(
+        `SELECT count(distinct json_each.value) as files FROM sessionbase JOIN json_each(specs) ON 1=1 where test_id = ?;`,
+        test_id,
+    );
+    const fileCount = config?.files ?? 0;
 
-    const parentSuiteCount =
-        (
-            await connection.get<{ suites: number }>(
-                `select count(*) as suites from suitebase where parent = '' and standing <> 'RETRIED' and session_id in ${sqlHelperForSessions}`,
-                allSessions,
-            )
-        )?.suites ?? 0;
+    const parentSuites = await connection.get<{ suites: number }>(
+        `select count(*) as suites from suitebase where parent = '' and standing <> 'RETRIED' and session_id in ${sqlHelperForSessions}`,
+        allSessions,
+    );
+    const parentSuiteCount = parentSuites?.suites ?? 0;
 
-    const imageCount =
-        (
-            await connection.get<{ attached: number }>(
-                `select count(*) as attached from staticbase where type = 'PNG' AND entity_id in ${sqlHelperForSuites}`,
-                possibleSuites,
-            )
-        )?.attached ?? 0;
+    const images = await connection.get<{ attached: number }>(
+        `select count(*) as attached from staticbase where type = 'PNG' AND entity_id in ${sqlHelperForSuites}`,
+        possibleSuites,
+    );
+    const imageCount = images?.attached ?? 0;
 
     type expectedImage = { attachmentValue: string };
-    const randomImages = (
-        await connection.all<Array<expectedImage>>(
-            `SELECT attachmentValue FROM staticbase where attachmentID IN (SELECT attachmentID FROM staticbase where type = 'PNG' and entity_id in ${sqlHelperForSuites} ORDER BY RANDOM() LIMIT 10)`,
-            possibleSuites,
-        )
-    ).map((attached: expectedImage) => attached.attachmentValue);
+    const pickedImages = await connection.all<Array<expectedImage>>(
+        `SELECT attachmentValue FROM staticbase where attachmentID IN (SELECT attachmentID FROM staticbase where type = 'PNG' and entity_id in ${sqlHelperForSuites} ORDER BY RANDOM() LIMIT 10)`,
+        possibleSuites,
+    );
+    const randomImages = pickedImages.map(
+        (attached: expectedImage) => attached.attachmentValue,
+    );
 
     const recentSuites = await connection.all<SuiteDetails[]>(
         `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} and standing <> 'RETRIED' limit 5`,

@@ -4,10 +4,10 @@ import { type Statement } from 'sqlite3';
 import { open, type Database as sqlite } from 'sqlite';
 import { existsSync } from 'node:fs';
 
-export type dbConnection = sqlite<Database, Statement>;
+export type dataBaseConnection = sqlite<Database, Statement>;
 
-export default async function getConnection(): Promise<dbConnection> {
-    if (process.env.DB_PATH == null)
+export default async function getConnection(): Promise<dataBaseConnection> {
+    if (process.env.DB_PATH == undefined)
         throw new Error('😓 Please set the DB "Path"');
 
     if (!existsSync(process.env.DB_PATH))

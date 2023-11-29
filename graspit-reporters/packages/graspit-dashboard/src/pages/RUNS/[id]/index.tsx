@@ -6,15 +6,15 @@ import {
     getTestRunConfig,
     getTestRunSummary,
 } from 'src/components/scripts/helper';
-import type { DetailedTestRunPageProps } from 'src/types/generatedResponse';
+import type { DetailedTestRunPageProperties } from 'src/types/generated-response';
 import getConnection from 'src/components/scripts/connection';
 import DetailedTestRun from 'src/components/core/TestRun';
 
 import React from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import EnsureFallback from 'src/components/utils/swrFallback';
-import { overviewTab } from 'src/types/uiConstants';
+import EnsureFallback from 'src/components/utils/swr-fallback';
+import { overviewTab } from 'src/types/ui-constants';
 import {
     getSessionSummary,
     getDetailsOfTestRun,
@@ -22,25 +22,24 @@ import {
     getTestRunConfigRecords,
     getSomeAggResults,
 } from 'src/components/scripts/RunPage/overview';
-import Overview from 'src/components/core/TestRun/Overview';
+import Overview from 'src/components/core/TestRun/overview';
 import { attachmentPrefix } from 'src/components/core/TestRun/context';
-import staticPaths from 'src/components/scripts/RunPage/generatePaths';
+
 import { getDetailsOfRelatedRuns } from 'src/components/scripts/runs';
 
-export const getStaticPaths = staticPaths;
-export async function getStaticProps(prepareProps: {
+export async function getStaticProps(prepareProperties: {
     params: {
         id: string;
     };
-}): Promise<GetStaticPropsResult<DetailedTestRunPageProps>> {
-    const testID = prepareProps.params.id;
+}): Promise<GetStaticPropsResult<DetailedTestRunPageProperties>> {
+    const testID = prepareProperties.params.id;
 
     const connection = await getConnection();
 
     const details = await getDetailsOfTestRun(connection, testID);
     const sessions = await getSessionSummary(connection, testID);
 
-    if (sessions == null || details == null) {
+    if (sessions == undefined || details == undefined) {
         return {
             redirect: {
                 permanent: true,
@@ -78,13 +77,15 @@ export async function getStaticProps(prepareProps: {
 }
 
 export default function TestRunResults(
-    props: DetailedTestRunPageProps,
+    properties: DetailedTestRunPageProperties,
 ): ReactNode {
     return (
-        <EnsureFallback fallbackPayload={props}>
+        <EnsureFallback fallbackPayload={properties}>
             <DetailedTestRun activeTab={overviewTab}>
                 <Overview />
             </DetailedTestRun>
         </EnsureFallback>
     );
 }
+
+export { default as getStaticPaths } from 'src/components/scripts/RunPage/generate-path';

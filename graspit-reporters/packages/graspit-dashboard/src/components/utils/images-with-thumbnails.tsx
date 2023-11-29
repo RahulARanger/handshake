@@ -10,7 +10,7 @@ import Meta from 'antd/lib/card/Meta';
 import Ribbon from 'antd/lib/badge/Ribbon';
 import Tooltip from 'antd/lib/tooltip/index';
 
-export function CardForAImage(props: {
+export function CardForAImage(properties: {
     url: string;
     title: string;
     desc?: string;
@@ -18,30 +18,30 @@ export function CardForAImage(props: {
     maxHeight?: string;
 }) {
     const rawImage =
-        props.index != null ? (
+        properties.index == undefined ? (
+            <Image src={properties.url} />
+        ) : (
             <Ribbon
                 placement="start"
                 color="orange-inverse"
-                text={props.index + 1}
+                text={properties.index + 1}
             >
                 <Image
                     height={'95%'}
                     style={{
-                        maxHeight: props.maxHeight ?? '250px',
+                        maxHeight: properties.maxHeight ?? '250px',
                         objectFit: 'cover',
                         objectPosition: 'top',
                     }}
                     width={'95%'}
-                    alt={`Image Attached: ${props.title}`}
-                    src={props.url}
+                    alt={`Image Attached: ${properties.title}`}
+                    src={properties.url}
                 />
             </Ribbon>
-        ) : (
-            <Image src={props.url} />
         );
 
     const desc =
-        props.desc == null ? (
+        properties.desc == undefined ? (
             <> </>
         ) : (
             <Meta
@@ -53,7 +53,7 @@ export function CardForAImage(props: {
                             expandable: true,
                         }}
                     >
-                        {props.desc}
+                        {properties.desc}
                     </Paragraph>
                 }
             />
@@ -62,12 +62,12 @@ export function CardForAImage(props: {
     return (
         <Card
             title={
-                <Tooltip title={props.title}>
+                <Tooltip title={properties.title}>
                     <Text
                         style={{ maxWidth: '350px' }}
                         suppressHydrationWarning
                     >
-                        {props.title}
+                        {properties.title}
                     </Text>
                 </Tooltip>
             }
@@ -84,14 +84,14 @@ export function CardForAImage(props: {
     );
 }
 
-export default function GalleryOfImages(props: {
+export default function GalleryOfImages(properties: {
     loop?: boolean;
     children: ReactNode[];
     maxWidth?: string;
 }): ReactNode {
-    const [emblaRef] = useEmblaCarousel(
+    const [emblaReference] = useEmblaCarousel(
         {
-            loop: props.loop,
+            loop: properties.loop,
             align: 'center',
         },
         [Autoplay({})],
@@ -99,10 +99,12 @@ export default function GalleryOfImages(props: {
     return (
         <div
             className={carouselStyles.embla}
-            ref={emblaRef}
-            style={{ maxWidth: props.maxWidth }}
+            ref={emblaReference}
+            style={{ maxWidth: properties.maxWidth }}
         >
-            <div className={carouselStyles.container}>{props.children}</div>
+            <div className={carouselStyles.container}>
+                {properties.children}
+            </div>
         </div>
     );
 }

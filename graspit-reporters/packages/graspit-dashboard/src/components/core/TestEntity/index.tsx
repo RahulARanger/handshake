@@ -1,12 +1,15 @@
-import type { SuiteDetails, SessionDetails } from 'src/types/generatedResponse';
-import type { statusOfEntity } from 'src/types/sessionRecords';
-import type { AttachmentDetails } from 'src/types/generatedResponse';
-import type { TestDetails } from 'src/types/generatedResponse';
+import type {
+    SuiteDetails,
+    SessionDetails,
+} from 'src/types/generated-response';
+import type { statusOfEntity } from 'src/types/session-records';
+import type { AttachmentDetails } from 'src/types/generated-response';
+import type { TestDetails } from 'src/types/generated-response';
 import {
     optionsForEntities,
     parseTestCaseEntity,
-} from 'src/components/parseUtils';
-import type TestRunRecord from 'src/types/testRunRecords';
+} from 'src/components/parse-utils';
+import type TestRunRecord from 'src/types/test-run-records';
 import {
     getEntityLevelAttachment,
     getSessions,
@@ -15,14 +18,14 @@ import {
     getTests,
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
-import BadgeForSuiteType from 'src/components/utils/Badge';
+import BadgeForSuiteType from 'src/components/utils/badge';
 import RenderTimeRelativeToStart, {
     RenderEntityType,
     RenderStatus,
     RenderDuration,
 } from 'src/components/utils/renderers';
 import MetaCallContext from '../TestRun/context';
-import type { Tag as SuiteTag } from 'src/types/testEntityRelated';
+import type { Tag as SuiteTag } from 'src/types/test-entity-related';
 import MoreDetailsOnEntity, { errorsTab, imagesTab } from './DetailedModal';
 
 import Input from 'antd/lib/input/Input';
@@ -56,9 +59,9 @@ import Card from 'antd/lib/card/Card';
 import Badge from 'antd/lib/badge/index';
 import Meta from 'antd/lib/card/Meta';
 import TreeSelectionOfSuites, { NavigationButtons } from './header';
-import { EntityCollapsibleItem, EntityTimeline } from './entityItem';
+import { EntityCollapsibleItem, EntityTimeline } from './entity-item';
 
-export default function TestEntityDrawer(props: {
+export default function TestEntityDrawer(properties: {
     open: boolean;
     onClose: () => void;
     testID?: string;
@@ -80,11 +83,13 @@ export default function TestEntityDrawer(props: {
     );
 
     const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
-    const [detailed, setDetailed] = useState<undefined | string>(props.testID);
-    const [filterStatus, setFilterStatus] = useState<null | statusOfEntity>(
-        null,
+    const [detailed, setDetailed] = useState<undefined | string>(
+        properties.testID,
     );
-    const [filterText, setFilterText] = useState<null | string>(null);
+    const [filterStatus, setFilterStatus] = useState<
+        undefined | statusOfEntity
+    >();
+    const [filterText, setFilterText] = useState<undefined | string>();
     const [choices, setChoices] = useState<string[]>([]);
     const [tabForDetailed, setTabForDetailed] = useState<string>(imagesTab);
     const [showTimeline] = useMemo<boolean[]>(
@@ -93,24 +98,24 @@ export default function TestEntityDrawer(props: {
     );
 
     if (
-        props.testID == null ||
-        sessions == null ||
-        run == null ||
-        suites == null ||
-        tests == null ||
-        attachments == null ||
-        writtenAttachments == null
+        properties.testID == undefined ||
+        sessions == undefined ||
+        run == undefined ||
+        suites == undefined ||
+        tests == undefined ||
+        attachments == undefined ||
+        writtenAttachments == undefined
     )
         return <></>;
 
-    const selectedSuiteDetails = suites[props.testID];
+    const selectedSuiteDetails = suites[properties.testID];
     const started = dayjs(run.started);
 
     const closeTimeline = () =>
         setChoices(choices.filter((x) => x != optionsForEntities[0]));
     const setTestID = (detailed: string) => {
         setDetailed(detailed);
-        props.setTestID(detailed);
+        properties.setTestID(detailed);
     };
 
     const rawSource = [
@@ -118,8 +123,8 @@ export default function TestEntityDrawer(props: {
         ...Object.values(suites),
     ].filter((test) => {
         let result = test.parent === selectedSuiteDetails.suiteID;
-        result &&= filterStatus == null || test.standing === filterStatus;
-        result &&= filterText == null || test.title.includes(filterText);
+        result &&= filterStatus == undefined || test.standing === filterStatus;
+        result &&= filterText == undefined || test.title.includes(filterText);
         return result;
     });
 
@@ -149,14 +154,14 @@ export default function TestEntityDrawer(props: {
                 />,
             );
         } else {
-            if (hasRequiredAttachment != null) {
+            if (hasRequiredAttachment != undefined) {
                 actions.push(
                     <Button
                         key="attachments"
                         shape="circle"
                         size="small"
                         icon={<PaperClipOutlined />}
-                        onClick={openDetailedView.bind(null, imagesTab)}
+                        onClick={openDetailedView.bind(undefined, imagesTab)}
                     />,
                 );
             }
@@ -174,7 +179,7 @@ export default function TestEntityDrawer(props: {
                         />
                     }
                     shape="round"
-                    onClick={openDetailedView.bind(null, errorsTab)}
+                    onClick={openDetailedView.bind(undefined, errorsTab)}
                 />,
             );
         }
@@ -293,9 +298,9 @@ export default function TestEntityDrawer(props: {
     return (
         <>
             <Drawer
-                open={props.open}
+                open={properties.open}
                 onClose={() => {
-                    props.onClose();
+                    properties.onClose();
                     setShowDetailedView(false);
                     closeTimeline();
                 }}
@@ -310,7 +315,7 @@ export default function TestEntityDrawer(props: {
                 title={
                     <Space style={{ marginBottom: '-5px' }} align="start">
                         <TreeSelectionOfSuites
-                            selected={props.testID}
+                            selected={properties.testID}
                             setTestID={setTestID}
                         />
                     </Space>
@@ -354,7 +359,9 @@ export default function TestEntityDrawer(props: {
                                     event: ChangeEvent<HTMLInputElement>,
                                 ) => {
                                     const value = event.target.value;
-                                    setFilterText(value === '' ? null : value);
+                                    setFilterText(
+                                        value === '' ? undefined : value,
+                                    );
                                 }}
                                 suffix={
                                     <Counter
@@ -381,7 +388,7 @@ export default function TestEntityDrawer(props: {
                                 size="small"
                                 icon={<PaperClipOutlined />}
                                 onClick={() => [
-                                    setDetailed(props.testID),
+                                    setDetailed(properties.testID),
                                     setShowDetailedView(true),
                                 ]}
                             />

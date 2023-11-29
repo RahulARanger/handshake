@@ -16,14 +16,14 @@ export default function crumbs(
             title: 'Graspit',
         },
         {
-            title: length == null ? 'Runs' : `Runs (${length})`,
-            href: allowHref != null ? '/RUNS/' : undefined,
+            title: length == undefined ? 'Runs' : `Runs (${length})`,
+            href: allowHref == undefined ? undefined : '/RUNS/',
         },
     ];
 }
 
 export function crumbsForRun(projectName: string): crumbItems {
-    const prevItems = crumbs(true);
-    prevItems.push({ title: projectName });
-    return prevItems;
+    const previousItems = crumbs(true);
+    previousItems.push({ title: projectName });
+    return previousItems;
 }

@@ -1,4 +1,4 @@
-import type { statusOfEntity } from './sessionRecords';
+import type { statusOfEntity } from './session-records';
 
 export default interface TestRunRecord {
     projectName: string;

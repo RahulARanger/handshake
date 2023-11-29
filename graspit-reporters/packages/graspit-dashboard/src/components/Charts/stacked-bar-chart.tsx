@@ -49,7 +49,7 @@ echarts.use([
     DatasetComponent,
 ]);
 
-export default function RenderPassedRate(props: {
+export default function RenderPassedRate(properties: {
     value: [number, number, number];
     width?: number;
     immutable?: boolean;
@@ -76,7 +76,7 @@ export default function RenderPassedRate(props: {
         yAxis: {
             show: false,
             type: 'category',
-            data: [props.title ?? 'Tests'],
+            data: [properties.title ?? 'Tests'],
         },
 
         series: [
@@ -86,7 +86,7 @@ export default function RenderPassedRate(props: {
                 color: radiantGreen,
                 stack: 'total',
                 label: { show: true, verticalAlign: 'top' },
-                data: [props.value[0]],
+                data: [properties.value[0]],
             },
             {
                 name: 'Failed',
@@ -94,7 +94,7 @@ export default function RenderPassedRate(props: {
                 stack: 'total',
                 color: radiantRed,
                 label: { show: true, verticalAlign: 'top' },
-                data: [props.value[1]],
+                data: [properties.value[1]],
             },
             {
                 name: 'Skipped',
@@ -102,7 +102,7 @@ export default function RenderPassedRate(props: {
                 color: radiantYellow,
                 stack: 'total',
                 label: { show: true, verticalAlign: 'top' },
-                data: [props.value[2]],
+                data: [properties.value[2]],
             },
         ],
     };
@@ -111,7 +111,7 @@ export default function RenderPassedRate(props: {
             option={options}
             style={{
                 height: '15px',
-                width: props.width ?? 180,
+                width: properties.width ?? 180,
                 marginTop: '3px',
                 padding: '0px',
             }}

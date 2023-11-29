@@ -1,12 +1,12 @@
-import type { dbConnection } from 'src/components/scripts/connection';
-import type { TestRunSummary } from 'src/types/testRunRecords';
-import type TestRunRecord from 'src/types/testRunRecords';
+import type { dataBaseConnection } from 'src/components/scripts/connection';
+import type { TestRunSummary } from 'src/types/test-run-records';
+import type TestRunRecord from 'src/types/test-run-records';
 
 const miniConditionForTestRuns = "WHERE ended <> ''";
 const conditionForTestRuns = `${miniConditionForTestRuns} order by started desc limit ?`;
 
 export default async function latestTestRun(
-    connection: dbConnection,
+    connection: dataBaseConnection,
 ): Promise<string> {
     const result = await connection.get<{ testID: string }>(
         `select testID from runbase where started = (select max(started) from runbase ${miniConditionForTestRuns});`,
@@ -15,7 +15,7 @@ export default async function latestTestRun(
 }
 
 export async function getDetailsOfTestRun(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     testID: string,
 ): Promise<TestRunRecord | undefined> {
     return connection.get<TestRunRecord>(
@@ -25,7 +25,7 @@ export async function getDetailsOfTestRun(
 }
 
 export async function getAllTestRunDetails(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     maxTestRuns?: number,
 ): Promise<TestRunRecord[] | undefined> {
     return connection.all<TestRunRecord[]>(
@@ -35,16 +35,16 @@ export async function getAllTestRunDetails(
 }
 
 export async function getDetailsOfRelatedRuns(
-    connection: dbConnection,
+    connection: dataBaseConnection,
     projectName: string,
     maxTestRuns?: number,
 ) {
-    const runs = (
-        await connection.all<Array<{ testID: string }>>(
-            `select testID from runbase ${conditionForTestRuns}`,
-            maxTestRuns ?? -1,
-        )
-    )?.map((run) => run.testID);
+    const testRuns = await connection.all<Array<{ testID: string }>>(
+        `select testID from runbase ${conditionForTestRuns}`,
+        maxTestRuns ?? -1,
+    );
+
+    const runs = testRuns.map((run) => run.testID);
     const sqlHelperForRuns = `(${runs.map(() => '?').join(',')})`;
 
     return connection.all<TestRunRecord[]>(
