@@ -8,11 +8,14 @@ export interface GraspItServiceOptions {
   exePath?:string;
   collectionName: string;
   timeout?: number;
-  projectName: string;
   export?: {
     out?: string;
     maxTestRuns: number;
     isDynamic?: boolean;
     skipPatch?: boolean;
+  }
+  testConfig: {
+    projectName: string;
+    avoidParentSuitesInCount: boolean;
   }
 }

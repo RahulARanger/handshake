@@ -27,11 +27,11 @@ export function attachReporter(
     GraspItService, {
       port,
       exePath: options.exePath,
-      projectName: options.projectName,
       timeout: options.timeout,
       root: options.root,
       collectionName: options.collectionName,
       export: options.export,
+      testConfig: options.testConfig,
     },
   ]);
 

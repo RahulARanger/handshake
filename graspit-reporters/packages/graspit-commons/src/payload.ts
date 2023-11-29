@@ -46,6 +46,7 @@ export interface UpdateTestRunConfig {
   exitCode:number;
   fileRetries:number;
   saveOptions: object;
+  avoidParentSuitesInCount: boolean;
 }
 
 export interface Assertion {
