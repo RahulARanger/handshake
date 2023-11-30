@@ -333,9 +333,9 @@ export default function GridOfRuns(properties: {
     const disabledDate: RangePickerProps['disabledDate'] = (
         current: dayjs.Dayjs,
     ) => {
-        return current.isBetween(
+        return !current.isBetween(
             dayjs(properties.runs.at(0)?.started),
-            dayjs(properties.runs.at(-1)?.ended),
+            dayjs(properties.runs.at(-1)?.started),
             'date',
             '[]',
         );

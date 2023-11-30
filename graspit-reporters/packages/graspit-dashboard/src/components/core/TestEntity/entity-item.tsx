@@ -3,9 +3,7 @@ import type {
     SuiteRecordDetails,
 } from 'src/types/test-entity-related';
 import { timelineColor } from 'src/components/parse-utils';
-import RenderTimeRelativeToStart, {
-    RenderDuration,
-} from 'src/components/utils/renderers';
+import { RenderDuration } from 'src/components/utils/renderers';
 import type { PreviewForTests } from 'src/types/parsed-records';
 
 import React, { type ReactNode } from 'react';
@@ -22,6 +20,7 @@ import Text from 'antd/lib/typography/Text';
 import { dateTimeFormatUsed } from 'src/components/utils/Datetime/format';
 import { Tag } from 'antd/lib';
 import Avatar from 'antd/lib/avatar/avatar';
+import RelativeTo from 'src/components/utils/Datetime/relative-time';
 
 export function EntityCollapsibleItem(properties: {
     item: PreviewForTests;
@@ -31,16 +30,15 @@ export function EntityCollapsibleItem(properties: {
     const aboutSuite: DescriptionsProps['items'] = [
         {
             key: 'started',
-            label: 'Started',
+            label: 'Range',
             children: (
-                <RenderTimeRelativeToStart value={properties.item.Started} />
-            ),
-        },
-        {
-            key: 'ended',
-            label: 'Ended',
-            children: (
-                <RenderTimeRelativeToStart value={properties.item.Ended} />
+                <RelativeTo
+                    dateTime={properties.item.Started[0]}
+                    secondDateTime={properties.item.Ended[0]}
+                    style={{
+                        maxWidth: '180px',
+                    }}
+                />
             ),
         },
         {
