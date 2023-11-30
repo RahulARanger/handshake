@@ -1,6 +1,6 @@
 {
 	"name": "graspit-commons",
-	"version": "3.4.3",
+	"version": "3.4.4",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
@@ -21,7 +21,7 @@
 	"dependencies": {
 		"async-lock": "^1.4.0",
 		"cross-env": "^7.0.3",
-		"graspit": "3.4.3",
+		"graspit": "3.4.4",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2"
 	},

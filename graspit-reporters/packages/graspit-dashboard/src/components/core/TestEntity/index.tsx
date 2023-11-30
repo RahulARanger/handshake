@@ -19,7 +19,7 @@ import {
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
 import BadgeForSuiteType from 'src/components/utils/test-status-dot';
-import RenderTimeRelativeToStart, {
+import {
     RenderEntityType,
     RenderStatus,
     RenderDuration,
@@ -60,6 +60,7 @@ import Badge from 'antd/lib/badge/index';
 import Meta from 'antd/lib/card/Meta';
 import TreeSelectionOfSuites, { NavigationButtons } from './header';
 import { EntityCollapsibleItem, EntityTimeline } from './entity-item';
+import RelativeTo from 'src/components/utils/Datetime/relative-time';
 
 export default function TestEntityDrawer(properties: {
     open: boolean;
@@ -224,26 +225,35 @@ export default function TestEntityDrawer(properties: {
         );
     });
 
+    const testAttachments = Object.values(attachments)
+        .flat()
+        .filter(
+            (attached) =>
+                tests[attached.entity_id]?.parent ===
+                selectedSuiteDetails.suiteID,
+        );
+
+    const savedAttachments = Object.values(writtenAttachments)
+        .flat()
+        .filter(
+            (attached) =>
+                tests[attached.entity_id]?.parent ===
+                selectedSuiteDetails.suiteID,
+        );
     const aboutSuite: DescriptionsProps['items'] = [
         {
-            key: 'started',
-            label: 'Started',
+            key: 'range',
+            label: 'Range',
             children: (
-                <RenderTimeRelativeToStart
-                    value={[dayjs(selectedSuiteDetails.started), started]}
-                    style={{ minWidth: '120px' }}
+                <RelativeTo
+                    dateTime={dayjs(selectedSuiteDetails.started)}
+                    secondDateTime={dayjs(selectedSuiteDetails.ended)}
+                    style={{
+                        maxWidth: '180px',
+                    }}
                 />
             ),
-        },
-        {
-            key: 'ended',
-            label: 'Ended',
-            children: (
-                <RenderTimeRelativeToStart
-                    value={[dayjs(selectedSuiteDetails.ended), started]}
-                    style={{ minWidth: '120px' }}
-                />
-            ),
+            span: 1.5,
         },
         {
             key: 'duration',
@@ -251,17 +261,7 @@ export default function TestEntityDrawer(properties: {
             children: (
                 <RenderDuration
                     value={dayjs.duration(selectedSuiteDetails.duration)}
-                />
-            ),
-        },
-        {
-            key: 'browserName',
-            label: 'Browser',
-            children: (
-                <RenderEntityType
-                    entityName={
-                        sessions[selectedSuiteDetails.session_id].entityName
-                    }
+                    style={{ maxWidth: '80px' }}
                 />
             ),
         },
@@ -279,12 +279,50 @@ export default function TestEntityDrawer(properties: {
                 />
             ),
         },
+        {
+            key: 'browserName',
+            label: 'Browser',
+            children: (
+                <RenderEntityType
+                    entityName={
+                        sessions[selectedSuiteDetails.session_id].entityName
+                    }
+                />
+            ),
+        },
+        {
+            key: 'assertions',
+            label: 'Assertions',
+            children: (
+                <Counter
+                    end={
+                        testAttachments.filter(
+                            (attach) => attach.type === 'ASSERT',
+                        ).length
+                    }
+                />
+            ),
+        },
+        {
+            key: 'images',
+            label: 'Images',
+            children: (
+                <Counter
+                    end={
+                        savedAttachments.filter(
+                            (attach) => attach.type === 'PNG',
+                        ).length
+                    }
+                />
+            ),
+        },
     ];
 
     const statusOptions: SelectProps['options'] = [
         'Passed',
         'Failed',
         'Skipped',
+        'Retried',
     ].map((status) => ({
         label: (
             <Space>
@@ -381,6 +419,7 @@ export default function TestEntityDrawer(properties: {
                                 onChange={(value) => {
                                     setFilterStatus(value);
                                 }}
+                                popupMatchSelectWidth={120}
                             />
                             <Button
                                 key="attachments"

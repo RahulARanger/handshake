@@ -1,6 +1,6 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun } from 'src/components/parse-utils';
+import { parseDetailedTestRun, sourceUrl } from 'src/components/parse-utils';
 import RenderTimeRelativeToStart, {
     RenderDuration,
 } from 'src/components/utils/renderers';
@@ -29,6 +29,8 @@ import Text from 'antd/lib/typography/Text';
 import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import Button from 'antd/lib/button/button';
+import type { RangePickerProps } from 'antd/es/date-picker';
+import GithubOutlined from '@ant-design/icons/GithubOutlined';
 
 dayjs.extend(isBetween);
 
@@ -239,7 +241,10 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
                 />
             }
         >
-            <AreaChartForRuns runs={properties.runs} showTest={isTest} />
+            <AreaChartForRuns
+                runs={properties.runs.toReversed()}
+                showTest={isTest}
+            />
         </Card>
     );
 
@@ -325,6 +330,17 @@ export default function GridOfRuns(properties: {
         ...new Set(properties.runs.map((run) => run.projectName)),
     ].map((projectName) => ({ label: projectName, value: projectName }));
 
+    const disabledDate: RangePickerProps['disabledDate'] = (
+        current: dayjs.Dayjs,
+    ) => {
+        return !current.isBetween(
+            dayjs(properties.runs.at(0)?.started),
+            dayjs(properties.runs.at(-1)?.started),
+            'date',
+            '[]',
+        );
+    };
+
     return (
         <Layout
             style={{
@@ -333,27 +349,45 @@ export default function GridOfRuns(properties: {
             }}
         >
             <Layout.Header className={HeaderStyles.header} spellCheck>
-                <Space align="baseline" size="large">
-                    <BreadCrumb items={crumbs(false, filteredRuns.length)} />
-                    <Divider type="vertical" />
-                    <Tooltip title="Filters are on the right">
-                        <FilterOutlined />
-                    </Tooltip>
-                    <Select
-                        options={projectNames}
-                        allowClear
-                        value={selectedProjectName}
-                        placeholder="Select Project Name"
-                        style={{ minWidth: '180px' }}
-                        onChange={(selected) => {
-                            filterProjectName(selected);
-                        }}
-                    />
-                    <DatePicker.RangePicker
-                        value={dateRange}
-                        onChange={(values) => {
-                            setDateRange(values);
-                        }}
+                <Space
+                    style={{
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        marginRight: '20px',
+                        marginTop: '1px',
+                    }}
+                    align="center"
+                >
+                    <Space align="baseline" size="large">
+                        <BreadCrumb
+                            items={crumbs(false, filteredRuns.length)}
+                        />
+                        <Divider type="vertical" />
+                        <Tooltip title="Filters are on the right">
+                            <FilterOutlined />
+                        </Tooltip>
+                        <Select
+                            options={projectNames}
+                            allowClear
+                            value={selectedProjectName}
+                            placeholder="Select Project Name"
+                            style={{ minWidth: '180px' }}
+                            onChange={(selected) => {
+                                filterProjectName(selected);
+                            }}
+                        />
+                        <DatePicker.RangePicker
+                            value={dateRange}
+                            onChange={(values) => {
+                                setDateRange(values);
+                            }}
+                            disabledDate={disabledDate}
+                        />
+                    </Space>
+                    <Button
+                        icon={<GithubOutlined style={{ fontSize: 20 }} />}
+                        href={sourceUrl}
+                        target="_blank"
                     />
                 </Space>
             </Layout.Header>

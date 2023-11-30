@@ -40,7 +40,7 @@ export interface AttachmentContent {
 
 export interface Attachment {
     attachmentValue: string;
-    type: string;
+    type: 'PNG' | 'ASSERT' | 'DESC' | 'LINK';
     description: string;
     entity_id: string;
 }

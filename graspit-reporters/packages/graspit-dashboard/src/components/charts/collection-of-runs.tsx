@@ -111,10 +111,7 @@ export default function AreaChartsForRuns(properties: {
             type: 'category',
             boundaryGap: false,
             data: properties.runs.map((run) =>
-                dayjs
-                    .utc(run.started)
-                    .utcOffset(0, true)
-                    .format(dateTimeFormatUsed),
+                dayjs(run.started).format(dateTimeFormatUsed),
             ),
         },
         yAxis: [
