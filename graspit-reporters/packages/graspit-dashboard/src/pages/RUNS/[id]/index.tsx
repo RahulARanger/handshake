@@ -22,7 +22,7 @@ import {
     getTestRunConfigRecords,
     getSomeAggResults,
 } from 'src/components/scripts/RunPage/overview';
-import Overview from 'src/components/core/TestRun/overview';
+import Overview from 'src/components/core/TestRun/overview-tab';
 import { attachmentPrefix } from 'src/components/core/TestRun/context';
 
 import { getDetailsOfRelatedRuns } from 'src/components/scripts/runs';

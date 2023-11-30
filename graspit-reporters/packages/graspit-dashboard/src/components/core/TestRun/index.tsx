@@ -19,7 +19,7 @@ import useSWR from 'swr';
 import Layout from 'antd/lib/layout/index';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import dayjs from 'dayjs';
-import { crumbsForRun } from '../ListOfRuns/items';
+import { crumbsForRun } from '../ListOfRuns/test-items';
 import MetaCallContext from './context';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';

@@ -1,5 +1,17 @@
 # graspit
 
+## 3.4.3
+
+### Patch Changes
+
+- fix chart folder name
+
+## 3.4.2
+
+### Patch Changes
+
+- fix: eslint issues
+
 ## 3.4.1
 
 ### Patch Changes
