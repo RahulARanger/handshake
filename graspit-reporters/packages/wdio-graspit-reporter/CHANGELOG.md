@@ -1,5 +1,11 @@
 # wdio-graspit-reporter
 
+## 3.4.2
+
+### Patch Changes
+
+- graspit-commons@3.4.2
+
 ## 3.4.1
 
 ### Patch Changes
