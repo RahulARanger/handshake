@@ -155,3 +155,5 @@ export function timelineColor(status: string): TimelineItemProps['color'] {
 }
 
 export const optionsForEntities = ['Timeline'];
+
+export const sourceUrl = 'https://github.com/RahulARanger/graspit';
