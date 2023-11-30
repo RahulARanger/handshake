@@ -32,7 +32,7 @@ jobs:
           run: npm install
 
         - name: Install Test Related Packages for mocha
-          working-directory: ./graspit-reporters/apps/test-mocha
+          working-directory: ./graspit-reporters/apps/test-wdio-mocha
           run: npm install
 
         - name: Install Test Related Packages for cucumber

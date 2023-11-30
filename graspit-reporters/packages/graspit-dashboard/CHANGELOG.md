@@ -1,5 +1,11 @@
 # graspit
 
+## 3.4.4
+
+### Patch Changes
+
+- fixed styling issues
+
 ## 3.4.3
 
 ### Patch Changes

@@ -13,7 +13,7 @@ import { RenderEntityType, RenderStatus } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import MetaCallContext from './context';
 
-import React, { useContext, type ReactNode } from 'react';
+import React, { useContext, type ReactNode, useMemo } from 'react';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
@@ -162,14 +162,17 @@ export default function ProjectStructure(properties: {
     const { data: detailsOfTestRun } = useSWR<TestRunRecord>(
         getTestRun(port, testID),
     );
+
+    const structure = useMemo<specNode>(() => {
+        return JSON.parse(detailsOfTestRun?.specStructure ?? '[]');
+    }, [detailsOfTestRun]);
+
     if (
         sessions == undefined ||
         detailsOfTestRun == undefined ||
         suites == undefined
     )
         return <></>;
-
-    const structure: specNode = JSON.parse(detailsOfTestRun.specStructure);
 
     const projectStructure = treeData(
         structure,
@@ -184,7 +187,7 @@ export default function ProjectStructure(properties: {
             treeData={projectStructure}
             showLine
             selectable={false}
-            defaultExpandedKeys={suites['@order']}
+            defaultExpandedKeys={projectStructure.map((key) => key.key)} // open the first key
         />
     );
 }
