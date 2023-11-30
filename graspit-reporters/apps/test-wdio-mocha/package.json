@@ -1,5 +1,5 @@
 {
-	"name": "test-mocha",
+	"name": "test-wdio-mocha",
 	"version": "1.0.0",
 	"description": "",
 	"main": "babel.config.js",
@@ -19,7 +19,7 @@
 		"@wdio/mocha-framework": "^8.24.5",
 		"@wdio/spec-reporter": "^8.24.2",
 		"ts-node": "^10.9.1",
-		"wdio-graspit-reporter": "3.4.2"
+		"wdio-graspit-reporter": "3.4.3"
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.3"

@@ -1,5 +1,11 @@
 # graspit
 
+## 3.4.3
+
+### Patch Changes
+
+- fix chart folder name
+
 ## 3.4.2
 
 ### Patch Changes
