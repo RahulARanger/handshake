@@ -4,11 +4,8 @@ import Link from "antd/lib/typography/Link";
 
 function stepStatus(forThis: number, current?: number) {
 	if (current == null) return "wait";
-	return current === forThis
-		? "process"
-		: current < forThis
-		? "wait"
-		: "finish";
+	if (current === forThis) return "process";
+	return current < forThis ? "wait" : "finish";
 }
 
 export default function SetupSteps(props: { current?: number }) {
@@ -18,8 +15,9 @@ export default function SetupSteps(props: { current?: number }) {
 			current={props.current}
 			items={[
 				{
-					title: <Link href="./server">Graspit Server</Link>,
-					description: "Downloading Python & graspit package",
+					title: <Link href="./check">Check</Link>,
+					description:
+						"Check if there's direct reporter available for your framework",
 					status: stepStatus(0, props.current),
 				},
 				{

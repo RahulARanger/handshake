@@ -1,22 +1,11 @@
 import SetupSteps from "pages/components/setupSteps";
-import PreviewForMotivation from "pages/components/Preview";
+import PreviewForMotivation from "pages/components/preview";
 
 # Welcome to Graspit
 
-**Graspit** offers a service for saving your test results and creating a dashboard.
-This dashboard is generated using Next.js and Ant Design (antd),
-while our Python server, spun by Sanic, handles the storage and management of your test data.
-Your test results are stored in an SQLite3 database, and the dashboard is a static export of our Next.js project.
-
-## Quick Start
-
-For Getting Started with the setup, we could shorten it with three steps, please go through them one by one.
-
-<SetupSteps />
+**Graspit** makes it easy for you by saving your test results and creating a user-friendly dashboard.
 
 ## Gallery
-
-Some of the Screenshots from Dashboard
 
 <PreviewForMotivation
 	images={[
@@ -37,11 +26,29 @@ Some of the Screenshots from Dashboard
 
 ## Motivation
 
-In my professional experience, I've used pytest and webdriverio.
+In my org., I've used webdriverio.
 I've written tests that ran for 2-3 hours on an EC2 instance.
 However, monitoring these tests through logs was challenging,
-and connecting to AWS CLI was time-consuming.
 
-Therefore, I decided to create a versatile reporting tool.
-This tool can generate dynamic reports while our test framework is running,
-making the whole process much more transparent.
+Graspit generates dynamic reports while our test framework is running,
+making the whole process much more transparent. Hopefully, Graspit would solve this issue.
+
+So this reporter is made sure it doesn't need to depend on the framework used, **completely**.
+
+## Roles
+
+This dashboard is generated using Next.js and Ant Design (antd),
+while our Python server, spun by Sanic, handles the storage and management of your test data.
+Your test results are stored in an SQLite3 database, and the dashboard is a static export of our Next.js project.
+
+## Highlights
+
+-   Generates HTML Reports of your Test Results
+-   Serves Dynamic Reports while your tests are running
+-   Saves your results in database _[locally]_
+
+## Quick Start
+
+Follow these three simple steps to set up quickly:
+
+<SetupSteps />
