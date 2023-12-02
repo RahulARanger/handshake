@@ -3,7 +3,6 @@ import superagent from 'superagent';
 import {
   spawn, spawnSync,
 } from 'node:child_process';
-// import { join } from 'node:path';
 import {
   setTimeout,
   setInterval,
@@ -16,25 +15,13 @@ import { UpdateTestRunConfig } from './payload';
 
 const logger = log4js.getLogger('graspit-service-commons');
 
-// const isWindows =
-//  () => process.platform === 'win32' || /^(msys|cygwin)$/.test(process.env.OSTYPE ?? '');
-
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
   pyProcess?: ChildProcess;
 
-  // eslint-disable-next-line class-methods-use-this
-  // get venv() {
-  //   return join('venv', isWindows() ? 'Scripts' : 'bin', 'activate');
-  // }
-
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
   }
-
-  // get activateVenvScript() {
-  //   return isWindows() ? `"${this.venv}"` : `source "${this.venv}"`;
-  // }
 
   static get defaultExe() {
     return join(dirname(__dirname), 'bin', 'graspit');
@@ -42,15 +29,6 @@ export class ServiceDialPad extends DialPad {
 
   executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
     const starter = isSync ? spawnSync : spawn;
-
-    // if (...for venv) {
-    //   // not recommended unless if a use case was shared
-    //   const command = `"${this.activateVenvScript}" && graspit ${args.join(' ')}`;
-    //   logger.info(`🧑‍🔬 Executing a command: ${command} from ${cwd}`);
-    //   return starter(command, {
-    //     timeout, shell: true, stdio: 'inherit', cwd,
-    //   });
-    // }
 
     logger.info(`🪖 Execute with ${args} for ${this.exePath ?? ServiceDialPad.defaultExe} from ${cwd} => ${args.join(' ')}`);
 
@@ -62,10 +40,6 @@ export class ServiceDialPad extends DialPad {
       },
     );
   }
-
-  // patchArgPath(arg: string) {
-  //   return this.exePath ? arg : `"${arg}"`;
-  // }
 
   startService(
     projectName: string,
