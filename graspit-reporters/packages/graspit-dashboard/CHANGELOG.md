@@ -1,5 +1,17 @@
 # graspit
 
+## 3.4.6
+
+### Patch Changes
+
+- fix: build error
+
+## 3.4.5
+
+### Patch Changes
+
+- fix toReversed function
+
 ## 3.4.4
 
 ### Patch Changes

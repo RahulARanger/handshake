@@ -224,6 +224,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
 
 function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
     const [isTest, showTest] = useState(true);
+    const sortedOrder = [...properties.runs].reverse();
     const areaChart = (
         <Card
             title="Test Runs"
@@ -241,10 +242,7 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
                 />
             }
         >
-            <AreaChartForRuns
-                runs={properties.runs.toReversed()}
-                showTest={isTest}
-            />
+            <AreaChartForRuns runs={sortedOrder} showTest={isTest} />
         </Card>
     );
 

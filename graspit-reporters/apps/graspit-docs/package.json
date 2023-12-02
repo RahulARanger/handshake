@@ -17,7 +17,7 @@
 		"@mdx-js/react": "^3.0.0",
 		"@next/mdx": "^14.0.3",
 		"antd": "^5.11.5",
-		"graspit": "3.4.4",
+		"graspit": "3.4.6",
 		"highcharts": "^11.2.0",
 		"highcharts-react-official": "^3.2.1",
 		"next": "^14.0.3",

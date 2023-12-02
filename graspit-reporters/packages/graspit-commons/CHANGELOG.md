@@ -1,5 +1,19 @@
 # graspit-commons
 
+## 3.4.6
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@3.4.6
+
+## 3.4.5
+
+### Patch Changes
+
+- Updated dependencies
+  - graspit@3.4.5
+
 ## 3.4.4
 
 ### Patch Changes
