@@ -1,10 +1,11 @@
-import AsyncLock from 'async-lock';
 import log4js from 'log4js';
 import superagent from 'superagent';
+import PQueue, { QueueAddOptions } from 'p-queue';
+import PriorityQueue from 'p-queue/dist/priority-queue';
 import DialPad from './dialPad';
 import {
   RegisterSession,
-  MarkTestEntity, MarkTestSession, RegisterTestEntity, Assertion,
+  MarkTestEntity, MarkTestSession, RegisterTestEntity, Assertion, Attachment,
 } from './payload';
 
 const logger = log4js.getLogger('graspit-commons');
@@ -19,17 +20,13 @@ export type IdMappedType = Record<string, string> & { session?: string };
 export class ReporterDialPad extends DialPad {
   idMapped: IdMappedType = {};
 
-  lockString = 'common-lock';
-
-  lock: AsyncLock;
+  pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
 
   constructor(port: number, timeout?:number) {
     super(port);
-    this.lock = new AsyncLock({
-      timeout: 60e3,
-      maxExecutionTime: timeout ?? 60e3,
-      maxPending: 1000,
-    });
+    this.pipeQueue = new PQueue(
+      { concurrency: 1, timeout: timeout ?? 180e3, throwOnTimeout: false },
+    );
   }
 
   get registerSession(): string {
@@ -56,60 +53,53 @@ export class ReporterDialPad extends DialPad {
     return `${this.writeUrl}/addAttachmentForEntity`;
   }
 
-  feed(
-    feedURL: string,
-    feedJSON: object | null,
-    keyToBeStored?: null | string,
-    dynamicKeys?: () => object,
-  ) {
-    this.lock.acquire(
-      this.lockString,
-      async () => {
-        if (keyToBeStored !== 'session'
-           && this.idMapped.session === undefined) {
-          logger.warn(
-            '💔 We cannot send requests for any register / mark requests before registering a session',
-          );
-        }
-        const payload = feedJSON || (dynamicKeys ? dynamicKeys() : {});
-        logger.info(
-          `📠 Faxing, ${feedURL} with payload 📃: ${JSON.stringify(
-            payload,
-          )}`,
-        );
-        await superagent.put(feedURL)
-          .send(JSON.stringify(payload))
-          .on('response', (result) => {
-            const { text, ok } = result;
-            if (!ok) {
-              logger.error(
-                `Server rejected the request 🙅 sent through ${feedURL} with payload 📃: ${JSON.stringify(
-                  feedJSON,
-                )} and attached a note: ${text}`,
-              );
-              return;
-            }
+  office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
+    const feed = payload || (callThisInside ? callThisInside() : {});
+    logger.info(
+      `📠 Faxed to ${contact} with payload 📃: ${JSON.stringify(
+        payload,
+      )}`,
+    );
 
-            logger.info(`Server accepted 🙆 the request and attached a note: ${text}`);
-            if (keyToBeStored) {
-              logger.info(
-                `Storing received response key [${keyToBeStored}] 🫙 as ${text}`,
-              );
-              this.idMapped[keyToBeStored] = String(text);
-            }
-          });
-      },
-    ).catch((reason) => {
-      logger.error(
-        `💔 Failed to send or read the request send through URL: ${feedURL} with payload 📃: ${JSON.stringify(
-          feedJSON,
-        )} because of ${reason?.message ?? reason}`,
+    return superagent.put(contact)
+      .send(JSON.stringify(feed))
+      .on('response', (result) => {
+        const { text, ok } = result;
+        if (!ok) {
+          logger.error(
+            `🏮 Server failed to understand the request sent to ${contact} with payload 📃: ${JSON.stringify(
+              feed,
+            )}. so it attached a note: ${text}`,
+          );
+          return;
+        }
+
+        logger.info(`🙆 Server accepted the request and attached a note: ${text}`);
+        if (storeIn) {
+          logger.info(
+            `🫙 Storing received response key [${storeIn}] as ${text}`,
+          );
+          this.idMapped[storeIn] = String(text);
+        }
+      });
+  }
+
+  async registerOrUpdateSomething(
+    contact: string,
+    payload?:object,
+    storeIn?: string,
+    callThisInside?: () => object,
+  ) {
+    await this.pipeQueue
+      .add(
+        () => this.office(contact, payload, callThisInside, storeIn),
       );
-    });
+
+    logger.info(`queue size in office 🏢: ${this.pipeQueue.size}`);
   }
 
   requestRegisterSession(sessionPayload: RegisterSession) {
-    this.feed(this.registerSession, sessionPayload, 'session');
+    this.registerOrUpdateSomething(this.registerSession, sessionPayload, 'session');
   }
 
   requestRegisterTestEntity(
@@ -117,9 +107,9 @@ export class ReporterDialPad extends DialPad {
     payload: RegisterTestEntity | (() => RegisterTestEntity),
   ) {
     const isCallable = typeof payload === 'function';
-    this.feed(
+    this.registerOrUpdateSomething(
       this.registerSuite,
-      isCallable ? null : payload,
+      isCallable ? undefined : payload,
       entityID,
       isCallable ? payload : undefined,
     );
@@ -127,9 +117,9 @@ export class ReporterDialPad extends DialPad {
 
   markTestEntity(entityID: string, payload: MarkTestEntity | (() => MarkTestEntity)) {
     const isCallable = typeof payload === 'function';
-    this.feed(
+    this.registerOrUpdateSomething(
       this.updateSuite,
-      isCallable ? null : payload,
+      isCallable ? undefined : payload,
       entityID,
       isCallable ? payload : undefined,
     );
@@ -137,12 +127,31 @@ export class ReporterDialPad extends DialPad {
 
   markTestSession(entityID: string, payload: MarkTestSession | (() => MarkTestSession)) {
     const isCallable = typeof payload === 'function';
-    this.feed(
+    this.registerOrUpdateSomething(
       this.updateSession,
-      isCallable ? null : payload,
+      isCallable ? undefined : payload,
       entityID,
       isCallable ? payload : undefined,
     );
+  }
+
+  async saveAttachment(hardSave: boolean, forWhat: string, payload: Attachment) {
+    if (!payload.entityID) {
+      logger.warn(`😕 Skipping!, we have not attached a ${forWhat} for unknown entity`);
+      return false;
+    }
+    const resp = await superagent
+      .put(hardSave ? this.writeAttachmentForEntity : this.addAttachmentForEntity)
+      .send(JSON.stringify(payload))
+      .on('response', (result) => {
+        if (result.ok) {
+          logger.info(`📸 Attached a ${forWhat}, id: ${result.text} for: ${payload.entityID}`);
+        } else {
+          logger.error(`💔 Failed to attach screenshot for ${payload.entityID}, because of ${result?.text}`);
+        }
+      });
+
+    return resp.text;
   }
 
   async attachScreenshot(

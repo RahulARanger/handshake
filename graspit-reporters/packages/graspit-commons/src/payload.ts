@@ -54,3 +54,11 @@ export interface Assertion {
   expected: any;
   options: any;
 }
+
+export interface Attachment {
+  entityID: string;
+  title: string;
+  description?:string;
+  attachmentValue: string;
+  type: 'DESC' | 'LINK' | 'PNG'
+}

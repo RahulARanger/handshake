@@ -20,9 +20,9 @@ export function attachReporter(
     {
       port,
       addScreenshots: options.addScreenshots || false,
+      lockTimeout: options.lockTimeout || 120e3,
     },
   ]);
-
 
   toModify.services.push([
     GraspItService, {
@@ -33,7 +33,7 @@ export function attachReporter(
       collectionName: options.collectionName,
       export: options.export,
       testConfig: {
-        ...options.testConfig, avoidParentSuitesInCount: options.testConfig.avoidParentSuitesInCount ?? config.framework === 'cucumber'
+        ...options.testConfig, avoidParentSuitesInCount: options.testConfig.avoidParentSuitesInCount ?? config.framework === 'cucumber',
       },
     },
   ]);

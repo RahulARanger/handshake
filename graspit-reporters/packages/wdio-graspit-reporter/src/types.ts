@@ -1,6 +1,7 @@
 export interface ReporterOptions {
   port: number;
   addScreenshots?:boolean;
+  lockTimeout?:number;
 }
 export interface GraspItServiceOptions {
   port: number;
