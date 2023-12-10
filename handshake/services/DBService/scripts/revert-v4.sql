@@ -1,5 +1,5 @@
 create temp table temp_view as select entityName from SessionBase;
-select * from temp_view;
+
 alter table SessionBase drop entityName;
 alter table SessionBase add entityName varchar(10);
 

@@ -10,11 +10,6 @@ def patch(root_dir, dist, dist_name):
     return lambda: call(f'{dist_name} patch "{root_dir}"', shell=True, cwd=dist)
 
 
-@fixture()
-def init_db(root_dir, dist, dist_name):
-    return lambda: call(f'{dist_name} config "{root_dir}"', shell=True, cwd=dist)
-
-
 @fixture(autouse=True)
 async def clean_close(db_path, init_db):
     if not db_path.exists():

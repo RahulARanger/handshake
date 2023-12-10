@@ -2,15 +2,9 @@ from pytest import fixture
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from handshake.services.DBService.models import RunBase, SessionBase
 from datetime import datetime, timedelta
-from subprocess import call
 from sanic_testing.testing import SanicASGITestClient
 from handshake.services.Endpoints.core import service_provider
 from __test__.conftest import testNames
-
-
-@fixture()
-def init_db(root_dir, dist_name):
-    return lambda: call(f'{dist_name} config "{root_dir}"', shell=True)
 
 
 @fixture(autouse=True)

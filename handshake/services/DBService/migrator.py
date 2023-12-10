@@ -61,7 +61,7 @@ def migrate(connection):
         return True
 
     script = Path(__file__).parent / "scripts" / f"bump-v{version_stored}.sql"
-    logger.info("Executing {}", script)
+    logger.info("Executing {}", script.name)
     connection.executescript(script.read_text())
 
     check_version(None, connection)

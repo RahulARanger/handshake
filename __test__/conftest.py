@@ -1,4 +1,5 @@
 import platform
+import subprocess
 
 from pytest import fixture, mark
 from pathlib import Path
@@ -28,3 +29,10 @@ def dist(root_dir):
 @fixture()
 def dist_name():
     return f"handshake-{platform.system()}"
+
+
+@fixture()
+def init_db(root_dir, dist, dist_name):
+    return lambda: subprocess.call(
+        f'{dist_name} config "{root_dir}"', shell=True, cwd=dist
+    )

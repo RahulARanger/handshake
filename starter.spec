@@ -6,7 +6,12 @@ a = Analysis(
     [str(pathlib.Path("handshake") / "services" / "starter.py")],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        (
+            "handshake/services/DBService/scripts/*.sql",
+            "handshake/services/DBService/scripts",
+        )
+    ],
     hiddenimports=["tracerite", "html5tagger"],
     hookspath=[
         "pyinstaller-hooks",
