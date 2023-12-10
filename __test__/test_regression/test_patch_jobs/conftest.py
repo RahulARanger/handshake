@@ -1,7 +1,7 @@
 from pytest import fixture
-from graspit.services.DBService.models import SuiteBase, TestConfigBase, SessionBase
-from graspit.services.DBService.models.enums import SuiteType, Status, AttachmentType
-from graspit.services.SchedularService.register import register_patch_suite
+from handshake.services.DBService.models import SuiteBase, TestConfigBase, SessionBase
+from handshake.services.DBService.models.enums import SuiteType, Status, AttachmentType
+from handshake.services.SchedularService.register import register_patch_suite
 import datetime
 from asyncio import sleep
 

@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "graspit"
-version = "0.12.6"
+name = "handshake"
+version = "1.0.0"
 description = "A service that's keen to process your test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "graspit"}]
+packages = [{include = "handshake"}]
 maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
 ]
@@ -43,4 +43,4 @@ requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
-graspit = "graspit.services.CommandLine.center:handle_cli"
+handshake = "handshake.services.CommandLine.center:handle_cli"

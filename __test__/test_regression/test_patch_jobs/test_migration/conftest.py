@@ -3,12 +3,12 @@ import time
 
 from pytest import fixture
 from pathlib import Path
-from graspit.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.models.enums import ConfigKeys
 
 from __test__.test_regression.conftest import testNames
-from graspit.services.DBService.shared import db_path as shared_db_path
-from graspit.services.DBService.lifecycle import init_tortoise_orm, close_connection
-from graspit.services.DBService.models import RunBase
+from handshake.services.DBService.shared import db_path as shared_db_path
+from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from handshake.services.DBService.models import RunBase
 from tortoise.connection import connections
 
 
@@ -16,7 +16,7 @@ from tortoise.connection import connections
 def scripts():
     return (
         Path(__file__).parent.parent.parent.parent.parent
-        / "graspit"
+        / "handshake"
         / "services"
         / "DBService"
         / "scripts"

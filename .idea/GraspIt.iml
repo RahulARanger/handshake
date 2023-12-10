@@ -2,6 +2,7 @@
 <module type="PYTHON_MODULE" version="4">
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/__test__" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/__test__/CLITests/.pytest_cache" />
       <excludeFolder url="file://$MODULE_DIR$/venv" />
       <excludeFolder url="file://$MODULE_DIR$/next-dashboard/node_modules" />
@@ -10,7 +11,7 @@
       <excludeFolder url="file://$MODULE_DIR$/TestResults" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11 (GraspIt)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.11 (Handshake)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

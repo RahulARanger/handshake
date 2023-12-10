@@ -1,8 +1,8 @@
 import datetime
 from typing import Coroutine, Any
 from pytest import mark
-from graspit.services.DBService.models import RunBase, SessionBase, SuiteBase
-from graspit.services.DBService.models.enums import SuiteType, Status
+from handshake.services.DBService.models import RunBase, SessionBase, SuiteBase
+from handshake.services.DBService.models.enums import SuiteType, Status
 from sanic import Sanic
 
 

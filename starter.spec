@@ -3,7 +3,7 @@ import pathlib
 import platform
 
 a = Analysis(
-    [str(pathlib.Path("graspit") / "services" / "starter.py")],
+    [str(pathlib.Path("handshake") / "services" / "starter.py")],
     pathex=[],
     binaries=[],
     datas=[],

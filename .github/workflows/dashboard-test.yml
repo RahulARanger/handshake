@@ -24,24 +24,24 @@ jobs:
             node-version: 20.9.0
 
         - name: Setup Turbo Repo
-          working-directory: ./graspit-reporters
+          working-directory: ./handshake-reporters
           run: npm install && npm run build
 
         - name: Download required for Dashboard
-          working-directory: ./graspit-reporters/packages/graspit-dashboard
+          working-directory: ./handshake-reporters/packages/handshake-dashboard
           run: npm install
 
         - name: Install Test Related Packages for mocha
-          working-directory: ./graspit-reporters/apps/test-wdio-mocha
+          working-directory: ./handshake-reporters/apps/test-wdio-mocha
           run: npm install
 
         - name: Install Test Related Packages for cucumber
-          working-directory: ./graspit-reporters/apps/test-wdio-cucumber
+          working-directory: ./handshake-reporters/apps/test-wdio-cucumber
           run: npm install
 
         - name: patch & export results
-          working-directory: ./graspit-reporters
+          working-directory: ./handshake-reporters
           run: |
             sudo npm run sanity
-            sudo npx graspit patch ../TestResults 
-            sudo npx graspit export ../TestResults --out ../TestReports
+            sudo npx handshake patch ../TestResults 
+            sudo npx handshake export ../TestResults --out ../TestReports

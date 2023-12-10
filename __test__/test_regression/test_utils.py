@@ -1,10 +1,10 @@
 import pathlib
-from graspit.services.SchedularService.completeTestRun import (
+from handshake.services.SchedularService.completeTestRun import (
     simplify_file_paths,
     fetch_key_from_status,
 )
-from graspit.services.DBService.models.config_base import ConfigKeys, ConfigBase
-from graspit.services.SchedularService.modifySuites import Status
+from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBase
+from handshake.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree

@@ -2,9 +2,9 @@ import sqlite3
 
 import tortoise
 from subprocess import run
-from graspit.services.DBService.models import ConfigBase, SessionBase
-from graspit.services.DBService.models.enums import ConfigKeys
-from graspit.services.DBService.migrator import migration
+from handshake.services.DBService.models import ConfigBase, SessionBase
+from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.migrator import migration
 
 
 async def assertEntityNameType(connection, expected):
