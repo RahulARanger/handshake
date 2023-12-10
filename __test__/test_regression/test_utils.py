@@ -108,10 +108,12 @@ def test_status_from_values():
 
 @mark.usefixtures("clean_close")
 class TestSetConfigCommand:
-    async def test_set_config_with_one_para(self, root_dir, force=None):
+    async def test_set_config_with_one_para(
+        self, root_dir, dist, dist_name, force=None
+    ):
         result = run(
-            f'graspit config "{root_dir}" -mr 3',
-            cwd=force if force else root_dir,
+            f'{dist_name} config "{root_dir}" -mr 3',
+            cwd=force if force else dist,
             shell=True,
         )
         assert result.returncode == 0

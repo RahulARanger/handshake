@@ -24,7 +24,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name=f"graspit-{platform.system()}",
+    name=f"handshake-{platform.system()}",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

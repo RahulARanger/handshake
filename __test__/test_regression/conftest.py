@@ -1,36 +1,16 @@
-from pytest import fixture, mark
-from pathlib import Path
-from handshake.services.DBService.shared import db_path as shared_db_path
+from pytest import fixture
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from handshake.services.DBService.models import RunBase, SessionBase
 from datetime import datetime, timedelta
 from subprocess import call
 from sanic_testing.testing import SanicASGITestClient
 from handshake.services.Endpoints.core import service_provider
-
-pytestmark = mark.asyncio
-
-testNames = "pyTestForOurProject"
+from __test__.conftest import testNames
 
 
 @fixture()
-def root_dir():
-    return Path(__file__).parent.parent.parent / "TestResults"
-
-
-@fixture()
-def db_path(root_dir):
-    return shared_db_path(root_dir)
-
-
-@fixture()
-def patch(root_dir):
-    return lambda: call(f'handshake patch "{root_dir}"', shell=True)
-
-
-@fixture()
-def init_db(root_dir):
-    return lambda: call(f'handshake config "{root_dir}"', shell=True)
+def init_db(root_dir, dist_name):
+    return lambda: call(f'{dist_name} config "{root_dir}"', shell=True)
 
 
 @fixture(autouse=True)

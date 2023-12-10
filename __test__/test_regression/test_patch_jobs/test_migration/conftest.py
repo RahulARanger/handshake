@@ -38,6 +38,8 @@ async def clean_close(db_path, init_db, root_dir):
     if root_dir.exists():
         shutil.rmtree(root_dir)
 
+    root_dir.mkdir()
+
     if not db_path.exists():
         init_db()
 
@@ -48,7 +50,9 @@ async def clean_close(db_path, init_db, root_dir):
     await RunBase.filter(projectName=testNames).all().delete()
     await close_connection()
     time.sleep(1)
-    shutil.rmtree(root_dir)
+
+    if root_dir.exists():
+        shutil.rmtree(root_dir)
 
 
 @fixture

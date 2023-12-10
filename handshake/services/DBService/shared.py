@@ -3,7 +3,7 @@ from pathlib import Path
 from handshake.services.DBService.sanic_free_shared import db_name
 from typing import Optional, Union
 
-APP_NAME = "Graspit"
+APP_NAME = "Handshake"
 
 
 def root_dir() -> Path:

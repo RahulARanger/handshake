@@ -23,11 +23,10 @@ async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
         modules={"models": models},
     )
     await Tortoise.generate_schemas()
+    await set_default_config()
 
 
 async def create_run(projectName: str) -> str:
-    await set_default_config()
-
     default_config_for_test_run: ValueForTestRunConfigBase = dict(
         platformName=uname().system, version=__version__
     )

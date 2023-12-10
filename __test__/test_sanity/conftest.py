@@ -1,42 +1,18 @@
-from pytest import fixture, mark
-from pathlib import Path
-from handshake.services.DBService.shared import db_path as shared_db_path
+from pytest import fixture
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
-from handshake.services.DBService.models import RunBase, SessionBase
-from datetime import datetime, timedelta
+from handshake.services.DBService.models import RunBase
 from subprocess import call
-from sanic_testing.testing import SanicASGITestClient
-from handshake.services.Endpoints.core import service_provider
-
-
-pytestmark = mark.asyncio
-
-testNames = "pyTestForOurProject"
+from __test__.conftest import testNames
 
 
 @fixture()
-def root_dir():
-    return Path(__file__).parent.parent.parent / "TestResults"
+def patch(root_dir, dist, dist_name):
+    return lambda: call(f'{dist_name} patch "{root_dir}"', shell=True, cwd=dist)
 
 
 @fixture()
-def db_path(root_dir):
-    return shared_db_path(root_dir)
-
-
-@fixture()
-def dist(root_dir):
-    return root_dir.parent / "dist"
-
-
-@fixture()
-def patch(root_dir, dist):
-    return lambda: call(f'graspit patch "{root_dir}"', shell=True, cwd=dist)
-
-
-@fixture()
-def init_db(root_dir, dist):
-    return lambda: call(f'graspit config "{root_dir}"', shell=True, cwd=dist)
+def init_db(root_dir, dist, dist_name):
+    return lambda: call(f'{dist_name} config "{root_dir}"', shell=True, cwd=dist)
 
 
 @fixture(autouse=True)

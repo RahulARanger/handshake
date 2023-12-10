@@ -18,8 +18,8 @@ async def assertEntityNameType(connection, expected):
     assert found, "entityName not found"
 
 
-class TestMigration:
-    async def test_bump_4(
+class TestMigrationScripts:
+    async def test_bump_v3(
         self, get_v3_connection, scripts, sample_test_run, create_session, db_path
     ):
         connection = tortoise.connections.get("default")
@@ -48,11 +48,11 @@ class TestMigration:
         for entity in entities:
             assert entity == "chrome", "Data changed"
 
-    async def test_direct(self, root_dir, get_v3_connection):
+    async def test_migrate_cli(self, root_dir, dist, dist_name, get_v3_connection):
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
         assert int(version.value) == 3
 
-        result = run(f'graspit db migrate "{root_dir}"', cwd=root_dir)
+        result = run(f'{dist_name} db migrate "{root_dir}"', cwd=dist, shell=True)
         assert result.returncode == 0
 
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
