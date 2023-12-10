@@ -76,7 +76,7 @@ export function EntityCollapsibleItem(properties: {
                                     icon={
                                         <Avatar
                                             size="small"
-                                            src={`https://s2.googleusercontent.com/s2/favicons?domain=${link.value}`}
+                                            src={`https://www.google.com/s2/favicons?sz=64&domain_url=${link.value}`}
                                         />
                                     }
                                 >

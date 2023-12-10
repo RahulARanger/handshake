@@ -1,4 +1,4 @@
-from graspit.services.CommandLine.export import handle_cli, general_requirement
+from graspit.services.CommandLine.migrate import handle_cli, general_requirement
 from graspit.services.CommandLine._init import general_but_optional_requirement
 from graspit.services.Endpoints.center import service_provider
 from graspit.services.DBService.lifecycle import (

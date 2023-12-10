@@ -97,11 +97,12 @@ async def helper_create_test_config(
     )
 
 
-async def helper_create_session(test_id: str):
+async def helper_create_session(test_id: str, entityName="sample"):
     await sleep(0.0025)
     started = datetime.datetime.utcnow()
     return await SessionBase.create(
         started=started,
+        entityName=entityName,
         test_id=test_id,
         ended=started + datetime.timedelta(milliseconds=24),
     )

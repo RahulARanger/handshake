@@ -1,15 +1,21 @@
-# @handle_cli.group()
-# def db_version():
-#     pass
+from click import echo
+from graspit.services.CommandLine.export import handle_cli, general_requirement
+from graspit.services.DBService.shared import db_path
+from graspit.services.DBService.migrator import check_version, migration
 
 
-# @db_version.command()
-# @argument("path", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True)
-# def check(path: str):
-#     return check_version(db_path(Path(path)))
-#
-#
-# @db_version.command()
-# @argument("path", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True)
-# def migrate(path: str):
-#     return initiate_migration(db_path(Path(path)))
+@handle_cli.group()
+def db():
+    ...
+
+
+@general_requirement
+@db.command()
+def version(collection_path):
+    return check_version(db_path(collection_path))
+
+
+@general_requirement
+@db.command()
+def migrate(collection_path):
+    return migration(db_path(collection_path))

@@ -84,7 +84,7 @@ class SessionBase(CommonDetailedFields):
     )
     suites = ReverseRelation["SuiteBase"]
     sessionID = UUIDField(pk=True)
-    entityName = CharField(max_length=10, default="")
+    entityName = CharField(max_length=30, default="")
     entityVersion = CharField(max_length=20, default="")
     simplified = TextField(
         default="", description="browser name & version &/ platform name included"

@@ -1,5 +1,6 @@
 from sqlite3 import connect
 from graspit.services.DBService import DB_VERSION
+from graspit.services.DBService.models.enums import ConfigKeys
 from sqlite3.dbapi2 import Connection
 from typing import Optional, Tuple
 from pathlib import Path
@@ -7,96 +8,73 @@ from loguru import logger
 
 
 def check_version(
-    path: Path, connection: Optional[Connection] = None
-) -> Tuple[Optional[str], Connection]:
+    path: Path = None, connection: Optional[Connection] = None
+) -> Tuple[bool, Connection, bool, Optional[int]]:
     connection = connection if connection else connect(path)
-    query = "select value from configbase where key = 'VERSION'"
-
+    query = f"select value from configbase where key = '{ConfigKeys.version}'"
     result = connection.execute(query).fetchone()
+
+    version_stored = False
+    migration_required = False
 
     if not result:
         logger.warning(
-            "Could not find the version, please either the delete the DB or raise an issue if required."
+            f"Could not find the version, Please raise this as an issue or re-run after deleting the folder {path}."
         )
     else:
-        satisfied = int(result[0]) == DB_VERSION
+        version_stored = result if not result else int(result[0])
+        migration_required = version_stored != DB_VERSION
+
         logger.log(
-            "INFO" if satisfied else "WARNING",
-            "Found version: v{} and required is v{}",
+            "INFO" if not migration_required else "ERROR",
+            "Currently at: v{}."
+            if not migration_required
+            else 'Found version: v{}. but required is v{}. Please execute: \n"graspit db migrate [COLLECTION_PATH]"',
             result[0],
             DB_VERSION,
         )
-        if not satisfied:
-            logger.warning(
-                "Requires migration, Please run 'graspit db-version migrate'"
-            )
-    return result[0] if result else result, connection
+    return (
+        migration_required,
+        connection,
+        version_stored < DB_VERSION,
+        version_stored,
+    )
 
 
-def initiate_migration(path: Path, aim=DB_VERSION):
-    connection = connect(path)
+def migrate(connection):
+    is_required, connection, bump_if_required, version_stored = check_version(
+        connection=connection
+    )
 
-    while True:
-        _actual_version, _ = check_version(path, connection)
-        if not _actual_version:
-            return
+    if not is_required:
+        logger.info("Already migrated to required version")
+        return True
 
-        actual_version = int(_actual_version)
-        if actual_version == aim:
-            logger.info("Migration completed")
-            break
-
-        logger.warning(
-            "Starting Migration as we found the version to be of v{} but required is v{}",
-            actual_version,
+    if not bump_if_required:
+        logger.error(
+            "You have more recent version of database, v{}. but we can only support: v{}. "
+            "Hence requesting either to update your reporter or "
+            "use your backup database inside the collection_path.",
+            version_stored,
             DB_VERSION,
         )
-        new_version = actual_version + (-1 if aim < actual_version else 1)
+        return True
 
-        result = (
-            revert(connection, new_version)
-            if aim < actual_version
-            else bump(connection, new_version)
-        )
-        if result:
-            return
+    script = Path(__file__).parent / "scripts" / f"bump-v{version_stored}.sql"
+    logger.info("Executing {}", script)
+    connection.executescript(script.read_text())
 
-        connection.execute(
-            "update configbase set value = ? where key = 'VERSION'", (new_version,)
-        )
+    check_version(None, connection)
+
+
+def migration(path):
+    connection = connect(path)
+
+    try:
+        migrate(connection)
         connection.commit()
-
-        logger.info(
-            "Migration is successful from v{} to v{}", actual_version, new_version
-        )
-
-    connection.close()
-
-
-# def revert(connection: Connection, new_version: int) -> bool:
-#     match new_version:
-#         case 1:
-#             revert_v2(connection)
-#
-#         case _:
-#             logger.error(
-#                 "Could not revert, Found the version: v{} but this is not a valid version",
-#                 new_version,
-#             )
-#             return True
-#
-#     return False
-#
-#
-# def bump(connection: Connection, new_version: int) -> bool:
-#     match new_version:
-#         case 2:
-#             v2(connection)
-#
-#         case _:
-#             logger.error(
-#                 "Could not bump version, Found the version: v{} but this is not a valid version",
-#                 new_version,
-#             )
-#             return True
-#     return False
+    except Exception as error:
+        logger.error(f"Failed to execute migration script, due to {error}")
+        return True
+    finally:
+        connection.close()
