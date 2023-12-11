@@ -23,17 +23,13 @@ export class ServiceDialPad extends DialPad {
     return `${this.saveUrl}/currentRun`;
   }
 
-  static get defaultExe() {
-    return join(dirname(__dirname), 'bin', 'graspit');
-  }
-
   executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
     const starter = isSync ? spawnSync : spawn;
 
-    logger.info(`🪖 Execute with ${args} for ${this.exePath ?? ServiceDialPad.defaultExe} from ${cwd} => ${args.join(' ')}`);
+    logger.info(`🪖 Execute with ${args} for ${this.exePath} from ${cwd} => ${args.join(' ')}`);
 
     return starter(
-      this.exePath ?? ServiceDialPad.defaultExe,
+      this.exePath,
       args,
       {
         timeout, shell: false, cwd, stdio: 'inherit', detached: false,

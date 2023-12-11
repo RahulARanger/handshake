@@ -55,4 +55,4 @@ handshake-nodejs-reporters/packages/graspit-dashboard/src/styles/antd.min.css
 
 # Misc
 .DS_Store
-handshake-nodejs-reporters/packages/graspit-commons/bin
+handshake-nodejs-reporters/packages/common-handshakes/bin

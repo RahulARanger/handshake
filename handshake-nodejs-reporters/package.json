@@ -1,5 +1,5 @@
 {
-  "name": "graspit-reporters",
+  "name": "handshake-reporters",
   "packageManager": "npm@9.6.2",
   "type": "module",
   "workspaces": [
@@ -14,26 +14,19 @@
     "test": "npm run build && turbo run test --concurrency=1 --continue",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "wdio": "wdio run ./apps\\test-mocha\\wdio.conf.js",
-    "publish": "turbo run build lint && changeset version && changeset publish",
-    "generate-report": "graspit export --out ./dist ../TestResults",
-    "view-report": "graspit display ./dist"
+    "publish": "turbo run build lint && changeset version && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",
-    "@typescript-eslint/eslint-plugin": "^6.13.1",
-    "@typescript-eslint/parser": "^6.13.1",
-    "eslint": "^8.54.0",
+    "@typescript-eslint/eslint-plugin": "^6.13.2",
+    "@typescript-eslint/parser": "^6.13.2",
+    "eslint": "^8.55.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-airbnb-typescript": "^17.1.0",
     "eslint-plugin-unicorn": "^49.0.0",
-    "prettier": "^3.1.0",
-    "rimraf": "^5.0.5",
+    "prettier": "^3.1.1",
     "tsconfig": "7.0.0",
     "tsup": "^8.0.1",
-    "turbo": "^1.10.16"
-  },
-  "dependencies": {
-    "log4js": "^6.9.1"
+    "turbo": "^1.11.1"
   }
 }

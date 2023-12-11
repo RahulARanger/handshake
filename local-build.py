@@ -16,7 +16,7 @@ commons = (
     Path(__file__).parent
     / "handshake-nodejs-reporters"
     / "packages"
-    / "handshake-commons"
+    / "common-handshakes"
     / "bin"
 )
 
