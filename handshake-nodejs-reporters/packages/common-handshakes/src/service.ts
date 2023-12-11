@@ -9,7 +9,6 @@ import {
   clearTimeout,
 } from 'node:timers';
 import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
-import { dirname, join } from 'node:path';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
 
@@ -112,8 +111,8 @@ export class ServiceDialPad extends DialPad {
 
   async isServerTerminated(): Promise<boolean> {
     if (this.pyProcess?.killed) return true;
-    const resp = await superagent.get(`${this.url}/`);
-    const wasTerminated = resp.statusCode === 200;
+    const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
+    const wasTerminated = resp?.statusCode !== 200;
     if (!wasTerminated) logger.warn('→ Had to 🗡️ the py-process.');
     return wasTerminated;
   }
