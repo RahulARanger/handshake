@@ -14,7 +14,7 @@
 	},
 	"scripts": {
 		"lint": "eslint src/**",
-		"test": "jest",
+		"test": "npx jest tests/reporter.test.js tests/service.test.js tests/helper.test.js",
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts",
 		"install": "node ./installation/download_build.cjs"
 	},

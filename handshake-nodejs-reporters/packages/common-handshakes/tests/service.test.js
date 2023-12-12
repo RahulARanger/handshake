@@ -36,7 +36,7 @@ describe('Verifying the handshake-server helper class', () => {
   });
 
   describe('verifying the running service', () => {
-    const instance = new ServiceDialPad(6969);
+    const instance = new ServiceDialPad(7272);
 
     afterAll(async () => {
       await instance.terminateServer();
@@ -47,7 +47,7 @@ describe('Verifying the handshake-server helper class', () => {
       expect(await instance.ping()).toBe(false); // instance takes some time to start
       await instance.waitUntilItsReady(); // so we need to wait
 
-      expect(await instance.ping()).toBe(true); // now it should be running at the port: 6969
+      expect(await instance.ping()).toBe(true); // now it should be running at the port: 7272
       expect(server).not.toBe(undefined);
     }, 10e3);
 

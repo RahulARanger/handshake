@@ -131,11 +131,12 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     });
 
     test('verifying the png attachment', async () => {
-      const testAttachment = await reporter.attachScreenshot('screenshot-0', '003043024adsasd', reporter.idMapped['test-0-1'], 'sample-description');
+      const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
+      const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['test-0-1'], 'sample-description');
       expect(testAttachment).toBe(true);
       expect(reporter.misFire).toBe(0);
 
-      const suiteAttachment = await reporter.addAssertion('screenshot-0', '003043024adsasd', reporter.idMapped['suite-0']);
+      const suiteAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['suite-0']);
       expect(suiteAttachment).toBe(true);
       expect(reporter.misFire).toBe(0);
     });
@@ -188,5 +189,9 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       await Promise.all(jobs);
       expect(reporter.misFire).toBe(0);
     });
+  });
+
+  test('finally p-queue should be free', () => {
+    expect(reporter.pipeQueue.size).toBe(0);
   });
 });

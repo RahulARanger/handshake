@@ -186,7 +186,7 @@ export class ReporterDialPad extends DialPad {
   ) {
     return this.saveAttachment(
       false,
-      'description',
+      'link',
       {
         entityID: entity_id, type: 'LINK', value: url, title,
       },
@@ -199,7 +199,7 @@ export class ReporterDialPad extends DialPad {
   ) {
     return this.saveAttachment(
       false,
-      'description',
+      'assertion',
       {
         entityID: entity_id, type: 'ASSERT', value: JSON.stringify(assertion), title: assertion.matcherName,
       },
@@ -214,7 +214,7 @@ export class ReporterDialPad extends DialPad {
   ) {
     return this.saveAttachment(
       true,
-      'description',
+      'screenshot',
       {
         entityID: entity_id, type: 'PNG', value: content, title, description,
       },
