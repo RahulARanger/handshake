@@ -29,17 +29,19 @@ async def handle_response(request: Request, response: JSONResponse):
     if 200 <= response.status < 300:
         return response
 
+    payload = dict(
+        url=request.url,
+        payload=request.json,
+        status=response.status,
+        reason=response.body.decode(),
+    )
     await TestConfigBase.create(
         test_id=get_test_id(),
-        attachmentValue=dict(
-            url=request.url,
-            payload=request.json,
-            status=response.status,
-            reason=response.body.decode(),
-        ),
+        attachmentValue=payload,
         type=AttachmentType.ERROR,
         description=f"Failed to process the request at: {request.url}, will affect the test run",
     )
+    return JSONResponse(body=payload, status=response.status)
 
 
 @service.put("/registerSession")
