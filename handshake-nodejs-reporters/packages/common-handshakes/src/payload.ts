@@ -5,6 +5,7 @@ export interface RegisterSession {
 }
 
 export type SuiteType = 'SUITE' | 'TEST';
+export type Standing = 'PASSED' | 'FAILED' | 'SKIPPED' | 'PENDING';
 
 export interface RegisterTestEntity {
   title: string;
@@ -22,7 +23,7 @@ export interface MarkTestEntity {
   duration: number;
   suiteID: string;
   errors: Error[];
-  standing: string;
+  standing: Standing;
   ended: string;
 }
 
@@ -58,8 +59,8 @@ export interface Assertion {
 
 export interface Attachment {
   entityID: string;
-  title: string;
+  title?: string;
   description?:string;
-  attachmentValue: string;
-  type: 'DESC' | 'LINK' | 'PNG'
+  value:string;
+  type: 'DESC' | 'LINK' | 'PNG' | 'ASSERT'
 }

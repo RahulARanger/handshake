@@ -57,22 +57,18 @@ export class ReporterDialPad extends DialPad {
   }
 
   async office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
-    const feed = (callThisInside === undefined ? payload : callThisInside()) ?? {};
+    const feed = JSON.stringify((callThisInside === undefined ? payload : callThisInside()) ?? {});
     logger.info(
-      `📠 Faxing ${callThisInside === undefined ? 'static' : 'dynamic'} payload 📃: ${JSON.stringify(
-        payload,
-      )} to ${contact}`,
+      `📠 Faxing ${callThisInside === undefined ? 'static' : 'dynamic'} payload 📃: ${feed} to ${contact}`,
     );
 
     await superagent.put(contact)
-      .send(JSON.stringify(feed))
+      .send(feed)
       .on('response', (result) => {
         const { text, ok } = result;
         if (!ok) {
           logger.error(
-            `🏮 Server failed to understand the request sent to ${contact} with payload 📃: ${JSON.stringify(
-              feed,
-            )}. so it attached a note: ${text}`,
+            `❌ Server failed to understand the request sent to ${contact} with payload 📃: ${feed}. so it attached a note: ${text}`,
           );
           return;
         }
@@ -130,11 +126,11 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
-  markTestEntity(entityID: string, payload: () => MarkTestEntity) {
+  markTestEntity(payload: () => MarkTestEntity) {
     return this.registerOrUpdateSomething(
       this.updateSuite,
       undefined,
-      entityID,
+      undefined,
       payload,
     );
   }
@@ -154,18 +150,60 @@ export class ReporterDialPad extends DialPad {
       logger.warn(`😕 Skipping!, we have not attached a ${forWhat} for unknown entity`);
       return false;
     }
-    const resp = await superagent
+    await superagent
       .put(hardSave ? this.writeAttachmentForEntity : this.addAttachmentForEntity)
       .send(JSON.stringify(payload))
       .on('response', (result) => {
         if (result.ok) {
-          logger.info(`📸 Attached a ${forWhat}, id: ${result.text} for: ${payload.entityID}`);
+          logger.info(`🔗 Attached a ${forWhat} for entity: ${payload.entityID} with ${result.text}`);
         } else {
-          logger.error(`💔 Failed to attach screenshot for ${payload.entityID}, because of ${result?.text}`);
+          logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
         }
+      }).catch((err) => {
+        this.misFire += 1;
+        logger.error(`❌ Failed to attach ${forWhat} for ${payload.entityID}, because of ${err}`);
       });
+    return true;
+  }
 
-    return resp.text;
+  async addDescription(
+    content: string,
+    entity_id: string,
+  ) {
+    return this.saveAttachment(
+      false,
+      'description',
+      {
+        entityID: entity_id, type: 'DESC', value: content,
+      },
+    );
+  }
+
+  async addLink(
+    url: string,
+    title: string,
+    entity_id: string,
+  ) {
+    return this.saveAttachment(
+      false,
+      'description',
+      {
+        entityID: entity_id, type: 'LINK', value: url, title,
+      },
+    );
+  }
+
+  async addAssertion(
+    assertion: Assertion,
+    entity_id: string,
+  ) {
+    return this.saveAttachment(
+      false,
+      'description',
+      {
+        entityID: entity_id, type: 'ASSERT', value: JSON.stringify(assertion), title: assertion.matcherName,
+      },
+    );
   }
 
   async attachScreenshot(
@@ -198,92 +236,5 @@ export class ReporterDialPad extends DialPad {
       });
 
     return resp.text;
-  }
-
-  async addDescription(
-    content: string,
-    entity_id: string,
-  ) {
-    if (!entity_id) {
-      logger.warn('😕 Skipping!, we have not added a description for unknown entity');
-      return false;
-    }
-    const payload = JSON.stringify({
-      value: content,
-      type: 'DESC',
-      entityID: entity_id,
-    });
-
-    const resp = await superagent
-      .put(this.addAttachmentForEntity)
-      .send(payload)
-      .on('response', (result) => {
-        if (result.ok) {
-          logger.info(`👍 Added Description for ${entity_id}`);
-        } else {
-          logger.error(`💔 Failed to add description for ${entity_id}, because of ${result?.text}`);
-        }
-      });
-
-    return resp?.ok;
-  }
-
-  async addLink(
-    url: string,
-    title: string,
-    entity_id: string,
-  ) {
-    if (!entity_id) {
-      logger.warn('😕 Skipping!, we have not added a link for unknown entity');
-      return false;
-    }
-    const payload = JSON.stringify({
-      title,
-      value: url,
-      type: 'LINK',
-      entityID: entity_id,
-    });
-
-    const resp = await superagent
-      .put(this.addAttachmentForEntity)
-      .send(payload)
-      .on('response', (result) => {
-        if (result.ok) {
-          logger.info(`Attached a 🔗 Link for ${entity_id}`);
-        } else {
-          logger.error(`💔 Failed to attach a link: ${url} for ${entity_id}, because of ${result?.text}`);
-        }
-      });
-
-    return resp?.ok;
-  }
-
-  async addAssertion(
-    assertion: Assertion,
-    entity_id: string,
-  ) {
-    if (!entity_id) {
-      logger.warn('😕 Skipping!, we have not added a link for unknown entity');
-      return false;
-    }
-    const payload = JSON.stringify({
-      type: 'ASSERT',
-      value: JSON.stringify(assertion),
-      entityID: entity_id,
-      title: assertion.matcherName,
-    });
-
-    const resp = await superagent
-      .put(this.addAttachmentForEntity)
-      .send(payload)
-      .on('response', (result) => {
-        if (result.ok) {
-          logger.info(`Added an 🧪 assertion: ${assertion.matcherName} for ${entity_id}`);
-        } else {
-          logger.error(`💔 Failed to attach an assertion; ${assertion.matcherName} for ${entity_id}, because of ${result?.text}`);
-        }
-      });
-
-    return resp?.ok;
   }
 }

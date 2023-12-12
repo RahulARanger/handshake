@@ -66,7 +66,7 @@ async def register_suite(request: Request) -> HTTPResponse:
     return text(str(suite_record.suiteID), status=201)
 
 
-@service.put("/updateSuite")
+@service.put("/updateSuite", error_format="json")
 async def updateSuite(request: Request) -> HTTPResponse:
     suite = MarkSuite.model_validate(request.json)
 
@@ -92,12 +92,11 @@ async def updateSuite(request: Request) -> HTTPResponse:
         await register_patch_suite(suite_record.suiteID, get_test_id())
 
     return text(
-        f"Suite: {suite_record.title} - {suite_record.suiteID} was updated",
-        status=201,
+        f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201
     )
 
 
-@service.put("/updateSession")
+@service.put("/updateSession", error_format="json")
 async def update_session(request: Request) -> HTTPResponse:
     session = MarkSession.model_validate(request.json)
     test_session = await SessionBase.filter(sessionID=session.sessionID).first()
