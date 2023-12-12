@@ -1,6 +1,6 @@
 {
 	"name": "common-handshakes",
-	"version": "3.4.6",
+	"version": "0.1.0",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",

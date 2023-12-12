@@ -1,5 +1,5 @@
 {
-	"extends": "graspit-commons/node.json",
+	"extends": "common-handshakes/node.json",
 	"compilerOptions": {
 		"types": ["@wdio/globals/types"]
 	},

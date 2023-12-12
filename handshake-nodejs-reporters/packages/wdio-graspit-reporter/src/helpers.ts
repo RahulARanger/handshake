@@ -1,6 +1,6 @@
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
-import { Assertion } from 'graspit-commons';
+import { Assertion } from 'common-handshakes';
 import { GraspItServiceOptions, ReporterOptions } from './types';
 import GraspItService from './service';
 import { currentReporter } from './contacts';

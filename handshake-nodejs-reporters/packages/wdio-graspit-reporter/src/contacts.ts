@@ -1,7 +1,7 @@
 // eslint-disable-next-line max-classes-per-file
 import WDIOReporter, { TestStats } from '@wdio/reporter';
 import log4js, { Logger } from 'log4js';
-import { ReporterDialPad, ServiceDialPad } from 'graspit-commons';
+import { ReporterDialPad, ServiceDialPad } from 'common-handshakes';
 import type { ReporterOptions, GraspItServiceOptions } from './types';
 
 // eslint-disable-next-line import/no-mutable-exports

@@ -5,7 +5,7 @@ export interface RegisterSession {
 }
 
 export type SuiteType = 'SUITE' | 'TEST';
-export type Standing = 'PASSED' | 'FAILED' | 'SKIPPED' | 'PENDING';
+export type Standing = 'PASSED' | 'FAILED' | 'SKIPPED' | 'PENDING' | 'YET_TO_CALC';
 
 export interface RegisterTestEntity {
   title: string;

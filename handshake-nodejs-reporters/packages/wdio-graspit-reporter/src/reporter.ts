@@ -4,8 +4,8 @@ import type {
 } from '@wdio/reporter';
 import {
   Assertion,
-  MarkTestEntity, RegisterTestEntity, SuiteType, sanitizePaths,
-} from 'graspit-commons';
+  MarkTestEntity, RegisterTestEntity, Standing, SuiteType, sanitizePaths,
+} from 'common-handshakes';
 import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
 
@@ -68,9 +68,9 @@ export default class GraspItReporter extends ReporterContacts {
       ? suiteOrTest.end.toISOString()
       : new Date().toISOString();
 
-    const standing: string = (
+    const standing = (
       (suiteOrTest.type === 'test' ? state : 'YET_TO_CALC') || 'PENDING'
-    ).toUpperCase();
+    ).toUpperCase() as Standing;
 
     const ifNotErrors = !errors?.length && error ? [error] : [];
 
@@ -92,13 +92,12 @@ export default class GraspItReporter extends ReporterContacts {
       return;
     }
 
-    this.supporter.feed(
-      this.supporter.registerSession,
+    this.supporter.requestRegisterSession(
       {
-        started: runnerStats.start.toISOString(),
+        started: this.runnerStat?.start ?? new Date(),
         specs: sanitizePaths(runnerStats.specs),
+        retried: this.runnerStat?.retry ?? 0,
       },
-      'session',
     );
   }
 

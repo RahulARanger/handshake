@@ -1,28 +1,28 @@
 {
-	"name": "wdio-graspit-reporter",
-	"version": "3.4.6",
+	"name": "wdio-handshake-reporter",
+	"version": "0.1.0",
 	"types": "./dist/index.d.ts",
 	"main": "./dist/index.cjs",
 	"module": "./dist/index.js",
 	"type": "module",
 	"private": false,
 	"license": "MIT",
-	"readme": "../../README.md",
-	"description": "This package is a reporter that sends the test data from your webdriverIO test run to your local graspit server which is then displayed by our graspit-dashboard",
+	"readme": "README.md",
+	"description": "This package is a reporter that sends the test data from your webdriverIO test run to your local handshake server which is then displayed by our handshake-dashboard",
 	"scripts": {
 		"lint": "eslint src/**",
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts && node build.cjs"
 	},
 	"dependencies": {
-		"@wdio/reporter": "^8.24.2",
-		"@wdio/types": "^8.24.2",
+		"@wdio/reporter": "^8.24.12",
+		"@wdio/types": "^8.24.12",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"graspit-commons": "3.4.6"
+		"common-handshakes": "0.1.0"
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.2",
 		"@types/superagent": "^4.1.24",
-		"@types/node": "^20.10.0"
+		"@types/node": "^20.10.4"
 	}
 }
