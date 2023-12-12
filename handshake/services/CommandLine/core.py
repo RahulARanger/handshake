@@ -76,7 +76,7 @@ def setup_app(
 @handle_cli.command(
     short_help="Starts the server which would listen for your input",
     help="""
-Starts the Graspit server to listen for inputs at the specified port on localhost. This command initiates a test run, allowing the server to handle a single test run at a time. For multiple test runs, spawn the process separately on different ports.
+Starts the Handshake server to listen for inputs at the specified port on localhost. This command initiates a test run, allowing the server to handle a single test run at a time. For multiple test runs, spawn the process separately on different ports.
 """,
 )
 @argument("PROJECT_NAME", nargs=1, required=True, type=str)

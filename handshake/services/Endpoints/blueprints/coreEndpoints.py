@@ -8,6 +8,7 @@ from handshake.services.DBService.models.types import (
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
 )
+from handshake.services.Endpoints.blueprints.utils import attachError, extractPayload
 from handshake.services.DBService.models.static_base import (
     AttachmentType,
     TestConfigBase,
@@ -29,18 +30,8 @@ async def handle_response(request: Request, response: JSONResponse):
     if 200 <= response.status < 300:
         return response
 
-    payload = dict(
-        url=request.url,
-        payload=request.json,
-        status=response.status,
-        reason=response.body.decode(),
-    )
-    await TestConfigBase.create(
-        test_id=get_test_id(),
-        attachmentValue=payload,
-        type=AttachmentType.ERROR,
-        description=f"Failed to process the request at: {request.url}, will affect the test run",
-    )
+    payload = extractPayload(request, response)
+    await attachError(payload, AttachmentType.ERROR, request.url)
     return JSONResponse(body=payload, status=response.status)
 
 

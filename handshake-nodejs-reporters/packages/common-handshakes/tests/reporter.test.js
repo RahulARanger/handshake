@@ -121,11 +121,21 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     });
 
     test('verifying the assertion attachment', async () => {
-      const testAttachment = await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.idMapped['test-0-0']);
+      const testAttachment = await reporter.addAssertion({ expected: 2, matcherName: 'toEqual', options: { status: 'PASSED' } }, reporter.idMapped['test-0-1']);
       expect(testAttachment).toBe(true);
       expect(reporter.misFire).toBe(0);
 
-      const suiteAttachment = await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.idMapped['suite-0']);
+      const suiteAttachment = await reporter.addAssertion({ expected: 2, matcherName: 'toEqual', options: { status: 'PASSED' } }, reporter.idMapped['suite-0']);
+      expect(suiteAttachment).toBe(true);
+      expect(reporter.misFire).toBe(0);
+    });
+
+    test('verifying the png attachment', async () => {
+      const testAttachment = await reporter.attachScreenshot('screenshot-0', '003043024adsasd', reporter.idMapped['test-0-1'], 'sample-description');
+      expect(testAttachment).toBe(true);
+      expect(reporter.misFire).toBe(0);
+
+      const suiteAttachment = await reporter.addAssertion('screenshot-0', '003043024adsasd', reporter.idMapped['suite-0']);
       expect(suiteAttachment).toBe(true);
       expect(reporter.misFire).toBe(0);
     });

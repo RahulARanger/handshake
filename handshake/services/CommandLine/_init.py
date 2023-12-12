@@ -9,13 +9,13 @@ general_but_optional_requirement = argument(
 
 
 @group(
-    name="Graspit",
-    short_help="Graspit command",
+    name="Handshake",
+    short_help="Handshake command",
     help=f"""
 
-{'{:*^69}'.format(" Welcome to Graspit's CLI ")}
+{'{:*^69}'.format(" Welcome to Handshake's CLI ")}
 
-Graspit simplifies the collection and processing of test results. The Graspit CLI serves as the foundation for essential operations.
+Handshake simplifies the collection and processing of test results. The Handshake CLI serves as the foundation for essential operations.
 Each command requires a <path> argument, representing the collection folder, often named as `collectionName` in your `rootDir`.
 
 [ROOT-DIR] >> [COLLECTION_NAME] (*we need this) >> TeStReSuLtS.db & [Attachments] (for getting this).

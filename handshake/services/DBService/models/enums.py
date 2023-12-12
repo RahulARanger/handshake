@@ -23,12 +23,14 @@ class AttachmentType(StrEnum):
     ENV = "ENV"
     CONFIG = "CONFIG"
     VIDEO = "VIDEO"
-    ERROR = "ERROR"
     PNG = "PNG"
     DESC = "DESC"
     IMG = "IMAGE"
     LINK = "LINK"
     ASSERT = "ASSERT"
+    ERROR = "ERROR"
+    WARN = "WARN"
+    INFO = "INFO"
 
 
 class PrunedRecords(StrEnum):

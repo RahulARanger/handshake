@@ -212,29 +212,12 @@ export class ReporterDialPad extends DialPad {
     entity_id: string,
     description?:string,
   ) {
-    if (!entity_id) {
-      logger.warn('😕 Skipping!, we have not attached a screenshot for unknown entity');
-      return false;
-    }
-    const payload = JSON.stringify({
-      description,
-      title,
-      value: content,
-      type: 'PNG',
-      entityID: entity_id,
-    });
-
-    const resp = await superagent
-      .put(this.writeAttachmentForEntity)
-      .send(payload)
-      .on('response', (result) => {
-        if (result.ok) {
-          logger.info(`📸 Attached a screenshot [PNG], id: ${result.text} for: ${entity_id}`);
-        } else {
-          logger.error(`💔 Failed to attach screenshot for ${entity_id}, because of ${result?.text}`);
-        }
-      });
-
-    return resp.text;
+    return this.saveAttachment(
+      true,
+      'description',
+      {
+        entityID: entity_id, type: 'PNG', value: content, title, description,
+      },
+    );
   }
 }

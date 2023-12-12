@@ -1,20 +1,33 @@
 import base64
-
 from sanic.blueprints import Blueprint
-from sanic.response import text, HTTPResponse
+from sanic.response import text, HTTPResponse, JSONResponse
 from loguru import logger
 from sanic.request import Request
 from handshake.services.DBService.models.types import (
     AddAttachmentForEntity,
 )
 from handshake.services.DBService.shared import root_dir
-from handshake.services.DBService.models.static_base import StaticBase
+from handshake.services.DBService.models.static_base import (
+    StaticBase,
+    AttachmentType,
+)
 from handshake.services.SchedularService.constants import writtenAttachmentFolderName
+from handshake.services.Endpoints.blueprints.utils import extractPayload, attachError
 
 writeServices = Blueprint("WriteService", url_prefix="/write")
 
 
-@writeServices.put("/addAttachmentForEntity")
+@writeServices.on_response
+async def handle_response(request: Request, response: JSONResponse):
+    if 200 <= response.status < 300:
+        return response
+
+    payload = extractPayload(request, response)
+    await attachError(payload, AttachmentType.WARN, request.url)
+    return JSONResponse(body=payload, status=response.status)
+
+
+@writeServices.put("/addAttachmentForEntity", error_format="json")
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = AddAttachmentForEntity.model_validate(request.json)
 
