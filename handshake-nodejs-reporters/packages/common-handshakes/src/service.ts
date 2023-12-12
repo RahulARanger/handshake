@@ -12,7 +12,7 @@ import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
 
-const logger = log4js.getLogger('graspit-service-commons');
+const logger = log4js.getLogger('handshake-service-commons');
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
@@ -42,7 +42,7 @@ export class ServiceDialPad extends DialPad {
     rootDir: string,
   ): ChildProcess {
     const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', '2'];
-    logger.warn(`Requesting a graspit server, command used: ${args.join(' ')} from ${rootDir}`);
+    logger.warn(`Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`);
 
     const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
     this.pyProcess = pyProcess;
@@ -56,7 +56,7 @@ export class ServiceDialPad extends DialPad {
     pyProcess.on('exit', (code) => {
       if (code !== 0) {
         logger.warn(
-          `graspit was force closed 😫, found exit code: ${code}`,
+          `handshake was force closed 😫, found exit code: ${code}`,
         );
       }
     });
@@ -82,7 +82,7 @@ export class ServiceDialPad extends DialPad {
 
   async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
-      'Not able to connect with graspit-server within 20 seconds 😢.',
+      'Not able to connect with handshake-server within 20 seconds 😢.',
     );
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout;
@@ -119,7 +119,7 @@ export class ServiceDialPad extends DialPad {
 
   async terminateServer() {
     if (!this.pyProcess || this.pyProcess?.killed) {
-      logger.warn('🙀 graspit process was already terminated.');
+      logger.warn('🙀 handshake process was already terminated.');
       return;
     }
 
@@ -149,7 +149,7 @@ export class ServiceDialPad extends DialPad {
 
     if (resp) {
       logger.info(
-        `Updated config 🐰 for the test run: ${resp.text}`,
+        `Updated config ⚙️ for the test run: ${resp.text}`,
       );
     }
     return resp;

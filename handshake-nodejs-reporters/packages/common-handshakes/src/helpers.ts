@@ -7,3 +7,7 @@ export function sanitizePaths(specs?: string[]): string[] {
     spec.startsWith('file:///') ? decodeURI(spec.slice(8)) : spec,
   ));
 }
+
+export function acceptableDateString(date: Date): string {
+  return date.toISOString();
+}

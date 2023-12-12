@@ -1,6 +1,6 @@
 export interface RegisterSession {
   retried: number;
-  started: string;
+  started: Date;
   specs: string[];
 }
 
@@ -23,6 +23,7 @@ export interface MarkTestEntity {
   suiteID: string;
   errors: Error[];
   standing: string;
+  ended: string;
 }
 
 export interface MarkTestSession {

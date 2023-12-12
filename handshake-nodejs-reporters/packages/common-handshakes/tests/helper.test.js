@@ -1,5 +1,5 @@
 const { describe, test, expect } = require('@jest/globals');
-const { sanitizePaths } = require('../src/helpers');
+const { sanitizePaths, acceptableDateString } = require('../src/helpers');
 
 describe('verifying sanitizer', () => {
   test('verifying the basic case', () => {
@@ -9,5 +9,10 @@ describe('verifying sanitizer', () => {
 
   test('with file://', () => {
     expect(sanitizePaths([`file:///${__filename}`, `file:///${__dirname}`])).toEqual(['tests\\helper.test.js', 'tests']);
+  });
+
+  test('convert the date to iso string', () => {
+    const note = new Date();
+    expect(acceptableDateString(note)).toEqual(note.toISOString()); // we only save the ISO string
   });
 });

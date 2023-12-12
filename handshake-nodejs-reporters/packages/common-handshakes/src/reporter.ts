@@ -7,8 +7,9 @@ import {
   RegisterSession,
   MarkTestEntity, MarkTestSession, RegisterTestEntity, Assertion, Attachment,
 } from './payload';
+import { acceptableDateString } from './helpers';
 
-const logger = log4js.getLogger('graspit-commons');
+const logger = log4js.getLogger('handshake-commons');
 
 log4js.configure({
   appenders: { console: { type: 'console' } },
@@ -19,6 +20,8 @@ export type IdMappedType = Record<string, string> & { session?: string };
 
 export class ReporterDialPad extends DialPad {
   idMapped: IdMappedType = {};
+
+  misFire: number = 0;
 
   pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
 
@@ -53,15 +56,15 @@ export class ReporterDialPad extends DialPad {
     return `${this.writeUrl}/addAttachmentForEntity`;
   }
 
-  office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
-    const feed = payload || (callThisInside ? callThisInside() : {});
+  async office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
+    const feed = (callThisInside === undefined ? payload : callThisInside()) ?? {};
     logger.info(
-      `📠 Faxed to ${contact} with payload 📃: ${JSON.stringify(
+      `📠 Faxing ${callThisInside === undefined ? 'static' : 'dynamic'} payload 📃: ${JSON.stringify(
         payload,
-      )}`,
+      )} to ${contact}`,
     );
 
-    return superagent.put(contact)
+    await superagent.put(contact)
       .send(JSON.stringify(feed))
       .on('response', (result) => {
         const { text, ok } = result;
@@ -74,13 +77,16 @@ export class ReporterDialPad extends DialPad {
           return;
         }
 
-        logger.info(`🙆 Server accepted the request and attached a note: ${text}`);
+        logger.info(`✅ Server accepted the request and attached a note: ${text}`);
         if (storeIn) {
           logger.info(
             `🫙 Storing received response key [${storeIn}] as ${text}`,
           );
           this.idMapped[storeIn] = String(text);
         }
+      }).catch((err) => {
+        this.misFire += 1;
+        logger.error(`Failed to send the fax: ${err}`);
       });
   }
 
@@ -90,38 +96,46 @@ export class ReporterDialPad extends DialPad {
     storeIn?: string,
     callThisInside?: () => object,
   ) {
-    await this.pipeQueue
+    const job = await this.pipeQueue
       .add(
         () => this.office(contact, payload, callThisInside, storeIn),
       );
 
     logger.info(`queue size in office 🏢: ${this.pipeQueue.size}`);
+    return job;
   }
 
   requestRegisterSession(sessionPayload: RegisterSession) {
-    this.registerOrUpdateSomething(this.registerSession, sessionPayload, 'session');
+    const modifiedPayload = {
+      ...sessionPayload,
+      started: acceptableDateString(sessionPayload.started),
+    };
+    return this.registerOrUpdateSomething(this.registerSession, modifiedPayload, 'session');
   }
 
+  /**
+   *
+   * @param entityID some place where we can store the test id received from the server
+   * @param payload payload for registering the suite / test
+   */
   requestRegisterTestEntity(
     entityID: string,
-    payload: RegisterTestEntity | (() => RegisterTestEntity),
+    payload: () => RegisterTestEntity,
   ) {
-    const isCallable = typeof payload === 'function';
-    this.registerOrUpdateSomething(
+    return this.registerOrUpdateSomething(
       this.registerSuite,
-      isCallable ? undefined : payload,
+      undefined,
       entityID,
-      isCallable ? payload : undefined,
+      payload,
     );
   }
 
-  markTestEntity(entityID: string, payload: MarkTestEntity | (() => MarkTestEntity)) {
-    const isCallable = typeof payload === 'function';
-    this.registerOrUpdateSomething(
+  markTestEntity(entityID: string, payload: () => MarkTestEntity) {
+    return this.registerOrUpdateSomething(
       this.updateSuite,
-      isCallable ? undefined : payload,
+      undefined,
       entityID,
-      isCallable ? payload : undefined,
+      payload,
     );
   }
 
