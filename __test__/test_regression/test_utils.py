@@ -1,10 +1,10 @@
 import pathlib
-from graspit.services.SchedularService.completeTestRun import (
+from handshake.services.SchedularService.completeTestRun import (
     simplify_file_paths,
     fetch_key_from_status,
 )
-from graspit.services.DBService.models.config_base import ConfigKeys, ConfigBase
-from graspit.services.SchedularService.modifySuites import Status
+from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBase
+from handshake.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -108,10 +108,12 @@ def test_status_from_values():
 
 @mark.usefixtures("clean_close")
 class TestSetConfigCommand:
-    async def test_set_config_with_one_para(self, root_dir, force=None):
+    async def test_set_config_with_one_para(
+        self, root_dir, dist, dist_name, force=None
+    ):
         result = run(
-            f'graspit config "{root_dir}" -mr 3',
-            cwd=force if force else root_dir,
+            f'{dist_name} config "{root_dir}" -mr 3',
+            cwd=force if force else dist,
             shell=True,
         )
         assert result.returncode == 0

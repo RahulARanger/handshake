@@ -1,7 +1,7 @@
 from pytest import fixture
-from graspit.services.DBService.models import SuiteBase, TestConfigBase, SessionBase
-from graspit.services.DBService.models.enums import SuiteType, Status, AttachmentType
-from graspit.services.SchedularService.register import register_patch_suite
+from handshake.services.DBService.models import SuiteBase, TestConfigBase, SessionBase
+from handshake.services.DBService.models.enums import SuiteType, Status, AttachmentType
+from handshake.services.SchedularService.register import register_patch_suite
 import datetime
 from asyncio import sleep
 
@@ -97,11 +97,12 @@ async def helper_create_test_config(
     )
 
 
-async def helper_create_session(test_id: str):
+async def helper_create_session(test_id: str, entityName="sample"):
     await sleep(0.0025)
     started = datetime.datetime.utcnow()
     return await SessionBase.create(
         started=started,
+        entityName=entityName,
         test_id=test_id,
         ended=started + datetime.timedelta(milliseconds=24),
     )

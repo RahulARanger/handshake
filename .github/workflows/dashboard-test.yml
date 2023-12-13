@@ -3,7 +3,7 @@ name: 'sanity-e2e'
 on:
   push:
     branches:
-      - "dashboard-build"
+      - "nodejs-reporters"
 
 permissions:
     contents: write
@@ -24,13 +24,24 @@ jobs:
             node-version: 20.9.0
 
         - name: Setup Turbo Repo
-          working-directory: ./graspit-reporters
+          working-directory: ./handshake-reporters
           run: npm install && npm run build
 
         - name: Download required for Dashboard
-          working-directory: ./graspit-reporters/packages/graspit-dashboard
+          working-directory: ./handshake-reporters/packages/handshake-dashboard
           run: npm install
 
-        - name: Install Test Related Packages and Run Sanity Tests
-          working-directory: ./graspit-reporters/apps/test-mocha
-          run: npm install && sudo npm run test:mocha:sanity
+        - name: Install Test Related Packages for mocha
+          working-directory: ./handshake-reporters/apps/test-wdio-mocha
+          run: npm install
+
+        - name: Install Test Related Packages for cucumber
+          working-directory: ./handshake-reporters/apps/test-wdio-cucumber
+          run: npm install
+
+        - name: patch & export results
+          working-directory: ./handshake-reporters
+          run: |
+            sudo npm run sanity
+            sudo npx handshake patch ../TestResults 
+            sudo npx handshake export ../TestResults --out ../TestReports

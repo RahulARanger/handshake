@@ -3,10 +3,15 @@ import pathlib
 import platform
 
 a = Analysis(
-    [str(pathlib.Path("graspit") / "services" / "starter.py")],
+    [str(pathlib.Path("handshake") / "services" / "starter.py")],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[
+        (
+            "handshake/services/DBService/scripts/*.sql",
+            "handshake/services/DBService/scripts",
+        )
+    ],
     hiddenimports=["tracerite", "html5tagger"],
     hookspath=[
         "pyinstaller-hooks",
@@ -24,7 +29,7 @@ exe = EXE(
     a.binaries,
     a.datas,
     [],
-    name=f"graspit-{platform.system()}",
+    name=f"handshake-{platform.system()}",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,

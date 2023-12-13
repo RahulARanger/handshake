@@ -1,5 +1,0 @@
-dist
-node_modules
-.next
-.turbo
-src/components/charts/GanttChartForTestSuites.tsx

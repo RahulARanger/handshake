@@ -1,6 +1,0 @@
-{
-	"extends": "graspit-commons/node.json",
-	"compilerOptions": {
-		"types": ["@wdio/globals/types"]
-	},
-}

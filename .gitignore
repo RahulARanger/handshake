@@ -45,8 +45,8 @@ venv/*
 **/dist/**
 **/build/**
 check.py
-graspit-reporters/packages/graspit-dashboard/public/antd.min.css
-graspit-reporters/packages/graspit-dashboard/src/styles/antd.min.css
+handshake-nodejs-reporters/packages/graspit-dashboard/public/antd.min.css
+handshake-nodejs-reporters/packages/graspit-dashboard/src/styles/antd.min.css
 
 # Production
 /build
@@ -55,4 +55,5 @@ graspit-reporters/packages/graspit-dashboard/src/styles/antd.min.css
 
 # Misc
 .DS_Store
-graspit-reporters/packages/graspit-commons/bin
+handshake-nodejs-reporters/packages/common-handshakes/bin
+handshake-nodejs-reporters/Jest-Results

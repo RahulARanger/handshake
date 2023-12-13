@@ -1,15 +1,15 @@
 from pytest import mark
-from graspit.services.DBService.models import (
+from handshake.services.DBService.models import (
     SuiteBase,
     RollupBase,
     RunBase,
     SessionBase,
     RetriedBase,
 )
-from graspit.services.DBService.models.enums import Status, AttachmentType
-from graspit.services.SchedularService.modifySuites import patchTestSuite
-from graspit.services.SchedularService.completeTestRun import patchTestRun
-from graspit.services.SchedularService.register import (
+from handshake.services.DBService.models.enums import Status, AttachmentType
+from handshake.services.SchedularService.modifySuites import patchTestSuite
+from handshake.services.SchedularService.completeTestRun import patchTestRun
+from handshake.services.SchedularService.register import (
     register_patch_suite,
     register_patch_test_run,
 )

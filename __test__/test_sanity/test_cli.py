@@ -12,15 +12,15 @@ class TestCli:
         target = platform.system()
 
         if target == "Windows":
-            path /= f"graspit-{target}.exe"
+            path /= f"handshake-{target}.exe"
         elif target == "Linux" or target == "Darwin":
-            path /= f"graspit-{target}"
+            path /= f"handshake-{target}"
         else:
             assert False, f"{target} is not supported"
 
         assert path.exists() is True, "Exe was not found"
 
-    async def test_set_config_with_one_para(self, root_dir, dist):
+    async def test_set_config_with_one_para(self, root_dir, dist, dist_name):
         return await TestSetConfigCommand().test_set_config_with_one_para(
-            root_dir, dist
+            root_dir, dist, dist_name
         )
