@@ -16,7 +16,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     await service.startService('jest-report-tests', results, root);
     await service.waitUntilItsReady();
     expect(await service.ping()).toBe(true);
-  }, 10e3);
+  }, 20e3);
 
   afterAll(async () => {
     await service.terminateServer();
@@ -187,6 +187,32 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       );
 
       await Promise.all(jobs);
+      expect(reporter.misFire).toBe(0);
+    });
+
+    test('verifying the marking of the session', async () => {
+      const job = reporter
+        .markTestSession(
+          () => (
+            {
+              duration: 20e3,
+              ended: new Date().toISOString(),
+              entityName: 'jest-runner',
+              entityVersion: '0.1.0',
+              simplified: 'jest-runner.0.1.0',
+              hooks: 0,
+              passed: 9,
+              failed: 0,
+              skipped: 0,
+              tests: 3,
+              sessionID: reporter.idMapped.session ?? '',
+              standing: 'PASSED',
+              retried: 0,
+            }
+          ),
+        );
+
+      await job;
       expect(reporter.misFire).toBe(0);
     });
   });

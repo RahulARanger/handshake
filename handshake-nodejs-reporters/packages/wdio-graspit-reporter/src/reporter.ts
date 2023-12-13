@@ -9,7 +9,7 @@ import {
 import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
 
-export default class GraspItReporter extends ReporterContacts {
+export default class HandshakeReporter extends ReporterContacts {
   expectedIndex(snapshotIndex: number, requestFromEnd: number) {
     // assumed requestFromEnd < 0
     return -(this.currentSuites.length - snapshotIndex) + requestFromEnd;
@@ -125,7 +125,7 @@ export default class GraspItReporter extends ReporterContacts {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.markTestEntity(suite.uid, () => this.extractRequiredForEntityCompletion(suite));
+    this.supporter.markTestEntity(() => this.extractRequiredForEntityCompletion(suite));
   }
 
   onTestStart(test: TestStats): void {
@@ -136,7 +136,7 @@ export default class GraspItReporter extends ReporterContacts {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.markTestEntity(test.uid, () => this.extractRequiredForEntityCompletion(test));
+    this.supporter.markTestEntity(() => this.extractRequiredForEntityCompletion(test));
   }
 
   onTestFail(test: TestStats): void {
@@ -152,7 +152,8 @@ export default class GraspItReporter extends ReporterContacts {
     // like the time when it is explicity skipped
     // so we register before marking it
     const note = this.currentSuites.length;
-    this.supporter.lock.acquire(this.supporter.lockString, async () => {
+
+    this.supporter.pipeQueue.add(() => {
       if (this.supporter.idMapped[test.uid]) { return this.markTestCompletion(test); }
       this.addTest(test, note);
       return this.markTestCompletion(test);
@@ -179,7 +180,7 @@ export default class GraspItReporter extends ReporterContacts {
       entityVersion: caps.browserVersion,
       simplified: runnerStats.sanitizedCapabilities,
     };
-    this.supporter.feed(this.supporter.updateSession, payload);
+    this.supporter.markTestSession(this.supporter.updateSession, payload);
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
