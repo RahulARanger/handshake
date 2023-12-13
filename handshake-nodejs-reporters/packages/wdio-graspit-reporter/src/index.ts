@@ -1,7 +1,7 @@
 import GraspItService from './service';
-import GraspItReporter from './reporter';
+import HandshakeReporter from './reporter';
 
-export default GraspItReporter;
+export default HandshakeReporter;
 export * from './types';
 export const launcher = GraspItService;
 export * from './helpers';

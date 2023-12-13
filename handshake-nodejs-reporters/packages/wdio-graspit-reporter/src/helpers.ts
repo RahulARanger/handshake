@@ -16,7 +16,7 @@ export function attachReporter(
   toModify.services = toModify.services || [];
 
   toModify.reporters.push([
-    'graspit',
+    'handshake',
     {
       port,
       addScreenshots: options.addScreenshots || false,

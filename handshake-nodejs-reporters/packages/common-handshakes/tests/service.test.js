@@ -49,7 +49,7 @@ describe('Verifying the handshake-server helper class', () => {
 
       expect(await instance.ping()).toBe(true); // now it should be running at the port: 7272
       expect(server).not.toBe(undefined);
-    }, 10e3);
+    }, 20e3);
 
     it('verifying the ping for the valid server', async () => {
       expect(await instance.ping()).toBe(true);

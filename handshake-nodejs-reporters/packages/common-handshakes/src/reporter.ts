@@ -135,13 +135,12 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
-  markTestSession(entityID: string, payload: MarkTestSession | (() => MarkTestSession)) {
-    const isCallable = typeof payload === 'function';
-    this.registerOrUpdateSomething(
+  markTestSession(payload: (() => MarkTestSession)) {
+    return this.registerOrUpdateSomething(
       this.updateSession,
-      isCallable ? undefined : payload,
-      entityID,
-      isCallable ? payload : undefined,
+      undefined,
+      undefined,
+      payload,
     );
   }
 
