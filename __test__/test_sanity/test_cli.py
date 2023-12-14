@@ -33,9 +33,10 @@ class TestMigration:
         assert int(version.value) == 3
 
         result = run(
-            f'handshake db migrate "{root_dir.name}"',
+            f'handshake migrate "{root_dir.name}"',
             cwd=root_dir.parent,
             executable=dist / dist_name,
+            shell=False,
         )
         assert result.returncode == 0
 
