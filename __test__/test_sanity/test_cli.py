@@ -10,7 +10,6 @@ from __test__.test_regression.test_utils import TestSetConfigCommand
 class TestCli:
     def test_dist_existence(self, dist):
         path = dist
-
         target = platform.system()
 
         if target == "Windows":
@@ -30,12 +29,11 @@ class TestCli:
 
 class TestMigration:
     async def test_migration(self, dist_name, root_dir, dist, get_v3_connection):
-        _ = get_v3_connection
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
         assert int(version.value) == 3
 
         result = run(
-            f'handshake db migrate "{root_dir}"',
+            f' db migrate "{root_dir}"',
             cwd=dist,
             executable=dist / dist_name,
         )
