@@ -24,7 +24,7 @@ class TestCli:
 
     async def test_set_config_with_one_para(self, root_dir, dist, dist_name):
         return await TestSetConfigCommand().test_set_config_with_one_para(
-            root_dir, dist, dist_name
+            root_dir, dist
         )
 
 
