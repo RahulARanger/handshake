@@ -111,8 +111,9 @@ class TestSetConfigCommand:
     async def test_set_config_with_one_para(self, root_dir, force=None):
         result = run(
             f'handshake config "{root_dir}" -mr 3',
-            cwd=force if force else root_dir,
-            shell=True,
+            cwd=root_dir,
+            shell=not force,
+            executable=force,
         )
         assert result.returncode == 0
         config_record = await ConfigBase.filter(key=ConfigKeys.maxRuns).first()

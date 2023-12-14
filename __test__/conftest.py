@@ -29,7 +29,11 @@ def dist(root_dir):
 
 @fixture()
 def dist_name():
-    return f"handshake-{platform.system()}"
+    return (
+        f"handshake-{platform.system()}.exe"
+        if platform.system() == "Windows"
+        else f"handshake-{platform.system()}"
+    )
 
 
 @fixture()
