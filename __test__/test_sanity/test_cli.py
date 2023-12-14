@@ -23,7 +23,7 @@ class TestCli:
 
     async def test_set_config_with_one_para(self, root_dir, dist, dist_name):
         return await TestSetConfigCommand().test_set_config_with_one_para(
-            root_dir, dist / dist_name
+            root_dir, dist / dist_name, 30
         )
 
 
@@ -33,10 +33,8 @@ class TestMigration:
         assert int(version.value) == 3
 
         result = run(
-            f'handshake migrate "{root_dir.name}"',
+            [dist / dist_name, "migrate", root_dir.name],
             cwd=root_dir.parent,
-            executable=dist / dist_name,
-            shell=False,
         )
         assert result.returncode == 0
 
