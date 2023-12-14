@@ -1,7 +1,4 @@
-import sqlite3
-
 import tortoise
-from subprocess import run
 from handshake.services.DBService.models import ConfigBase, SessionBase
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.migrator import migration
@@ -47,13 +44,3 @@ class TestMigrationScripts:
 
         for entity in entities:
             assert entity == "chrome", "Data changed"
-
-    async def test_migrate_cli(self, root_dir, dist, dist_name, get_v3_connection):
-        version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 3
-
-        result = run(f'{dist_name} db migrate "{root_dir}"', cwd=dist, shell=True)
-        assert result.returncode == 0
-
-        version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 4

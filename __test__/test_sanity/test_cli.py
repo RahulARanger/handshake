@@ -1,5 +1,7 @@
 import platform
-
+from handshake.services.DBService.models import ConfigBase
+from handshake.services.DBService.models.enums import ConfigKeys
+from subprocess import run
 from pytest import mark
 from __test__.test_regression.test_utils import TestSetConfigCommand
 
@@ -24,3 +26,15 @@ class TestCli:
         return await TestSetConfigCommand().test_set_config_with_one_para(
             root_dir, dist, dist_name
         )
+
+
+class TestMigration:
+    async def test_migration(self, dist_name, root_dir, dist, get_v3_connection):
+        version = await ConfigBase.filter(key=ConfigKeys.version).first()
+        assert int(version.value) == 3
+
+        result = run(f'{dist_name} db migrate "{root_dir}"', cwd=dist, shell=True)
+        assert result.returncode == 0
+
+        version = await ConfigBase.filter(key=ConfigKeys.version).first()
+        assert int(version.value) == 4

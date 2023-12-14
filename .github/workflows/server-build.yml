@@ -70,12 +70,11 @@ jobs:
             pip install poetry 
             poetry install
 
-        - name: Build Generation
-          run: pyinstaller starter.spec
-
-
         - name: Regression Test
           run: pytest __test__/test_regression
+
+        - name: Build Generation
+          run: pyinstaller starter.spec
 
         - name: Testing the build
           run: pytest __test__/test_sanity
