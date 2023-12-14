@@ -109,10 +109,10 @@ jobs:
           id: release
           with:
             files: dist/**/*
-            body: ":rocket: Bump handshake-server version to `${{ steps.version.outputs.VERSION }}`"
+            body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
-            name: "handshake - ${{ steps.version.outputs.VERSION }}"
+            name: "Handshake 🤝 - ${{ steps.version.outputs.VERSION }}"
             generate_release_notes: true
 
         - name: Post Release Post
