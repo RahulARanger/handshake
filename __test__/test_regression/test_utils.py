@@ -109,12 +109,17 @@ def test_status_from_values():
 @mark.usefixtures("clean_close")
 class TestSetConfigCommand:
     async def test_set_config_with_one_para(self, root_dir, force=None, max_runs=3):
-        result = run(
-            f'handshake config "{root_dir}" -mr {max_runs}',
-            cwd=root_dir,
-            shell=not force,
-            executable=force,
-        )
+        if force is None:
+            result = run(
+                f'handshake config "{root_dir}" -mr {max_runs}',
+                cwd=root_dir,
+                shell=True,
+            )
+        else:
+            result = run(
+                [force, "config", str(root_dir), "-mr", f"{max_runs}"],
+                cwd=root_dir,
+            )
         assert result.returncode == 0
         config_record = await ConfigBase.filter(key=ConfigKeys.maxRuns).first()
         assert int(config_record.value) == max_runs
