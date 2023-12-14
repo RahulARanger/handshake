@@ -2,6 +2,7 @@ import tortoise
 from handshake.services.DBService.models import ConfigBase, SessionBase
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.migrator import migration
+from subprocess import run, PIPE
 
 
 async def assertEntityNameType(connection, expected):
@@ -44,3 +45,8 @@ class TestMigrationScripts:
 
         for entity in entities:
             assert entity == "chrome", "Data changed"
+
+    async def test_version_command(self, root_dir):
+        result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)
+        assert result.returncode == 0
+        assert "Currently at: v4." in result.stderr.decode()
