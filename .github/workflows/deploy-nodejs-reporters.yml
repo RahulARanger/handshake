@@ -1,4 +1,4 @@
-name: 'sanity-e2e'
+name: 'deploy-nodejs-reporters'
 
 on:
   push:
@@ -26,6 +26,10 @@ jobs:
         - name: Setup Turbo Repo
           working-directory: ./handshake-reporters
           run: npm install && npm run build
+
+        - name: sanity tests
+          working-directory: ./handshake-reporters/packages/common-handshakes
+          run: npm install && npm run test
 
         - name: Download required for Dashboard
           working-directory: ./handshake-reporters/packages/handshake-dashboard
