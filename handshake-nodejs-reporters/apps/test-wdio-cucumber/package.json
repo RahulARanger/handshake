@@ -17,6 +17,6 @@
 	},
 	"dependencies": {
 		"@wdio/cli": "^8.26.1",
-		"wdio-graspit-reporter": "^3.4.6"
+		"wdio-handshake-reporter": "0.1.0"
 	}
 }

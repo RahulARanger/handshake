@@ -1,4 +1,4 @@
-const { attachReporter } = require("wdio-graspit-reporter")
+const { attachReporter } = require("wdio-handshake-reporter")
 const { dirname } = require("node:path")
 
 const root = dirname(dirname(dirname(process.cwd())))

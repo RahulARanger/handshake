@@ -3,7 +3,7 @@ import { existsSync, mkdirSync } from 'node:fs';
 import type { Options, Services } from '@wdio/types';
 import { ContactsForService } from './contacts';
 
-export default class GraspItService
+export default class HandshakeService
   extends ContactsForService
   implements Services.ServiceInstance {
   get resultsDir(): string {

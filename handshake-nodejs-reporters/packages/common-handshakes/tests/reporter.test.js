@@ -206,8 +206,6 @@ describe('Verifying the functionality of the handshake-reporter', () => {
               skipped: 0,
               tests: 3,
               sessionID: reporter.idMapped.session ?? '',
-              standing: 'PASSED',
-              retried: 0,
             }
           ),
         );

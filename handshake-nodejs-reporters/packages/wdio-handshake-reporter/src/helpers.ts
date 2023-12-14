@@ -1,13 +1,13 @@
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
 import { Assertion } from 'common-handshakes';
-import { GraspItServiceOptions, ReporterOptions } from './types';
-import GraspItService from './service';
+import { HandshakeServiceOptions, ReporterOptions } from './types';
+import HandshakeService from './service';
 import { currentReporter } from './contacts';
 
 export function attachReporter(
   config: Options.Testrunner,
-  options: ReporterOptions & GraspItServiceOptions,
+  options: ReporterOptions & HandshakeServiceOptions,
 ): Options.Testrunner {
   const port = options.port ?? 6969;
   const toModify = config;
@@ -25,7 +25,7 @@ export function attachReporter(
   ]);
 
   toModify.services.push([
-    GraspItService, {
+    HandshakeService, {
       port,
       exePath: options.exePath,
       timeout: options.timeout,

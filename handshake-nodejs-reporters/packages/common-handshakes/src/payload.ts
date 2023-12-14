@@ -34,9 +34,7 @@ export interface MarkTestSession {
   passed: number;
   failed: number;
   skipped: number;
-  retried: number;
   hooks: number;
-  standing: Standing;
   tests: number;
   entityName: string;
   entityVersion: string;
