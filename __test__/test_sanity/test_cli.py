@@ -24,7 +24,7 @@ class TestCli:
 
     async def test_set_config_with_one_para(self, root_dir, dist, dist_name):
         return await TestSetConfigCommand().test_set_config_with_one_para(
-            root_dir, dist
+            root_dir, dist / dist_name
         )
 
 
@@ -33,7 +33,11 @@ class TestMigration:
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
         assert int(version.value) == 3
 
-        result = run(f'{dist_name} db migrate "{root_dir}"', cwd=dist, shell=True)
+        result = run(
+            f'{dist_name} db migrate "{root_dir}"',
+            cwd=dist,
+            executable=dist / dist_name,
+        )
         assert result.returncode == 0
 
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
