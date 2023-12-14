@@ -33,10 +33,8 @@ def dist_name():
 
 
 @fixture()
-def init_db(root_dir, dist, dist_name):
-    return lambda: subprocess.call(
-        f'{dist_name} config "{root_dir}"', shell=True, cwd=dist
-    )
+def init_db(root_dir):
+    return lambda: subprocess.call(f'handshake config "{root_dir}"', shell=True)
 
 
 @fixture
