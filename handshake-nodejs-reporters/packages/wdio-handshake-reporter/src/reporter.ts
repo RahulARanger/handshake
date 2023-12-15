@@ -204,4 +204,8 @@ export default class HandshakeReporter extends ReporterContacts {
   async onAfterAssertion(assertionArgs: Assertion) {
     await this.supporter.addAssertion(assertionArgs, this.currentTestID);
   }
+
+  get isSynchronised(): boolean {
+    return this.supporter.pipeQueue.size === 0;
+  }
 }

@@ -1,6 +1,7 @@
 const { attachReporter } = require("wdio-handshake-reporter")
 const { dirname } = require("node:path")
 
+
 const root = dirname(dirname(dirname(process.cwd())))
 exports.config = attachReporter(
     {
@@ -338,7 +339,7 @@ exports.config = attachReporter(
         // }
     },
     {
-        collectionName: "TestResults", port: 6969, timeout: 360e3,
+        collectionName: "TestResults", port: 6968, timeout: 360e3,
         root,
         addScreenshots: true,
         testConfig: { projectName: 'WDIO:Cucumber' }

@@ -2,7 +2,7 @@ const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
 
-const { ReporterDialPad, ServiceDialPad, acceptableDateString } = require('../src');
+const { ReporterDialPad, ServiceDialPad, acceptableDateString } = require('../dist/index');
 const {
   resetDir, results, root, uuidRegex,
 } = require('./utils');

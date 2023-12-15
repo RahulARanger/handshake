@@ -2,7 +2,8 @@
 	"extends": "./node.json",
 	"compilerOptions": {
 		"types": ["@wdio/globals/types"],
-		"rootDirs": ["./src", "./test"]
+		"rootDirs": ["./src", "./test"],"module": "ESNext"
 	},
+
 	
 }
