@@ -6,5 +6,5 @@
 *.ps1
 dist
 node_modules
-graspit
-graspit.exe
+handshake
+handshake.exe

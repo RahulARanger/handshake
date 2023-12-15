@@ -110,20 +110,14 @@ export function RenderStatus(properties: {
 export function RenderEntityType(properties: {
     entityName: string;
 }): ReactNode {
-    switch (properties.entityName.toLowerCase() as possibleEntityNames) {
-        case 'chrome': {
-            return <Avatar src={'/chrome.png'} size="small" />;
-        }
-        case 'firefox': {
-            return <Avatar src={'/firefox.png'} size="small" />;
-        }
-        case 'edge': {
-            return <Avatar src={'/edge.png'} size="small" />;
-        }
-        default: {
-            return <>{properties.entityName?.toLocaleUpperCase()}</>;
-        }
-    }
+    const note = properties.entityName.toLowerCase() as possibleEntityNames;
+
+    if (note.includes('chrome'))
+        return <Avatar src={'/chrome.png'} size="small" />;
+    if (note.includes('firefox'))
+        return <Avatar src={'/firefox.png'} size="small" />;
+    if (note.includes('edge')) return <Avatar src={'/edge.png'} size="small" />;
+    return <>{properties.entityName?.toLocaleUpperCase()}</>;
 }
 
 export function RenderSystemType(properties: {

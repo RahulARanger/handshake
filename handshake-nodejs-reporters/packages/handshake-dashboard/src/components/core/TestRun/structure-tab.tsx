@@ -54,7 +54,7 @@ function treeData(
         // these are paths
         for (const child of childParts) {
             const childNode = {
-                key: child,
+                key: current + child,
                 title: child,
                 children: [],
             };

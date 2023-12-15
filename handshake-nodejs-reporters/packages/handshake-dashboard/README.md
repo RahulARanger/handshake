@@ -17,7 +17,7 @@ Exporting Next-JS app was bit confusing for me at first, have spent a lot of tim
 
 -   `next.config.js`
     -   we made output as `export`
-    -   informed to transpile `graspit` (current package)
+    -   informed to transpile `handshake` (current package)
     -   added rules inside of webpack to enable custom icons in `antd`
 -   `package.json`
     -   Added `predev` and `prebuild` command which would generate the antd css file

@@ -3,6 +3,7 @@ export type possibleEntityNames =
     | 'firefox'
     | 'safari'
     | 'edge'
+    | 'chrome-headless-shell'
     | 'others';
 
 export type statusOfEntity =

@@ -7,8 +7,8 @@
 	"type": "module",
 	"scripts": {
 		"test": "npm run test:mocha",
-		"test:mocha": "npx wdio run ./wdio.conf.jscls",
-		"test:mocha:sanity": "cross-env SANITY=true npx wdio run ./wdio.conf.js --spec test-mocha/specs/test.e2e.js",
+		"test:mocha": "npx wdio run ./wdio.conf.js",
+		"test:mocha:sanity": "cross-env SANITY=true npx wdio run ./wdio.conf.js --exclude test-mocha/specs/package-version.e2e.js",
 		"sanity": "npm run test:mocha:sanity"
 	},
 	"author": "",
