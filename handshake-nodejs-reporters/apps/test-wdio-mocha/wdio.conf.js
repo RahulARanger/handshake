@@ -47,9 +47,9 @@ export const config = attachReporter(metaConfig, {
     timeout: 360e3,
     root,
     addScreenshots: true,
-    // export: {
-    //     out: process.env.SANITY ? undefined : join(root, "TestReports")
-    // },
+    export: {
+        out: process.env.SANITY ? undefined : join(root, "TestReports")
+    },
     testConfig: { projectName: 'WDIO:Mocha' }
 
 });

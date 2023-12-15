@@ -1,8 +1,8 @@
-const { Given, When, Then } = require('@wdio/cucumber-framework');
-const { expect, $ } = require('@wdio/globals')
+import { Given, When, Then } from '@wdio/cucumber-framework';
+import { expect, $ } from '@wdio/globals'
 
-const LoginPage = require('../pageobjects/login.page');
-const SecurePage = require('../pageobjects/secure.page');
+import LoginPage from '../pageobjects/login.page.js';
+import SecurePage from '../pageobjects/secure.page.js';
 
 const pages = {
     login: LoginPage

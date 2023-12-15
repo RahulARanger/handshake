@@ -3,7 +3,6 @@
 	"version": "0.1.0",
 	"private": false,
 	"type": "module",
-	"types": "./dist/index.d.ts",
 	"license": "MIT",
 	"readme": "../../README.md",
 	"description": "does a handshake with the server, shares the desired results with it.",
@@ -12,15 +11,15 @@
 	},
 	"exports": {
 		".": {
-			"require" : "./dist/index.cjs",
-			"import": "./dist/index.js"
+			"default": "./dist/index.js",
+			"types": "./dist/index.d.ts"
 		},
 		"./node.json": "./node.json"
 	},
 	"scripts": {
 		"lint": "eslint src/**",
 		"test": "npx jest",
-		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts",
+		"build": "rimraf -g ./dist && tsup src/index.ts --format esm --dts",
 		"install": "node ./installation/download_build.cjs"
 	},
 	"dependencies": {
