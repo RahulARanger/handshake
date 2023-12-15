@@ -1,16 +1,21 @@
 {
 	"name": "common-handshakes",
 	"version": "0.1.0",
-	"types": "./dist/index.d.ts",
-	"main": "./dist/index.js",
-	"module": "./dist/index.cjs",
 	"private": false,
 	"type": "module",
+	"types": "./dist/index.d.ts",
 	"license": "MIT",
 	"readme": "../../README.md",
-	"description": "This package has some common functions or constants required for interacting with graspit-server",
+	"description": "does a handshake with the server, shares the desired results with it.",
 	"bin": {
 		"handshake": "./feed.cjs"
+	},
+	"exports": {
+		".": {
+			"require" : "./dist/index.cjs",
+			"import": "./dist/index.js"
+		},
+		"./node.json": "./node.json"
 	},
 	"scripts": {
 		"lint": "eslint src/**",
@@ -20,7 +25,6 @@
 	},
 	"dependencies": {
 		"cross-env": "^7.0.3",
-		"graspit": "3.4.6",
 		"log4js": "^6.9.1",
 		"p-queue": "^8.0.1",
 		"superagent": "^8.1.2"

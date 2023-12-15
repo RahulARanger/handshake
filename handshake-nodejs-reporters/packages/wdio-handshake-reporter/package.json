@@ -1,9 +1,11 @@
 {
 	"name": "wdio-handshake-reporter",
 	"version": "0.1.0",
-	"types": "./dist/index.d.ts",
-	"main": "./dist/index.js",
-	"module": "./dist/index.cjs",
+	"exports": {
+		"require" : "./dist/index.cjs",
+		"import": "./dist/index.js",
+		"types": "./dist/index.d.ts"
+	},
 	"type": "module",
 	"private": false,
 	"license": "MIT",
@@ -11,7 +13,7 @@
 	"description": "This package is a reporter that sends the test data from your webdriverIO test run to your local handshake server which is then displayed by our handshake-dashboard",
 	"scripts": {
 		"lint": "eslint src/**",
-		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts && node build.cjs"
+		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts"
 	},
 	"dependencies": {
 		"@wdio/reporter": "^8.24.12",
