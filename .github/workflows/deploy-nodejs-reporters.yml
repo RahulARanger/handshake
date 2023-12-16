@@ -28,7 +28,7 @@ jobs:
 
         - name: Setup Turbo Repo and conduct sanity test
           working-directory: ./handshake-nodejs-reporters
-          run: npm install && npm run build && npm run sanity
+          run: npm install && npm run build && sudo npm run sanity
 
         - name: Download required for Dashboard
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
