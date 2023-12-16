@@ -6,6 +6,7 @@ on:
       - "nodejs-reporters"
     paths:
       - '**.md' # when we update the changelog
+      - '**.deploy-nodejs-reporters.yml' # when we update the changelog
 
 permissions:
     contents: write
