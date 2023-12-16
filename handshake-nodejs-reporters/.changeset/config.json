@@ -3,7 +3,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["wdio-handshake-reporter", "common-handshakes", "handshake"]],
+  "linked": [["wdio-handshake-reporter", "common-handshakes", "handshake-dashboard"]],
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",

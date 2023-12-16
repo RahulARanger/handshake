@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - "nodejs-reporters"
+    paths:
+      - '**.md' # when we update the changelog
 
 permissions:
     contents: write
@@ -24,27 +26,27 @@ jobs:
             node-version: 20.9.0
 
         - name: Setup Turbo Repo
-          working-directory: ./handshake-reporters
+          working-directory: ./handshake-nodejs-reporters
           run: npm install && npm run build
 
         - name: sanity tests
-          working-directory: ./handshake-reporters/packages/common-handshakes
+          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
           run: npm install && npm run test
 
         - name: Download required for Dashboard
-          working-directory: ./handshake-reporters/packages/handshake-dashboard
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npm install
 
         - name: Install Test Related Packages for mocha
-          working-directory: ./handshake-reporters/apps/test-wdio-mocha
+          working-directory: ./handshake-nodejs-reporters/apps/test-wdio-mocha
           run: npm install
 
         - name: Install Test Related Packages for cucumber
-          working-directory: ./handshake-reporters/apps/test-wdio-cucumber
+          working-directory: ./handshake-nodejs-reporters/apps/test-wdio-cucumber
           run: npm install
 
         - name: patch & export results
-          working-directory: ./handshake-reporters
+          working-directory: ./handshake-nodejs-reporters
           run: |
             sudo npm run sanity
             sudo npx handshake patch ../TestResults 
