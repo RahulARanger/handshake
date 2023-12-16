@@ -1,5 +1,11 @@
 # handshake
 
+## 0.3.0
+
+### Minor Changes
+
+- renamed handshake to handshake-dashboard
+
 ## 0.2.0
 
 ### Minor Changes

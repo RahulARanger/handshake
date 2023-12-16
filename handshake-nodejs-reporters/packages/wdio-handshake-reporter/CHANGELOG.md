@@ -1,5 +1,16 @@
 # wdio-graspit-reporter
 
+## 0.3.0
+
+### Minor Changes
+
+- renamed handshake to handshake-dashboard
+
+### Patch Changes
+
+- Updated dependencies
+  - common-handshakes@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes
