@@ -6,7 +6,7 @@ const withNextra = require('nextra')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ['graspit'],
+  transpilePackages: ['handshake'],
   typescript: {
     tsconfigPath: "./tsconfig.json"
   }

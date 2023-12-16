@@ -2,7 +2,7 @@ const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
 
-const { ReporterDialPad, ServiceDialPad, acceptableDateString } = require('../src');
+const { ReporterDialPad, ServiceDialPad, acceptableDateString } = require('../dist/index');
 const {
   resetDir, results, root, uuidRegex,
 } = require('./utils');
@@ -206,8 +206,6 @@ describe('Verifying the functionality of the handshake-reporter', () => {
               skipped: 0,
               tests: 3,
               sessionID: reporter.idMapped.session ?? '',
-              standing: 'PASSED',
-              retried: 0,
             }
           ),
         );

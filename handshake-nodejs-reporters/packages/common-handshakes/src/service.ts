@@ -25,7 +25,7 @@ export class ServiceDialPad extends DialPad {
   executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
     const starter = isSync ? spawnSync : spawn;
 
-    logger.info(`🪖 Execute with ${args} for ${this.exePath} from ${cwd} => ${args.join(' ')}`);
+    logger.info(`🤝 with ${args} at ${this.exePath} from ${cwd} => ${args.join(' ')}`);
 
     return starter(
       this.exePath,
