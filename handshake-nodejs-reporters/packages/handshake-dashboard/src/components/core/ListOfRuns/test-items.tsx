@@ -13,7 +13,7 @@ export default function crumbs(
 ): crumbItems {
     return [
         {
-            title: 'Handshake',
+            title: '🫱🏾‍🫲🏼 Handshake',
         },
         {
             title: length == undefined ? 'Runs' : `Runs (${length})`,

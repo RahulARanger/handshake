@@ -31,7 +31,7 @@ export default function BranchStructure() {
 					events: {
 						click: function (event: PointClickEventObject) {
 							window.open(
-								`https://github.com/RahulARanger/graspit/tree/${event.point.options.id}`,
+								`https://github.com/RahulARanger/handshake/tree/${event.point.options.id}`,
 								"_blank"
 							);
 						},

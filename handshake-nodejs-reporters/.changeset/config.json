@@ -3,7 +3,7 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["wdio-graspit-reporter", "graspit-commons", "graspit"]],
+  "linked": [["wdio-handshake-reporter", "common-handshakes", "handshake"]],
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",

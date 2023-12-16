@@ -1,9 +1,9 @@
 import React from "react"
 
 export default {
-  logo: <span>Graspit</span>,
+  logo: <span>Handshake</span>,
   project: {
-    link: 'https://github.com/RahulARanger/graspit'
+    link: 'https://github.com/RahulARanger/handshake'
   }
   // ... other theme options
 }

@@ -9,7 +9,7 @@ import React, { type ReactNode } from 'react';
 
 const MyDocument = (): ReactNode => (
     <Html lang="en">
-        <Head />
+        <Head title="🫱🏾‍🫲🏼 Handshake" />
         <body>
             <Main />
             <NextScript />
