@@ -25,29 +25,20 @@ jobs:
           with:
             node-version: 20.9.0
 
-        - name: Setup Turbo Repo
+        - name: Setup Turbo Repo and conduct sanity test
           working-directory: ./handshake-nodejs-reporters
-          run: npm install && npm run build
-
-        - name: sanity tests
-          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
-          run: npm install && npm run test
+          run: npm install && npm run build && npm run sanity
 
         - name: Download required for Dashboard
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npm install
 
-        - name: Install Test Related Packages for mocha
-          working-directory: ./handshake-nodejs-reporters/apps/test-wdio-mocha
-          run: npm install
-
-        - name: Install Test Related Packages for cucumber
-          working-directory: ./handshake-nodejs-reporters/apps/test-wdio-cucumber
-          run: npm install
-
-        - name: patch & export results
+        - name: exporting results
           working-directory: ./handshake-nodejs-reporters
           run: |
-            sudo npm run sanity
-            sudo npx handshake patch ../TestResults 
             sudo npx handshake export ../TestResults --out ../TestReports
+
+        - name: Create Release Pull Request
+          uses: changesets/action@v1
+          env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
