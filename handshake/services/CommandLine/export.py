@@ -35,9 +35,9 @@ async def createExportTicket(
 
 
 async def deleteExportTicket(ticketID: str):
-    ticket = await ExportBase.filter(ticketID=ticketID).first()
+    task = await ExportBase.filter(ticketID=ticketID).first()
     logger.warning("Deleting the Export ticket: {}", ticketID)
-    await ticket.delete()
+    await task.delete()
 
 
 @handle_cli.command(
@@ -71,7 +71,7 @@ def export(collection_path, max_runs, out):
 
     logger.warning("Found Node modules at: {}", node_modules)
 
-    handshake = Path(node_modules) / "handshake"
+    handshake = Path(node_modules) / "handshake-dashboard"
     if not handshake.exists():
         logger.error(
             "handshake was not found in {} please try this command, npm install handshake",
