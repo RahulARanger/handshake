@@ -2,7 +2,7 @@
 import WDIOReporter, { TestStats } from '@wdio/reporter';
 import log4js, { Logger } from 'log4js';
 import { ReporterDialPad, ServiceDialPad } from 'common-handshakes';
-import type { ReporterOptions, GraspItServiceOptions } from './types';
+import type { ReporterOptions, HandshakeServiceOptions } from './types';
 
 // eslint-disable-next-line import/no-mutable-exports
 export let currentReporter: undefined | ReporterContacts;
@@ -46,9 +46,9 @@ export class ContactsForService {
 
   supporter: ServiceDialPad;
 
-  options: GraspItServiceOptions;
+  options: HandshakeServiceOptions;
 
-  constructor(options: GraspItServiceOptions) {
+  constructor(options: HandshakeServiceOptions) {
     this.logger = log4js.getLogger('wdio-py-service');
     this.logger.level = 'debug';
     this.options = options;

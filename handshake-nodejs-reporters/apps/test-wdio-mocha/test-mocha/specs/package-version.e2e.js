@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { Key } from "webdriverio"
 import { join } from "node:path"
 import { browser, $, expect } from "@wdio/globals"
-import { addDescription, addLink } from "wdio-graspit-reporter"
+import { addDescription, addLink } from "wdio-handshake-reporter"
 
 describe("Verifying the versions of the project's dependencies", async function () {
     /**

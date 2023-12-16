@@ -1,33 +1,36 @@
 {
 	"name": "common-handshakes",
-	"version": "0.1.0",
-	"types": "./dist/index.d.ts",
-	"main": "./dist/index.cjs",
-	"module": "./dist/index.js",
+	"version": "0.2.0",
 	"private": false,
 	"type": "module",
 	"license": "MIT",
+	"types": "./dist/index.d.ts",
 	"readme": "../../README.md",
-	"description": "This package has some common functions or constants required for interacting with graspit-server",
+	"description": "does a handshake with the server, shares the desired results with it.",
 	"bin": {
-		"graspit": "./feed.cjs"
+		"handshake": "./feed.cjs"
+	},
+	"exports": {
+		".": {
+			"default": "./dist/index.js"
+		},
+		"./node.json": "./node.json"
 	},
 	"scripts": {
 		"lint": "eslint src/**",
-		"test": "npx jest tests/reporter.test.js tests/service.test.js tests/helper.test.js",
-		"build": "rimraf -g ./dist && tsup src/index.ts --format esm,cjs --dts",
+		"test": "npx jest",
+		"build": "rimraf -g ./dist && tsup src/index.ts --format esm --dts",
 		"install": "node ./installation/download_build.cjs"
 	},
 	"dependencies": {
 		"cross-env": "^7.0.3",
-		"graspit": "3.4.6",
 		"log4js": "^6.9.1",
-		"p-queue": "^8.0.0",
+		"p-queue": "^8.0.1",
 		"superagent": "^8.1.2"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.23.5",
-		"@babel/preset-env": "^7.23.5",
+		"@babel/core": "^7.23.6",
+		"@babel/preset-env": "^7.23.6",
 		"@babel/preset-typescript": "^7.23.3",
 		"@jest/globals": "^29.7.0",
 		"@tsconfig/node18": "^18.2.2",

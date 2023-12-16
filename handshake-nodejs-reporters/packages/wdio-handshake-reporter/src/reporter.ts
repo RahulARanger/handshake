@@ -4,7 +4,7 @@ import type {
 } from '@wdio/reporter';
 import {
   Assertion,
-  MarkTestEntity, RegisterTestEntity, Standing, SuiteType, sanitizePaths,
+  MarkTestEntity, MarkTestSession, RegisterTestEntity, Standing, SuiteType, sanitizePaths,
 } from 'common-handshakes';
 import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
@@ -167,7 +167,7 @@ export default class HandshakeReporter extends ReporterContacts {
 
     const caps = this.runnerStat
       ?.capabilities as WebdriverIO.Capabilities;
-    const payload = {
+    const payload: MarkTestSession = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
       sessionID: this.supporter.idMapped.session ?? '',
@@ -176,11 +176,11 @@ export default class HandshakeReporter extends ReporterContacts {
       skipped: this.counts.skipping,
       hooks: this.counts.hooks,
       tests: this.counts.tests,
-      entityName: caps.browserName,
-      entityVersion: caps.browserVersion,
+      entityName: caps.browserName ?? 'no-name-found',
+      entityVersion: caps.browserVersion ?? '0.0.1',
       simplified: runnerStats.sanitizedCapabilities,
     };
-    this.supporter.markTestSession(this.supporter.updateSession, payload);
+    this.supporter.markTestSession(() => payload);
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
@@ -203,5 +203,9 @@ export default class HandshakeReporter extends ReporterContacts {
 
   async onAfterAssertion(assertionArgs: Assertion) {
     await this.supporter.addAssertion(assertionArgs, this.currentTestID);
+  }
+
+  get isSynchronised(): boolean {
+    return this.supporter.pipeQueue.size === 0;
   }
 }

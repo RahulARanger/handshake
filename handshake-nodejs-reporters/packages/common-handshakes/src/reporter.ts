@@ -9,7 +9,7 @@ import {
 } from './payload';
 import { acceptableDateString } from './helpers';
 
-const logger = log4js.getLogger('handshake-commons');
+const logger = log4js.getLogger('common-handshakes');
 
 log4js.configure({
   appenders: { console: { type: 'console' } },

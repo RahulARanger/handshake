@@ -3,7 +3,7 @@ export interface ReporterOptions {
   addScreenshots?:boolean;
   lockTimeout?:number;
 }
-export interface GraspItServiceOptions {
+export interface HandshakeServiceOptions {
   port: number;
   root: string;
   exePath?:string;

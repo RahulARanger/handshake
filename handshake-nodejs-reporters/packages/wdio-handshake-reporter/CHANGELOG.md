@@ -1,5 +1,16 @@
 # wdio-graspit-reporter
 
+## 0.2.0
+
+### Minor Changes
+
+- 6bd9175: Created handshake project, it's aim is to ease the report generation.
+
+### Patch Changes
+
+- Updated dependencies [6bd9175]
+  - common-handshakes@0.2.0
+
 ## 3.4.6
 
 ### Patch Changes

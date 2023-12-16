@@ -1,0 +1,10 @@
+.next
+.vscode
+.lintstagedrc.js
+.env
+.env.local
+*.ps1
+dist
+node_modules
+handshake
+handshake.exe

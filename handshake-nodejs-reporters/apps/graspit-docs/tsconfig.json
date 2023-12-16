@@ -16,6 +16,6 @@
 		"jsx": "preserve",
 		"rootDir": "pages"
 	},
-	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "graspit/src"],
+	"include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "handshake/src"],
 	"exclude": ["node_modules"]
 }

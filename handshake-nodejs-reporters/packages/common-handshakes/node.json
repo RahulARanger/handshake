@@ -5,7 +5,7 @@
 		"declaration": true,
 		"declarationMap": true,
 		"resolveJsonModule": true,
-		"removeComments": false,
+		"removeComments": true,
 		"strictFunctionTypes": false,
 		"experimentalDecorators": true,
 		"esModuleInterop": true,
