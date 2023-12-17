@@ -44,7 +44,12 @@ jobs:
           uses: changesets/action@v1
           with:
             cwd: ./handshake-nodejs-reporters
+            publish: npx changeset publish
             title: "version handshake-nodejs-reporters"
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              NPM_TOKEN: ${{ secret.NPM_TOKEN }}
+              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+        - name: Publish the package if required
+          if: steps.changesets.outputs.published == 'true'
+          run: echo 'published packages'
