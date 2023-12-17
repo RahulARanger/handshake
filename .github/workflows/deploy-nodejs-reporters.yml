@@ -47,3 +47,4 @@ jobs:
             title: "version handshake-nodejs-reporters"
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              NPM_TOKEN: ${{ secret.NPM_TOKEN }}

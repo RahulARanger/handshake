@@ -78,7 +78,14 @@ describe('Verifying the handshake-server helper class', () => {
 
     test('Verifying the termination of the server', async () => {
       await instance.terminateServer();
+
+      // there is ~1.5 seconds delay for the server termination
+      // reason: db connection and server termination (multiple process)
+      // takes time for its termination
+
       await new Promise((resolve) => { setTimeout(resolve, 3e3); });
+      // on max we can set 3 seconds for termination
+
       expect(await instance.isServerTerminated()).toBe(true);
     }, 5e3);
   });
