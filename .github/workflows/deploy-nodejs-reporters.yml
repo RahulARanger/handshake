@@ -1,0 +1,55 @@
+name: 'deploy-nodejs-reporters'
+
+on:
+  push:
+    branches:
+      - "nodejs-reporters"
+    paths:
+      - '**.js'
+      - '**.ts'
+      - '**deploy-nodejs-reporters.yml' # for testing this workflow
+
+permissions:
+    contents: write
+
+jobs:
+    test:
+      name: Test Dashboard
+      runs-on: 'macos-latest'
+      permissions: write-all
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v3
+
+        - name: Use Node.js
+          uses: actions/setup-node@v3
+          with:
+            node-version: 20.9.0
+
+        - name: Setup Turbo Repo and conduct sanity test
+          working-directory: ./handshake-nodejs-reporters
+          run: npm install && npm run build && sudo npm run sanity
+
+        - name: Download required for Dashboard
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm install
+
+        - name: exporting results
+          working-directory: ./handshake-nodejs-reporters
+          run: |
+            sudo npx handshake export ../TestResults --out ../TestReports
+
+        - name: Create Release Pull Request
+          uses: changesets/action@v1
+          with:
+            cwd: ./handshake-nodejs-reporters
+            publish: npx changeset publish
+            title: "version handshake-nodejs-reporters"
+          env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+        - name: Publish the package if required
+          if: steps.changesets.outputs.published == 'true'
+          run: echo 'published packages'

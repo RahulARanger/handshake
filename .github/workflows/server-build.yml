@@ -109,10 +109,10 @@ jobs:
           id: release
           with:
             files: dist/**/*
-            body: ":rocket: Bump graspit-server version to `${{ steps.version.outputs.VERSION }}`"
+            body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
-            name: "Graspit - ${{ steps.version.outputs.VERSION }}"
+            name: "Handshake 🤝 - ${{ steps.version.outputs.VERSION }}"
             generate_release_notes: true
 
         - name: Post Release Post
@@ -128,7 +128,7 @@ jobs:
             title: "Bump Server Build"
             labels: "Automated,Server-build"
             reviewers: "RahulARanger"
-            body: ":rocket: Bumped graspit-server version to `${{ steps.version.outputs.VERSION }}`.<br/>
+            body: ":rocket: Bumped handshake-server version to `${{ steps.version.outputs.VERSION }}`.<br/>
 :magic_wand: Make sure to edit this [release](${{ steps.release.outputs.url }}) once done."
             base: "nodejs-reporters"
             assignees: "RahulARanger"

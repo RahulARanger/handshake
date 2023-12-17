@@ -1,8 +1,9 @@
 import datetime
+import json
 from typing import Coroutine, Any
 from pytest import mark
-from graspit.services.DBService.models import RunBase, SessionBase, SuiteBase
-from graspit.services.DBService.models.enums import SuiteType, Status
+from handshake.services.DBService.models import RunBase, SessionBase, SuiteBase
+from handshake.services.DBService.models.enums import SuiteType, Status
 from sanic import Sanic
 
 
@@ -36,8 +37,10 @@ class TestSaveEndPoints:
             "sessionID",
         }
 
-        assert len(result) == len(required)
-        for missing in result:
+        reasons = json.loads(result["reason"])
+        assert len(reasons) == len(required)
+
+        for missing in reasons:
             assert missing["type"] == "missing"
             assert missing["loc"][0] in required
             assert missing["msg"] == "Field required"

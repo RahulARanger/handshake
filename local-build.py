@@ -5,7 +5,7 @@ from platform import system
 from shutil import copyfile
 
 dist = Path(__file__).parent / "dist"
-dist_name = f"graspit-{system()}"
+dist_name = f"handshake-{system()}"
 
 changed = False
 if "win" in system().lower():
@@ -13,12 +13,16 @@ if "win" in system().lower():
     dist_name += ".exe"
 
 commons = (
-    Path(__file__).parent / "graspit-reporters" / "packages" / "graspit-commons" / "bin"
+    Path(__file__).parent
+    / "handshake-nodejs-reporters"
+    / "packages"
+    / "common-handshakes"
+    / "bin"
 )
 
 copyfile(
     src=dist / dist_name,
-    dst=commons / (f"graspit" + ".exe" if changed else ""),
+    dst=commons / (f"handshake" + ".exe" if changed else ""),
 )
 
 # make sure to run the pyinstaller starter.spec before running this script

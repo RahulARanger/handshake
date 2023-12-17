@@ -1,10 +1,10 @@
 import pathlib
-from graspit.services.SchedularService.completeTestRun import (
+from handshake.services.SchedularService.completeTestRun import (
     simplify_file_paths,
     fetch_key_from_status,
 )
-from graspit.services.DBService.models.config_base import ConfigKeys, ConfigBase
-from graspit.services.SchedularService.modifySuites import Status
+from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBase
+from handshake.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
 from shutil import rmtree
@@ -108,12 +108,18 @@ def test_status_from_values():
 
 @mark.usefixtures("clean_close")
 class TestSetConfigCommand:
-    async def test_set_config_with_one_para(self, root_dir, force=None):
-        result = run(
-            f'graspit config "{root_dir}" -mr 3',
-            cwd=force if force else root_dir,
-            shell=True,
-        )
+    async def test_set_config_with_one_para(self, root_dir, force=None, max_runs=3):
+        if force is None:
+            result = run(
+                f'handshake config "{root_dir}" -mr {max_runs}',
+                cwd=root_dir,
+                shell=True,
+            )
+        else:
+            result = run(
+                [force, "config", str(root_dir), "-mr", f"{max_runs}"],
+                cwd=root_dir,
+            )
         assert result.returncode == 0
         config_record = await ConfigBase.filter(key=ConfigKeys.maxRuns).first()
-        assert int(config_record.value) == 3
+        assert int(config_record.value) == max_runs
