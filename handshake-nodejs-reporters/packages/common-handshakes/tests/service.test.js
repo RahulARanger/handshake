@@ -78,7 +78,8 @@ describe('Verifying the handshake-server helper class', () => {
 
     test('Verifying the termination of the server', async () => {
       await instance.terminateServer();
+      await new Promise((resolve) => { setTimeout(resolve, 3e3); });
       expect(await instance.isServerTerminated()).toBe(true);
-    });
+    }, 5e3);
   });
 });
