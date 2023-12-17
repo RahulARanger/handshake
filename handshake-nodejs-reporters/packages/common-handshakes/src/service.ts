@@ -118,11 +118,6 @@ export class ServiceDialPad extends DialPad {
   }
 
   async terminateServer() {
-    if (!this.pyProcess || this.pyProcess?.killed) {
-      logger.warn('🙀 handshake process was already terminated.');
-      return;
-    }
-
     const results = [];
     for (let worker = 0; worker < 2; worker += 1) {
       logger.info('📞 Requesting for worker termination');
@@ -136,6 +131,14 @@ export class ServiceDialPad extends DialPad {
       );
     }
     await Promise.all(results);
+
+    if (this.pyProcess?.pid) {
+      try {
+        process.kill(this.pyProcess.pid);
+      } catch {
+        logger.warn('🙀 handshake process was already terminated.');
+      }
+    }
   }
 
   async updateRunConfig(payload: UpdateTestRunConfig) {
