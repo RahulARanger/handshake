@@ -1,5 +1,11 @@
 # wdio-graspit-reporter
 
+## 0.3.2
+
+### Patch Changes
+
+- 6f30732: added glow for the status
+
 ## 0.3.1
 
 ### Patch Changes
