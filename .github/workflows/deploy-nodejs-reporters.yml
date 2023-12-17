@@ -5,8 +5,9 @@ on:
     branches:
       - "nodejs-reporters"
     paths:
-      - '**.md' # when we update the changelog
-      - '**deploy-nodejs-reporters.yml' # when we update the changelog
+      - '**.js'
+      - '**.ts'
+      - '**deploy-nodejs-reporters.yml' # for testing this workflow
 
 permissions:
     contents: write

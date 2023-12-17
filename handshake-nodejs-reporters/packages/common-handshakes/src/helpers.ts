@@ -1,4 +1,4 @@
-import { relative } from 'path';
+import { relative } from 'node:path';
 
 // eslint-disable-next-line import/prefer-default-export
 export function sanitizePaths(specs?: string[]): string[] {
