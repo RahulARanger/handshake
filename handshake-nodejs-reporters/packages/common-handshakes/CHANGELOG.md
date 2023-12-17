@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.3.1
+
+### Patch Changes
+
+- 1665f70: bump server-build
+
 ## 0.3.0
 
 ### Minor Changes
