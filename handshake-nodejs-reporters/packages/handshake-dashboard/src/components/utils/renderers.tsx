@@ -49,8 +49,11 @@ export function RenderStatus(properties: {
                         fontSize: '16px',
                         color: 'green',
                         marginTop: properties.marginTop,
+                        backgroundColor: 'transparent',
+                        borderRadius: '10px',
                     }}
                     title="Passed"
+                    className="green-glow"
                 />
             );
         }
@@ -62,8 +65,10 @@ export function RenderStatus(properties: {
                         fontSize: '16px',
                         color: 'red',
                         marginTop: properties.marginTop,
+                        borderRadius: '50px',
                     }}
                     title="Failed"
+                    className="red-glow"
                 />
             );
         }
@@ -73,9 +78,11 @@ export function RenderStatus(properties: {
                     style={{
                         fontSize: '16px',
                         color: 'yellow',
+                        borderRadius: '50px',
                         marginTop: properties.marginTop,
                     }}
                     title="Skipped"
+                    className="warn-glow"
                 />
             );
         }
@@ -86,8 +93,10 @@ export function RenderStatus(properties: {
                         fontSize: '16px',
                         color: 'yellow',
                         marginTop: properties.marginTop,
+                        borderRadius: '50px',
                     }}
                     title="Pending"
+                    className="warn-glow"
                 />
             );
         }
@@ -98,9 +107,11 @@ export function RenderStatus(properties: {
                         fontSize: '16px',
                         color: 'orangered',
                         marginTop: properties.marginTop,
+                        borderRadius: '50px',
                     }}
                     spin
                     title="Retried Suite"
+                    className="retried-glow"
                 />
             );
         }
