@@ -57,6 +57,7 @@ export default class HandshakeService
       this.options.testConfig.projectName ?? options.framework ?? 'unknown',
       resultsDir,
       rootDir,
+      this.options.workers,
     );
   }
 

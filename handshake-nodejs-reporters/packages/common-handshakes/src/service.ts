@@ -18,6 +18,8 @@ const logger = log4js.getLogger('handshake-service');
 export class ServiceDialPad extends DialPad {
   pyProcess?: ChildProcess;
 
+  workers: number = 2;
+
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
   }
@@ -40,8 +42,10 @@ export class ServiceDialPad extends DialPad {
     projectName: string,
     resultsDir: string,
     rootDir: string,
+    workers?: number,
   ): ChildProcess {
-    const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', '2'];
+    this.workers = Math.max(workers ?? 0, 2);
+    const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', String(this.workers)];
     logger.warn(`Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`);
 
     const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
@@ -56,13 +60,13 @@ export class ServiceDialPad extends DialPad {
     pyProcess.on('exit', (code) => {
       if (code !== 0) {
         logger.warn(
-          `handshake was force closed 😫, found exit code: ${code}`,
+          `handshake-server was force closed 😫, found exit code: ${code}`,
         );
       }
     });
 
     logger.info(
-      `Started py-process, running 🐰 at pid: ${pyProcess.pid}`,
+      `Started handshake-server, running 🐰 at pid: ${pyProcess.pid}`,
     );
 
     // important for avoiding zombie py server
@@ -113,14 +117,14 @@ export class ServiceDialPad extends DialPad {
     if (this.pyProcess?.killed) return true;
     const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
     const wasTerminated = resp?.statusCode !== 200;
-    if (!wasTerminated) logger.warn('→ Had to 🗡️ the py-process.');
+    if (!wasTerminated) logger.warn('→ Had to 🗡️ the handshake-server.');
     return wasTerminated;
   }
 
   async terminateServer() {
     const results = [];
-    for (let worker = 0; worker < 2; worker += 1) {
-      logger.info('📞 Requesting for worker termination');
+    for (let worker = 0; worker < this.workers; worker += 1) {
+      logger.info('Shutting down a worker of handshake-server');
       results.push(
         superagent
           .post(`${this.url}/bye`)
@@ -136,7 +140,7 @@ export class ServiceDialPad extends DialPad {
       try {
         process.kill(this.pyProcess.pid);
       } catch {
-        logger.warn('🙀 handshake process was already terminated.');
+        logger.warn('🙀 handshake-sever was already terminated.');
       }
     }
   }

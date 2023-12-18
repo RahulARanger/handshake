@@ -28,7 +28,7 @@ export default class ReporterContacts extends WDIOReporter {
     this.logger = log4js.getLogger('wdio-py-reporter');
     this.logger.level = 'debug';
 
-    this.supporter = new ReporterDialPad(this.options.port, this.options.lockTimeout);
+    this.supporter = new ReporterDialPad(this.options.port, this.options.timeout);
     currentReporter = this;
   }
 

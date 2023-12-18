@@ -1,7 +1,7 @@
 export interface ReporterOptions {
   port: number;
   addScreenshots?:boolean;
-  lockTimeout?:number;
+  timeout?:number;
 }
 export interface HandshakeServiceOptions {
   port: number;
@@ -9,10 +9,10 @@ export interface HandshakeServiceOptions {
   exePath?:string;
   collectionName: string;
   timeout?: number;
+  workers?:number;
   export?: {
     out?: string;
     maxTestRuns: number;
-    isDynamic?: boolean;
     skipPatch?: boolean;
   }
   testConfig: {
