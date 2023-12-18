@@ -1,7 +1,7 @@
 const {
-  describe, test, expect, it, beforeAll, afterAll,
+  describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
-const { ServiceDialPad } = require('../dist/index');
+const { ServiceDialPad } = require('../src/index');
 const { root, resetDir, results } = require('./utils');
 
 describe('Verifying the handshake-server helper class', () => {
@@ -42,7 +42,7 @@ describe('Verifying the handshake-server helper class', () => {
       await instance.terminateServer();
     });
 
-    it('verifying the initialization of the server', async () => {
+    test('verifying the initialization of the server', async () => {
       const server = await instance.startService('common-handshakes-jest-tests', results, root);
       expect(await instance.ping()).toBe(false); // instance takes some time to start
       await instance.waitUntilItsReady(); // so we need to wait
@@ -51,10 +51,10 @@ describe('Verifying the handshake-server helper class', () => {
       expect(server).not.toBe(undefined);
     }, 20e3);
 
-    it('verifying the ping for the valid server', async () => {
+    test('verifying the ping for the valid server', async () => {
       expect(await instance.ping()).toBe(true);
     });
-    it('verifying the update run config with valid payload', async () => {
+    test('verifying the update run config with valid payload', async () => {
       const resp = await instance.updateRunConfig({
         maxInstances: 2,
         avoidParentSuitesInCount: false,
@@ -67,18 +67,26 @@ describe('Verifying the handshake-server helper class', () => {
       expect(resp).not.toBeUndefined();
       expect(resp?.status).toBe(201);
     });
-    it('verifying the update run config with invalid payload', async () => {
+    test('verifying the update run config with invalid payload', async () => {
       const resp = await instance.updateRunConfig({ maxInstances: 2 });
       await expect(resp).toBeUndefined();
     });
 
-    it('Verifying the isTerminated flag', async () => {
+    test('Verifying the isTerminated flag', async () => {
       expect(await instance.isServerTerminated()).toBe(false);
     });
 
-    it('Verifying the termination of the server', async () => {
+    test('Verifying the termination of the server', async () => {
       await instance.terminateServer();
+
+      // there is ~1.5 seconds delay for the server termination
+      // reason: db connection and server termination (multiple process)
+      // takes time for its termination
+
+      await new Promise((resolve) => { setTimeout(resolve, 3e3); });
+      // on max we can set 3 seconds for termination
+
       expect(await instance.isServerTerminated()).toBe(true);
-    });
+    }, 5e3);
   });
 });

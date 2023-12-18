@@ -11,6 +11,7 @@ export default class Counter extends Component<
         prefix?: string;
         decimalPoints?: number;
         maxDigits?: number;
+        cssClassName?: string;
     },
     { start: number }
 > {
@@ -36,6 +37,7 @@ export default class Counter extends Component<
                         )}${this.props.suffix ?? ''}`
                 }
                 decimals={this.props.decimalPoints ?? 0}
+                className={this.props.cssClassName}
             />
         );
     }
@@ -81,7 +83,9 @@ export function StaticPercent(properties: { percent: number }): ReactNode {
         <Counter
             end={properties.percent}
             suffix={'%'}
-            style={{ color: getColorCode(properties.percent) }}
+            style={{
+                color: getColorCode(properties.percent),
+            }}
         />
     );
 }

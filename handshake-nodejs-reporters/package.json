@@ -14,7 +14,9 @@
     "test": "npm run build && turbo run test --concurrency=1 --continue",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "publish": "turbo run build lint && changeset version && changeset publish"
+    "publish": "turbo run build lint && changeset version && changeset publish",
+    "export": "npx handshake export ../TestResults --out ../TestReports",
+    "display": "npx handshake display ../TestReports"
   },
   "devDependencies": {
     "@changesets/cli": "^2.27.1",

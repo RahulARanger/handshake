@@ -199,7 +199,10 @@ function PieChart(): ReactNode {
     return (
         <Card
             bordered
-            style={{ minHeight: '220px', maxWidth: '350px' }}
+            style={{
+                minHeight: '220px',
+                maxWidth: '350px',
+            }}
             title={
                 <Space align="center">
                     <Typography>Executed</Typography>

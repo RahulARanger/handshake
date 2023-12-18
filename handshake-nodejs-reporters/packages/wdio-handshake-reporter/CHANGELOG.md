@@ -1,5 +1,18 @@
 # wdio-graspit-reporter
 
+## 0.3.2
+
+### Patch Changes
+
+- 6f30732: added glow for the status
+
+## 0.3.1
+
+### Patch Changes
+
+- Updated dependencies [1665f70]
+  - common-handshakes@0.3.1
+
 ## 0.3.0
 
 ### Minor Changes

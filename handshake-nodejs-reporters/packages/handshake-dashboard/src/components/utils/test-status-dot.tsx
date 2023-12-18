@@ -12,7 +12,10 @@ export default function BadgeForSuiteType(properties: {
             color={properties.color}
             count={properties.text}
             size={properties.size}
-            style={{ fontWeight: 'bold', color: 'white' }}
+            style={{
+                fontWeight: 'bold',
+                color: 'white',
+            }}
         />
     );
 }

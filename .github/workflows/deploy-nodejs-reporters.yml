@@ -5,7 +5,9 @@ on:
     branches:
       - "nodejs-reporters"
     paths:
-      - '**.md' # when we update the changelog
+      - '**.js'
+      - '**.ts'
+      - '**deploy-nodejs-reporters.yml' # for testing this workflow
 
 permissions:
     contents: write
@@ -25,29 +27,29 @@ jobs:
           with:
             node-version: 20.9.0
 
-        - name: Setup Turbo Repo
+        - name: Setup Turbo Repo and conduct sanity test
           working-directory: ./handshake-nodejs-reporters
-          run: npm install && npm run build
-
-        - name: sanity tests
-          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
-          run: npm install && npm run test
+          run: npm install && npm run build && sudo npm run sanity
 
         - name: Download required for Dashboard
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npm install
 
-        - name: Install Test Related Packages for mocha
-          working-directory: ./handshake-nodejs-reporters/apps/test-wdio-mocha
-          run: npm install
-
-        - name: Install Test Related Packages for cucumber
-          working-directory: ./handshake-nodejs-reporters/apps/test-wdio-cucumber
-          run: npm install
-
-        - name: patch & export results
+        - name: exporting results
           working-directory: ./handshake-nodejs-reporters
           run: |
-            sudo npm run sanity
-            sudo npx handshake patch ../TestResults 
             sudo npx handshake export ../TestResults --out ../TestReports
+
+        - name: Create Release Pull Request
+          uses: changesets/action@v1
+          with:
+            cwd: ./handshake-nodejs-reporters
+            publish: npm publish
+            title: "version handshake-nodejs-reporters"
+          env:
+              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+        - name: Publish the package if required
+          if: steps.changesets.outputs.published == 'true'
+          run: echo 'published packages'

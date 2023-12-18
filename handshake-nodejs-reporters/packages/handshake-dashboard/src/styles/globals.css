@@ -39,11 +39,6 @@ body {
     height: 100%;
     overflow: hidden;
 }
-/* div.ant-tabs {
-    background-image: radial-gradient(rgb(236, 236, 236) 1px, transparent 0);
-    background-size: 20px 20px;
-    background-position: -19px -19px;
-} */
 
 ::-webkit-scrollbar {
     width: 6px; /* Width of the scrollbar track */
@@ -52,4 +47,34 @@ body {
 ::-webkit-scrollbar-thumb {
     background-color: #888; /* Color of the scrollbar thumb */
     border-radius: 6px; /* Rounded corners for the thumb */
+}
+
+.green-glow {
+    -webkit-box-shadow: 0px 0px 27px 0px rgba(0, 255, 55, 0.9);
+    -moz-box-shadow: 0px 0px 27px 0px rgba(0, 255, 55, 0.9);
+    box-shadow: 0px 0px 27px 0px rgba(0, 255, 55, 0.9);
+}
+
+.red-glow {
+    -webkit-box-shadow: 0px 0px 27px 0px rgba(255, 0, 0, 0.9);
+    -moz-box-shadow: 0px 0px 27px 0px rgba(255, 0, 0, 0.9);
+    box-shadow: 0px 0px 27px 0px rgba(255, 0, 0, 0.9);
+}
+
+.warn-glow {
+    -webkit-box-shadow: 0px 0px 27px 0px rgba(255, 238, 0, 0.9);
+    -moz-box-shadow: 0px 0px 27px 0px rgba(255, 238, 0, 0.9);
+    box-shadow: 0px 0px 27px 0px rgba(255, 238, 0, 0.9);
+}
+
+.retried-glow {
+    -webkit-box-shadow: 0px 0px 27px 0px rgba(255, 47, 0, 0.9);
+    -moz-box-shadow: 0px 0px 27px 0px rgba(255, 47, 0, 0.9);
+    box-shadow: 0px 0px 27px 0px rgba(255, 47, 0, 0.9);
+}
+
+.black-glow {
+    -webkit-box-shadow: 0px 0px 27px 0px rgba(28, 27, 28, 0.9);
+    -moz-box-shadow: 0px 0px 27px 0px rgba(28, 27, 28, 0.9);
+    box-shadow: 0px 0px 27px 0px rgba(28, 27, 28, 0.9);
 }
