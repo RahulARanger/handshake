@@ -12,7 +12,7 @@ import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
 
-const logger = log4js.getLogger('handshake-service-commons');
+const logger = log4js.getLogger('handshake-service');
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {

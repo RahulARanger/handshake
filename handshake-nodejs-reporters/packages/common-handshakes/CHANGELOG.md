@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.3.4
+
+### Patch Changes
+
+- bump handshake server version to 0.1.2
+
 ## 0.3.1
 
 ### Patch Changes
