@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.3.5
+
+### Patch Changes
+
+- 28bea4c: feat: add options for the number of handshake-server workers
+- Updated dependencies [28bea4c]
+  - common-handshakes@0.3.5
+
 ## 0.3.4
 
 ### Patch Changes
