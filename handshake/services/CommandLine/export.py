@@ -74,11 +74,11 @@ def export(collection_path, max_runs, out):
     handshake = Path(node_modules) / "handshake-dashboard"
     if not handshake.exists():
         logger.error(
-            "handshake was not found in {} please try this command, npm install handshake",
+            "handshake-dashboard was not found in {} please try this command, npm install handshake-dashboard",
             handshake,
         )
         raise FileNotFoundError(
-            "Please install handshake in your project, npm install handshake"
+            "Please install handshake-dashboard in your project, npm install handshake-dashboard"
         )
 
     logger.info("Given details are valid, creating a export ticket")
