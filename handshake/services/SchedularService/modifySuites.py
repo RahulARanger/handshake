@@ -1,3 +1,4 @@
+import traceback
 from handshake.services.DBService.models.result_base import (
     SuiteBase,
     RollupBase,
@@ -11,9 +12,12 @@ from handshake.services.DBService.models.static_base import (
 from handshake.services.DBService.models.types import PydanticModalForTestRunConfigBase
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.enums import Status, SuiteType
-from tortoise.expressions import Q, F
-from tortoise.functions import Count, Lower, Sum, Length
+from tortoise.expressions import Q
+from tortoise.functions import Count, Lower, Sum
 from loguru import logger
+from handshake.services.SchedularService.register import (
+    skip_test_run,
+)
 from itertools import chain
 
 
@@ -81,7 +85,7 @@ async def rollup_suite_values(suiteID: str):
         **{
             key: direct_entities.get(key, 0) + indirect_entities.get(key, 0)
             for key in required
-        }
+        },
     )
 
 
@@ -147,7 +151,7 @@ async def handleRetries(suiteID: str, test_id: str):
     return previous
 
 
-async def patchTestSuite(suiteID: str, testID: str):
+async def _patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
     task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
@@ -205,3 +209,15 @@ async def patchTestSuite(suiteID: str, testID: str):
 
     logger.info("Successfully processed suite: {}", suite.suiteID)
     return True
+
+
+async def patchTestSuite(suiteID: str, testID: str):
+    try:
+        return await _patchTestSuite(suiteID, testID)
+    except Exception:
+        await skip_test_run(
+            f"Failed to process the test suite {suiteID}",
+            testID,
+            f"Failed to patch the test suite, error in calculation, {traceback.format_exc()}",
+        )
+        return False

@@ -1,7 +1,6 @@
 from handshake.services.DBService.models.enums import AttachmentType
 from handshake.services.DBService.models.static_base import TestConfigBase
-from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
-from handshake.services.SchedularService.register import mark_for_prune_task
+from handshake.services.DBService.models.dynamic_base import TaskBase
 from loguru import logger
 from typing import Optional
 from tortoise.expressions import Q

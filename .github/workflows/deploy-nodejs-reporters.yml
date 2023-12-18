@@ -44,7 +44,7 @@ jobs:
           uses: changesets/action@v1
           with:
             cwd: ./handshake-nodejs-reporters
-            publish: npx changeset publish
+            publish: npm run release
             title: "version handshake-nodejs-reporters"
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

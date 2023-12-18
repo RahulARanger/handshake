@@ -64,6 +64,7 @@ export class ReporterDialPad extends DialPad {
 
     await superagent.put(contact)
       .send(feed)
+      .retry(2)
       .on('response', (result) => {
         const { text, ok } = result;
         if (!ok) {
@@ -80,7 +81,8 @@ export class ReporterDialPad extends DialPad {
           );
           this.idMapped[storeIn] = String(text);
         }
-      }).catch((err) => {
+      })
+      .catch((err) => {
         this.misFire += 1;
         logger.error(`Failed to send the fax: ${err}`);
       });

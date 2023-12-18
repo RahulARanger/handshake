@@ -57,6 +57,7 @@ export default class HandshakeService
       this.options.testConfig.projectName ?? options.framework ?? 'unknown',
       resultsDir,
       rootDir,
+      this.options.workers,
     );
   }
 
@@ -79,8 +80,8 @@ export default class HandshakeService
       avoidParentSuitesInCount: this.options.testConfig.avoidParentSuitesInCount ?? false,
       fileRetries: config.specFileRetries ?? 0,
       saveOptions: {
-        bail: config.bail,
-        protocol: config.baseUrl,
+        bail: config.bail ?? 0,
+        protocol: config.baseUrl ?? '/',
       },
       exitCode,
     });
