@@ -251,6 +251,7 @@ export default function TestEntityDrawer(properties: {
                     style={{
                         maxWidth: '180px',
                     }}
+                    autoPlay={true}
                 />
             ),
             span: 1.5,
@@ -262,6 +263,7 @@ export default function TestEntityDrawer(properties: {
                 <RenderDuration
                     value={dayjs.duration(selectedSuiteDetails.duration)}
                     style={{ maxWidth: '80px' }}
+                    autoPlay={true}
                 />
             ),
         },

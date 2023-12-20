@@ -100,19 +100,45 @@ async def update_session(request: Request) -> HTTPResponse:
     return text(f"{session.sessionID} was updated", status=201)
 
 
-@service.put("/addAttachmentForEntity")
-async def addAttachmentForEntity(request: Request) -> HTTPResponse:
-    attachment = AddAttachmentForEntity.model_validate(request.json)
-    await AttachmentBase.create(
-        entity_id=attachment.entityID,
-        description=attachment.description,
-        type=attachment.type,
-        attachmentValue=dict(
-            color=attachment.color, value=attachment.value, title=attachment.title
-        ),
-    )
+# @service.put("/addAttachmentForEntity")
+# async def addAttachmentForEntity(request: Request) -> HTTPResponse:
+#     attachment = AddAttachmentForEntity.model_validate(request.json)
+#     await AttachmentBase.create(
+#         entity_id=attachment.entityID,
+#         description=attachment.description,
+#         type=attachment.type,
+#         attachmentValue=dict(
+#             color=attachment.color, value=attachment.value, title=attachment.title
+#         ),
+#     )
+#
+#     return text(f"Attachment added successfully for {attachment.entityID}", status=201)
 
-    return text(f"Attachment added successfully for {attachment.entityID}", status=201)
+
+@service.put("/addAttachmentsForEntities")
+async def addAttachmentForEntity(request: Request) -> HTTPResponse:
+    attachments = []
+
+    for _ in request.json:
+        attachment = AddAttachmentForEntity.model_validate(_)
+
+        attachments.append(
+            await AttachmentBase(
+                **dict(
+                    entity_id=attachment.entityID,
+                    description=attachment.description,
+                    type=attachment.type,
+                    attachmentValue=dict(
+                        color=attachment.color,
+                        value=attachment.value,
+                        title=attachment.title,
+                    ),
+                )
+            )
+        )
+
+    await AttachmentBase.bulk_create(attachments)
+    return text(f"Attachments have been added successfully", status=201)
 
 
 @service.put("/currentRun")

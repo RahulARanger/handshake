@@ -38,13 +38,19 @@ export function EntityCollapsibleItem(properties: {
                     style={{
                         maxWidth: '180px',
                     }}
+                    autoPlay={true}
                 />
             ),
         },
         {
             key: 'duration',
             label: 'Duration',
-            children: <RenderDuration value={properties.item.Duration} />,
+            children: (
+                <RenderDuration
+                    value={properties.item.Duration}
+                    autoPlay={true}
+                />
+            ),
         },
     ];
 

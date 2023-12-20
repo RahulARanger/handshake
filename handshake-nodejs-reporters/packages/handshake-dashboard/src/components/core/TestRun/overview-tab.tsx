@@ -251,9 +251,11 @@ function PieChart(): ReactNode {
                                         maxWidth: '220px',
                                     }}
                                     secondDateTime={dayjs(run.ended)}
+                                    autoPlay={true}
                                 />
                                 <RenderDuration
                                     value={dayjs.duration(run.duration)}
+                                    autoPlay={true}
                                 />
                             </Space>
                         </Tooltip>

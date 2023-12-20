@@ -110,6 +110,7 @@ export default function DetailedTestRun(properties: {
                     dateTime={dayjs(data.ended)}
                     style={{ maxWidth: '130px' }}
                     format={dateFormatUsed}
+                    autoPlay={true}
                 />
             </Layout.Header>
             <Layout.Content
