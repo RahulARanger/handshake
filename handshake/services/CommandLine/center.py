@@ -1,17 +1,19 @@
+import json
 import pprint
+import typing
 
 from handshake.services.CommandLine.core import (
     handle_cli,
-    general_requirement,
     general_but_optional_requirement,
 )
+from handshake.services.CommandLine._init import general_requirement
 from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     close_connection,
     set_default_config,
+    config_file,
 )
 from click import option
-from loguru import logger
 from pathlib import Path
 from typing import Dict
 from handshake.services.SchedularService.center import start_service
@@ -20,6 +22,13 @@ from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBa
 from handshake.services.SchedularService.lifecycle import start_loop
 from tortoise import run_async
 from tortoise.expressions import Q
+
+
+def dump_config(path: Path, to_dump: typing.List):
+    formatted_dump: typing.Dict[str, str] = dict(to_dump)
+    formatted_dump.pop(ConfigKeys.version)
+    formatted_dump.pop(ConfigKeys.recentlyDeleted)
+    config_file(path).write_text(json.dumps(formatted_dump, indent=4))
 
 
 @handle_cli.command(
@@ -44,15 +53,17 @@ async def setConfig(path: Path, feed: Dict[ConfigKeys, str], set_default: bool):
     await init_tortoise_orm(path)
 
     if set_default:
-        await set_default_config()
+        await set_default_config(path)
     if feed:
         to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
         for to in to_change:
             to.value = feed[to.key]
             await ConfigBase.bulk_update(to_change, fields=["value"])
-        logger.info("Modified the requested values")
 
-    pprint.pprint(await ConfigBase.all().values_list(), indent=4)
+    to_dump = await ConfigBase.all().values_list()
+    dump_config(path, to_dump)
+    print("Current dump;")
+    pprint.pprint(to_dump, indent=4)
     await close_connection()
 
 
@@ -75,7 +86,8 @@ def config(collection_path, max_runs):
     if set_default_first:
         Path(collection_path).mkdir(exist_ok=True)
 
-    feed = dict()
+    feed_from = config_file(saved_db_path)
+    feed = dict() if not feed_from.exists() else json.loads(feed_from.read_text())
     if max_runs > 1:
         feed[ConfigKeys.maxRuns] = max_runs
 

@@ -20,7 +20,7 @@ export function attachReporter(
     {
       port,
       addScreenshots: options.addScreenshots || false,
-      lockTimeout: options.lockTimeout || 120e3,
+      timeout: options.timeout,
     },
   ]);
 
@@ -30,6 +30,7 @@ export function attachReporter(
       exePath: options.exePath,
       timeout: options.timeout,
       root: options.root,
+      workers: options.workers,
       collectionName: options.collectionName,
       export: options.export,
       testConfig: {

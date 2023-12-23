@@ -1,5 +1,11 @@
 # handshake
 
+## 0.3.6
+
+### Patch Changes
+
+- added pagination wherever required
+
 ## 0.3.3
 
 ### Patch Changes

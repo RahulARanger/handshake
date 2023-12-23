@@ -51,7 +51,7 @@ import Description, {
 } from 'antd/lib/descriptions/index';
 import useSWR from 'swr';
 import Drawer from 'antd/lib/drawer/index';
-import Typography from 'antd/lib/typography/Typography';
+import Text from 'antd/lib/typography/Text';
 import Counter, { StaticPercent } from 'src/components/utils/counter';
 import CheckboxGroup from 'antd/lib/checkbox/Group';
 import Divider from 'antd/lib/divider/index';
@@ -61,6 +61,8 @@ import Meta from 'antd/lib/card/Meta';
 import TreeSelectionOfSuites, { NavigationButtons } from './header';
 import { EntityCollapsibleItem, EntityTimeline } from './entity-item';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import { FilterOutlined } from '@ant-design/icons';
+import CheckableTag from 'antd/lib/tag/CheckableTag';
 
 export default function TestEntityDrawer(properties: {
     open: boolean;
@@ -91,13 +93,13 @@ export default function TestEntityDrawer(properties: {
         undefined | statusOfEntity
     >();
     const [filterText, setFilterText] = useState<undefined | string>();
+    const [showFilter, setShowFilter] = useState<boolean>(false);
     const [choices, setChoices] = useState<string[]>([]);
     const [tabForDetailed, setTabForDetailed] = useState<string>(imagesTab);
     const [showTimeline] = useMemo<boolean[]>(
         () => [choices.includes(optionsForEntities[0])],
         [choices],
     );
-
     if (
         properties.testID == undefined ||
         sessions == undefined ||
@@ -190,7 +192,9 @@ export default function TestEntityDrawer(properties: {
             label: (
                 <Space align="end" id={test.suiteID}>
                     <RenderStatus value={test.standing} />
-                    <Typography>{test.title}</Typography>
+                    <Text ellipsis={{ tooltip: true }} style={{ width: 460 }}>
+                        {test.title}
+                    </Text>
                     <BadgeForSuiteType
                         text={test.suiteType}
                         color={
@@ -251,6 +255,7 @@ export default function TestEntityDrawer(properties: {
                     style={{
                         maxWidth: '180px',
                     }}
+                    autoPlay={true}
                 />
             ),
             span: 1.5,
@@ -261,21 +266,8 @@ export default function TestEntityDrawer(properties: {
             children: (
                 <RenderDuration
                     value={dayjs.duration(selectedSuiteDetails.duration)}
-                    style={{ maxWidth: '80px' }}
-                />
-            ),
-        },
-        {
-            key: 'tests',
-            label: 'Contribution',
-            children: (
-                <StaticPercent
-                    percent={
-                        ((selectedSuiteDetails.rollup_tests ??
-                            selectedSuiteDetails.tests) /
-                            Object.keys(tests).length) *
-                        100
-                    }
+                    style={{ maxWidth: '75px' }}
+                    autoPlay={true}
                 />
             ),
         },
@@ -286,19 +278,6 @@ export default function TestEntityDrawer(properties: {
                 <RenderEntityType
                     entityName={
                         sessions[selectedSuiteDetails.session_id].entityName
-                    }
-                />
-            ),
-        },
-        {
-            key: 'assertions',
-            label: 'Assertions',
-            children: (
-                <Counter
-                    end={
-                        testAttachments.filter(
-                            (attach) => attach.type === 'ASSERT',
-                        ).length
                     }
                 />
             ),
@@ -316,6 +295,34 @@ export default function TestEntityDrawer(properties: {
                 />
             ),
         },
+        {
+            key: 'tests',
+            label: 'Contribution',
+            children: (
+                <StaticPercent
+                    percent={
+                        ((selectedSuiteDetails.rollup_tests ??
+                            selectedSuiteDetails.tests) /
+                            Object.keys(tests).length) *
+                        100
+                    }
+                />
+            ),
+        },
+
+        {
+            key: 'assertions',
+            label: 'Assertions',
+            children: (
+                <Counter
+                    end={
+                        testAttachments.filter(
+                            (attach) => attach.type === 'ASSERT',
+                        ).length
+                    }
+                />
+            ),
+        },
     ];
 
     const statusOptions: SelectProps['options'] = [
@@ -324,12 +331,8 @@ export default function TestEntityDrawer(properties: {
         'Skipped',
         'Retried',
     ].map((status) => ({
-        label: (
-            <Space>
-                {status}
-                <RenderStatus value={status.toUpperCase()} />
-            </Space>
-        ),
+        label: <Text>{status}</Text>,
+
         value: status.toUpperCase(),
     }));
 
@@ -359,11 +362,26 @@ export default function TestEntityDrawer(properties: {
                     </Space>
                 }
                 size="large"
+                width={700}
                 extra={
-                    <NavigationButtons
-                        selectedSuite={selectedSuiteDetails}
-                        setTestID={setTestID}
-                    />
+                    <Space>
+                        <CheckableTag
+                            checked={showFilter}
+                            onClick={() => setShowFilter(!showFilter)}
+                            className={showFilter ? 'retried-glow' : ''}
+                        >
+                            <FilterOutlined
+                                style={{
+                                    fontSize: 15,
+                                    color: showFilter ? 'black' : 'orangered',
+                                }}
+                            />
+                        </CheckableTag>
+                        <NavigationButtons
+                            selectedSuite={selectedSuiteDetails}
+                            setTestID={setTestID}
+                        />
+                    </Space>
                 }
                 styles={{ body: { padding: '15px', paddingTop: '10px' } }}
             >
@@ -376,70 +394,78 @@ export default function TestEntityDrawer(properties: {
                         bordered
                         title={selectedSuiteDetails.file}
                     >
-                        <Space style={{ columnGap: '10px' }}>
-                            <CheckboxGroup
-                                options={optionsForEntities}
-                                value={choices}
-                                onChange={(checked) => {
-                                    setChoices(
-                                        checked.map((checked) =>
-                                            checked.toString(),
-                                        ),
-                                    );
-                                }}
-                            />
-                            <Divider type="vertical" />
-                            <Input
-                                placeholder="Search"
-                                allowClear
-                                size="small"
-                                onChange={(
-                                    event: ChangeEvent<HTMLInputElement>,
-                                ) => {
-                                    const value = event.target.value;
-                                    setFilterText(
-                                        value === '' ? undefined : value,
-                                    );
-                                }}
-                                suffix={
-                                    <Counter
-                                        style={{ fontStyle: 'italic' }}
-                                        end={dataSource.length}
-                                        prefix="("
-                                        suffix=")"
-                                    />
-                                }
-                            />
-                            <Select
-                                options={statusOptions}
-                                placeholder="Select Status"
-                                size="small"
-                                allowClear
-                                value={filterStatus}
-                                onChange={(value) => {
-                                    setFilterStatus(value);
-                                }}
-                                popupMatchSelectWidth={120}
-                            />
-                            <Button
-                                key="attachments"
-                                shape="circle"
-                                size="small"
-                                icon={<PaperClipOutlined />}
-                                onClick={() => [
-                                    setDetailed(properties.testID),
-                                    setShowDetailedView(true),
-                                ]}
-                            />
-                        </Space>
-                        {selectedSuiteDetails.description ? (
-                            <Meta
-                                style={{ marginTop: '12px' }}
-                                description={selectedSuiteDetails.description}
-                            />
+                        {showFilter ? (
+                            <Space style={{ columnGap: '10px' }}>
+                                <CheckboxGroup
+                                    options={optionsForEntities}
+                                    value={choices}
+                                    onChange={(checked) => {
+                                        setChoices(
+                                            checked.map((checked) =>
+                                                checked.toString(),
+                                            ),
+                                        );
+                                    }}
+                                />
+                                <Divider type="vertical" />
+                                <Input
+                                    placeholder="Search"
+                                    allowClear
+                                    size="small"
+                                    onChange={(
+                                        event: ChangeEvent<HTMLInputElement>,
+                                    ) => {
+                                        const value = event.target.value;
+                                        setFilterText(
+                                            value === '' ? undefined : value,
+                                        );
+                                    }}
+                                    suffix={
+                                        <Counter
+                                            style={{ fontStyle: 'italic' }}
+                                            end={dataSource.length}
+                                            prefix="("
+                                            suffix=")"
+                                        />
+                                    }
+                                />
+                                <Select
+                                    options={statusOptions}
+                                    placeholder="Select Status"
+                                    size="small"
+                                    allowClear
+                                    value={filterStatus}
+                                    onChange={(value) => {
+                                        setFilterStatus(value);
+                                    }}
+                                    popupMatchSelectWidth={120}
+                                    style={{ width: 90 }}
+                                />
+                                <Button
+                                    key="attachments"
+                                    shape="circle"
+                                    size="small"
+                                    icon={<PaperClipOutlined />}
+                                    onClick={() => [
+                                        setDetailed(properties.testID),
+                                        setShowDetailedView(true),
+                                    ]}
+                                />
+                            </Space>
                         ) : (
                             <></>
                         )}
+                        <Meta
+                            style={{ marginTop: showFilter ? '12px' : '0px' }}
+                            description={
+                                selectedSuiteDetails?.description?.length >
+                                0 ? (
+                                    selectedSuiteDetails.description
+                                ) : (
+                                    <Text italic>No Description Provided</Text>
+                                )
+                            }
+                        />
                     </Card>
 
                     <Description

@@ -1,5 +1,17 @@
 # common-handshakes
 
+## 0.3.5
+
+### Patch Changes
+
+- 28bea4c: feat: add options for the number of handshake-server workers
+
+## 0.3.4
+
+### Patch Changes
+
+- bump handshake server version to 0.1.2
+
 ## 0.3.1
 
 ### Patch Changes

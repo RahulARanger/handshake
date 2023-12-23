@@ -25,10 +25,14 @@ export default function RelativeTo(properties: {
     wrt?: Dayjs;
     secondDateTime?: Dayjs;
     format?: string;
+    autoPlay?: boolean;
     style?: CSSProperties;
 }): ReactNode {
     const [emblaReference, emblaApi] = useEmblaCarousel({ loop: true }, [
-        Autoplay({ stopOnInteraction: false }),
+        Autoplay({
+            stopOnInteraction: false,
+            active: properties.autoPlay ?? false,
+        }),
     ]);
     const [hover, setHover] = useState<boolean>(false);
     const formatter = (): string =>
@@ -97,9 +101,13 @@ export default function RelativeTo(properties: {
 export function HumanizeDuration(properties: {
     duration?: Duration;
     style?: CSSProperties;
+    autoPlay?: boolean;
 }): ReactNode {
     const [emblaReference, emblaApi] = useEmblaCarousel({ loop: true }, [
-        Autoplay({ stopOnInteraction: false }),
+        Autoplay({
+            stopOnInteraction: false,
+            active: properties?.autoPlay ?? false,
+        }),
     ]);
     const [hover, setHover] = useState<boolean>(false);
 

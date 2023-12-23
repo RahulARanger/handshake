@@ -39,3 +39,17 @@ async def skip_test_run(
     )
     await mark_for_prune_task(test_id)
     return False
+
+
+async def warn_about_test_run(
+    about: str, test_id: Union[str, UUID], description: str, **extra
+) -> False:
+    logger.warning(description)
+    await TestConfigBase.create(
+        test_id=str(test_id),
+        attachmentValue=dict(about=about, **extra),
+        type=AttachmentType.WARN,
+        description=description,
+    )
+    await mark_for_prune_task(test_id)
+    return False

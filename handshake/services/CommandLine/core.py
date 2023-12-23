@@ -1,4 +1,4 @@
-from handshake.services.CommandLine.migrate import handle_cli, general_requirement
+from handshake.services.CommandLine.migrate import handle_cli
 from handshake.services.CommandLine._init import general_but_optional_requirement
 from handshake.services.Endpoints.center import service_provider
 from handshake.services.DBService.lifecycle import (
@@ -6,7 +6,7 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     create_run,
 )
-from typing import Literal, Union
+from typing import Union
 from handshake.services.DBService.shared import set_test_id
 from click import argument, option, Path
 from pathlib import Path as P_Path
@@ -24,18 +24,10 @@ def feed_app() -> Sanic:
     return service_provider
 
 
-def feed_static_provider(
-    export: Union[Literal[False], str], root: Union[Literal[False], str]
-) -> Sanic:
-    if export:
-        static_provider.static(
-            "/", str(P_Path(export)), name="export", index=["index.html", "RUNS.html"]
-        )
-    if root:
-        static_provider.static(
-            "/Attachments", str(P_Path(root) / "Attachments"), name="root"
-        )
-
+def feed_static_provider(export: str) -> Sanic:
+    static_provider.static(
+        "/", str(P_Path(export)), name="export", index=["index.html", "RUNS.html"]
+    )
     return static_provider
 
 
@@ -133,17 +125,14 @@ def run_app(
     short_help="serves generated report",
 )
 @argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
-def display(
-    static_path: Union[Literal[False], P_Path] = False,
-    root=False,
-):
+def display(static_path: Union[str, P_Path] = "TestReports"):
     if static_path:
         static_path = P_Path(static_path)
 
         if not static_path.exists():
             raise NotADirectoryError(f"{static_path} does not exist")
 
-    loader = AppLoader(factory=partial(feed_static_provider, static_path, root))
+    loader = AppLoader(factory=partial(feed_static_provider, static_path))
     _app = loader.load()
     _app.prepare(host="127.0.0.1")
     Sanic.serve(primary=_app, app_loader=loader)

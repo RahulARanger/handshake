@@ -8,9 +8,13 @@ from handshake.services.DBService.models.types import (
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
 )
-from handshake.services.Endpoints.blueprints.utils import attachError, extractPayload
+from handshake.services.Endpoints.blueprints.utils import (
+    attachError,
+    extractPayload,
+    attachWarn,
+    extractPydanticErrors,
+)
 from handshake.services.DBService.models.static_base import (
-    AttachmentType,
     TestConfigBase,
     AttachmentBase,
 )
@@ -21,6 +25,8 @@ from loguru import logger
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_patch_suite
+from pydantic import ValidationError
+
 
 service = Blueprint("DBService", url_prefix="/save")
 
@@ -31,7 +37,7 @@ async def handle_response(request: Request, response: JSONResponse):
         return response
 
     payload = extractPayload(request, response)
-    await attachError(payload, AttachmentType.ERROR, request.url)
+    await attachError(payload, request.url)
     return JSONResponse(body=payload, status=response.status)
 
 
@@ -100,19 +106,39 @@ async def update_session(request: Request) -> HTTPResponse:
     return text(f"{session.sessionID} was updated", status=201)
 
 
-@service.put("/addAttachmentForEntity")
+@service.put("/addAttachmentsForEntities")
 async def addAttachmentForEntity(request: Request) -> HTTPResponse:
-    attachment = AddAttachmentForEntity.model_validate(request.json)
-    await AttachmentBase.create(
-        entity_id=attachment.entityID,
-        description=attachment.description,
-        type=attachment.type,
-        attachmentValue=dict(
-            color=attachment.color, value=attachment.value, title=attachment.title
-        ),
-    )
+    attachments = []
+    note = []
 
-    return text(f"Attachment added successfully for {attachment.entityID}", status=201)
+    for _ in request.json:
+        try:
+            attachment = AddAttachmentForEntity.model_validate(_)
+        except ValidationError as error:
+            note.append(_.get("entityID", False))
+            url = "/addAttachmentsForEntities"
+            await attachWarn(extractPydanticErrors(url, _, error), url)
+            continue
+
+        attachments.append(
+            await AttachmentBase(
+                **dict(
+                    entity_id=attachment.entityID,
+                    description=attachment.description,
+                    type=attachment.type,
+                    attachmentValue=dict(
+                        color=attachment.color,
+                        value=attachment.value,
+                        title=attachment.title,
+                    ),
+                )
+            )
+        )
+
+    await AttachmentBase.bulk_create(attachments)
+    return text(
+        "Attachments have been added successfully", status=201 if not len(note) else 206
+    )
 
 
 @service.put("/currentRun")

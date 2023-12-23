@@ -9,10 +9,9 @@ from handshake.services.DBService.models.types import (
 from handshake.services.DBService.shared import root_dir
 from handshake.services.DBService.models.static_base import (
     StaticBase,
-    AttachmentType,
 )
 from handshake.services.SchedularService.constants import writtenAttachmentFolderName
-from handshake.services.Endpoints.blueprints.utils import extractPayload, attachError
+from handshake.services.Endpoints.blueprints.utils import extractPayload, attachWarn
 
 writeServices = Blueprint("WriteService", url_prefix="/write")
 
@@ -23,7 +22,7 @@ async def handle_response(request: Request, response: JSONResponse):
         return response
 
     payload = extractPayload(request, response)
-    await attachError(payload, AttachmentType.WARN, request.url)
+    await attachWarn(payload, request.url)
     return JSONResponse(body=payload, status=response.status)
 
 

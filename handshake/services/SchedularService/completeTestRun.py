@@ -13,6 +13,7 @@ from typing import Union
 from traceback import format_exc
 from handshake.services.SchedularService.register import (
     skip_test_run,
+    warn_about_test_run,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.types import Status, SuiteType
@@ -25,6 +26,8 @@ from pathlib import Path
 from os.path import join
 from loguru import logger
 from tortoise.expressions import Q
+from handshake.services.SchedularService.teamsSummaryCard import sendSummaryNotification
+from httpx import HTTPError
 
 
 async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> False:
@@ -251,6 +254,19 @@ async def patchTestRun(test_id: str, current_test_id: str):
         if await patchValues(test_run):
             logger.info("Completed the patch for test run: {}", test_id)
             to_return = True
+            try:
+                await sendSummaryNotification(test_id=test_id)
+            except HTTPError as error:
+                await warn_about_test_run(
+                    test_id=test_id,
+                    about=repr(error),
+                    description=f"Failed to send summary report in teams for test run: {test_id}",
+                )
+                # await attachWarn(
+                #     dict(reason="Failed to send teams notification", error=repr(error)),
+                #     test_id,
+                # )
+
     except Exception:
         await skip_coz_error(
             test_id,

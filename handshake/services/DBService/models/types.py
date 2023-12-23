@@ -75,3 +75,4 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     saveOptions: Optional[Dict] = {}
     fileRetries: int
     avoidParentSuitesInCount: Optional[bool] = False
+    teamsHook: Optional[str] = ""
