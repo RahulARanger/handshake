@@ -156,6 +156,7 @@ export default function TreeSelectionOfSuites(properties: {
                     />
                 )}
             </Badge>
+
             <Button
                 size="small"
                 icon={<CaretRightOutlined />}

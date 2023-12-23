@@ -236,6 +236,7 @@ export default function MoreDetailsOnEntity(properties: {
                                         title={tests[item.entity_id].title}
                                     />
                                 )}
+                                pagination={{ align: 'end' }}
                             />
                         ),
                     },
@@ -256,6 +257,7 @@ export default function MoreDetailsOnEntity(properties: {
                                         item={item}
                                     />
                                 )}
+                                pagination={{ align: 'end' }}
                             />
                         ),
                     },
@@ -285,6 +287,7 @@ export default function MoreDetailsOnEntity(properties: {
                                             />
                                         </List.Item>
                                     )}
+                                    pagination={{ align: 'end' }}
                                 />
                             </PreviewGroup>
                         ),

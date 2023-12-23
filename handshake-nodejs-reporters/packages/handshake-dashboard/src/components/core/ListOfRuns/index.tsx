@@ -100,6 +100,7 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
                                     minWidth: '90px',
                                     maxWidth: '90px',
                                 }}
+                                autoPlay={true}
                             />
                         </Space>
                     </Tooltip>

@@ -38,8 +38,3 @@ async def sample_test_session(sample_test_run: RunBase):
 @fixture()
 def app():
     return service_provider
-
-
-@fixture()
-def client() -> SanicASGITestClient:
-    return service_provider.asgi_client

@@ -28,11 +28,13 @@ export default function RenderTimeRelativeToStart(properties: {
 export function RenderDuration(properties: {
     value: Duration;
     style?: CSSProperties;
+    autoPlay?: boolean;
 }): ReactNode {
     return (
         <HumanizeDuration
             duration={properties.value}
             style={properties.style}
+            autoPlay={properties.autoPlay}
         />
     );
 }
@@ -64,8 +66,9 @@ export function RenderStatus(properties: {
                     style={{
                         fontSize: '16px',
                         color: 'red',
+                        borderRadius: '10px',
                         marginTop: properties.marginTop,
-                        borderRadius: '50px',
+                        backgroundColor: 'transparent',
                     }}
                     title="Failed"
                     className="red-glow"
@@ -78,7 +81,7 @@ export function RenderStatus(properties: {
                     style={{
                         fontSize: '16px',
                         color: 'yellow',
-                        borderRadius: '50px',
+                        borderRadius: '5px',
                         marginTop: properties.marginTop,
                     }}
                     title="Skipped"
