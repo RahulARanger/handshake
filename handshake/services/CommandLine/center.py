@@ -27,7 +27,8 @@ from tortoise.expressions import Q
 def dump_config(path: Path, to_dump: typing.List):
     formatted_dump: typing.Dict[str, str] = dict(to_dump)
     formatted_dump.pop(ConfigKeys.version)
-    formatted_dump.pop(ConfigKeys.recentlyDeleted)
+    if ConfigKeys.recentlyDeleted in formatted_dump:
+        formatted_dump.pop(ConfigKeys.recentlyDeleted)
     config_file(path).write_text(json.dumps(formatted_dump, indent=4))
 
 
