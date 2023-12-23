@@ -30,9 +30,8 @@ async def say_bye_if_required(scheduler: AsyncIOScheduler, mapped: List[bool]):
     scheduler.remove_all_jobs()
     # we can't shut down scheduler because you are now inside one of the core job
 
-    logger.info("No Pending Tasks found, shutting down loop")
     await close_connection()
-    logger.info("DB Services are now offline.")
+    logger.info("Scheduler and DB Services are now offline.")
     current_running_loop = get_event_loop()
     current_running_loop.stop()
 

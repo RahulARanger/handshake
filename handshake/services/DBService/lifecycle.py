@@ -1,3 +1,5 @@
+import json
+
 from handshake.services.DBService.models.static_base import TestConfigBase
 from handshake.services.DBService.models.config_base import ConfigBase
 from handshake.services.DBService.models.types import ValueForTestRunConfigBase
@@ -15,15 +17,19 @@ from platform import uname
 models = ["handshake.services.DBService.models"]
 
 
+def config_file(provided_db_path: Path):
+    return provided_db_path.parent / "config.json"
+
+
 async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
+    chosen = force_db_path if force_db_path else db_path()
+
     await Tortoise.init(
-        db_url=r"{}".format(
-            f"sqlite://{force_db_path if force_db_path else db_path()}"
-        ),
+        db_url=r"{}".format(f"sqlite://{chosen}"),
         modules={"models": models},
     )
     await Tortoise.generate_schemas()
-    await set_default_config()
+    await set_default_config(chosen)
 
 
 async def create_run(projectName: str) -> str:
@@ -42,8 +48,24 @@ async def create_run(projectName: str) -> str:
     return test_id
 
 
-async def set_default_config():
-    for key, value in [(ConfigKeys.maxRuns, "100"), (ConfigKeys.version, DB_VERSION)]:
+async def set_default_config(path: Path):
+    config_file_provided = config_file(path)
+    config_provided = (
+        json.loads(config_file_provided.read_text())
+        if config_file_provided.exists()
+        else dict()
+    )
+
+    for key, value in [
+        (ConfigKeys.version, DB_VERSION),
+        # below keys can be overridden by the config file
+        *[
+            (_, config_provided.get(_, __))
+            for _, __ in [
+                (ConfigKeys.maxRuns, "100"),
+            ]
+        ],
+    ]:
         record = await ConfigBase.filter(key=str(key)).first()
         if not record:
             await ConfigBase.create(key=key, value=value)

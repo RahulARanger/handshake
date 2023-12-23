@@ -29,6 +29,22 @@ export function EntityCollapsibleItem(properties: {
 }): ReactNode {
     const aboutSuite: DescriptionsProps['items'] = [
         {
+            key: 'title',
+            label: 'Title',
+            children: <Text>{properties.item.Title}</Text>,
+            span: 2,
+        },
+        {
+            key: 'duration',
+            label: 'Duration',
+            children: (
+                <RenderDuration
+                    value={properties.item.Duration}
+                    autoPlay={true}
+                />
+            ),
+        },
+        {
             key: 'started',
             label: 'Range',
             children: (
@@ -38,16 +54,6 @@ export function EntityCollapsibleItem(properties: {
                     style={{
                         maxWidth: '180px',
                     }}
-                    autoPlay={true}
-                />
-            ),
-        },
-        {
-            key: 'duration',
-            label: 'Duration',
-            children: (
-                <RenderDuration
-                    value={properties.item.Duration}
                     autoPlay={true}
                 />
             ),
