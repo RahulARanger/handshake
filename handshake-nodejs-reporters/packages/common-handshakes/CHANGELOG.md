@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.3.7
+
+### Patch Changes
+
+- ae51a1c: send the attachments in bulk per session and fix the dashboard-build
+
 ## 0.3.5
 
 ### Patch Changes
