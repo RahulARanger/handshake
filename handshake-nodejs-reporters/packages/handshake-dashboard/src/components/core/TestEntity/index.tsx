@@ -61,7 +61,7 @@ import Meta from 'antd/lib/card/Meta';
 import TreeSelectionOfSuites, { NavigationButtons } from './header';
 import { EntityCollapsibleItem, EntityTimeline } from './entity-item';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import { FilterOutlined } from '@ant-design/icons';
+import FilterOutlined from '@ant-design/icons/FilterOutlined';
 import CheckableTag from 'antd/lib/tag/CheckableTag';
 
 export default function TestEntityDrawer(properties: {

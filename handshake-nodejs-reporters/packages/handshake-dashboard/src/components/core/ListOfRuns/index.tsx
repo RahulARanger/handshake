@@ -29,7 +29,7 @@ import Text from 'antd/lib/typography/Text';
 import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import Button from 'antd/lib/button/button';
-import type { RangePickerProps } from 'antd/es/date-picker';
+import type { RangePickerProps } from 'antd/lib/date-picker';
 import GithubOutlined from '@ant-design/icons/GithubOutlined';
 
 dayjs.extend(isBetween);
