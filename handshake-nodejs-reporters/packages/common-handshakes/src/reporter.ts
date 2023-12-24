@@ -25,6 +25,8 @@ export class ReporterDialPad extends DialPad {
 
   pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
 
+  requests: Attachment[] = [];
+
   constructor(port: number, timeout?:number) {
     super(port);
     this.pipeQueue = new PQueue(
@@ -48,8 +50,8 @@ export class ReporterDialPad extends DialPad {
     return `${this.saveUrl}/updateSession`;
   }
 
-  get addAttachmentForEntity(): string {
-    return `${this.saveUrl}/addAttachmentForEntity`;
+  get addAttachmentsForEntities(): string {
+    return `${this.saveUrl}/addAttachmentsForEntities`;
   }
 
   get writeAttachmentForEntity(): string {
@@ -138,6 +140,17 @@ export class ReporterDialPad extends DialPad {
   }
 
   markTestSession(payload: (() => MarkTestSession)) {
+    this.registerOrUpdateSomething(
+      this.addAttachmentsForEntities,
+      undefined,
+      undefined,
+      () => {
+        const toSend = [...this.requests];
+        this.requests.splice(0, this.requests.length);
+        return toSend;
+      },
+    );
+
     return this.registerOrUpdateSomething(
       this.updateSession,
       undefined,
@@ -146,13 +159,13 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
-  async saveAttachment(hardSave: boolean, forWhat: string, payload: Attachment) {
+  async saveAttachment(forWhat: string, payload: Attachment) {
     if (!payload.entityID) {
       logger.warn(`😕 Skipping!, we have not attached a ${forWhat} for unknown entity`);
       return false;
     }
     await superagent
-      .put(hardSave ? this.writeAttachmentForEntity : this.addAttachmentForEntity)
+      .put(this.writeAttachmentForEntity)
       .send(JSON.stringify(payload))
       .on('response', (result) => {
         if (result.ok) {
@@ -171,13 +184,9 @@ export class ReporterDialPad extends DialPad {
     content: string,
     entity_id: string,
   ) {
-    return this.saveAttachment(
-      false,
-      'description',
-      {
-        entityID: entity_id, type: 'DESC', value: content,
-      },
-    );
+    this.requests.push({
+      entityID: entity_id, type: 'DESC', value: content,
+    });
   }
 
   async addLink(
@@ -185,26 +194,18 @@ export class ReporterDialPad extends DialPad {
     title: string,
     entity_id: string,
   ) {
-    return this.saveAttachment(
-      false,
-      'link',
-      {
-        entityID: entity_id, type: 'LINK', value: url, title,
-      },
-    );
+    this.requests.push({
+      entityID: entity_id, type: 'LINK', value: url, title,
+    });
   }
 
   async addAssertion(
     assertion: Assertion,
     entity_id: string,
   ) {
-    return this.saveAttachment(
-      false,
-      'assertion',
-      {
-        entityID: entity_id, type: 'ASSERT', value: JSON.stringify(assertion), title: assertion.matcherName,
-      },
-    );
+    this.requests.push({
+      entityID: entity_id, type: 'ASSERT', value: JSON.stringify(assertion), title: assertion.matcherName,
+    });
   }
 
   async attachScreenshot(
@@ -214,7 +215,6 @@ export class ReporterDialPad extends DialPad {
     description?:string,
   ) {
     return this.saveAttachment(
-      true,
       'screenshot',
       {
         entityID: entity_id, type: 'PNG', value: content, title, description,

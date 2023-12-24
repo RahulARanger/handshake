@@ -19,7 +19,7 @@ import Button from 'antd/lib/button/button';
 import useSWR from 'swr';
 import Space from 'antd/lib/space';
 import DirectoryTree from 'antd/lib/tree/DirectoryTree';
-import type { DataNode } from 'antd/es/tree';
+import type { DataNode } from 'antd/lib/tree';
 import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
 import type { Dayjs } from 'dayjs';
