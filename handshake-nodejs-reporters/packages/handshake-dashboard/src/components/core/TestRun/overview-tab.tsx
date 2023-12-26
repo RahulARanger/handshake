@@ -52,6 +52,7 @@ import Tag from 'antd/lib/tag/index';
 import GraphCardCss from '../../../styles/GraphCard.module.css';
 import { standingToColors } from 'src/components/charts/constants';
 import Progress from 'antd/lib/progress/index';
+import Dotted from 'src/styles/dotted.module.css';
 
 function TopSuites(properties: {
     suites: SuiteDetails[];
@@ -274,7 +275,15 @@ function Summary(): ReactNode {
     const skipped = isTest ? run.skipped : suiteSummary.skipped;
 
     return (
-        <Card>
+        <Card
+            className={Dotted.dotted}
+            // style={{
+            //     backgroundImage:
+            //         'radial-gradient(rgb(255, 255, 255, 0.14) 1px, transparent 0)',
+            //     backgroundPosition: '-2px 2px',
+            //     backgroundSize: '40px 40px',
+            // }}
+        >
             <Space align="start">
                 <Space direction="vertical">
                     <div style={{ width: '350px' }}>

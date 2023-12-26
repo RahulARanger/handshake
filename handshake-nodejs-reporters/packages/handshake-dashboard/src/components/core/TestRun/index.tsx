@@ -6,12 +6,7 @@ import {
 import type TestRunRecord from 'src/types/test-run-records';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
-import {
-    timelineTab,
-    treeViewMode,
-    gridViewMode,
-    menuTabs,
-} from 'src/types/ui-constants';
+import { timelineTab, menuTabs } from 'src/types/ui-constants';
 
 import React, { useContext, type ReactNode } from 'react';
 

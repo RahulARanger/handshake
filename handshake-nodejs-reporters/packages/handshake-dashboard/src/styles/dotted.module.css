@@ -1,0 +1,20 @@
+.dotted {
+    --foreground: #1d1d1d;
+    --background: #141414;
+
+    --size: 1px;
+    --gutter: 12px;
+
+    background: var(--foreground);
+    background-image: linear-gradient(
+            var(--background) var(--gutter),
+            transparent var(--gutter)
+        ),
+        linear-gradient(
+            90deg,
+            var(--background) var(--gutter),
+            transparent var(--gutter)
+        );
+    background-size: calc(var(--size) + var(--gutter))
+        calc(var(--size) + var(--gutter));
+}

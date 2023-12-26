@@ -25,7 +25,6 @@ import ProjectStructure from './TestRun/structure-tab';
 import React, { useContext, type ReactNode, useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
 import useSWR from 'swr';
-
 import Table from 'antd/lib/table/Table';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import Button from 'antd/lib/button/button';
@@ -36,6 +35,7 @@ import { timeFormatUsed } from '../utils/Datetime/format';
 import type TestRunRecord from 'src/types/test-run-records';
 import Badge from 'antd/lib/badge/index';
 import Affix from 'antd/lib/affix/index';
+import { Spin } from 'antd/lib';
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
@@ -107,7 +107,9 @@ export default function TestEntities(properties: {
     let selectedTab = <></>;
 
     switch (properties.defaultTab) {
-        default:
+        default: {
+            return <Spin tip="Loading..." fullscreen size="large" />;
+        }
         case menuTabs.testEntitiesTab.gridViewMode: {
             selectedTab = (
                 <Table
