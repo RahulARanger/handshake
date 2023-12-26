@@ -14,7 +14,7 @@ import React from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
 import EnsureFallback from 'src/components/utils/swr-fallback';
-import { overviewTab } from 'src/types/ui-constants';
+import { menuTabs } from 'src/types/ui-constants';
 import {
     getSessionSummary,
     getDetailsOfTestRun,
@@ -81,7 +81,7 @@ export default function TestRunResults(
 ): ReactNode {
     return (
         <EnsureFallback fallbackPayload={properties}>
-            <LayoutStructureForRunDetails activeTab={overviewTab}>
+            <LayoutStructureForRunDetails activeTab={menuTabs.overviewTab}>
                 <Overview />
             </LayoutStructureForRunDetails>
         </EnsureFallback>

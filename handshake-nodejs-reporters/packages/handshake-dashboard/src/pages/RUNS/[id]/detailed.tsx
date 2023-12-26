@@ -12,11 +12,10 @@ import type { DetailedTestRunPageProperties } from 'src/types/generated-response
 import getConnection from 'src/components/scripts/connection';
 import LayoutStructureForRunDetails from 'src/components/core/TestRun';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
 import EnsureFallback from 'src/components/utils/swr-fallback';
-import { testEntitiesTab } from 'src/types/ui-constants';
 import {
     getDetailsOfTestRun,
     generateTestRunSummary,
@@ -25,6 +24,8 @@ import { attachmentPrefix } from 'src/components/core/TestRun/context';
 
 import TestEntities from 'src/components/core/test-entities';
 import { getDrillDownResults } from 'src/components/scripts/RunPage/detailed';
+import { menuTabs } from 'src/types/ui-constants';
+import { useSearchParams } from 'next/navigation';
 
 export async function getStaticProps(prepareProperties: {
     params: {
@@ -81,10 +82,19 @@ export async function getStaticProps(prepareProperties: {
 export default function TestRunResults(
     properties: DetailedTestRunPageProperties,
 ): ReactNode {
+    const pathName = useSearchParams();
+    const [defaultTab, setDefaultTab] = useState<string>(
+        pathName?.get('tab') === menuTabs.testEntitiesTab.treeViewMode
+            ? menuTabs.testEntitiesTab.treeViewMode
+            : menuTabs.testEntitiesTab.gridViewMode,
+    );
     return (
         <EnsureFallback fallbackPayload={properties}>
-            <LayoutStructureForRunDetails activeTab={testEntitiesTab}>
-                <TestEntities />
+            <LayoutStructureForRunDetails
+                activeTab={defaultTab}
+                changeDefault={setDefaultTab}
+            >
+                <TestEntities defaultTab={defaultTab} />
             </LayoutStructureForRunDetails>
         </EnsureFallback>
     );
