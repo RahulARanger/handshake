@@ -87,10 +87,9 @@ export default function ProgressPieChart(properties: {
             {
                 name: properties.isTestCases ? 'Tests' : 'Suites',
                 type: 'pie',
-                top: 80,
-                left: -35,
-                radius: ['200%', '400%'],
-                startAngle: 180,
+                top: -15,
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
                 itemStyle: {
                     borderRadius: 5,
                 },
@@ -98,7 +97,7 @@ export default function ProgressPieChart(properties: {
                     show: true,
                     color: 'white',
                     verticalAlign: 'bottom',
-                    formatter: '{b}:{c}',
+                    formatter: '{b}: {c}',
                 },
                 data: [
                     {
@@ -116,30 +115,10 @@ export default function ProgressPieChart(properties: {
                         name: 'Skipped',
                         itemStyle: { color: radiantYellow },
                     },
-                    {
-                        name: 'Buffer',
-                        itemStyle: {
-                            // stop the chart from rendering this piece
-                            color: 'none',
-                            decal: {
-                                symbol: 'none',
-                            },
-                        },
-                        label: {
-                            show: false,
-                        },
-                        value: passed + skipped + failed,
-                    },
                 ],
             },
         ],
     };
 
-    return (
-        <ReactECharts
-            option={options}
-            style={{ height: '120px' }}
-            opts={{ renderer: 'svg' }}
-        />
-    );
+    return <ReactECharts option={options} style={{ height: '220px' }} />;
 }

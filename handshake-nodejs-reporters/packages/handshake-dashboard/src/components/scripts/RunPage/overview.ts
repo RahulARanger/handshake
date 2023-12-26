@@ -78,6 +78,7 @@ export interface OverallAggResults {
     imageCount: number;
     randomImages: string[];
     recentSuites: SuiteDetails[];
+    recentTests: SuiteDetails[];
 }
 
 export async function getSomeAggResults(
@@ -132,6 +133,19 @@ export async function getSomeAggResults(
         allSessions,
     );
 
+    const recentTests = await connection.all<SuiteDetails[]>(
+        `select * from suitebase where suiteType = 'TEST' and session_id in ${sqlHelperForSessions} and standing <> 'RETRIED' limit 5`,
+        allSessions,
+    );
+    // const recentSuites = await connection.all<SuiteDetails[]>(
+    //     `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} and standing <> 'RETRIED' limit 5`,
+    //     allSessions,
+    // );
+    // const recentSuites = await connection.all<SuiteDetails[]>(
+    //     `select * from suitebase where suiteType = 'SUITE' and session_id in ${sqlHelperForSessions} and standing <> 'RETRIED' limit 5`,
+    //     allSessions,
+    // );
+
     return {
         parentSuites: parentSuiteCount,
         fileCount,
@@ -139,5 +153,6 @@ export async function getSomeAggResults(
         imageCount,
         randomImages,
         recentSuites,
+        recentTests,
     };
 }

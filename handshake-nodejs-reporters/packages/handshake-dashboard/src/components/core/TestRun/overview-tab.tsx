@@ -5,17 +5,12 @@ import {
     getSessionSummaryURL,
     getTestRun,
     getTestRunConfig,
-    runPage,
 } from 'src/components/scripts/helper';
 import type {
     AttachmentContent,
     SuiteRecordDetails,
 } from 'src/types/test-entity-related';
 import type { statusOfEntity } from 'src/types/session-records';
-import {
-    dateFormatUsed,
-    timeFormatUsed,
-} from 'src/components/utils/Datetime/format';
 import Counter, { StatisticNumber } from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
@@ -27,7 +22,7 @@ import {
 } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import GalleryOfImages, {
-    CardForAImage,
+    PlainImage,
 } from 'src/components/utils/images-with-thumbnails';
 
 import React, { useState, type ReactNode, useContext } from 'react';
@@ -35,15 +30,11 @@ import dayjs from 'dayjs';
 
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
-import Meta from 'antd/lib/card/Meta';
 import Typography from 'antd/lib/typography/Typography';
-import Switch from 'antd/lib/switch';
-import Tooltip from 'antd/lib/tooltip/index';
-import Divider from 'antd/lib/divider/index';
 import Table from 'antd/lib/table/Table';
-import type { TimelineProps } from 'antd/lib/timeline/Timeline';
-import Timeline from 'antd/lib/timeline/Timeline';
+import Select from 'antd/lib/select/index';
 import MetaCallContext from './context';
+import Tabs from 'antd/lib/tabs/index';
 import useSWR from 'swr';
 import Description, {
     type DescriptionsProps,
@@ -55,13 +46,17 @@ import type {
 import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
 import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
 import type { SuiteDetails } from 'src/types/generated-response';
-import {
-    convertForWrittenAttachments,
-    timelineColor,
-} from 'src/components/parse-utils';
-import { Badge, Button, Popover } from 'antd/lib';
+import { convertForWrittenAttachments } from 'src/components/parse-utils';
+import { Affix } from 'antd/lib';
+import Tag from 'antd/lib/tag/index';
+import GraphCardCss from '../../../styles/GraphCard.module.css';
+import { standingToColors } from 'src/components/charts/constants';
+import Progress from 'antd/lib/progress/index';
 
-function TopSuites(properties: { suites: SuiteDetails[] }): ReactNode {
+function TopSuites(properties: {
+    suites: SuiteDetails[];
+    isTest: boolean;
+}): ReactNode {
     const data = properties.suites;
     const top5Suites = data.map((suite) => ({
         key: suite.suiteID,
@@ -76,77 +71,58 @@ function TopSuites(properties: { suites: SuiteDetails[] }): ReactNode {
             pagination={false}
             style={{
                 flexShrink: 1,
-                maxWidth: '800px',
-                minWidth: '300px',
+                maxWidth: '655px',
             }}
             scroll={{ y: 181, x: 'max-content' }}
-            // footer={() => (
-            //     <Space>
-            //         <Typography>{`Showing ${top5Suites.length} Recent Suites, `}</Typography>
-            //         <Typography>
-            //             Click&nbsp;
-            //             <Button
-            //                 key="maria"
-            //                 type="link"
-            //                 style={{ padding: '0px' }}
-            //                 onClick={() =>
-            //                     document.getElementById('Detailed')?.click()
-            //                 }
-            //             >
-            //                 here
-            //             </Button>
-            //             &nbsp;to know more details.
-            //         </Typography>
-            //     </Space>
-            // )}
         >
-            <Table.Column
-                title="Status"
-                width={60}
-                align="center"
-                dataIndex="standing"
-                render={(value: statusOfEntity) => (
-                    <RenderStatus value={value} />
-                )}
-                fixed="left"
-            />
-            <Table.Column title="Name" dataIndex="title" width={220} />
-            <Table.Column
-                title="Rate"
-                dataIndex="Passed"
-                width={60}
-                render={(_: number, record: SuiteRecordDetails) => (
-                    <RenderPassedRate
-                        value={[record.passed, record.failed, record.skipped]}
-                        immutable={true}
-                    />
-                )}
-            />
-            <Table.Column
-                title="Tests"
-                align="center"
-                dataIndex="tests"
-                width={50}
-            />
+            {properties.isTest ? (
+                <Table.Column
+                    title="Status"
+                    width={60}
+                    align="center"
+                    dataIndex="standing"
+                    render={(value: statusOfEntity) => (
+                        <RenderStatus value={value} />
+                    )}
+                    fixed="left"
+                />
+            ) : (
+                <></>
+            )}
+            <Table.Column title="Name" dataIndex="title" width={150} />
+            {properties.isTest ? (
+                <></>
+            ) : (
+                <Table.Column
+                    title="Rate"
+                    dataIndex="Passed"
+                    width={100}
+                    render={(_: number, record: SuiteRecordDetails) => (
+                        <RenderPassedRate
+                            value={[
+                                record.passed,
+                                record.failed,
+                                record.skipped,
+                            ]}
+                            immutable={true}
+                        />
+                    )}
+                />
+            )}
             <Table.Column
                 dataIndex="started"
-                title="Started"
-                width={100}
-                render={(value: string) => (
-                    <Tooltip title={dayjs(value).format(dateFormatUsed)}>
-                        {dayjs(value).format(timeFormatUsed)}
-                    </Tooltip>
-                )}
-                responsive={['lg']}
-            />
-            <Table.Column
-                title="Ended"
-                width={100}
-                dataIndex="ended"
-                render={(value: string) => (
-                    <Tooltip title={dayjs(value).format(dateFormatUsed)}>
-                        {dayjs(value).format(timeFormatUsed)}
-                    </Tooltip>
+                title="Range"
+                width={180}
+                render={(value: string, record: SuiteRecordDetails) => (
+                    <RelativeTo
+                        dateTime={dayjs(value)}
+                        style={{
+                            marginLeft: '30px',
+                            maxWidth: '220px',
+                        }}
+                        secondDateTime={dayjs(record.ended)}
+                        autoPlay={false}
+                    />
                 )}
                 responsive={['lg']}
             />
@@ -166,105 +142,23 @@ function PreviewForImages(): ReactNode {
     const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
 
     return images.length > 0 ? (
-        <GalleryOfImages loop={true} maxWidth={'500px'}>
+        <GalleryOfImages loop={true} maxWidth={'350px'}>
             {images.map((image, index) => (
-                <CardForAImage
+                <PlainImage
                     url={convertForWrittenAttachments(
                         attachmentPrefix ?? '',
                         testID,
                         image.value,
                     )}
-                    index={index}
                     key={index}
                     title={image.title}
-                    maxHeight={'200px'}
+                    maxHeight={'250px'}
+                    isPlain={true}
                 />
             ))}
         </GalleryOfImages>
     ) : (
         <></>
-    );
-}
-
-function PieChart(): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
-
-    const [isTest, setTest] = useState<boolean>(true);
-
-    if (testID == undefined || run == undefined) return <></>;
-
-    const startedAt = dayjs(run.started);
-    const total = isTest ? run.tests : JSON.parse(run.suiteSummary).count;
-    return (
-        <Card
-            bordered
-            style={{
-                minHeight: '220px',
-                maxWidth: '350px',
-            }}
-            title={
-                <Space align="center">
-                    <Typography>Executed</Typography>
-                    <Counter end={total} maxDigits={run.tests} />
-                    <Typography>
-                        <Switch
-                            key={'switch'}
-                            defaultChecked
-                            size="small"
-                            checkedChildren={<>Test Cases</>}
-                            unCheckedChildren={<>Test Suites</>}
-                            onChange={(checked) => {
-                                setTest(checked);
-                            }}
-                            checked={isTest}
-                            style={{
-                                marginBottom: '2px',
-                                marginRight: '5px',
-                            }}
-                        />
-                    </Typography>
-                    <Typography>
-                        {`On ${startedAt.format(dateFormatUsed)}`}
-                    </Typography>
-                </Space>
-            }
-            size="small"
-            actions={[
-                <Meta
-                    key="started"
-                    description={
-                        <Tooltip title="Time Range | Duration">
-                            <Space
-                                split={
-                                    <Divider
-                                        type="vertical"
-                                        style={{ margin: '0px' }}
-                                    />
-                                }
-                                align="baseline"
-                            >
-                                <RelativeTo
-                                    dateTime={startedAt}
-                                    style={{
-                                        marginLeft: '30px',
-                                        maxWidth: '220px',
-                                    }}
-                                    secondDateTime={dayjs(run.ended)}
-                                    autoPlay={true}
-                                />
-                                <RenderDuration
-                                    value={dayjs.duration(run.duration)}
-                                    autoPlay={true}
-                                />
-                            </Space>
-                        </Tooltip>
-                    }
-                />,
-            ]}
-        >
-            <ProgressPieChart run={run} isTestCases={isTest} />
-        </Card>
     );
 }
 
@@ -359,97 +253,220 @@ function DescriptiveValues(): ReactNode {
     );
 }
 
-function TimelineView(): ReactNode {
+function Summary(): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
-    const { data: relatedRuns } = useSWR<TestRunRecord[]>(
-        getRelatedRuns(port, testID),
+    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
+    const { data: aggResults } = useSWR<OverallAggResults>(
+        getOverAllAggResultsURL(port, testID),
     );
-    if (relatedRuns == undefined) return <></>;
 
-    const items: TimelineProps['items'] = relatedRuns.map((run) => ({
-        children:
-            testID === run.testID ? (
-                <Badge size="small" color="orange" style={{ zoom: 1.5 }} dot>
-                    <Button
-                        type="text"
-                        size="small"
-                        style={{ marginLeft: '-10px', cursor: 'alias' }}
-                    >
-                        {dayjs(run.started).fromNow()}
-                    </Button>
-                </Badge>
-            ) : (
-                <Popover
-                    content={
-                        <Space direction="vertical" style={{ padding: '2px' }}>
-                            <Space
-                                align="baseline"
-                                split={<Divider type="vertical" />}
-                            >
-                                <Typography>
-                                    {dayjs(run.started).format(dateFormatUsed)}
-                                </Typography>
-                                <RenderDuration
-                                    value={dayjs.duration(run.duration)}
-                                    style={{
-                                        maxWidth: '65px',
-                                        minWidth: '65px',
-                                    }}
-                                />
-                            </Space>
-                            <RelativeTo
-                                dateTime={dayjs(run.started)}
-                                style={{
-                                    maxWidth: '180px',
-                                }}
-                                secondDateTime={dayjs(run.ended)}
-                            />
-                        </Space>
-                    }
-                    title={
-                        <Space>
-                            <RenderPassedRate
-                                value={[run.passed, run.failed, run.skipped]}
-                            />
-                        </Space>
-                    }
-                >
-                    {run.testID === testID ? (
-                        <></>
-                    ) : (
-                        <Button
-                            type={'text'}
-                            size="small"
-                            style={{ marginLeft: '-10px' }}
-                            href={runPage(run.testID)}
-                            target="_blank"
-                        >
-                            {dayjs(run.started).fromNow()}
-                        </Button>
-                    )}
-                </Popover>
-            ),
-        key: run.testID,
-        color: timelineColor(run.standing),
-    }));
+    const [isTest, setTest] = useState<boolean>(true);
+
+    if (run == undefined || aggResults == undefined) return;
+
+    const startedAt = dayjs(run.started);
+
+    const suiteSummary = JSON.parse(run.suiteSummary);
+
+    const total = isTest ? run.tests : suiteSummary.count;
+    const passed = isTest ? run.passed : suiteSummary.passed;
+    const failed = isTest ? run.failed : suiteSummary.failed;
+    const skipped = isTest ? run.skipped : suiteSummary.skipped;
 
     return (
-        <>
-            <Typography style={{ position: 'relative', marginTop: '10px' }}>
-                Related Runs:
-            </Typography>
-            <Timeline
-                mode="left"
-                items={items}
-                style={{
-                    maxHeight: '250px',
-                    paddingRight: '6px',
-                    paddingTop: '12px',
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                }}
-            />
-        </>
+        <Card>
+            <Space align="start">
+                <Space direction="vertical">
+                    <div style={{ width: '350px' }}>
+                        <Affix
+                            offsetBottom={150}
+                            style={{
+                                position: 'relative',
+                                top: '86px',
+                                left: '124px',
+                                width: '0px',
+                                height: '0px',
+                            }}
+                        >
+                            <Select
+                                key={'switch'}
+                                bordered={false}
+                                style={{ zIndex: 2 }}
+                                options={[
+                                    {
+                                        value: true,
+                                        label: `Test Cases`,
+                                    },
+                                    {
+                                        value: false,
+                                        label: `Test Suites`,
+                                    },
+                                ]}
+                                value={isTest}
+                                onChange={(checked) => {
+                                    setTest(checked);
+                                }}
+                            />
+                        </Affix>
+                        <ProgressPieChart run={run} isTestCases={isTest} />
+                    </div>
+                    <PreviewForImages />
+                </Space>
+                <Space
+                    style={{
+                        flexDirection: 'column',
+                        rowGap: '12px',
+                    }}
+                    styles={{
+                        item: { width: '100%' },
+                    }}
+                >
+                    <Space
+                        style={{
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            width: '100%',
+                        }}
+                        align="center"
+                    >
+                        <Counter
+                            end={total}
+                            style={{
+                                fontSize: '2.5rem',
+                                textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
+                                whiteSpace: 'nowrap',
+                            }}
+                            maxDigits={run.tests}
+                            suffix={isTest ? ' Tests' : ' Suites'}
+                        />
+                        <Space
+                            align="baseline"
+                            style={{
+                                width: '100%',
+                                flexGrow: 2,
+                            }}
+                            size={20}
+                        >
+                            <Progress
+                                percent={Number(
+                                    ((passed / total) * 1e2).toFixed(2),
+                                )}
+                                type="dashboard"
+                                strokeColor={'green'}
+                                gapDegree={40}
+                                size={85}
+                            />
+                            <Progress
+                                percent={Number(
+                                    ((failed / total) * 1e2).toFixed(2),
+                                )}
+                                type="dashboard"
+                                strokeColor={'red'}
+                                gapDegree={40}
+                                size={85}
+                            />
+                            <Progress
+                                percent={Number(
+                                    ((skipped / total) * 1e2).toFixed(2),
+                                )}
+                                type="dashboard"
+                                strokeColor={'yellow'}
+                                gapDegree={40}
+                                size={85}
+                            />
+                        </Space>
+                    </Space>
+                    <Space style={{ flexWrap: 'wrap', gap: '10px' }}>
+                        {[
+                            {
+                                key: 'Status',
+                                value: (
+                                    <Space>
+                                        <RenderStatus value={run.standing} />
+                                        <Typography
+                                            style={{
+                                                color: standingToColors[
+                                                    run.standing
+                                                ],
+                                            }}
+                                        >
+                                            {run.standing
+                                                .charAt(0)
+                                                .toUpperCase() +
+                                                run.standing
+                                                    .slice(1)
+                                                    .toLowerCase()}
+                                        </Typography>
+                                    </Space>
+                                ),
+                                color: standingToColors[run.standing],
+                            },
+                            {
+                                key: 'Duration',
+                                value: (
+                                    <RenderDuration
+                                        value={dayjs.duration(run.duration)}
+                                        autoPlay={true}
+                                    />
+                                ),
+                                color: 'blue',
+                            },
+                            {
+                                key: 'Range',
+                                value: (
+                                    <RelativeTo
+                                        dateTime={startedAt}
+                                        style={{
+                                            marginLeft: '30px',
+                                            maxWidth: '180px',
+                                        }}
+                                        secondDateTime={dayjs(run.ended)}
+                                        autoPlay={true}
+                                    />
+                                ),
+                                color: 'purple',
+                            },
+                        ].map((item) => (
+                            <Card
+                                type="inner"
+                                key={item.key}
+                                className={GraphCardCss.card}
+                                bodyStyle={{
+                                    padding: '6px',
+                                    paddingTop: '12px',
+                                    paddingBottom: '12px',
+                                }}
+                            >
+                                <Space style={{ columnGap: '5px' }}>
+                                    <Tag color={item.color} bordered>
+                                        {item.key}
+                                    </Tag>
+                                    {item.value}
+                                </Space>
+                            </Card>
+                        ))}
+                    </Space>
+                    <Tabs
+                        items={[
+                            {
+                                key: 'recent',
+                                label: 'Recent',
+                                children: (
+                                    <TopSuites
+                                        suites={
+                                            isTest
+                                                ? aggResults.recentTests
+                                                : aggResults.recentSuites
+                                        }
+                                        isTest={isTest}
+                                    />
+                                ),
+                            },
+                        ]}
+                    />
+                </Space>
+            </Space>
+        </Card>
     );
 }
 
@@ -458,32 +475,11 @@ export default function Overview(): ReactNode {
     const { data: aggResults } = useSWR<OverallAggResults>(
         getOverAllAggResultsURL(port, testID),
     );
-
-    if (aggResults == undefined) return <></>;
-
-    return (
-        <Space direction="vertical" style={{ rowGap: '10px', width: '99%' }}>
-            <Space
-                style={{
-                    columnGap: '10px',
-                    justifyContent: 'space-evenly',
-                    width: '99%',
-                }}
-            >
-                <PieChart />
-                <TopSuites suites={aggResults.recentSuites} />
-            </Space>
-            <Space
-                align="start"
-                style={{
-                    justifyContent: 'space-between',
-                    width: '99%',
-                }}
-            >
-                <PreviewForImages />
-                <DescriptiveValues />
-                <TimelineView />
-            </Space>
-        </Space>
+    const { data: relatedRuns } = useSWR<TestRunRecord[]>(
+        getRelatedRuns(port, testID),
     );
+
+    if (relatedRuns == undefined || aggResults == undefined) return <></>;
+
+    return <Summary />;
 }

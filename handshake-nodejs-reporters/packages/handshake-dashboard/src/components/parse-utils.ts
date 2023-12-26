@@ -117,7 +117,10 @@ export function convertForWrittenAttachments(
     testID: string,
     attachmentID: string,
 ): string {
-    return [prefix, testID, attachmentID].join('/');
+    const note = process?.env?.IMAGE_PROXY_URL
+        ? [process.env.IMAGE_PROXY_URL]
+        : [];
+    return [...note, prefix, testID, attachmentID].join('/');
 }
 
 export function badgeStatus(status: string): BadgeProps['status'] {

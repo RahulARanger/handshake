@@ -23,6 +23,25 @@ export const radiantYellow = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
     { offset: 1, color: '#808000' }, // Darker shade at the bottom
 ]);
 
+export const radiantBlue = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color: '#ADD8E6' }, // Lighter shade at the top
+    { offset: 1, color: '#87CEEB' }, // Darker shade at the bottom
+]);
+
+export const standingToGradientColors = {
+    PASSED: radiantGreen,
+    FAILED: radiantRed,
+    SKIPPED: radiantYellow,
+};
+
+export const standingToColors = {
+    PASSED: 'green',
+    FAILED: 'red',
+    RETRIED: 'orangered',
+    PENDING: 'blue',
+    SKIPPED: 'yellow',
+};
+
 export const toolTipFormats: TooltipComponentOption = {
     backgroundColor: 'rgb(10, 10, 10)',
     borderColor: 'rgba(128,128,128,0.1)',

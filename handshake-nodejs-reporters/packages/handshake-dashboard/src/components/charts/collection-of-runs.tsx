@@ -17,6 +17,7 @@ import type {
     TooltipComponentOption,
     ToolboxComponentOption,
     LegendComponentOption,
+    AxisPointerComponentOption,
 } from 'echarts/components';
 import { LineChart } from 'echarts/charts';
 
@@ -31,6 +32,7 @@ type composed = ComposeOption<
     | TitleComponentOption
     | TooltipComponentOption
     | ToolboxComponentOption
+    | AxisPointerComponentOption
     | LegendComponentOption
 >;
 
@@ -40,6 +42,7 @@ type composed = ComposeOption<
 // Note that including the CanvasRenderer or SVGRenderer is a required step
 import { SVGRenderer } from 'echarts/renderers';
 import {
+    radiantBlue,
     radiantGreen,
     radiantRed,
     radiantYellow,
@@ -113,10 +116,16 @@ export default function AreaChartsForRuns(properties: {
             data: properties.runs.map((run) =>
                 dayjs(run.started).format(dateTimeFormatUsed),
             ),
+            splitLine: {
+                show: false,
+            },
         },
         yAxis: [
             {
                 type: 'value',
+                splitLine: {
+                    show: false,
+                },
             },
         ],
         series: [
@@ -178,4 +187,92 @@ export default function AreaChartsForRuns(properties: {
         ],
     };
     return <ReactECharts option={options} />;
+}
+
+export function NumberOfTestsOverRuns(properties: {
+    runs: TestRunRecord[];
+    showTest: boolean;
+    showFailed: boolean;
+}): ReactNode {
+    const text = properties.showTest ? 'Tests' : 'Suites';
+
+    const counts = properties.runs.map((run) => {
+        if (!properties.showFailed)
+            return properties.showTest
+                ? run.tests
+                : JSON.parse(run.suiteSummary).count;
+        return properties.showTest
+            ? run.failed
+            : JSON.parse(run.suiteSummary).failed;
+    });
+
+    const options: composed = {
+        color: properties.showFailed ? 'brickred' : 'skyblue', // opposite of legend's data
+        title: {
+            text: properties.showFailed
+                ? `Failed ${text} over Test Runs`
+                : `Number of ${text} Over Test Runs`,
+        },
+        tooltip: {
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+            },
+            ...toolTipFormats,
+        },
+        textStyle: { fontFamily: serif.style.fontFamily },
+        legend: {
+            data: ['Passed', 'Failed', 'Skipped'],
+            align: 'right',
+            right: 40,
+            textStyle: { color: 'white' },
+            top: 3,
+        },
+        toolbox: {
+            feature: {
+                saveAsImage: {},
+            },
+        },
+        grid: {
+            left: '6%',
+            right: '4%',
+            bottom: '3%',
+            top: '20%',
+            containLabel: true,
+        },
+        xAxis: {
+            type: 'category',
+            boundaryGap: false,
+            data: properties.runs.map((run) =>
+                dayjs(run.started).format(dateTimeFormatUsed),
+            ),
+        },
+        yAxis: [
+            {
+                type: 'value',
+                splitLine: {
+                    show: false,
+                },
+            },
+        ],
+        series: [
+            {
+                name: text,
+                type: 'line',
+                smooth: true,
+                showSymbol: true,
+                emphasis: {
+                    focus: 'series',
+                },
+                data: counts,
+                areaStyle: {
+                    opacity: 0.8,
+                    color: properties.showFailed ? radiantRed : radiantBlue,
+                },
+            },
+        ],
+    };
+    return (
+        <ReactECharts option={options} style={{ width: 800, height: 230 }} />
+    );
 }

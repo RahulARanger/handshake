@@ -27,14 +27,11 @@ import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
 import type { MenuProps } from 'antd/lib/menu/menu';
 import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from 'src/styles/header.module.css';
-import Divider from 'antd/lib/divider/index';
 import Link from 'next/link';
 
-export default function DetailedTestRun(properties: {
+export default function LayoutStructureForRunDetails(properties: {
     children: ReactNode;
     activeTab: string;
-    show?: boolean;
-    onChange?: (nowSelected: string) => void;
 }): ReactNode {
     const { port, testID } = useContext(MetaCallContext);
     const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
@@ -49,44 +46,35 @@ export default function DetailedTestRun(properties: {
             key: overviewTab,
             icon: <HomeOutlined />,
         },
-
-        ...(properties.show
-            ? [
-                  {
-                      label: 'Test Entities',
-                      key: testEntitiesTab,
-                      icon: gridViewMode ? (
-                          <TableOutlined />
-                      ) : (
-                          <PartitionOutlined />
-                      ),
-                  },
-                  {
-                      label: 'Timeline',
-                      key: timelineTab,
-                      disabled: true,
-                  },
-              ]
-            : [
-                  {
-                      label: (
-                          <Link id="Detailed" href={detailedPage(data.testID)}>
-                              Detailed
-                          </Link>
-                      ),
-                      key: testEntitiesTab,
-                      icon: gridViewMode ? (
-                          <TableOutlined />
-                      ) : (
-                          <PartitionOutlined />
-                      ),
-                  },
-              ]),
+        {
+            label: 'Detailed',
+            key: testEntitiesTab,
+            icon: gridViewMode ? <TableOutlined /> : <PartitionOutlined />,
+            children: [
+                {
+                    label: (
+                        <Link
+                            id="Test Entities"
+                            href={detailedPage(data.testID)}
+                        >
+                            Test Entities
+                        </Link>
+                    ),
+                    key: testEntitiesTab,
+                    icon: gridViewMode ? (
+                        <TableOutlined />
+                    ) : (
+                        <PartitionOutlined />
+                    ),
+                },
+                {
+                    label: 'Timeline',
+                    key: timelineTab,
+                    disabled: true,
+                },
+            ],
+        },
     ];
-
-    const onClick: MenuProps['onClick'] = (event) => {
-        properties.onChange && properties.onChange(event.key);
-    };
 
     return (
         <Layout style={{ overflow: 'hidden', height: '99.3vh' }}>
@@ -98,14 +86,6 @@ export default function DetailedTestRun(properties: {
                 }}
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
-                <Divider type="vertical" />
-                <Menu
-                    items={items}
-                    mode="horizontal"
-                    selectedKeys={[properties.activeTab]}
-                    onClick={onClick}
-                    className={HeaderStyles.tab}
-                />
                 <RelativeTo
                     dateTime={dayjs(data.ended)}
                     style={{ maxWidth: '130px' }}
@@ -113,17 +93,35 @@ export default function DetailedTestRun(properties: {
                     autoPlay={true}
                 />
             </Layout.Header>
-            <Layout.Content
-                style={{
-                    marginLeft: '12px',
-                    marginTop: '2px',
-                    overflowY: 'auto',
-                    marginBottom: '3px',
-                    overflowX: 'hidden',
-                }}
-            >
-                {properties.children}
-            </Layout.Content>
+
+            <Layout>
+                <Layout.Sider
+                    breakpoint="lg"
+                    collapsedWidth="0"
+                    theme="light"
+                    className={HeaderStyles.sider}
+                >
+                    <Menu
+                        mode="inline"
+                        items={items}
+                        style={{ borderRadius: '1rem' }}
+                        defaultOpenKeys={[testEntitiesTab]}
+                        defaultSelectedKeys={[properties.activeTab]}
+                    />
+                </Layout.Sider>
+                <Layout.Content
+                    style={{
+                        marginLeft: '9px',
+                        marginRight: '4px',
+                        marginTop: '2px',
+                        overflowY: 'auto',
+                        marginBottom: '3px',
+                        overflowX: 'hidden',
+                    }}
+                >
+                    {properties.children}
+                </Layout.Content>
+            </Layout>
         </Layout>
     );
 }

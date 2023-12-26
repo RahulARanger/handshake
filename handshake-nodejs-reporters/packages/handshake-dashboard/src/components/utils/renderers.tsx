@@ -29,12 +29,14 @@ export function RenderDuration(properties: {
     value: Duration;
     style?: CSSProperties;
     autoPlay?: boolean;
+    maxWidth?: string;
 }): ReactNode {
     return (
         <HumanizeDuration
             duration={properties.value}
             style={properties.style}
             autoPlay={properties.autoPlay}
+            maxWidth={properties.maxWidth}
         />
     );
 }

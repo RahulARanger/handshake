@@ -37,6 +37,8 @@ import {
     serif,
     toolTipFormats,
 } from './constants';
+import type TestRunRecord from 'src/types/test-run-records';
+import dayjs from 'dayjs';
 
 // Register the required components
 echarts.use([
@@ -49,12 +51,21 @@ echarts.use([
     DatasetComponent,
 ]);
 
-export default function RenderPassedRate(properties: {
-    value: [number, number, number];
-    width?: number;
-    immutable?: boolean;
-    title?: string;
+export default function GanttChartForRelatedRuns(properties: {
+    runs: TestRunRecord[];
 }): ReactNode {
+    const passes = [];
+    const fails = [];
+    const skips = [];
+    const runs = [];
+
+    for (const run of properties.runs) {
+        passes.push((run.passed / run.tests) * 1e2);
+        fails.push((run.failed / run.tests) * 1e2);
+        skips.push((run.skipped / run.tests) * 1e2);
+        runs.push(dayjs(run.ended).fromNow());
+    }
+
     const options: composed = {
         tooltip: {
             trigger: 'axis',
@@ -67,16 +78,16 @@ export default function RenderPassedRate(properties: {
         textStyle: {
             fontFamily: serif.style.fontFamily,
         },
-        grid: { left: 0, right: 1 },
+        grid: { left: 0, right: 1, top: 0 },
         legend: { show: false },
         xAxis: {
             show: false,
-            type: 'value',
+            type: 'category',
+            data: runs,
         },
         yAxis: {
             show: false,
-            type: 'category',
-            data: [properties.title ?? 'Tests'],
+            type: 'value',
         },
 
         series: [
@@ -86,39 +97,36 @@ export default function RenderPassedRate(properties: {
                 color: radiantGreen,
                 stack: 'total',
                 label: {
-                    show: true,
-                    verticalAlign: 'top',
+                    show: false,
                 },
-                data: [properties.value[0]],
+                data: passes,
             },
             {
                 name: 'Failed',
                 type: 'bar',
                 stack: 'total',
                 color: radiantRed,
-                label: { show: true, verticalAlign: 'top' },
-                data: [properties.value[1]],
+                label: {
+                    show: false,
+                },
+                data: fails,
             },
             {
                 name: 'Skipped',
                 type: 'bar',
                 color: radiantYellow,
                 stack: 'total',
-                label: { show: true, verticalAlign: 'top' },
-                data: [properties.value[2]],
+                label: {
+                    show: false,
+                },
+                data: skips,
             },
         ],
     };
     return (
         <ReactECharts
             option={options}
-            style={{
-                height: '15px',
-                width: properties.width ?? 180,
-                marginTop: '3px',
-                padding: '0px',
-            }}
-            opts={{ renderer: 'svg' }}
+            style={{ alignSelf: 'center', height: 150 }}
         />
     );
 }

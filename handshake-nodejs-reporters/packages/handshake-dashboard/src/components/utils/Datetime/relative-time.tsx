@@ -102,6 +102,7 @@ export function HumanizeDuration(properties: {
     duration?: Duration;
     style?: CSSProperties;
     autoPlay?: boolean;
+    maxWidth?: string;
 }): ReactNode {
     const [emblaReference, emblaApi] = useEmblaCarousel({ loop: true }, [
         Autoplay({
@@ -124,8 +125,9 @@ export function HumanizeDuration(properties: {
             className={carouselStyles.embla}
             ref={emblaReference}
             style={{
-                maxWidth: '150px',
-                minWidth: '100px',
+                maxWidth: properties.maxWidth ?? '110px',
+                minWidth: '80px',
+                textAlign: 'right',
                 cursor: hover ? 'grabbing' : 'grab',
                 ...properties.style,
             }}

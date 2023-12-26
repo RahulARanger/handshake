@@ -8,7 +8,7 @@ import {
 } from 'src/components/scripts/helper';
 import type { DetailedTestRunPageProperties } from 'src/types/generated-response';
 import getConnection from 'src/components/scripts/connection';
-import DetailedTestRun from 'src/components/core/TestRun';
+import LayoutStructureForRunDetails from 'src/components/core/TestRun';
 
 import React from 'react';
 import { type GetStaticPropsResult } from 'next';
@@ -81,9 +81,9 @@ export default function TestRunResults(
 ): ReactNode {
     return (
         <EnsureFallback fallbackPayload={properties}>
-            <DetailedTestRun activeTab={overviewTab}>
+            <LayoutStructureForRunDetails activeTab={overviewTab}>
                 <Overview />
-            </DetailedTestRun>
+            </LayoutStructureForRunDetails>
         </EnsureFallback>
     );
 }
