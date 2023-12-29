@@ -275,16 +275,11 @@ function Summary(): ReactNode {
     const skipped = isTest ? run.skipped : suiteSummary.skipped;
 
     return (
-        <Card
-            className={Dotted.dotted}
-            // style={{
-            //     backgroundImage:
-            //         'radial-gradient(rgb(255, 255, 255, 0.14) 1px, transparent 0)',
-            //     backgroundPosition: '-2px 2px',
-            //     backgroundSize: '40px 40px',
-            // }}
-        >
-            <Space align="start">
+        <Card className={Dotted.dotted}>
+            <Space
+                align="start"
+                style={{ width: '100%', justifyContent: 'stretch' }}
+            >
                 <Space direction="vertical">
                     <div style={{ width: '350px' }}>
                         <Affix
@@ -325,6 +320,7 @@ function Summary(): ReactNode {
                     style={{
                         flexDirection: 'column',
                         rowGap: '12px',
+                        flexGrow: 1,
                     }}
                     styles={{
                         item: { width: '100%' },

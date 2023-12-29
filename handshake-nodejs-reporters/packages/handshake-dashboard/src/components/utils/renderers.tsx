@@ -2,10 +2,9 @@ import { type Dayjs } from 'dayjs';
 import React, { type CSSProperties, type ReactNode } from 'react';
 import { type Duration } from 'dayjs/plugin/duration';
 import type { statusOfEntity } from 'src/types/session-records';
-import CheckCircleFilled from '@ant-design/icons/CheckCircleFilled';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
-import CloseOutlined from '@ant-design/icons/CloseOutlined';
-import WarningFilled from '@ant-design/icons/WarningFilled';
+import Dotted from 'src/styles/dotted.module.css';
+import Text from 'antd/lib/typography/Text';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import type { possibleEntityNames } from 'src/types/session-records';
 import Avatar from 'antd/lib/avatar/avatar';
@@ -47,48 +46,26 @@ export function RenderStatus(properties: {
 }): ReactNode {
     switch (properties.value as statusOfEntity) {
         case 'PASSED': {
-            return (
-                <CheckCircleFilled
-                    style={{
-                        fontSize: '16px',
-                        color: 'green',
-                        marginTop: properties.marginTop,
-                        backgroundColor: 'transparent',
-                        borderRadius: '10px',
-                    }}
-                    title="Passed"
-                    className="green-glow"
-                />
-            );
+            return <Text style={{ marginTop: '-15px' }}>✅</Text>;
         }
         case 'FAILED': {
             return (
-                <CloseOutlined
-                    spin
-                    style={{
-                        fontSize: '16px',
-                        color: 'red',
-                        borderRadius: '10px',
-                        marginTop: properties.marginTop,
-                        backgroundColor: 'transparent',
-                    }}
-                    title="Failed"
-                    className="red-glow"
-                />
+                <Text
+                    className={`${Dotted.redGlowText} ${Dotted.spin}`}
+                    style={{ marginTop: properties.marginTop }}
+                >
+                    ❌
+                </Text>
             );
         }
         case 'SKIPPED': {
             return (
-                <WarningFilled
-                    style={{
-                        fontSize: '16px',
-                        color: 'yellow',
-                        borderRadius: '5px',
-                        marginTop: properties.marginTop,
-                    }}
-                    title="Skipped"
-                    className="warn-glow"
-                />
+                <Text
+                    className={Dotted.yellowGlowText}
+                    style={{ marginTop: properties.marginTop }}
+                >
+                    ⚠️
+                </Text>
             );
         }
         case 'PENDING': {

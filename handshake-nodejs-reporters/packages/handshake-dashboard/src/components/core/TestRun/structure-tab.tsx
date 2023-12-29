@@ -4,112 +4,87 @@ import type { specNode } from 'src/types/test-run-records';
 import { getSuites, getTestRun } from 'src/components/scripts/helper';
 import MetaCallContext from './context';
 import Dotted from 'src/styles/dotted.module.css';
-import React, { useContext, type ReactNode, useMemo } from 'react';
+import React, { useContext, type ReactNode, useMemo, useState } from 'react';
 import useSWR from 'swr';
 import Space from 'antd/lib/space';
-import DirectoryTree from 'antd/lib/tree/DirectoryTree';
-import type { DataNode } from 'antd/lib/tree';
-import DownOutlined from '@ant-design/icons/DownOutlined';
 import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
 import Counter from 'src/components/utils/counter';
 import { Tooltip } from 'antd/lib';
+import TreeMapComponent from 'src/components/charts/tree-map';
+import type { StatusContext } from 'src/types/transfer-structure-context';
+import { RenderStatus } from 'src/components/utils/renderers';
+import BadgeForSuiteType from 'src/components/utils/test-status-dot';
 
-function treeData(node: specNode, suites: SuiteDetails): DataNode[] {
-    const root: DataNode = { title: 'Root', key: '', children: [] };
-    const structure: DataNode[] = [root];
-    const pulled = new Set(suites['@order']);
-    const nodes = [{ node, childrenSpace: root.children, pathNode: root }];
-
-    while (nodes.length > 0) {
-        const result = nodes.pop();
-        if (result?.node == undefined || result?.childrenSpace == undefined)
-            continue;
-        const { node, childrenSpace } = result;
-
-        const current = node['<path>'];
-
-        const childParts = new Set(Object.keys(node));
-        childParts.delete('<path>');
-
-        // these are paths
-        for (const child of childParts) {
-            const childNode = {
-                key: current + child,
-                title: child,
-                children: [],
-            };
-            childrenSpace.push(childNode);
-            nodes.push({
-                node: node[child],
-                childrenSpace: childNode.children,
-                pathNode: childNode,
-            });
-        }
-
-        let passed = 0;
-        let failed = 0;
-        let skipped = 0;
-
-        // these are suites
-        for (const suiteID of pulled) {
-            const suite = suites[suiteID];
-
-            if (suite.standing === 'RETRIED' || !suite.file.startsWith(current))
-                continue;
-
-            if (suites[suiteID].parent === '') {
-                passed += suite.rollup_passed ?? 0;
-                failed += suite.rollup_failed ?? 0;
-                skipped += suite.rollup_skipped ?? 0;
-            }
-
-            if (suite.file !== current) continue;
-
-            pulled.delete(suiteID);
-        }
-        const { pathNode } = result;
-        pathNode.title = (
-            <Space align="center" style={{ columnGap: '12px' }}>
-                <Text>{(pathNode.title as string) ?? ''}</Text>
-                <Space>
-                    <Tooltip title="Passed">
-                        {' '}
-                        <Counter
-                            end={passed}
-                            style={{
-                                fontSize: '1.0009rem',
-                                textShadow: 'rgba(0,255,77,0.9) 0px 0px 16px',
-                            }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Failed">
-                        {' '}
-                        <Counter
-                            end={failed}
-                            style={{
-                                fontSize: '1.0009rem',
-                                textShadow: 'rgba(255,0,0,0.9) 0px 0px 16px',
-                            }}
-                        />
-                    </Tooltip>
-                    <Tooltip title="Skipped">
-                        {' '}
-                        <Counter
-                            end={skipped}
-                            style={{
-                                fontSize: '1.0009rem',
-                                textShadow: 'rgba(255,200,0,0.9) 0px 0px 16px',
-                            }}
-                        />
-                    </Tooltip>
-                </Space>
-            </Space>
+function MousedPart(properties: { info?: StatusContext }): ReactNode {
+    if (properties?.info === undefined)
+        return (
+            <Text style={{ fontStyle: 'italic' }}>
+                Double click on Suites to drill down
+            </Text>
         );
-    }
 
-    return structure;
+    return (
+        <>
+            <Space>
+                {properties.info.isPath ? (
+                    <Text>{properties.info.isFile ? '📄' : '📂'}</Text>
+                ) : (
+                    <RenderStatus value={properties.info.status} />
+                )}
+                {properties.info.isFile ? (
+                    <> </>
+                ) : (
+                    <BadgeForSuiteType text="SUITE" color="magenta" />
+                )}
+                <Text>{properties.info?.title}</Text>
+            </Space>
+        </>
+    );
 }
+
+function SuiteStatus(properties: { info?: StatusContext }): ReactNode {
+    if (properties?.info === undefined)
+        return (
+            <Text style={{ fontStyle: 'italic' }}>
+                Mouse over to view the details
+            </Text>
+        );
+
+    return (
+        <Tooltip
+            defaultOpen
+            placement="bottomRight"
+            title="Passed > Failed > Skipped"
+        >
+            <Space>
+                <Counter
+                    end={properties.info.passed}
+                    cssClassName={Dotted.greenGlowText}
+                    style={{
+                        fontSize: '1.0009rem',
+                    }}
+                />
+                <Counter
+                    cssClassName={Dotted.redGlowText}
+                    end={properties.info.failed}
+                    style={{
+                        fontSize: '1.0009rem',
+                    }}
+                />
+                <Counter
+                    cssClassName={Dotted.yellowGlowText}
+                    end={properties.info.skipped}
+                    style={{
+                        fontSize: '1.0009rem',
+                    }}
+                />
+            </Space>
+        </Tooltip>
+    );
+}
+
+// export function SuiteSelection(properties: {setTestID: (testID: string)})
 
 export default function ProjectStructure(properties: {
     setTestID: (testID: string) => void;
@@ -124,25 +99,24 @@ export default function ProjectStructure(properties: {
         return JSON.parse(detailsOfTestRun?.specStructure ?? '[]');
     }, [detailsOfTestRun]);
 
+    const [selected, setSelected] = useState<string>();
+    const [hovered, setHovered] = useState<StatusContext>();
+
     if (detailsOfTestRun == undefined || suites == undefined) return <></>;
 
-    const projectStructure = treeData(structure, suites);
-
+    // const projectStructure = treeData(structure, suites);
     return (
-        <Card type="inner" className={Dotted.dotted}>
-            <Space>
-                <DirectoryTree
-                    treeData={projectStructure}
-                    showLine
-                    checkable
-                    selectable={false}
-                    style={{ marginTop: '-15px' }}
-                    switcherIcon={
-                        <DownOutlined style={{ marginRight: '10px' }} />
-                    }
-                    defaultExpandedKeys={projectStructure.map((key) => key.key)} // open the first key
-                />
-            </Space>
+        <Card
+            type="inner"
+            className={Dotted.dotted}
+            title={<MousedPart info={hovered} />}
+            extra={<SuiteStatus info={hovered} />}
+        >
+            <TreeMapComponent
+                suites={suites}
+                node={structure}
+                setHovered={setHovered}
+            />
         </Card>
     );
 }
