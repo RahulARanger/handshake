@@ -12,11 +12,7 @@ import {
 } from 'src/components/scripts/helper';
 import type { possibleEntityNames } from 'src/types/session-records';
 import type { PreviewForDetailedEntities } from 'src/types/parsed-records';
-import RenderTimeRelativeToStart, {
-    RenderDuration,
-    RenderEntityType,
-    RenderStatus,
-} from '../utils/renderers';
+import { RenderEntityType, RenderStatus } from '../utils/renderers';
 import MetaCallContext from './TestRun/context';
 import RenderPassedRate from '../charts/stacked-bar-chart';
 import TestEntityDrawer from './TestEntity';
@@ -26,16 +22,18 @@ import React, { useContext, type ReactNode, useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
 import useSWR from 'swr';
 import Table from 'antd/lib/table/Table';
-import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import Button from 'antd/lib/button/button';
 import Space from 'antd/lib/space/index';
 import type { Duration } from 'dayjs/plugin/duration';
 import Typography from 'antd/lib/typography/Typography';
+import Text from 'antd/lib/typography/Text';
 import { timeFormatUsed } from '../utils/Datetime/format';
 import type TestRunRecord from 'src/types/test-run-records';
 import Badge from 'antd/lib/badge/index';
-import Affix from 'antd/lib/affix/index';
 import { Spin } from 'antd/lib';
+import { RenderDuration } from '../utils/relative-time';
+import RelativeTo from '../utils/Datetime/relative-time';
+import { StaticPercent } from '../utils/counter';
 
 interface SuiteNode extends PreviewForDetailedEntities {
     children: undefined | SuiteNode[];
@@ -149,7 +147,7 @@ export default function TestEntities(properties: {
                     <Table.Column
                         title="Name"
                         dataIndex="Title"
-                        width={220}
+                        width={200}
                         fixed="left"
                         filterSearch={true}
                         filters={[
@@ -163,30 +161,26 @@ export default function TestEntities(properties: {
                         }
                         render={(value: string, record: SuiteNode) => (
                             <Space>
-                                <Affix
-                                    offsetTop={2}
-                                    style={{
-                                        right: -1,
-                                        position: 'absolute',
-                                        top: -1,
-                                        color: 'orangered',
-                                    }}
-                                >
-                                    <ExpandAltOutlined />
-                                </Affix>
                                 <Button
-                                    type="text"
+                                    type="link"
                                     onClick={() => helperToSetTestID(record.id)}
                                     style={{
-                                        color: 'rgba(255, 255, 255, 0.85)',
-                                        whiteSpace: 'pretty',
-                                        textDecoration: 'underline',
                                         textAlign: 'left',
                                         padding: '2px',
                                         margin: '0px',
                                     }}
                                 >
-                                    {value}
+                                    <Text
+                                        underline
+                                        style={{
+                                            color: 'rgba(255, 255, 255, 0.85)',
+                                            whiteSpace: 'pretty',
+                                            textAlign: 'left',
+                                            textDecorationThickness: 0.5,
+                                        }}
+                                    >
+                                        {value}
+                                    </Text>
                                 </Button>
                             </Space>
                         )}
@@ -220,10 +214,38 @@ export default function TestEntities(properties: {
 
                     <Table.Column
                         dataIndex="Started"
-                        title="Started"
-                        width={100}
-                        render={(value: [Dayjs, Dayjs]) => (
-                            <RenderTimeRelativeToStart value={value} />
+                        title="Range"
+                        width={165}
+                        render={(value: [Dayjs, Dayjs], record: SuiteNode) => (
+                            <RelativeTo
+                                dateTime={value[0]}
+                                secondDateTime={record.Ended[0]}
+                                style={{
+                                    maxWidth: '165px',
+                                    textAlign: 'right',
+                                }}
+                            />
+                        )}
+                        sorter={(a: SuiteNode, b: SuiteNode) => {
+                            return Number(a.Started[0].isBefore(b.Started[0]));
+                        }}
+                    />
+                    <Table.Column
+                        dataIndex="Rate"
+                        title="Contribution"
+                        width={50}
+                        align="center"
+                        render={(_, record: SuiteNode) => (
+                            <StaticPercent
+                                percent={
+                                    Number(
+                                        (
+                                            (suites[record.id]?.rollup_tests ??
+                                                0) / run.tests
+                                        ).toFixed(2),
+                                    ) * 1e2
+                                }
+                            />
                         )}
                         sorter={(a: SuiteNode, b: SuiteNode) => {
                             return Number(a.Started[0].isBefore(b.Started[0]));
@@ -231,10 +253,10 @@ export default function TestEntities(properties: {
                     />
                     <Table.Column
                         title="Duration"
-                        width={50}
+                        width={100}
                         dataIndex="Duration"
                         render={(value: Duration) => (
-                            <RenderDuration value={value} />
+                            <RenderDuration value={value} maxWidth="120px" />
                         )}
                     />
                     <Table.Column

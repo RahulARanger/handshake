@@ -1,9 +1,7 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
 import { parseDetailedTestRun, sourceUrl } from 'src/components/parse-utils';
-import RenderTimeRelativeToStart, {
-    RenderDuration,
-} from 'src/components/utils/renderers';
+import { RenderDuration } from 'src/components/utils/relative-time';
 import AreaChartForRuns from 'src/components/charts/collection-of-runs';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import crumbs from './test-items';
@@ -31,6 +29,8 @@ import isBetween from 'dayjs/plugin/isBetween';
 import Button from 'antd/lib/button/button';
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import GithubOutlined from '@ant-design/icons/GithubOutlined';
+import { Tag } from 'antd/lib';
+import RelativeTo from 'src/components/utils/Datetime/relative-time';
 
 dayjs.extend(isBetween);
 
@@ -76,32 +76,28 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
                         placement="bottomRight"
                         arrow
                     >
-                        <Space
-                            size="small"
-                            align="baseline"
-                            split={
-                                <Divider
-                                    type="vertical"
-                                    style={{ margin: '0px' }}
+                        <Space align="start" size={0}>
+                            <Tag color="cyan">
+                                <RelativeTo
+                                    dateTime={item.Started[0]}
+                                    secondDateTime={item.Ended[0]}
+                                    autoPlay
+                                    style={{
+                                        maxWidth: '165px',
+                                        textAlign: 'right',
+                                    }}
                                 />
-                            }
-                        >
-                            <RenderTimeRelativeToStart
-                                value={item.Started}
-                                style={{ maxWidth: '103px' }}
-                            />
-                            <RenderTimeRelativeToStart
-                                value={item.Ended}
-                                style={{ maxWidth: '103px' }}
-                            />
-                            <RenderDuration
-                                value={item.Duration}
-                                style={{
-                                    minWidth: '90px',
-                                    maxWidth: '90px',
-                                }}
-                                autoPlay={true}
-                            />
+                            </Tag>
+                            <Tag color="volcano">
+                                <RenderDuration
+                                    value={item.Duration}
+                                    style={{
+                                        minWidth: '90px',
+                                        maxWidth: '90px',
+                                    }}
+                                    autoPlay={true}
+                                />
+                            </Tag>
                         </Space>
                     </Tooltip>
                 }

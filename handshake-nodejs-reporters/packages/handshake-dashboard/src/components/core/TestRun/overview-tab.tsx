@@ -13,10 +13,11 @@ import type {
 import type { statusOfEntity } from 'src/types/session-records';
 import Counter, { StatisticNumber } from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
 import {
     RenderEntityType,
-    RenderDuration,
+    RenderInfo,
     RenderStatus,
     RenderSystemType,
 } from 'src/components/utils/renderers';
@@ -48,11 +49,9 @@ import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
 import type { SuiteDetails } from 'src/types/generated-response';
 import { convertForWrittenAttachments } from 'src/components/parse-utils';
 import { Affix } from 'antd/lib';
-import Tag from 'antd/lib/tag/index';
-import GraphCardCss from '../../../styles/GraphCard.module.css';
 import { standingToColors } from 'src/components/charts/constants';
-import Progress from 'antd/lib/progress/index';
 import Dotted from 'src/styles/dotted.module.css';
+import RenderProgress from 'src/components/utils/progress-rate';
 
 function TopSuites(properties: {
     suites: SuiteDetails[];
@@ -344,42 +343,11 @@ function Summary(): ReactNode {
                             maxDigits={run.tests}
                             suffix={isTest ? ' Tests' : ' Suites'}
                         />
-                        <Space
-                            align="baseline"
-                            style={{
-                                width: '100%',
-                                flexGrow: 2,
-                            }}
-                            size={20}
-                        >
-                            <Progress
-                                percent={Number(
-                                    ((passed / total) * 1e2).toFixed(2),
-                                )}
-                                type="dashboard"
-                                strokeColor={'green'}
-                                gapDegree={40}
-                                size={85}
-                            />
-                            <Progress
-                                percent={Number(
-                                    ((failed / total) * 1e2).toFixed(2),
-                                )}
-                                type="dashboard"
-                                strokeColor={'red'}
-                                gapDegree={40}
-                                size={85}
-                            />
-                            <Progress
-                                percent={Number(
-                                    ((skipped / total) * 1e2).toFixed(2),
-                                )}
-                                type="dashboard"
-                                strokeColor={'yellow'}
-                                gapDegree={40}
-                                size={85}
-                            />
-                        </Space>
+                        <RenderProgress
+                            passed={passed}
+                            failed={failed}
+                            skipped={skipped}
+                        />
                     </Space>
                     <Space style={{ flexWrap: 'wrap', gap: '10px' }}>
                         {[
@@ -432,23 +400,12 @@ function Summary(): ReactNode {
                                 color: 'purple',
                             },
                         ].map((item) => (
-                            <Card
-                                type="inner"
+                            <RenderInfo
                                 key={item.key}
-                                className={GraphCardCss.card}
-                                bodyStyle={{
-                                    padding: '6px',
-                                    paddingTop: '12px',
-                                    paddingBottom: '12px',
-                                }}
-                            >
-                                <Space style={{ columnGap: '5px' }}>
-                                    <Tag color={item.color} bordered>
-                                        {item.key}
-                                    </Tag>
-                                    {item.value}
-                                </Space>
-                            </Card>
+                                itemKey={item.key}
+                                color={item.color}
+                                value={item.value}
+                            />
                         ))}
                     </Space>
                     <Tabs

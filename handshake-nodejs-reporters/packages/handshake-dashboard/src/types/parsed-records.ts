@@ -28,6 +28,7 @@ export interface Assertion {
     matcherName: string;
     result: { pass: boolean };
     expectedValue: string;
+    options: string;
 }
 
 export interface PreviewForTests extends BasicDetails {

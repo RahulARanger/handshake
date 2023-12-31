@@ -100,7 +100,11 @@ export default function LayoutStructureForRunDetails(properties: {
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
                 <RelativeTo
                     dateTime={dayjs(data.ended)}
-                    style={{ maxWidth: '130px' }}
+                    style={{
+                        maxWidth: '130px',
+                        textAlign: 'right',
+                        marginRight: '10px',
+                    }}
                     format={dateFormatUsed}
                     autoPlay={true}
                 />
