@@ -118,7 +118,6 @@ export default function LeftSideOfHeader(properties: { selected?: string }) {
 
     return (
         <Space align="baseline">
-            <RenderTestType value="SUITE" />
             {wasRetried ? (
                 <Tooltip title={retriedBadge}>
                     <Badge
@@ -147,6 +146,8 @@ export default function LeftSideOfHeader(properties: { selected?: string }) {
                     title=""
                 />
             </Tooltip>
+            <RenderTestType value="SUITE" />
+
             <Text>
                 {selected.title}
                 <sub>

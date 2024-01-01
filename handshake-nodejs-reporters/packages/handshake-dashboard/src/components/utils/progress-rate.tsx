@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 import Space from 'antd/lib/space';
 import Progress from 'antd/lib/progress/index';
+import { Tooltip } from 'antd/lib';
 
 export default function RenderProgress(properties: {
     passed?: number;
@@ -22,27 +23,33 @@ export default function RenderProgress(properties: {
             }}
             size={20}
         >
-            <Progress
-                percent={Number(((passed / total) * 1e2).toFixed(2))}
-                type="dashboard"
-                strokeColor={'green'}
-                gapDegree={40}
-                size={85}
-            />
-            <Progress
-                percent={Number(((failed / total) * 1e2).toFixed(2))}
-                type="dashboard"
-                strokeColor={'red'}
-                gapDegree={40}
-                size={85}
-            />
-            <Progress
-                percent={Number(((skipped / total) * 1e2).toFixed(2))}
-                type="dashboard"
-                strokeColor={'yellow'}
-                gapDegree={40}
-                size={85}
-            />
+            <Tooltip title="Passed Test Cases %" color="green">
+                <Progress
+                    percent={Number(((passed / total) * 1e2).toFixed(2))}
+                    type="dashboard"
+                    strokeColor={'green'}
+                    gapDegree={40}
+                    size={85}
+                />
+            </Tooltip>
+            <Tooltip title="Failed Test Cases %" color="red">
+                <Progress
+                    percent={Number(((failed / total) * 1e2).toFixed(2))}
+                    type="dashboard"
+                    strokeColor={'red'}
+                    gapDegree={40}
+                    size={85}
+                />
+            </Tooltip>
+            <Tooltip title="Skipped Test Cases %" color="yellow">
+                <Progress
+                    percent={Number(((skipped / total) * 1e2).toFixed(2))}
+                    type="dashboard"
+                    strokeColor={'yellow'}
+                    gapDegree={40}
+                    size={85}
+                />
+            </Tooltip>
         </Space>
     );
 }

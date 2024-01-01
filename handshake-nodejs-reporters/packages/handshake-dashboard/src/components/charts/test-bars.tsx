@@ -1,0 +1,96 @@
+import React, { type ReactNode } from 'react';
+import ReactECharts from 'echarts-for-react';
+import * as echarts from 'echarts/core';
+import {
+    TitleComponent,
+    TooltipComponent,
+    DatasetComponent,
+} from 'echarts/components';
+
+import type {
+    TitleComponentOption,
+    TooltipComponentOption,
+    ToolboxComponentOption,
+} from 'echarts/components';
+import { BarChart } from 'echarts/charts';
+
+import type { BarSeriesOption } from 'echarts/charts';
+import type { ComposeOption } from 'echarts/core';
+
+type composed = ComposeOption<
+    | BarSeriesOption
+    | TitleComponentOption
+    | TooltipComponentOption
+    | ToolboxComponentOption
+>;
+
+// Features like Universal Transition and Label Layout
+import { LabelLayout, UniversalTransition } from 'echarts/features';
+
+// Import the Canvas renderer
+// Note that including the CanvasRenderer or SVGRenderer is a required step
+import { SVGRenderer } from 'echarts/renderers';
+import { standingToColors, toolTipFormats } from './constants';
+import type { SuiteRecordDetails } from 'src/types/test-entity-related';
+
+// Register the required components
+echarts.use([
+    TitleComponent,
+    SVGRenderer,
+    LabelLayout,
+    UniversalTransition,
+    BarChart,
+    TooltipComponent,
+    DatasetComponent,
+]);
+
+export default function TestEntitiesBars(properties: {
+    entities: SuiteRecordDetails[];
+}): ReactNode {
+    const options: composed = {
+        tooltip: toolTipFormats,
+        legend: { show: false },
+
+        grid: { left: 0, right: 1, top: 0, bottom: 0 },
+        xAxis: [
+            {
+                type: 'category',
+                data: properties.entities.map((entity) => entity.title),
+                show: false,
+            },
+        ],
+        yAxis: [
+            {
+                type: 'value',
+                show: false,
+            },
+        ],
+        series: [
+            {
+                name: 'Test Entities',
+                type: 'bar',
+                barWidth: '50%',
+                data: properties.entities.map((entity) => ({
+                    value: 1,
+                    itemStyle: { color: standingToColors[entity.standing] },
+                })),
+                itemStyle: {
+                    borderRadius: 150,
+                },
+            },
+        ],
+    };
+    return (
+        <ReactECharts
+            option={options}
+            style={{
+                height: '40px',
+                width:
+                    properties.entities.length < 15
+                        ? `${100 + (50 * properties.entities.length) / 3}px`
+                        : '100%',
+            }}
+            opts={{ renderer: 'svg' }}
+        />
+    );
+}
