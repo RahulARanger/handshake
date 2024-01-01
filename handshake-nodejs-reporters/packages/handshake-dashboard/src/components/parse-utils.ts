@@ -58,6 +58,7 @@ export function parseDetailedTestEntity(
         id: testORSuite.suiteID,
         entityName: session.entityName,
         entityVersion: session.entityVersion,
+        simplified: session.simplified,
     };
 }
 

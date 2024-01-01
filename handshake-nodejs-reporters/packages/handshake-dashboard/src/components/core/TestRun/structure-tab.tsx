@@ -14,7 +14,7 @@ import { Tooltip } from 'antd/lib';
 import TreeMapComponent from 'src/components/charts/tree-map';
 import type { StatusContext } from 'src/types/transfer-structure-context';
 import { RenderStatus } from 'src/components/utils/renderers';
-import BadgeForSuiteType from 'src/components/utils/test-status-dot';
+import RenderTestType from 'src/components/utils/test-status-dot';
 
 function MousedPart(properties: { info?: StatusContext }): ReactNode {
     if (properties?.info === undefined)
@@ -35,7 +35,7 @@ function MousedPart(properties: { info?: StatusContext }): ReactNode {
                 {properties.info.isFile ? (
                     <> </>
                 ) : (
-                    <BadgeForSuiteType text="SUITE" color="magenta" />
+                    <RenderTestType value="SUITE" />
                 )}
                 <Text>{properties.info?.title}</Text>
             </Space>

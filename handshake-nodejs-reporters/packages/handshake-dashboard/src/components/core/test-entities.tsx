@@ -266,10 +266,14 @@ export default function TestEntities(properties: {
                         align="center"
                         render={(
                             value: possibleEntityNames,
-                            // record: SuiteNode,
+                            record: SuiteNode,
                         ) => (
                             <Space>
-                                <RenderEntityType entityName={value} />
+                                <RenderEntityType
+                                    entityName={value}
+                                    entityVersion={record.entityVersion}
+                                    simplified={record.simplified}
+                                />
                             </Space>
                         )}
                         filterMode="menu"

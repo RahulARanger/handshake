@@ -46,6 +46,7 @@ export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
     id: string;
     entityName: string;
     entityVersion: string;
+    simplified: string;
 }
 
 export interface QuickPreviewForAttachments extends Attachment {

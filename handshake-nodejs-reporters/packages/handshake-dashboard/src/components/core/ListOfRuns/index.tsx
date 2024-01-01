@@ -31,6 +31,7 @@ import type { RangePickerProps } from 'antd/lib/date-picker';
 import GithubOutlined from '@ant-design/icons/GithubOutlined';
 import { Tag } from 'antd/lib';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import { RenderStatus } from 'src/components/utils/renderers';
 
 dayjs.extend(isBetween);
 
@@ -65,9 +66,12 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
         >
             <List.Item.Meta
                 title={
-                    <Link href={item.Link}>{`${item.Started[0].format(
-                        dateFormatUsed,
-                    )} - ${item.Title}`}</Link>
+                    <Space align="center">
+                        <RenderStatus value={item.Status} />
+                        <Link href={item.Link}>{`${item.Started[0].format(
+                            dateFormatUsed,
+                        )} - ${item.Title}`}</Link>
+                    </Space>
                 }
                 description={
                     <Tooltip
@@ -83,18 +87,20 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
                                     secondDateTime={item.Ended[0]}
                                     autoPlay
                                     style={{
-                                        maxWidth: '165px',
+                                        maxWidth: '170px',
                                         textAlign: 'right',
                                     }}
                                 />
                             </Tag>
-                            <Tag color="volcano">
+                            <Tag
+                                color="volcano"
+                                style={{
+                                    minWidth: '95px',
+                                    maxWidth: '95px',
+                                }}
+                            >
                                 <RenderDuration
                                     value={item.Duration}
-                                    style={{
-                                        minWidth: '90px',
-                                        maxWidth: '90px',
-                                    }}
                                     autoPlay={true}
                                 />
                             </Tag>

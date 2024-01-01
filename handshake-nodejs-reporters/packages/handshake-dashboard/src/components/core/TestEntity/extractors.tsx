@@ -8,7 +8,7 @@ import type {
     Attachment,
     SuiteRecordDetails,
 } from 'src/types/test-entity-related';
-import parseTestEntity, { parseAttachment } from 'src/components/parse-utils';
+import { parseAttachment } from 'src/components/parse-utils';
 import Space from 'antd/lib/space/index';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import type { CollapseProps } from 'antd/lib/collapse/Collapse';
@@ -23,15 +23,34 @@ import type { TabsProps } from 'antd/lib/tabs/index';
 import {
     ListOfAssertions,
     assertionsTab,
+    descriptionTab,
     errorsTab,
     imagesTab,
 } from './entity-item';
-import type { Assertion } from 'src/types/parsed-records';
-import RenderTimeRelativeToStart, {
-    RenderDuration,
-} from 'src/components/utils/relative-time';
+import RenderTimeRelativeToStart from 'src/components/utils/relative-time';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import dayjs from 'dayjs';
+
+export function extractNeighborSuite(
+    suites: SuiteDetails,
+    location: number,
+    returnPrevious: boolean,
+    includeRetried: boolean,
+) {
+    if (includeRetried)
+        return suites[
+            suites['@order'][returnPrevious ? location - 1 : location + 1]
+        ];
+
+    for (
+        let pointTo = returnPrevious ? location - 1 : location + 1;
+        returnPrevious ? pointTo >= 0 : pointTo <= suites['@order'].length - 1;
+        returnPrevious ? (pointTo -= 1) : (pointTo += 1)
+    ) {
+        const suite = suites[suites['@order'][pointTo]];
+        if (suite?.standing !== 'RETRIED') return suite;
+    }
+}
 
 export function stepItemsForSuiteTimeline(
     current: string,
@@ -44,8 +63,8 @@ export function stepItemsForSuiteTimeline(
     const here = suites['@order'].indexOf(current);
     if (here === -1) return [];
 
-    const previous = suites[suites['@order'][here - 1]];
-    const next = suites[suites['@order'][here + 1]];
+    const previous = extractNeighborSuite(suites, here, true, false);
+    const next = extractNeighborSuite(suites, here, false, false);
 
     const suiteStarted = dayjs(currentSuiteRecord.started);
     const suiteEnded = dayjs(currentSuiteRecord.ended);
@@ -71,7 +90,9 @@ export function stepItemsForSuiteTimeline(
                         height: '25px',
                     }}
                 >
-                    Prev Suite
+                    {`Prev ${
+                        previous?.standing === 'RETRIED' ? 'Retry' : 'Suite'
+                    }`}
                 </Button>
             ),
             description: (
@@ -84,16 +105,18 @@ export function stepItemsForSuiteTimeline(
             status: stepStatus(previous.standing),
         });
     steps.push({
-        title: 'Current Suite',
+        title: <Text>Current Suite</Text>,
         description: (
             <RelativeTo
                 dateTime={suiteStarted}
                 secondDateTime={suiteEnded}
                 autoPlay
                 wrt={started}
+                style={{ minWidth: '165px' }}
             />
         ),
         status: stepStatus(currentSuiteRecord.standing),
+        style: { minWidth: '210px' },
     });
     next &&
         steps.push({
@@ -108,7 +131,9 @@ export function stepItemsForSuiteTimeline(
                         height: '25px',
                     }}
                 >
-                    Next Suite
+                    {`Next ${
+                        previous?.standing === 'RETRIED' ? 'Retry' : 'Suite'
+                    }`}
                 </Button>
             ),
             description: (
@@ -154,7 +179,6 @@ export function extractDetailedTestEntities(
 ): CollapseProps['items'] {
     return source.map((test) => {
         const actions = [];
-        const parsed = parseTestEntity(test, testStartedAt);
         // const openDetailedView = (tab: string): void => {
         //     setShowDetailedView(true);
         //     setDetailed(parsed.id);
@@ -180,7 +204,6 @@ export function extractDetailedTestEntities(
             label: (
                 <Space align="baseline" id={test.suiteID}>
                     <RenderStatus value={test.standing} />
-                    {/* <RenderTestType value={test.suiteType} /> */}
                     <Text
                         ellipsis={{ tooltip: true }}
                         style={{
@@ -244,6 +267,7 @@ export function attachedTabItems(
     assertionsUsed: Attachment[],
 ): TabsProps['items'] {
     return [
+        { key: descriptionTab, label: 'Description' },
         {
             key: assertionsTab,
             label: 'Assertions',

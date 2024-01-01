@@ -58,7 +58,7 @@ export default function RelativeTo(properties: {
             className={carouselStyles.embla}
             ref={emblaReference}
             style={{
-                maxWidth: '120px',
+                maxWidth: '165px',
                 cursor: hover ? 'grabbing' : 'grab',
                 ...properties.style,
             }}

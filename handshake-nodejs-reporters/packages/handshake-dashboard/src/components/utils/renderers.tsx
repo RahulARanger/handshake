@@ -1,44 +1,16 @@
-import { type Dayjs } from 'dayjs';
-import React, { type CSSProperties, type ReactNode } from 'react';
-import { type Duration } from 'dayjs/plugin/duration';
+import React, { type ReactNode } from 'react';
 import type { statusOfEntity } from 'src/types/session-records';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import Dotted from 'src/styles/dotted.module.css';
 import Text from 'antd/lib/typography/Text';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
+import Space from 'antd/lib/space';
+import Card from 'antd/lib/card/Card';
+import Tag from 'antd/lib/tag/index';
 import type { possibleEntityNames } from 'src/types/session-records';
 import Avatar from 'antd/lib/avatar/avatar';
-import RelativeTo, { HumanizeDuration } from './Datetime/relative-time';
-
-export default function RenderTimeRelativeToStart(properties: {
-    value?: [Dayjs, Dayjs];
-    style?: CSSProperties;
-}): ReactNode {
-    if (properties.value == undefined) return <></>;
-    return (
-        <RelativeTo
-            dateTime={properties.value[0]}
-            wrt={properties.value[1]}
-            style={properties.style}
-        />
-    );
-}
-
-export function RenderDuration(properties: {
-    value: Duration;
-    style?: CSSProperties;
-    autoPlay?: boolean;
-    maxWidth?: string;
-}): ReactNode {
-    return (
-        <HumanizeDuration
-            duration={properties.value}
-            style={properties.style}
-            autoPlay={properties.autoPlay}
-            maxWidth={properties.maxWidth}
-        />
-    );
-}
+import GraphCardCss from 'src/styles/GraphCard.module.css';
+import { Badge, Tooltip } from 'antd/lib';
 
 export function RenderStatus(properties: {
     value: string;
@@ -46,14 +18,20 @@ export function RenderStatus(properties: {
 }): ReactNode {
     switch (properties.value as statusOfEntity) {
         case 'PASSED': {
-            return <Text style={{ marginTop: '-15px' }}>✅</Text>;
+            return (
+                <Text
+                    style={{
+                        position: 'relative',
+                        top: '-1px',
+                    }}
+                >
+                    ✅
+                </Text>
+            );
         }
         case 'FAILED': {
             return (
-                <Text
-                    className={`${Dotted.redGlowText} ${Dotted.spin}`}
-                    style={{ marginTop: properties.marginTop }}
-                >
+                <Text className={`${Dotted.redGlowText} ${Dotted.spin}`}>
                     ❌
                 </Text>
             );
@@ -62,7 +40,10 @@ export function RenderStatus(properties: {
             return (
                 <Text
                     className={Dotted.yellowGlowText}
-                    style={{ marginTop: properties.marginTop }}
+                    style={{
+                        position: 'relative',
+                        top: '-1px',
+                    }}
                 >
                     ⚠️
                 </Text>
@@ -100,17 +81,35 @@ export function RenderStatus(properties: {
     }
 }
 
-export function RenderEntityType(properties: {
-    entityName: string;
-}): ReactNode {
-    const note = properties.entityName.toLowerCase() as possibleEntityNames;
+function entityIcon(entityName: string) {
+    const note = entityName.toLowerCase() as possibleEntityNames;
 
     if (note.includes('chrome'))
         return <Avatar src={'/chrome.png'} size="small" />;
     if (note.includes('firefox'))
         return <Avatar src={'/firefox.png'} size="small" />;
     if (note.includes('edge')) return <Avatar src={'/edge.png'} size="small" />;
-    return <>{properties.entityName?.toLocaleUpperCase()}</>;
+    return <>{entityName?.toLocaleUpperCase()}</>;
+}
+
+export function RenderEntityType(properties: {
+    entityName: string;
+    simplified?: string;
+    entityVersion?: string;
+}): ReactNode {
+    return (
+        <Tooltip title={properties.simplified}>
+            <Badge
+                count={properties.entityVersion?.slice(0, 5)}
+                color="lime"
+                size="small"
+                overflowCount={200}
+                style={{ top: -3, right: -3 }}
+            >
+                {entityIcon(properties.entityName)}
+            </Badge>
+        </Tooltip>
+    );
 }
 
 export function RenderSystemType(properties: {
@@ -123,4 +122,30 @@ export function RenderSystemType(properties: {
     else if (target.startsWith('mac'))
         return <Avatar src={'/mac.png'} size="large" />;
     return <>{target.toLocaleUpperCase()}</>;
+}
+
+export function RenderInfo(properties: {
+    itemKey: string;
+    color: string;
+    value: ReactNode;
+}): ReactNode {
+    return (
+        <Card
+            type="inner"
+            key={properties.itemKey}
+            className={GraphCardCss.card}
+            bodyStyle={{
+                padding: '6px',
+                paddingTop: '12px',
+                paddingBottom: '12px',
+            }}
+        >
+            <Space style={{ columnGap: '5px' }}>
+                <Tag color={properties.color} bordered>
+                    {properties.itemKey}
+                </Tag>
+                {properties.value}
+            </Space>
+        </Card>
+    );
 }
