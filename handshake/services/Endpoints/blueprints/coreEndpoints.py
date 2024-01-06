@@ -17,7 +17,9 @@ from handshake.services.Endpoints.blueprints.utils import (
 from handshake.services.DBService.models.static_base import (
     TestConfigBase,
     AttachmentBase,
+    AttachmentType,
 )
+from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import Status, SuiteType
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
@@ -110,6 +112,7 @@ async def update_session(request: Request) -> HTTPResponse:
 async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     attachments = []
     note = []
+    assertions = []
 
     for _ in request.json:
         try:
@@ -120,22 +123,41 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
             await attachWarn(extractPydanticErrors(url, _, error), url)
             continue
 
-        attachments.append(
-            await AttachmentBase(
-                **dict(
-                    entity_id=attachment.entityID,
-                    description=attachment.description,
-                    type=attachment.type,
-                    attachmentValue=dict(
-                        color=attachment.color,
-                        value=attachment.value,
-                        title=attachment.title,
-                    ),
+        match attachment.type:
+            case AttachmentType.ASSERT:
+                await AssertBase(
+                    **dict(
+                        entity_id=attachment.entityID,
+                        title=attachment.value.title,
+                        message=attachment.value.message,
+                        passed=attachment.value.passed,
+                        interval=attachment.value.interval,
+                        wait=attachment.value.wait,
+                    )
                 )
-            )
-        )
 
-    await AttachmentBase.bulk_create(attachments)
+            case _:
+                (
+                    attachments.append(
+                        await AttachmentBase(
+                            **dict(
+                                entity_id=attachment.entityID,
+                                description=attachment.description,
+                                type=attachment.type,
+                                attachmentValue=dict(
+                                    color=attachment.color,
+                                    value=attachment.value,
+                                    title=attachment.title,
+                                ),
+                            )
+                        )
+                    )
+                )
+
+    if attachments:
+        await AttachmentBase.bulk_create(attachments)
+    if assertions:
+        await AssertBase.bulk_create(assertions)
     return text(
         "Attachments have been added successfully", status=201 if not len(note) else 206
     )

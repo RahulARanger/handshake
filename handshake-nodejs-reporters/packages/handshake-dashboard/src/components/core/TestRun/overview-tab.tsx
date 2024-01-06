@@ -378,7 +378,9 @@ function Summary(): ReactNode {
                                 key: 'Duration',
                                 value: (
                                     <RenderDuration
-                                        value={dayjs.duration(run.duration)}
+                                        value={dayjs.duration({
+                                            milliseconds: run.duration,
+                                        })}
                                         autoPlay={true}
                                     />
                                 ),

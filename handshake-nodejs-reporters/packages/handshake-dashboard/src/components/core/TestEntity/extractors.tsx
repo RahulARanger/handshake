@@ -1,4 +1,4 @@
-import type { StepProps, StepsProps } from 'antd/lib';
+import { Badge, Tooltip, type StepProps, type StepsProps } from 'antd/lib';
 import type {
     AttachmentDetails,
     SuiteDetails,
@@ -6,6 +6,7 @@ import type {
 } from 'src/types/generated-response';
 import type {
     Attachment,
+    AttachmentContent,
     SuiteRecordDetails,
 } from 'src/types/test-entity-related';
 import { parseAttachment } from 'src/components/parse-utils';
@@ -20,7 +21,7 @@ import React from 'react';
 import { RenderStatus } from 'src/components/utils/renderers';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { TabsProps } from 'antd/lib/tabs/index';
-import {
+import EntityItem, {
     ListOfAssertions,
     assertionsTab,
     descriptionTab,
@@ -30,6 +31,7 @@ import {
 import RenderTimeRelativeToStart from 'src/components/utils/relative-time';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import dayjs from 'dayjs';
+import type { Assertion } from 'src/types/parsed-records';
 
 export function extractNeighborSuite(
     suites: SuiteDetails,
@@ -171,19 +173,70 @@ export function filterTestsAndSuites(
         },
     );
 }
+export function filterTestAttachments(
+    referenceTests: TestDetails,
+    referenceSuites: SuiteDetails,
+    attachments: AttachmentDetails,
+    selected: string,
+): Attachment[] {
+    return Object.values(attachments)
+        .flat()
+        .filter(
+            (attached) =>
+                (
+                    referenceSuites[attached.entity_id] ??
+                    referenceTests[attached.entity_id]
+                )?.parent === selected,
+        );
+}
+
+export function hasFailedAssertion(
+    selected: string,
+    standing: statusOfEntity,
+    attachments: Attachment[],
+    parentID?: string,
+): false | number {
+    return (
+        standing === 'FAILED' &&
+        attachments.findIndex((attached) => {
+            if (
+                attached.type !== 'ASSERT' ||
+                attached.entity_id !== selected ||
+                (parentID && attached.entity_id !== parentID)
+            )
+                return false;
+            const attachment: AttachmentContent = JSON.parse(
+                attached.attachmentValue,
+            );
+            const assertionDetails: Assertion = JSON.parse(attachment.value);
+            return !assertionDetails.result.pass;
+        })
+    );
+}
 
 export function extractDetailedTestEntities(
     source: SuiteRecordDetails[],
     testStartedAt: Dayjs,
     setTestID: (_: string) => void,
+    testAttachments: Attachment[],
 ): CollapseProps['items'] {
+    let firstTestTime: dayjs.Dayjs;
+
     return source.map((test) => {
+        if (!firstTestTime) firstTestTime = dayjs(test.started);
         const actions = [];
         // const openDetailedView = (tab: string): void => {
         //     setShowDetailedView(true);
         //     setDetailed(parsed.id);
         //     setTabForDetailed(tab);
         // };
+
+        const failedAssertion = hasFailedAssertion(
+            test.suiteID,
+            test.standing,
+            testAttachments,
+        );
+        const errors = JSON.parse(test.errors);
 
         if (test.suiteType === 'SUITE') {
             actions.push(
@@ -202,12 +255,31 @@ export function extractDetailedTestEntities(
         return {
             key: test.suiteID,
             label: (
-                <Space align="baseline" id={test.suiteID}>
+                <Space
+                    align="baseline"
+                    id={test.suiteID}
+                    style={{ width: '100%' }}
+                >
                     <RenderStatus value={test.standing} />
+                    {test.standing !== 'FAILED' || failedAssertion !== false ? (
+                        <></>
+                    ) : (
+                        <Tooltip title="No Assertion under it has failed">
+                            <Badge
+                                color="yellow"
+                                count="BROKEN"
+                                title=""
+                                style={{
+                                    color: 'black',
+                                    fontWeight: 'bold',
+                                }}
+                            />
+                        </Tooltip>
+                    )}
                     <Text
                         ellipsis={{ tooltip: true }}
                         style={{
-                            width: 460,
+                            maxWidth: 460,
                             textDecoration:
                                 test.suiteType === 'SUITE'
                                     ? 'underline'
@@ -220,7 +292,19 @@ export function extractDetailedTestEntities(
                     </Text>
                 </Space>
             ),
-            children: <></>,
+            children: (
+                <EntityItem
+                    entity={test}
+                    started={firstTestTime}
+                    links={testAttachments.filter(
+                        (attached) =>
+                            attached.type === 'LINK' &&
+                            attached.entity_id === test.suiteID,
+                    )}
+                    firstError={errors?.at(0)?.message}
+                    totalErrors={errors?.length}
+                />
+            ),
             extra: <Space>{actions}</Space>,
         };
     });

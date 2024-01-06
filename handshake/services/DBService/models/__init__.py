@@ -2,6 +2,7 @@ from .result_base import SessionBase, SuiteBase, RunBase, RollupBase, RetriedBas
 from .config_base import ConfigBase, ExportBase
 from .static_base import AttachmentBase, TestConfigBase, StaticBase
 from .dynamic_base import TaskBase, DynamicVideoBase, PrunedBase
+from .attachmentBase import AssertBase
 
 __all__ = [
     SessionBase,
@@ -17,4 +18,5 @@ __all__ = [
     RollupBase,
     StaticBase,
     RetriedBase,
+    AssertBase,
 ]

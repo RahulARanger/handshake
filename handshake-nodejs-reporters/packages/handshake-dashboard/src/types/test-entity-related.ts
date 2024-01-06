@@ -20,7 +20,6 @@ export interface SuiteRecordDetails extends RecurringFields {
     file: string;
     parent: string;
     suiteType: suiteType;
-    error: string;
     errors: string;
     title: string;
     tags: string;

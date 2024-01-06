@@ -1,11 +1,6 @@
 from tortoise.models import Model
 from handshake.services.DBService.models.enums import ConfigKeys
-from tortoise.fields import (
-    IntField,
-    CharEnumField,
-    TextField,
-    UUIDField,
-)
+from tortoise.fields import IntField, CharEnumField, TextField, UUIDField, CharField
 
 
 class ConfigBase(Model):
@@ -21,4 +16,7 @@ class ExportBase(Model):
         null=True,
         default=10,
         description="Number of test runs to export [recent ones are picked]",
+    )
+    clarity = CharField(
+        max_length=30, description="Clarity code, empty if disabled", null=True
     )

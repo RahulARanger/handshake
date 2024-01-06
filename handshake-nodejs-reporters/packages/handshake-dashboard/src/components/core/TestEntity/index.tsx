@@ -2,7 +2,6 @@ import type {
     SuiteDetails,
     SessionDetails,
 } from 'src/types/generated-response';
-import type { statusOfEntity } from 'src/types/session-records';
 import type { AttachmentDetails } from 'src/types/generated-response';
 import type { TestDetails } from 'src/types/generated-response';
 import {
@@ -18,51 +17,33 @@ import {
     getTests,
     getWrittenAttachments,
 } from 'src/components/scripts/helper';
-import BadgeForSuiteType from 'src/components/utils/test-status-dot';
-import {
-    RenderEntityType,
-    RenderStatus,
-    RenderDuration,
-} from 'src/components/utils/renderers';
 import MetaCallContext from '../TestRun/context';
 import type { Tag as SuiteTag } from 'src/types/test-entity-related';
-import MoreDetailsOnEntity, { errorsTab, imagesTab } from './detailed-modal';
-
-import Input from 'antd/lib/input/Input';
-import React, {
-    useContext,
-    type ReactNode,
-    useState,
-    type ChangeEvent,
-    useMemo,
-} from 'react';
+import { imagesTab } from './entity-item';
+import React, { useContext, type ReactNode, useState } from 'react';
 import dayjs from 'dayjs';
-
-import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
-import PaperClipOutlined from '@ant-design/icons/PaperClipOutlined';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import Space from 'antd/lib/space';
 import Collapse from 'antd/lib/collapse/Collapse';
-import WarningFilled from '@ant-design/icons/lib/icons/WarningFilled';
-import Select, { type SelectProps } from 'antd/lib/select/index';
-import Button from 'antd/lib/button/button';
 import Empty from 'antd/lib/empty/index';
-import Description, {
-    type DescriptionsProps,
-} from 'antd/lib/descriptions/index';
 import useSWR from 'swr';
 import Drawer from 'antd/lib/drawer/index';
-import Text from 'antd/lib/typography/Text';
-import Counter, { StaticPercent } from 'src/components/utils/counter';
-import CheckboxGroup from 'antd/lib/checkbox/Group';
-import Divider from 'antd/lib/divider/index';
-import Card from 'antd/lib/card/Card';
 import Badge from 'antd/lib/badge/index';
-import Meta from 'antd/lib/card/Meta';
-import TreeSelectionOfSuites, { NavigationButtons } from './header';
-import { EntityCollapsibleItem, EntityTimeline } from './entity-item';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import FilterOutlined from '@ant-design/icons/FilterOutlined';
-import CheckableTag from 'antd/lib/tag/CheckableTag';
+import LeftSideOfHeader, { RightSideOfHeader } from './header';
+import Dotted from 'src/styles/dotted.module.css';
+import RenderProgress from 'src/components/utils/progress-rate';
+import Steps from 'antd/lib/steps/index';
+import {
+    attachedTabItems,
+    extractDetailedTestEntities,
+    extractRollupDependencies,
+    filterTestAttachments,
+    filterTestsAndSuites,
+    stepItemsForSuiteTimeline,
+} from './extractors';
+import { Tabs } from 'antd/lib';
+import TestEntitiesBars from 'src/components/charts/test-bars';
+import Layout, { Header } from 'antd/lib/layout/layout';
 
 export default function TestEntityDrawer(properties: {
     open: boolean;
@@ -85,21 +66,8 @@ export default function TestEntityDrawer(properties: {
         getWrittenAttachments(port, testID),
     );
 
-    const [showDetailedView, setShowDetailedView] = useState<boolean>(false);
-    const [detailed, setDetailed] = useState<undefined | string>(
-        properties.testID,
-    );
-    const [filterStatus, setFilterStatus] = useState<
-        undefined | statusOfEntity
-    >();
-    const [filterText, setFilterText] = useState<undefined | string>();
-    const [showFilter, setShowFilter] = useState<boolean>(false);
     const [choices, setChoices] = useState<string[]>([]);
     const [tabForDetailed, setTabForDetailed] = useState<string>(imagesTab);
-    const [showTimeline] = useMemo<boolean[]>(
-        () => [choices.includes(optionsForEntities[0])],
-        [choices],
-    );
     if (
         properties.testID == undefined ||
         sessions == undefined ||
@@ -117,106 +85,29 @@ export default function TestEntityDrawer(properties: {
     const closeTimeline = () =>
         setChoices(choices.filter((x) => x != optionsForEntities[0]));
     const setTestID = (detailed: string) => {
-        setDetailed(detailed);
         properties.setTestID(detailed);
     };
 
-    const rawSource = [
-        ...Object.values(tests),
-        ...Object.values(suites),
-    ].filter((test) => {
-        let result = test.parent === selectedSuiteDetails.suiteID;
-        result &&= filterStatus == undefined || test.standing === filterStatus;
-        result &&= filterText == undefined || test.title.includes(filterText);
-        return result;
-    });
+    const rawSource = filterTestsAndSuites(
+        selectedSuiteDetails.suiteID,
+        suites,
+        tests,
+    );
 
-    const dataSource = rawSource.map((test) => {
-        const actions = [];
-        const parsed = parseTestCaseEntity(test, started);
-        const openDetailedView = (tab: string): void => {
-            setShowDetailedView(true);
-            setDetailed(parsed.id);
-            setTabForDetailed(tab);
-        };
+    const testAttachments = filterTestAttachments(
+        tests,
+        suites,
+        attachments,
+        selectedSuiteDetails.suiteID,
+    );
 
-        const hasRequiredAttachment = writtenAttachments[test.suiteID]?.find(
-            (attachment) => attachment.type === 'PNG',
-        );
-
-        if (test.suiteType === 'SUITE') {
-            actions.push(
-                <Button
-                    key="drill-down"
-                    icon={<ExpandAltOutlined />}
-                    shape="circle"
-                    size="small"
-                    onClick={() => {
-                        setTestID(test.suiteID);
-                    }}
-                />,
-            );
-        } else {
-            if (hasRequiredAttachment != undefined) {
-                actions.push(
-                    <Button
-                        key="attachments"
-                        shape="circle"
-                        size="small"
-                        icon={<PaperClipOutlined />}
-                        onClick={openDetailedView.bind(undefined, imagesTab)}
-                    />,
-                );
-            }
-        }
-
-        if (test.standing === 'FAILED') {
-            actions.push(
-                <Button
-                    size="small"
-                    key="errors"
-                    type="text"
-                    icon={
-                        <WarningFilled
-                            style={{ fontSize: '16px', color: 'firebrick' }}
-                        />
-                    }
-                    shape="round"
-                    onClick={openDetailedView.bind(undefined, errorsTab)}
-                />,
-            );
-        }
-
-        return {
-            key: test.suiteID,
-            label: (
-                <Space align="end" id={test.suiteID}>
-                    <RenderStatus value={test.standing} />
-                    <Text ellipsis={{ tooltip: true }} style={{ width: 460 }}>
-                        {test.title}
-                    </Text>
-                    <BadgeForSuiteType
-                        text={test.suiteType}
-                        color={
-                            test.suiteType === 'SUITE' ? 'magenta' : 'purple'
-                        }
-                    />
-                </Space>
-            ),
-            children: (
-                <EntityCollapsibleItem
-                    item={parsed}
-                    attachmentsForDescription={attachments[parsed.id]?.filter(
-                        (item) => item.type === 'DESC',
-                    )}
-                    attachmentsForLinks={attachments[parsed.id]?.filter(
-                        (item) => item.type === 'LINK',
-                    )}
-                />
-            ),
-            extra: <Space>{actions}</Space>,
-        };
-    });
+    const dataSource =
+        extractDetailedTestEntities(
+            rawSource,
+            started,
+            setTestID,
+            testAttachments,
+        ) ?? [];
 
     const tags = JSON.parse(selectedSuiteDetails.tags).map((tag: SuiteTag) => {
         return (
@@ -229,112 +120,26 @@ export default function TestEntityDrawer(properties: {
         );
     });
 
-    const testAttachments = Object.values(attachments)
-        .flat()
-        .filter(
-            (attached) =>
-                tests[attached.entity_id]?.parent ===
-                selectedSuiteDetails.suiteID,
-        );
+    const contributed =
+        ((selectedSuiteDetails.rollup_tests ?? selectedSuiteDetails.tests) /
+            Object.keys(tests).length) *
+        100;
 
-    const savedAttachments = Object.values(writtenAttachments)
-        .flat()
-        .filter(
-            (attached) =>
-                tests[attached.entity_id]?.parent ===
-                selectedSuiteDetails.suiteID,
-        );
-    const aboutSuite: DescriptionsProps['items'] = [
-        {
-            key: 'range',
-            label: 'Range',
-            children: (
-                <RelativeTo
-                    dateTime={dayjs(selectedSuiteDetails.started)}
-                    secondDateTime={dayjs(selectedSuiteDetails.ended)}
-                    style={{
-                        maxWidth: '180px',
-                    }}
-                    autoPlay={true}
-                />
-            ),
-            span: 1.5,
-        },
-        {
-            key: 'duration',
-            label: 'Duration',
-            children: (
-                <RenderDuration
-                    value={dayjs.duration(selectedSuiteDetails.duration)}
-                    style={{ maxWidth: '75px' }}
-                    autoPlay={true}
-                />
-            ),
-        },
-        {
-            key: 'browserName',
-            label: 'Browser',
-            children: (
-                <RenderEntityType
-                    entityName={
-                        sessions[selectedSuiteDetails.session_id].entityName
-                    }
-                />
-            ),
-        },
-        {
-            key: 'images',
-            label: 'Images',
-            children: (
-                <Counter
-                    end={
-                        savedAttachments.filter(
-                            (attach) => attach.type === 'PNG',
-                        ).length
-                    }
-                />
-            ),
-        },
-        {
-            key: 'tests',
-            label: 'Contribution',
-            children: (
-                <StaticPercent
-                    percent={
-                        ((selectedSuiteDetails.rollup_tests ??
-                            selectedSuiteDetails.tests) /
-                            Object.keys(tests).length) *
-                        100
-                    }
-                />
-            ),
-        },
+    // const savedAttachments = Object.values(writtenAttachments)
+    //     .flat()
+    //     .filter(
+    //         (attached) =>
+    //             tests[attached.entity_id]?.parent ===
+    //             selectedSuiteDetails.suiteID,
+    //     );
 
-        {
-            key: 'assertions',
-            label: 'Assertions',
-            children: (
-                <Counter
-                    end={
-                        testAttachments.filter(
-                            (attach) => attach.type === 'ASSERT',
-                        ).length
-                    }
-                />
-            ),
-        },
-    ];
+    const [assertionsUsed] = extractRollupDependencies(
+        selectedSuiteDetails.suiteID,
+        tests,
+        attachments,
+    );
 
-    const statusOptions: SelectProps['options'] = [
-        'Passed',
-        'Failed',
-        'Skipped',
-        'Retried',
-    ].map((status) => ({
-        label: <Text>{status}</Text>,
-
-        value: status.toUpperCase(),
-    }));
+    const currentSession = sessions[selectedSuiteDetails.session_id];
 
     return (
         <>
@@ -342,7 +147,6 @@ export default function TestEntityDrawer(properties: {
                 open={properties.open}
                 onClose={() => {
                     properties.onClose();
-                    setShowDetailedView(false);
                     closeTimeline();
                 }}
                 footer={
@@ -355,166 +159,130 @@ export default function TestEntityDrawer(properties: {
                 }
                 title={
                     <Space style={{ marginBottom: '-5px' }} align="start">
-                        <TreeSelectionOfSuites
-                            selected={properties.testID}
-                            setTestID={setTestID}
-                        />
+                        <LeftSideOfHeader selected={properties.testID} />
                     </Space>
                 }
                 size="large"
-                width={700}
+                closeIcon={<CloseOutlined style={{ marginTop: '5px' }} />}
+                width={'100%'}
                 extra={
-                    <Space>
-                        <CheckableTag
-                            checked={showFilter}
-                            onClick={() => setShowFilter(!showFilter)}
-                            className={showFilter ? 'retried-glow' : ''}
+                    <RightSideOfHeader
+                        selected={selectedSuiteDetails}
+                        setTestID={setTestID}
+                        contributed={contributed}
+                        entityName={currentSession.entityName}
+                        entityVersion={currentSession.entityVersion}
+                        simplified={currentSession.simplified}
+                    />
+                }
+                styles={{
+                    body: { padding: '15px', paddingTop: '10px' },
+                }}
+                classNames={{ body: Dotted.dotted }}
+                className={`${Dotted.dotted} ${Dotted.drawer}`}
+                style={{
+                    opacity: 0.96,
+                    margin: 0,
+                }}
+            >
+                <Layout
+                    style={{
+                        flexGrow: 1,
+                        height: '100%',
+                        padding: '0px',
+                        lineHeight: 0,
+                        backgroundColor: 'transparent',
+                    }}
+                >
+                    <Header
+                        style={{
+                            height: '120px',
+                            padding: 0,
+                            margin: 0,
+                            lineHeight: 0,
+                            backgroundColor: 'transparent',
+                        }}
+                    >
+                        <Space
+                            direction="horizontal"
+                            align="center"
+                            style={{ width: '100%' }}
+                            size={50}
                         >
-                            <FilterOutlined
+                            <RenderProgress
+                                passed={selectedSuiteDetails.passed}
+                                failed={selectedSuiteDetails.failed}
+                                skipped={selectedSuiteDetails.skipped}
+                            />
+                            <Space direction="vertical">
+                                <Steps
+                                    items={stepItemsForSuiteTimeline(
+                                        selectedSuiteDetails.suiteID,
+                                        suites,
+                                        started,
+                                        dayjs(run.ended),
+                                        properties.setTestID,
+                                    )}
+                                    size="small"
+                                    style={{
+                                        flexGrow: 2,
+                                        width: '100%',
+                                    }}
+                                />
+                                <TestEntitiesBars entities={rawSource} />
+                            </Space>
+                        </Space>
+                    </Header>
+                    <Layout
+                        style={{
+                            lineHeight: 0,
+                            padding: 0,
+                            margin: 0,
+                            display: 'flex',
+                            backgroundColor: 'transparent',
+                            flexDirection: 'row',
+                        }}
+                    >
+                        {dataSource.length > 0 ? (
+                            <Collapse
+                                defaultActiveKey={['Latest Run']}
+                                bordered
+                                size="small"
+                                items={dataSource}
                                 style={{
-                                    fontSize: 15,
-                                    color: showFilter ? 'black' : 'orangered',
+                                    justifyContent: 'stretch',
+                                    overflowY: 'scroll',
+                                    flexGrow: 0.5,
+                                    maxWidth: '60%',
                                 }}
                             />
-                        </CheckableTag>
-                        <NavigationButtons
-                            selectedSuite={selectedSuiteDetails}
-                            setTestID={setTestID}
-                        />
-                    </Space>
-                }
-                styles={{ body: { padding: '15px', paddingTop: '10px' } }}
-            >
-                <Space
-                    direction="vertical"
-                    style={{ width: '100%', marginTop: '-3px' }}
-                >
-                    <Card
-                        size="small"
-                        bordered
-                        title={selectedSuiteDetails.file}
-                    >
-                        {showFilter ? (
-                            <Space style={{ columnGap: '10px' }}>
-                                <CheckboxGroup
-                                    options={optionsForEntities}
-                                    value={choices}
-                                    onChange={(checked) => {
-                                        setChoices(
-                                            checked.map((checked) =>
-                                                checked.toString(),
-                                            ),
-                                        );
-                                    }}
-                                />
-                                <Divider type="vertical" />
-                                <Input
-                                    placeholder="Search"
-                                    allowClear
-                                    size="small"
-                                    onChange={(
-                                        event: ChangeEvent<HTMLInputElement>,
-                                    ) => {
-                                        const value = event.target.value;
-                                        setFilterText(
-                                            value === '' ? undefined : value,
-                                        );
-                                    }}
-                                    suffix={
-                                        <Counter
-                                            style={{ fontStyle: 'italic' }}
-                                            end={dataSource.length}
-                                            prefix="("
-                                            suffix=")"
-                                        />
-                                    }
-                                />
-                                <Select
-                                    options={statusOptions}
-                                    placeholder="Select Status"
-                                    size="small"
-                                    allowClear
-                                    value={filterStatus}
-                                    onChange={(value) => {
-                                        setFilterStatus(value);
-                                    }}
-                                    popupMatchSelectWidth={120}
-                                    style={{ width: 90 }}
-                                />
-                                <Button
-                                    key="attachments"
-                                    shape="circle"
-                                    size="small"
-                                    icon={<PaperClipOutlined />}
-                                    onClick={() => [
-                                        setDetailed(properties.testID),
-                                        setShowDetailedView(true),
-                                    ]}
-                                />
-                            </Space>
                         ) : (
-                            <></>
+                            <Empty
+                                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                description="No Test Entities were found"
+                                style={{
+                                    alignSelf: 'center',
+                                    overflowY: 'auto',
+                                }}
+                            />
                         )}
-                        <Meta
-                            style={{ marginTop: showFilter ? '12px' : '0px' }}
-                            description={
-                                selectedSuiteDetails?.description?.length >
-                                0 ? (
-                                    selectedSuiteDetails.description
-                                ) : (
-                                    <Text italic>No Description Provided</Text>
-                                )
-                            }
-                        />
-                    </Card>
-
-                    <Description
-                        items={aboutSuite}
-                        bordered
-                        style={{ overflowX: 'hidden' }}
-                        size="small"
-                    />
-
-                    {dataSource.length > 0 ? (
-                        <Collapse
-                            defaultActiveKey={['Latest Run']}
-                            bordered
+                        <Tabs
+                            style={{
+                                flexGrow: 0.5,
+                                overflowY: 'scroll',
+                            }}
+                            items={attachedTabItems(assertionsUsed)}
+                            tabPosition="top"
+                            tabBarStyle={{
+                                zIndex: 3,
+                                marginLeft: '9px',
+                            }}
                             size="small"
-                            items={dataSource}
+                            animated
                         />
-                    ) : (
-                        <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description="No Test Entities were found"
-                        />
-                    )}
-                </Space>
-                <Drawer
-                    open={showTimeline}
-                    onClose={closeTimeline}
-                    title="Timeline"
-                    mask={false}
-                >
-                    <EntityTimeline rawSource={rawSource} />
-                </Drawer>
+                    </Layout>
+                </Layout>
             </Drawer>
-            <MoreDetailsOnEntity
-                open={showDetailedView}
-                onClose={() => {
-                    setShowDetailedView(false);
-                }}
-                tab={tabForDetailed}
-                setTestID={setTestID}
-                selected={
-                    detailed
-                        ? parseTestCaseEntity(
-                              suites[detailed] ?? tests[detailed],
-                              started,
-                          )
-                        : undefined
-                }
-                setTab={setTabForDetailed}
-            />
         </>
     );
 }

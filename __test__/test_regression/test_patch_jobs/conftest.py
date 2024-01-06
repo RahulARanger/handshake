@@ -1,5 +1,12 @@
+import json
+
 from pytest import fixture
-from handshake.services.DBService.models import SuiteBase, TestConfigBase, SessionBase
+from handshake.services.DBService.models import (
+    SuiteBase,
+    TestConfigBase,
+    SessionBase,
+    AttachmentBase,
+)
 from handshake.services.DBService.models.enums import SuiteType, Status, AttachmentType
 from handshake.services.SchedularService.register import register_patch_suite
 import datetime
@@ -97,6 +104,25 @@ async def helper_create_test_config(
     )
 
 
+async def helper_create_assertion(entity_id: str, title: str, passed: bool):
+    await AttachmentBase.create(
+        type=AttachmentType.ASSERT,
+        attachmentValue=dict(
+            color="",
+            title="toExist",
+            value=json.dumps(
+                dict(
+                    matcherName=title,
+                    options=dict(wait=1000, interval=500),
+                    result={"pass": passed},
+                ),
+            ),
+        ),
+        description="",
+        entity_id=str(entity_id),
+    )
+
+
 async def helper_create_session(test_id: str, entityName="sample"):
     await sleep(0.0025)
     started = datetime.datetime.utcnow()
@@ -126,6 +152,11 @@ def create_hierarchy():
 @fixture
 def attach_config():
     return helper_create_test_config
+
+
+@fixture
+def add_assertion():
+    return helper_create_assertion
 
 
 @fixture
