@@ -27,3 +27,4 @@ class AssertBase(Model):
         null=True,
     )
     title = TextField(description="Name of the Assertion")
+    message = TextField(description="Message attached to the assertion")

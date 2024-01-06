@@ -115,6 +115,11 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
 
     for _ in request.json:
         try:
+            if _["type"] == AttachmentType.ASSERT:
+                value = _.get("value", dict())
+                value["wait"] = value.get("wait", -1)
+                value["interval"] = value.get("interval", -1)
+
             attachment = AddAttachmentForEntity.model_validate(_)
         except ValidationError as error:
             note.append(_.get("entityID", False))
@@ -129,10 +134,10 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                         **dict(
                             entity_id=attachment.entityID,
                             title=attachment.title,
-                            message=attachment.message,
-                            passed=attachment.passed,
-                            interval=attachment.interval,
-                            wait=attachment.wait,
+                            message=attachment.value["message"],
+                            passed=attachment.value["passed"],
+                            interval=attachment.value["interval"],
+                            wait=attachment.value["wait"],
                         )
                     )
                 )
@@ -160,7 +165,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     if assertions:
         await AssertBase.bulk_create(assertions)
     return text(
-        "Attachments have been added successfully", status=201 if not len(note) else 206
+        "Attachments was added successfully", status=201 if not len(note) else 206
     )
 
 

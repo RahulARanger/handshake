@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional, Dict, Union
+from typing import List, Optional, Union
 from handshake.services.DBService.models.enums import Status, SuiteType, AttachmentType
 from pydantic import BaseModel
 from datetime import datetime
@@ -54,7 +54,6 @@ class MarkSuite(BaseModel):
 
 
 class AssertionPayload(TypedDict):
-    title: str
     passed: bool
     wait: Optional[int]
     interval: Optional[int]

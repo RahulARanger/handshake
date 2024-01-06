@@ -1,3 +1,4 @@
+import os
 import shutil
 import uuid
 from functools import partial
@@ -22,7 +23,7 @@ async def createExportTicket(
 ):
     await init_tortoise_orm(path)
     ticket = await ExportBase.create(
-        maxTestRuns=maxTestRuns, clarity="" if not clarity else clarity
+        maxTestRuns=maxTestRuns, clarity="" if not clarity else os.getenv("CLARITY")
     )
 
     runs.extend(
