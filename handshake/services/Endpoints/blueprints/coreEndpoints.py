@@ -172,7 +172,6 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
 @service.put("/currentRun")
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
-
     config = await TestConfigBase.create(
         test_id=get_test_id(),
         platform=run_config.platformName,
@@ -183,6 +182,6 @@ async def update_run_config(request: Request) -> HTTPResponse:
         avoidParentSuitesInCount=run_config.avoidParentSuitesInCount,
         bail=run_config.bail,
     )
-
     await config.save()
-    return text("provided config was saved successfully.", status=201)
+
+    return text("provided config was saved successfully.", status=200)

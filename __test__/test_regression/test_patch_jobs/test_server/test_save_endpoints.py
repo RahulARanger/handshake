@@ -6,6 +6,7 @@ from handshake.services.DBService.models import (
     SessionBase,
     AttachmentBase,
     AssertBase,
+    TestConfigBase,
     TestLogBase,
 )
 from handshake.services.DBService.models.enums import LogType, AttachmentType
@@ -227,3 +228,26 @@ class TestSaveEndPoints:
             assert missing["loc"][0] in required
             assert missing["msg"] == "Field required"
             assert missing["input"] == payload
+
+    async def test_set_config_api(self, client, sample_test_run, app):
+        test = await self.set_test_run(app, sample_test_run)
+
+        payload = dict(
+            maxInstances=1,
+            fileRetries=1,
+            framework="pytest",
+            exitCode=1,
+            bail=1,
+            platformName="windows",
+            avoidParentSuitesInCount=False,
+        )
+        request, response = await client.put("/save/currentRun", json=payload)
+        assert response.status == 200
+
+        record = await TestConfigBase.filter(test_id=test.testID).first()
+        assert record is not None
+        assert record.exitCode == 1
+        assert record.platform == "windows"
+        assert record.maxInstances == 1
+        assert record.fileRetries == 1
+        assert record.avoidParentSuitesInCount is False

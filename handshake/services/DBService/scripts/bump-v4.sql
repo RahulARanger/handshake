@@ -43,7 +43,8 @@ WHERE type = 'CONFIG';
 DROP TABLE testconfigbase;
 
 CREATE TABLE testconfigbase (
-    test_id VARCHAR(36) PRIMARY KEY,
+    id INTEGER PRIMARY KEY,
+    test_id VARCHAR(36) NOT NULL,
     platform TEXT NOT NULL,
     framework TEXT NOT NULL,
     maxInstances INTEGER NOT NULL,

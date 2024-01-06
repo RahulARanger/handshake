@@ -60,7 +60,7 @@ export class ServiceDialPad extends DialPad {
     pyProcess.on('exit', (code) => {
       if (code !== 0) {
         logger.warn(
-          `handshake-server was force closed 😫, found exit code: ${code}`,
+          `handshake-server was closed with the exit code: ${code}`,
         );
       }
     });

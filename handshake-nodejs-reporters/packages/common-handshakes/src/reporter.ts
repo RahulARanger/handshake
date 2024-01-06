@@ -200,11 +200,12 @@ export class ReporterDialPad extends DialPad {
   }
 
   async addAssertion(
+    title: string,
     assertion: Assertion,
     entity_id: string,
   ) {
     this.requests.push({
-      entityID: entity_id, type: 'ASSERT', value: JSON.stringify(assertion), title: assertion.matcherName,
+      entityID: entity_id, type: 'ASSERT', value: assertion, title,
     });
   }
 

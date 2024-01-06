@@ -114,8 +114,10 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     });
 
     test('verifying the assertion attachment', async () => {
-      await reporter.addAssertion({ expected: 2, matcherName: 'toEqual', options: { status: 'PASSED' } }, reporter.idMapped['test-0-1']);
-      await reporter.addAssertion({ expected: 2, matcherName: 'toEqual', options: { status: 'PASSED' } }, reporter.idMapped['suite-0']);
+      await reporter.addAssertion('toEqual', { expected: 2, passed: true, message: 'Passed' }, reporter.idMapped['test-0-1']);
+      await reporter.addAssertion('toEqual', {
+        expected: 2, passed: true, message: 'Passed', interval: 100, wait: 500,
+      }, reporter.idMapped['suite-0']);
 
       added += 2;
     });

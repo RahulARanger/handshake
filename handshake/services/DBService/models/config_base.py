@@ -33,7 +33,7 @@ class ExportBase(Model):
 
 class TestConfigBase(Model):
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="config", to_field="testID", pk=True
+        "models.RunBase", related_name="config", to_field="testID"
     )
     platform = TextField(null=False, description="could be windows or linux")
     framework = TextField(null=False, description="name of the framework used")
