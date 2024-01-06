@@ -1,17 +1,12 @@
 import json
-
-from handshake.services.DBService.models.static_base import TestConfigBase
 from handshake.services.DBService.models.config_base import ConfigBase
-from handshake.services.DBService.models.types import ValueForTestRunConfigBase
 from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
-from handshake.services.DBService.models.enums import AttachmentType, ConfigKeys
+from handshake.services.DBService.models.enums import ConfigKeys
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
 from typing import Optional, Union
-from handshake import __version__
-from platform import uname
 
 
 models = ["handshake.services.DBService.models"]
@@ -33,18 +28,7 @@ async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
 
 
 async def create_run(projectName: str) -> str:
-    default_config_for_test_run: ValueForTestRunConfigBase = dict(
-        platformName=uname().system, version=__version__
-    )
     test_id = str((await RunBase.create(projectName=projectName)).testID)
-
-    await TestConfigBase.create(
-        description="",  # "Config set for this run"
-        type=AttachmentType.CONFIG,
-        attachmentValue=default_config_for_test_run,
-        test_id=test_id,
-    )
-
     return test_id
 
 

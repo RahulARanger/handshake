@@ -1,7 +1,14 @@
-from .result_base import SessionBase, SuiteBase, RunBase, RollupBase, RetriedBase
-from .config_base import ConfigBase, ExportBase
-from .static_base import AttachmentBase, TestConfigBase, StaticBase
-from .dynamic_base import TaskBase, DynamicVideoBase, PrunedBase
+from .result_base import (
+    SessionBase,
+    SuiteBase,
+    RunBase,
+    RollupBase,
+    RetriedBase,
+    TestLogBase,
+)
+from .config_base import ConfigBase, ExportBase, TestConfigBase
+from .static_base import AttachmentBase, StaticBase
+from .dynamic_base import TaskBase, PrunedBase
 from .attachmentBase import AssertBase
 
 __all__ = [
@@ -11,7 +18,6 @@ __all__ = [
     TestConfigBase,
     AttachmentBase,
     TaskBase,
-    DynamicVideoBase,
     PrunedBase,
     ExportBase,
     ConfigBase,
@@ -19,4 +25,5 @@ __all__ = [
     StaticBase,
     RetriedBase,
     AssertBase,
+    TestLogBase,
 ]

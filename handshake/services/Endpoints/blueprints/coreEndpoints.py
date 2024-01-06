@@ -1,4 +1,3 @@
-import json
 from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
 from handshake.services.DBService.models.types import (
     RegisterSession,
@@ -15,10 +14,10 @@ from handshake.services.Endpoints.blueprints.utils import (
     extractPydanticErrors,
 )
 from handshake.services.DBService.models.static_base import (
-    TestConfigBase,
     AttachmentBase,
     AttachmentType,
 )
+from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import Status, SuiteType
 from sanic.blueprints import Blueprint
@@ -125,14 +124,16 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
 
         match attachment.type:
             case AttachmentType.ASSERT:
-                await AssertBase(
-                    **dict(
-                        entity_id=attachment.entityID,
-                        title=attachment.value.title,
-                        message=attachment.value.message,
-                        passed=attachment.value.passed,
-                        interval=attachment.value.interval,
-                        wait=attachment.value.wait,
+                assertions.append(
+                    await AssertBase(
+                        **dict(
+                            entity_id=attachment.entityID,
+                            title=attachment.title,
+                            message=attachment.message,
+                            passed=attachment.passed,
+                            interval=attachment.interval,
+                            wait=attachment.wait,
+                        )
                     )
                 )
 
@@ -167,13 +168,16 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
 
-    config = await TestConfigBase.filter(test_id=get_test_id()).first()
-    if not config:
-        return text(get_test_id() + " || Test Run not found", status=404)
+    config = await TestConfigBase.create(
+        test_id=get_test_id(),
+        platform=run_config.platformName,
+        framework=run_config.framework,
+        maxInstances=run_config.maxInstances,
+        exitCode=run_config.exitCode,
+        fileRetries=run_config.fileRetries,
+        avoidParentSuitesInCount=run_config.avoidParentSuitesInCount,
+        bail=run_config.bail,
+    )
 
-    updated_value = config.attachmentValue
-    updated_value.update(run_config)
-
-    await config.update_from_dict(dict(attachmentValue=updated_value))
     await config.save()
-    return text(json.dumps(updated_value), status=201)
+    return text("provided config was saved successfully.", status=201)

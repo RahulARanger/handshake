@@ -3,17 +3,12 @@ from handshake.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
 )
-from handshake.services.DBService.models.static_base import (
-    TestConfigBase,
-    AttachmentType,
-)
-from handshake.services.DBService.models.types import PydanticModalForTestRunConfigBase
+from handshake.services.DBService.models.config_base import TestConfigBase
 from uuid import UUID
 from typing import Union
 from traceback import format_exc
 from handshake.services.SchedularService.register import (
     skip_test_run,
-    warn_about_test_run,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.types import Status, SuiteType
@@ -26,14 +21,10 @@ from pathlib import Path
 from os.path import join
 from loguru import logger
 from tortoise.expressions import Q
-from handshake.services.SchedularService.teamsSummaryCard import sendSummaryNotification
-from httpx import HTTPError
 
 
 async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> False:
-    return await skip_test_run(
-        "Job Failed: Failed to Patch Test Run", test_id, reason, **extra
-    )
+    return await skip_test_run(test_id, reason, **extra)
 
 
 async def mark_test_failure_if_required(test_id: str) -> bool:
@@ -41,7 +32,8 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
     if test_run.ended is None:
         await skip_coz_error(
             test_id,
-            f"Failed to process test Run{test_id}: {test_run.projectName} because it didn't have a end date",
+            f"Failed to patch the Test Run: {test_id} of project: {test_run.projectName},"
+            f" because it didn't have a end date",
             incomplete=test_run.projectName,
         )
         return True
@@ -59,7 +51,7 @@ async def mark_test_failure_if_required(test_id: str) -> bool:
         # it means there are child tasks ensured to complete the child suites
         return False
 
-    reason = f"Failed to process {test_id} because of incomplete child suites"
+    reason = f"Failed to patch TestRun: {test_id} because of incomplete child suites"
     await skip_coz_error(test_id, reason, incomplete=suites)
     return True
 
@@ -155,9 +147,7 @@ async def patchValues(test_run: RunBase):
         .values("passed", "failed", "skipped", "tests", actual_start, actual_end)
     )
 
-    test_config = await TestConfigBase.filter(
-        test_id=test_id, type=AttachmentType.CONFIG
-    ).first()
+    test_config = await TestConfigBase.filter(test_id=test_id).first()
 
     refer = SuiteBase
 
@@ -165,10 +155,7 @@ async def patchValues(test_run: RunBase):
         # consider cucumber files
         # if the feature file has 3 scenarios, then if user sets the avoidParentSuitesInCount
         # we would get a value of 3 as total scenarios else 4
-        config = PydanticModalForTestRunConfigBase.model_validate(
-            test_config.attachmentValue
-        )
-        if config.avoidParentSuitesInCount:
+        if test_config.avoidParentSuitesInCount:
             refer = SuiteBase.filter(~Q(parent=""))
 
     # we want to count the number of suites status
@@ -254,19 +241,6 @@ async def patchTestRun(test_id: str, current_test_id: str):
         if await patchValues(test_run):
             logger.info("Completed the patch for test run: {}", test_id)
             to_return = True
-            try:
-                await sendSummaryNotification(test_id=test_id)
-            except HTTPError as error:
-                await warn_about_test_run(
-                    test_id=test_id,
-                    about=repr(error),
-                    description=f"Failed to send summary report in teams for test run: {test_id}",
-                )
-                # await attachWarn(
-                #     dict(reason="Failed to send teams notification", error=repr(error)),
-                #     test_id,
-                # )
-
     except Exception:
         await skip_coz_error(
             test_id,

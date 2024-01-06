@@ -28,6 +28,9 @@ class AttachmentType(StrEnum):
     IMG = "IMAGE"
     LINK = "LINK"
     ASSERT = "ASSERT"
+
+
+class LogType(StrEnum):
     ERROR = "ERROR"
     WARN = "WARN"
     INFO = "INFO"

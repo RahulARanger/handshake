@@ -15,8 +15,10 @@ general_but_optional_requirement = argument(
 
 {'{:*^69}'.format(" Welcome to Handshake's CLI ")}
 
-Handshake simplifies the collection and processing of test results. The Handshake CLI serves as the foundation for essential operations.
-Each command requires a <path> argument, representing the collection folder, often named as `collectionName` in your `rootDir`.
+Handshake simplifies the collection and processing of test results.
+The Handshake CLI serves as the foundation for essential operations.
+Each command requires a <path> argument, 
+representing the collection folder, often named as `collectionName` in your `rootDir`.
 
 [ROOT-DIR] >> [COLLECTION_NAME] (*we need this) >> TeStReSuLtS.db & [Attachments] (for getting this).
 

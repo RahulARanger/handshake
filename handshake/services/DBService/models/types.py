@@ -53,7 +53,7 @@ class MarkSuite(BaseModel):
     standing: Optional[Status] = Status.SKIPPED
 
 
-class AssertionPayload:
+class AssertionPayload(TypedDict):
     title: str
     passed: bool
     wait: Optional[int]
@@ -80,7 +80,7 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     platformName: str
     framework: str
     exitCode: int
-    saveOptions: Optional[Dict] = {}
-    fileRetries: int
+    bail: Optional[int] = 0
+    fileRetries: Optional[int] = 0
     avoidParentSuitesInCount: Optional[bool] = False
     teamsHook: Optional[str] = ""

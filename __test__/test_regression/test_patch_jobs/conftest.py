@@ -89,17 +89,12 @@ async def helper_create_test_config(
     test_id: str, file_retries=0, avoidParentSuitesInCount=False
 ):
     await TestConfigBase.create(
-        type=AttachmentType.CONFIG,
-        attachmentValue=dict(
-            fileRetries=file_retries,
-            framework="pytest",
-            exitCode=0,
-            platformName="windows",
-            maxInstances=1,
-            saveOptions=dict(),
-            avoidParentSuitesInCount=avoidParentSuitesInCount,
-        ),
-        description="sample-test",
+        fileRetries=file_retries,
+        framework="pytest",
+        exitCode=0,
+        platform="windows",
+        maxInstances=1,
+        avoidParentSuitesInCount=avoidParentSuitesInCount,
         test_id=test_id,
     )
 
