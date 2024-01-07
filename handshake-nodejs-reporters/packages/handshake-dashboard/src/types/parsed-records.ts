@@ -1,54 +1,21 @@
-import type BasicDetails from './test-entity-related';
-import type { Attachment, suiteType } from './test-entity-related';
+import type { Dayjs } from 'dayjs';
+import type { statusOfEntity } from 'src/types/session-records';
+import type { Duration } from 'dayjs/plugin/duration';
 
-// getStaticPaths to [id] root page
-export interface ShareToOtherPages {
-    testID?: string;
-    port?: string;
-    attachmentPrefix?: string;
+export default interface BasicDetails {
+    Started: [Dayjs, Dayjs];
+    Ended: [Dayjs, Dayjs];
+    Status: statusOfEntity;
+    Title: string;
+    Duration: Duration;
+    Rate: [number, number, number];
+    Id: string;
 }
 
-export interface QuickPreviewForTestRun extends BasicDetails {
+export interface DetailedTestRecord extends BasicDetails {
     SuitesSummary: [number, number, number];
     Tests: number;
     Suites: number;
     Link: string;
-}
-
-// used for showing preview for the scenarios (without much details)
-export interface QuickPreviewForScenarios extends BasicDetails {
-    Tests: number;
-}
-
-export interface AttachedError extends Error {
-    mailedFrom: string[];
-}
-
-export interface Assertion {
-    matcherName: string;
-    result: { pass: boolean };
-    expectedValue: string;
-    options: string;
-}
-
-export interface PreviewForTests extends BasicDetails {
-    Description: string;
-    id: string;
-    Errors: AttachedError[];
-    type: suiteType;
-    Parent: string;
-}
-
-export interface PreviewForDetailedEntities extends QuickPreviewForScenarios {
-    File: string;
-    Retried: number;
-    Description: string;
-    id: string;
-    entityName: string;
-    entityVersion: string;
-    simplified: string;
-}
-
-export interface QuickPreviewForAttachments extends Attachment {
-    parsed: { title: string; value: string };
+    projectName: string;
 }

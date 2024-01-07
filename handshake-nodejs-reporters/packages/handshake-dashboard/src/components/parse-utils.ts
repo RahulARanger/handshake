@@ -1,89 +1,77 @@
 import { runPage } from 'src/components/scripts/helper';
-import type {
-    Attachment,
-    SuiteRecordDetails,
-} from 'src/types/test-entity-related';
-import type {
-    QuickPreviewForScenarios,
-    QuickPreviewForTestRun,
-    PreviewForDetailedEntities,
-    PreviewForTests,
-    QuickPreviewForAttachments,
-} from 'src/types/parsed-records';
 import type TestRunRecord from 'src/types/test-run-records';
-import type SessionRecordDetails from 'src/types/session-records';
-import dayjs, { type Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import type { statusOfEntity } from 'src/types/session-records';
-import type { BadgeProps } from 'antd';
-import type { TimelineItemProps } from 'antd/lib';
+
+import type { DetailedTestRecord } from 'src/types/parsed-records';
+import type { ImageRecord } from 'src/types/test-entity-related';
 
 dayjs.extend(duration);
 
-export default function parseTestEntity(
-    testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs,
-): QuickPreviewForScenarios {
-    return {
-        Started: [dayjs(testORSuite.started), testStartedAt],
-        Ended: [dayjs(testORSuite.ended), testStartedAt],
-        Status: testORSuite.standing,
-        Title: testORSuite.title,
-        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
-        Tests: testORSuite.tests,
-    };
-}
+// export default function parseTestEntity(
+//     testORSuite: SuiteRecordDetails,
+//     testStartedAt: Dayjs,
+// ): QuickPreviewForScenarios {
+//     return {
+//         Started: [dayjs(testORSuite.started), testStartedAt],
+//         Ended: [dayjs(testORSuite.ended), testStartedAt],
+//         Status: testORSuite.standing,
+//         Title: testORSuite.title,
+//         Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
+//         Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
+//         Tests: testORSuite.tests,
+//     };
+// }
 
-export function parseDetailedTestEntity(
-    testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs,
-    session: SessionRecordDetails,
-): PreviewForDetailedEntities {
-    return {
-        Started: [dayjs(testORSuite.started), testStartedAt],
-        Ended: [dayjs(testORSuite.ended), testStartedAt],
-        Status: testORSuite.standing,
-        Title: testORSuite.title,
-        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [
-            testORSuite.rollup_passed ?? 0,
-            testORSuite.rollup_failed ?? 0,
-            testORSuite.rollup_skipped ?? 0,
-        ],
-        Tests: testORSuite.tests,
-        File: testORSuite.file,
-        Retried: testORSuite.retried,
-        Description: testORSuite.description,
-        id: testORSuite.suiteID,
-        entityName: session.entityName,
-        entityVersion: session.entityVersion,
-        simplified: session.simplified,
-    };
-}
+// export function parseDetailedTestEntity(
+//     testORSuite: SuiteRecordDetails,
+//     testStartedAt: Dayjs,
+//     session: SessionRecordDetails,
+// ): PreviewForDetailedEntities {
+//     return {
+//         Started: [dayjs(testORSuite.started), testStartedAt],
+//         Ended: [dayjs(testORSuite.ended), testStartedAt],
+//         Status: testORSuite.standing,
+//         Title: testORSuite.title,
+//         Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
+//         Rate: [
+//             testORSuite.rollup_passed ?? 0,
+//             testORSuite.rollup_failed ?? 0,
+//             testORSuite.rollup_skipped ?? 0,
+//         ],
+//         Tests: testORSuite.tests,
+//         File: testORSuite.file,
+//         Retried: testORSuite.retried,
+//         Description: testORSuite.description,
+//         id: testORSuite.suiteID,
+//         entityName: session.entityName,
+//         entityVersion: session.entityVersion,
+//         simplified: session.simplified,
+//     };
+// }
 
-export function parseTestCaseEntity(
-    testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs,
-): PreviewForTests {
-    return {
-        Started: [dayjs(testORSuite.started), testStartedAt],
-        Ended: [dayjs(testORSuite.ended), testStartedAt],
-        Status: testORSuite.standing,
-        Title: testORSuite.title,
-        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
-        Errors: JSON.parse(testORSuite.errors),
-        Description: testORSuite.description,
-        id: testORSuite.suiteID,
-        type: testORSuite.suiteType,
-        Parent: testORSuite.parent,
-    };
-}
+// export function parseTestCaseEntity(
+//     testORSuite: SuiteRecordDetails,
+//     testStartedAt: Dayjs,
+// ): PreviewForTests {
+//     return {
+//         Started: [dayjs(testORSuite.started), testStartedAt],
+//         Ended: [dayjs(testORSuite.ended), testStartedAt],
+//         Status: testORSuite.standing,
+//         Title: testORSuite.title,
+//         Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
+//         Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
+//         Errors: JSON.parse(testORSuite.errors),
+//         Description: testORSuite.description,
+//         id: testORSuite.suiteID,
+//         type: testORSuite.suiteType,
+//         Parent: testORSuite.parent,
+//     };
+// }
 
 export function parseDetailedTestRun(
     testRun: TestRunRecord,
-): QuickPreviewForTestRun {
+): DetailedTestRecord {
     const summary: {
         passed: number;
         failed: number;
@@ -94,6 +82,7 @@ export function parseDetailedTestRun(
         Started: [dayjs(testRun.started), dayjs()],
         Ended: [dayjs(testRun.ended), dayjs()],
         Title: testRun.projectName,
+        Id: testRun.testID,
         Status: testRun.standing,
         Rate: [testRun.passed, testRun.failed, testRun.skipped],
         Duration: dayjs.duration({ milliseconds: testRun.duration }),
@@ -101,15 +90,7 @@ export function parseDetailedTestRun(
         SuitesSummary: [summary.passed, summary.failed, summary.skipped],
         Suites: summary.count,
         Link: runPage(testRun.testID),
-    };
-}
-
-export function parseAttachment(
-    attached: Attachment,
-): QuickPreviewForAttachments {
-    return {
-        ...attached,
-        parsed: JSON.parse(attached.attachmentValue),
+        projectName: testRun.projectName,
     };
 }
 
@@ -124,40 +105,13 @@ export function convertForWrittenAttachments(
     return [...note, prefix, testID, attachmentID].join('/');
 }
 
-export function badgeStatus(status: string): BadgeProps['status'] {
-    switch (status as statusOfEntity) {
-        case 'FAILED': {
-            return 'error';
-        }
-        case 'PASSED': {
-            return 'success';
-        }
-        case 'PENDING': {
-            return 'processing';
-        }
-        case 'SKIPPED': {
-            return 'warning';
-        }
-    }
+export function parseImageRecords(
+    images: ImageRecord[],
+    prefix: string,
+    testID: string,
+): ImageRecord[] {
+    return images.map((image) => ({
+        ...image,
+        path: convertForWrittenAttachments(prefix, testID, image.path),
+    }));
 }
-
-export function timelineColor(status: string): TimelineItemProps['color'] {
-    switch (status as statusOfEntity) {
-        case 'FAILED': {
-            return 'red';
-        }
-        case 'PASSED': {
-            return 'green';
-        }
-        case 'PENDING': {
-            return 'blue';
-        }
-        case 'SKIPPED': {
-            return 'gray';
-        }
-    }
-}
-
-export const optionsForEntities = ['Timeline'];
-
-export const sourceUrl = 'https://github.com/RahulARanger/handshake';

@@ -1,14 +1,12 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun, sourceUrl } from 'src/components/parse-utils';
+import { parseDetailedTestRun } from 'src/components/parse-utils';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import AreaChartForRuns from 'src/components/charts/collection-of-runs';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import crumbs from './test-items';
-import type { QuickPreviewForTestRun } from 'src/types/parsed-records';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import HeaderStyles from 'src/styles/header.module.css';
-
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -29,13 +27,15 @@ import isBetween from 'dayjs/plugin/isBetween';
 import Button from 'antd/lib/button/button';
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import GithubOutlined from '@ant-design/icons/GithubOutlined';
-import { Tag } from 'antd/lib';
+import Tag from 'antd/lib/tag/index';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderStatus } from 'src/components/utils/renderers';
+import type { DetailedTestRecord } from 'src/types/parsed-records';
+import { sourceUrl } from 'src/types/ui-constants';
 
 dayjs.extend(isBetween);
 
-function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
+function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
     const [isTest, showTest] = useState(true);
     const item = properties.run;
 
@@ -113,7 +113,7 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
 }
 
 function RawList(properties: {
-    dataSource: Array<undefined | QuickPreviewForTestRun>;
+    dataSource: Array<undefined | DetailedTestRecord>;
 }): ReactNode {
     const [showMax, setShowMax] = useState<number>(10);
     const items = properties.dataSource?.slice(0, showMax);

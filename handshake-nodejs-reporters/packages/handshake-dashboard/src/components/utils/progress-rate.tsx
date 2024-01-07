@@ -3,16 +3,19 @@ import React from 'react';
 import Space from 'antd/lib/space';
 import Progress from 'antd/lib/progress/index';
 import { Tooltip } from 'antd/lib';
+import Divider from 'antd/lib/divider/index';
 
 export default function RenderProgress(properties: {
     passed?: number;
     failed?: number;
     skipped?: number;
+    broken?: number;
 }): ReactNode {
     const passed = properties?.passed ?? 0;
     const failed = properties?.failed ?? 0;
     const skipped = properties?.skipped ?? 0;
     const total = passed + failed + skipped;
+    const failedPercent = Number(((failed / total) * 1e2).toFixed(2));
 
     return (
         <Space
@@ -34,13 +37,14 @@ export default function RenderProgress(properties: {
             </Tooltip>
             <Tooltip title="Failed Test Cases %" color="red">
                 <Progress
-                    percent={Number(((failed / total) * 1e2).toFixed(2))}
+                    percent={failedPercent}
                     type="dashboard"
                     strokeColor={'red'}
                     gapDegree={40}
                     size={85}
                 />
             </Tooltip>
+
             <Tooltip title="Skipped Test Cases %" color="yellow">
                 <Progress
                     percent={Number(((skipped / total) * 1e2).toFixed(2))}
@@ -50,6 +54,29 @@ export default function RenderProgress(properties: {
                     size={85}
                 />
             </Tooltip>
+            {properties.broken ? (
+                <Divider type="vertical" style={{ height: '40px' }} />
+            ) : (
+                <></>
+            )}
+            {properties.broken ? (
+                <Tooltip
+                    title={`Broken Test Cases (out of ${failedPercent}%)`}
+                    color="volcano"
+                >
+                    <Progress
+                        percent={Number(
+                            ((properties.broken / total) * 1e2).toFixed(2),
+                        )}
+                        type="dashboard"
+                        strokeColor={'volcano'}
+                        gapDegree={40}
+                        size={85}
+                    />
+                </Tooltip>
+            ) : (
+                <></>
+            )}
         </Space>
     );
 }

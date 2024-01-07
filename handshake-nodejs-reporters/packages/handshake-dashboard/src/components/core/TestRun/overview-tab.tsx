@@ -1,71 +1,41 @@
-import type TestRunRecord from 'src/types/test-run-records';
-import {
-    getOverAllAggResultsURL,
-    getRelatedRuns,
-    getSessionSummaryURL,
-    getTestRun,
-    getTestRunConfig,
-} from 'src/components/scripts/helper';
-import type {
-    AttachmentContent,
-    SuiteRecordDetails,
-} from 'src/types/test-entity-related';
+import type { SuiteRecordDetails } from 'src/types/test-entity-related';
 import type { statusOfEntity } from 'src/types/session-records';
-import Counter, { StatisticNumber } from 'src/components/utils/counter';
+import Counter from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
-import {
-    RenderEntityType,
-    RenderInfo,
-    RenderStatus,
-    RenderSystemType,
-} from 'src/components/utils/renderers';
+import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import GalleryOfImages, {
     PlainImage,
 } from 'src/components/utils/images-with-thumbnails';
-
 import React, { useState, type ReactNode, useContext } from 'react';
 import dayjs from 'dayjs';
-
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
 import Typography from 'antd/lib/typography/Typography';
 import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
-import MetaCallContext from './context';
 import Tabs from 'antd/lib/tabs/index';
-import useSWR from 'swr';
-import Description, {
-    type DescriptionsProps,
-} from 'antd/lib/descriptions/index';
-import type {
-    AttachmentValueForConfig,
-    TestRunConfig,
-} from 'src/types/test-run-records';
-import type { OverallAggResults } from 'src/components/scripts/RunPage/overview';
-import { type SessionSummary } from 'src/components/scripts/RunPage/overview';
-import type { SuiteDetails } from 'src/types/generated-response';
-import { convertForWrittenAttachments } from 'src/components/parse-utils';
 import { Affix } from 'antd/lib';
 import { standingToColors } from 'src/components/charts/constants';
 import Dotted from 'src/styles/dotted.module.css';
 import RenderProgress from 'src/components/utils/progress-rate';
+import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
+import { OverviewContext } from 'src/types/parsed-overview-records';
 
 function TopSuites(properties: {
-    suites: SuiteDetails[];
+    suites: OverviewOfEntities[];
     isTest: boolean;
 }): ReactNode {
-    const data = properties.suites;
-    const top5Suites = data.map((suite) => ({
-        key: suite.suiteID,
+    const topNSuites = properties.suites.map((suite) => ({
+        key: suite.id,
         ...suite,
     }));
 
     return (
         <Table
-            dataSource={top5Suites}
+            dataSource={topNSuites}
             size="small"
             bordered
             pagination={false}
@@ -89,14 +59,14 @@ function TopSuites(properties: {
             ) : (
                 <></>
             )}
-            <Table.Column title="Name" dataIndex="title" width={150} />
+            <Table.Column title="Name" dataIndex="title" width={200} />
             {properties.isTest ? (
                 <></>
             ) : (
                 <Table.Column
                     title="Rate"
                     dataIndex="Passed"
-                    width={100}
+                    width={80}
                     render={(_: number, record: SuiteRecordDetails) => (
                         <RenderPassedRate
                             value={[
@@ -112,13 +82,13 @@ function TopSuites(properties: {
             <Table.Column
                 dataIndex="started"
                 title="Range"
-                width={180}
+                width={80}
                 render={(value: string, record: SuiteRecordDetails) => (
                     <RelativeTo
                         dateTime={dayjs(value)}
                         style={{
                             marginLeft: '30px',
-                            maxWidth: '220px',
+                            maxWidth: '200px',
                         }}
                         secondDateTime={dayjs(record.ended)}
                         autoPlay={false}
@@ -131,25 +101,18 @@ function TopSuites(properties: {
 }
 
 function PreviewForImages(): ReactNode {
-    const { port, testID, attachmentPrefix } = useContext(MetaCallContext);
-    const { data: aggResults } = useSWR<OverallAggResults>(
-        getOverAllAggResultsURL(port, testID),
-    );
-    if (testID == undefined || aggResults == undefined) return <></>;
-    const allImages: AttachmentContent[] = aggResults.randomImages.map(
-        (image) => JSON.parse(image),
-    );
-    const images = allImages.sort(() => 0.5 - Math.random()).slice(0, 6);
+    const context = useContext(OverviewContext);
+    if (context == undefined) return <></>;
+
+    const images = context.randomImages
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 6);
 
     return images.length > 0 ? (
         <GalleryOfImages loop={true} maxWidth={'350px'}>
             {images.map((image, index) => (
                 <PlainImage
-                    url={convertForWrittenAttachments(
-                        attachmentPrefix ?? '',
-                        testID,
-                        image.value,
-                    )}
+                    url={image.path}
                     key={index}
                     title={image.title}
                     maxHeight={'250px'}
@@ -162,116 +125,23 @@ function PreviewForImages(): ReactNode {
     );
 }
 
-function DescriptiveValues(): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: aggResults } = useSWR<OverallAggResults>(
-        getOverAllAggResultsURL(port, testID),
-    );
-
-    const { data: sessions } = useSWR<SessionSummary[]>(
-        getSessionSummaryURL(port, testID),
-    );
-    const { data: runConfig } = useSWR<TestRunConfig[]>(
-        getTestRunConfig(port, testID),
-    );
-
-    if (
-        testID == undefined ||
-        aggResults == undefined ||
-        sessions == undefined ||
-        runConfig == undefined
-    )
-        return <></>;
-
-    const browsersUsed: Record<string, number> = {};
-    for (const sessionObject of sessions) {
-        if (browsersUsed[sessionObject.entityName])
-            browsersUsed[sessionObject.entityName] += sessionObject.tests;
-        else browsersUsed[sessionObject.entityName] = sessionObject.tests;
-    }
-
-    const testRunConfig = runConfig
-        .filter((config) => config.type === 'CONFIG')
-        .at(0);
-
-    const configValue = JSON.parse(
-        testRunConfig?.attachmentValue ?? '',
-    ) as AttachmentValueForConfig;
-
-    const extras: DescriptionsProps['items'] = [
-        {
-            key: 'suites',
-            label: 'Parent Suites',
-            children: <StatisticNumber end={aggResults.parentSuites} />,
-        },
-        {
-            key: 'files',
-            label: 'Spec Files',
-            children: <StatisticNumber end={aggResults.fileCount} />,
-        },
-        {
-            key: 'sessions',
-            label: 'Sessions',
-            children: <StatisticNumber end={aggResults.sessionCount} />,
-        },
-        {
-            key: 'attachments',
-            label: 'Attachments',
-            children: <StatisticNumber end={aggResults.imageCount} />,
-        },
-        {
-            children: (
-                <RenderSystemType systemName={configValue.platformName} />
-            ),
-            key: 'system',
-            label: 'System',
-        },
-        {
-            key: 'browsers',
-            label: 'Browsers',
-            children: (
-                <>
-                    {Object.keys(browsersUsed).map((browser) => (
-                        <StatisticNumber
-                            key={browser}
-                            title={<RenderEntityType entityName={browser} />}
-                            end={browsersUsed[browser]}
-                        />
-                    ))}
-                </>
-            ),
-        },
-    ];
-
-    return (
-        <Description
-            style={{ marginTop: '12px' }}
-            items={extras}
-            bordered
-            size="small"
-        />
-    );
-}
-
-function Summary(): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
-    const { data: aggResults } = useSWR<OverallAggResults>(
-        getOverAllAggResultsURL(port, testID),
-    );
-
+export default function Overview(): ReactNode {
+    const context = useContext(OverviewContext);
     const [isTest, setTest] = useState<boolean>(true);
 
-    if (run == undefined || aggResults == undefined) return;
+    if (context == undefined) return <></>;
 
-    const startedAt = dayjs(run.started);
+    const {
+        detailsOfTestRun: run,
+        recentTests,
+        recentSuites,
+        aggResults,
+    } = context;
 
-    const suiteSummary = JSON.parse(run.suiteSummary);
+    const startedAt = run.Started[0];
 
-    const total = isTest ? run.tests : suiteSummary.count;
-    const passed = isTest ? run.passed : suiteSummary.passed;
-    const failed = isTest ? run.failed : suiteSummary.failed;
-    const skipped = isTest ? run.skipped : suiteSummary.skipped;
+    const total = isTest ? run.Tests : run.Suites;
+    const rate = isTest ? run.Rate : run.SuitesSummary;
 
     return (
         <Card className={Dotted.dotted}>
@@ -311,7 +181,11 @@ function Summary(): ReactNode {
                                 }}
                             />
                         </Affix>
-                        <ProgressPieChart run={run} isTestCases={isTest} />
+                        <ProgressPieChart
+                            rate={rate}
+                            isTestCases={isTest}
+                            broken={aggResults.brokenTests}
+                        />
                     </div>
                     <PreviewForImages />
                 </Space>
@@ -340,13 +214,14 @@ function Summary(): ReactNode {
                                 textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
                                 whiteSpace: 'nowrap',
                             }}
-                            maxDigits={run.tests}
+                            maxDigits={run.Tests}
                             suffix={isTest ? ' Tests' : ' Suites'}
                         />
                         <RenderProgress
-                            passed={passed}
-                            failed={failed}
-                            skipped={skipped}
+                            passed={rate[0]}
+                            failed={rate[1]}
+                            skipped={rate[2]}
+                            broken={isTest ? aggResults.brokenTests : undefined}
                         />
                     </Space>
                     <Space style={{ flexWrap: 'wrap', gap: '10px' }}>
@@ -355,32 +230,30 @@ function Summary(): ReactNode {
                                 key: 'Status',
                                 value: (
                                     <Space>
-                                        <RenderStatus value={run.standing} />
+                                        <RenderStatus value={run.Status} />
                                         <Typography
                                             style={{
                                                 color: standingToColors[
-                                                    run.standing
+                                                    run.Status
                                                 ],
                                             }}
                                         >
-                                            {run.standing
-                                                .charAt(0)
-                                                .toUpperCase() +
-                                                run.standing
-                                                    .slice(1)
-                                                    .toLowerCase()}
+                                            {run.Status.charAt(
+                                                0,
+                                            ).toUpperCase() +
+                                                run.Status.slice(
+                                                    1,
+                                                ).toLowerCase()}
                                         </Typography>
                                     </Space>
                                 ),
-                                color: standingToColors[run.standing],
+                                color: standingToColors[run.Status],
                             },
                             {
                                 key: 'Duration',
                                 value: (
                                     <RenderDuration
-                                        value={dayjs.duration({
-                                            milliseconds: run.duration,
-                                        })}
+                                        value={run.Duration}
                                         autoPlay={true}
                                     />
                                 ),
@@ -395,7 +268,7 @@ function Summary(): ReactNode {
                                             marginLeft: '30px',
                                             maxWidth: '180px',
                                         }}
-                                        secondDateTime={dayjs(run.ended)}
+                                        secondDateTime={run.Ended[0]}
                                         autoPlay={true}
                                     />
                                 ),
@@ -418,9 +291,7 @@ function Summary(): ReactNode {
                                 children: (
                                     <TopSuites
                                         suites={
-                                            isTest
-                                                ? aggResults.recentTests
-                                                : aggResults.recentSuites
+                                            isTest ? recentTests : recentSuites
                                         }
                                         isTest={isTest}
                                     />
@@ -432,18 +303,4 @@ function Summary(): ReactNode {
             </Space>
         </Card>
     );
-}
-
-export default function Overview(): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: aggResults } = useSWR<OverallAggResults>(
-        getOverAllAggResultsURL(port, testID),
-    );
-    const { data: relatedRuns } = useSWR<TestRunRecord[]>(
-        getRelatedRuns(port, testID),
-    );
-
-    if (relatedRuns == undefined || aggResults == undefined) return <></>;
-
-    return <Summary />;
 }

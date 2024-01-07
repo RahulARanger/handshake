@@ -1,17 +1,6 @@
-import { type Dayjs } from 'dayjs';
-import type duration from 'dayjs/plugin/duration';
-import type { RecurringFields, statusOfEntity } from './session-records';
+import type { RecurringFields } from './session-records';
 
 export type suiteType = 'SUITE' | 'TEST';
-
-export default interface BasicDetails {
-    Started: [Dayjs, Dayjs];
-    Ended: [Dayjs, Dayjs];
-    Status: statusOfEntity;
-    Title: string;
-    Duration: duration.Duration;
-    Rate: [number, number, number];
-}
 
 export interface SuiteRecordDetails extends RecurringFields {
     suiteID: string;

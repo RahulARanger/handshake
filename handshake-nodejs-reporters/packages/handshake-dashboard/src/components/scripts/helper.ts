@@ -37,13 +37,6 @@ export function getTestRunSummary(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/test-run-summary?test_id=${filler(testID)}`;
 }
 
-export function getOverAllAggResultsURL(
-    port?: string,
-    testID?: string,
-): string {
-    return `${serverURL(port)}/get/overall-agg?test_id=${filler(testID)}`;
-}
-
 export function getTests(port?: string, testID?: string): string {
     return `${serverURL(port)}/get/tests?test_id=${filler(testID)}`;
 }

@@ -1,21 +1,11 @@
-import {
-    detailedPage,
-    getTestRun,
-    runPage,
-} from 'src/components/scripts/helper';
-import type TestRunRecord from 'src/types/test-run-records';
+import { detailedPage, runPage } from 'src/components/scripts/helper';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import { timelineTab, menuTabs } from 'src/types/ui-constants';
-
 import React, { useContext, type ReactNode } from 'react';
-
-import useSWR from 'swr';
 import Layout from 'antd/lib/layout/index';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import dayjs from 'dayjs';
 import { crumbsForRun } from '../ListOfRuns/test-items';
-import MetaCallContext from './context';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
 import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
@@ -24,22 +14,21 @@ import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from 'src/styles/header.module.css';
 import Link from 'next/link';
 import StarFilled from '@ant-design/icons/StarFilled';
+import { OverviewContext } from 'src/types/parsed-overview-records';
 
 export default function LayoutStructureForRunDetails(properties: {
     children: ReactNode;
     activeTab: string;
     changeDefault?: (tab: string) => void;
 }): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
-
-    if (data == undefined) {
+    const overviewContext = useContext(OverviewContext);
+    if (overviewContext == undefined) {
         return <></>;
     }
-
+    const { detailsOfTestRun: data } = overviewContext;
     const items: MenuProps['items'] = [
         {
-            label: <Link href={runPage(data.testID)}>Overview</Link>,
+            label: <Link href={runPage(data.Id)}>Overview</Link>,
             key: menuTabs.overviewTab,
             icon: <HomeOutlined />,
         },
@@ -53,7 +42,7 @@ export default function LayoutStructureForRunDetails(properties: {
                         <Link
                             id="Test Entities"
                             href={detailedPage(
-                                data.testID,
+                                data.Id,
                                 menuTabs.testEntitiesTab.gridViewMode,
                             )}
                         >
@@ -68,7 +57,7 @@ export default function LayoutStructureForRunDetails(properties: {
                         <Link
                             id="Tree"
                             href={detailedPage(
-                                data.testID,
+                                data.Id,
                                 menuTabs.testEntitiesTab.treeViewMode,
                             )}
                         >
@@ -99,7 +88,7 @@ export default function LayoutStructureForRunDetails(properties: {
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
                 <RelativeTo
-                    dateTime={dayjs(data.ended)}
+                    dateTime={data.Ended[0]}
                     style={{
                         maxWidth: '130px',
                         textAlign: 'right',

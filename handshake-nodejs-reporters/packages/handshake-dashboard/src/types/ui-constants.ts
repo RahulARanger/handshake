@@ -11,3 +11,6 @@ export const menuTabs = {
         current: 'test-entities',
     },
 };
+
+export const sourceUrl = 'https://github.com/RahulARanger/handshake';
+export const attachmentPrefix = '/Attachments';

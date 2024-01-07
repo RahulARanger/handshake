@@ -16,6 +16,10 @@ export default interface TestRunRecord {
     suitesConfig: string[];
     specStructure: string;
     suiteSummary: string;
+    suites: number;
+    passedSuites: number;
+    failedSuites: number;
+    skippedSuites: number;
 }
 
 export type specNode = {
@@ -29,30 +33,23 @@ export interface SuiteSummary {
     failed: number;
 }
 
+export type possibleFrameworks =
+    | 'WDIO-Mocha'
+    | 'WDIO-Cucumber'
+    | 'WDIO-Jasmine';
+
 export interface TestRunConfig {
-    attachmentValue: string;
-    description: string;
-    type: 'CONFIG' | 'ERROR';
+    platform: string;
+    framework: possibleFrameworks;
+    maxInstances: number;
+    exitCode: number;
+    fileRetries: number;
+    avoidParentSuitesInCount: number;
+    bail: number;
     test_id: string;
 }
 
 export interface AttachmentValueForConfig {
     platformName: string;
     version: string;
-}
-
-export interface TestRunSummary {
-    TESTS: {
-        passed: number;
-        failed: number;
-        skipped: number;
-        tests: number;
-    };
-    SUITES: {
-        passed: number;
-        failed: number;
-        skipped: number;
-        count: number;
-    };
-    RETRIED: number;
 }

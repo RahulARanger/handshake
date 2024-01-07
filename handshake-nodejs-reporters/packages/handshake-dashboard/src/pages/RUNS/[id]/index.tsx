@@ -1,16 +1,10 @@
-import type { SuiteDetails } from 'src/types/generated-response';
-import { type DetailedTestRunPageProperties } from 'src/types/generated-response';
 import getConnection from 'src/components/scripts/connection';
 import LayoutStructureForRunDetails from 'src/components/core/TestRun';
-
 import React, { useMemo } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import EnsureFallback from 'src/components/utils/swr-fallback';
-import { menuTabs } from 'src/types/ui-constants';
+import { attachmentPrefix, menuTabs } from 'src/types/ui-constants';
 import Overview from 'src/components/core/TestRun/overview-tab';
-import { attachmentPrefix } from 'src/components/core/TestRun/context';
-
 import sqlFile from 'src/components/scripts/RunPage/script';
 import type TestRunRecord from 'src/types/test-run-records';
 import type { TestRunConfig } from 'src/types/test-run-records';
@@ -18,12 +12,20 @@ import type {
     ImageRecord,
     SuiteRecordDetails,
 } from 'src/types/test-entity-related';
-import { parseEntitiesForOverview } from 'src/components/scripts/RunPage/parse-overview-records';
+import { parseEntitiesForOverview } from 'src/components/utils/parse-overview-records';
 import type {
     OverallAggResults,
     OverviewPageProperties,
     SessionSummary,
 } from 'src/types/records-in-overview';
+import {
+    OverviewContext,
+    type ValuesInOverviewContext,
+} from 'src/types/parsed-overview-records';
+import {
+    parseDetailedTestRun,
+    parseImageRecords,
+} from 'src/components/parse-utils';
 
 export async function getStaticProps(): Promise<
     GetStaticPropsResult<OverviewPageProperties>
@@ -74,6 +76,7 @@ export async function getStaticProps(): Promise<
         files: 0,
         sessionCount: 0,
         imageCount: 0,
+        brokenTests: 0,
     };
 
     await connection.each<{ key: string; value: number }>(
@@ -99,8 +102,11 @@ export async function getStaticProps(): Promise<
             aggResults,
             recentTests,
             recentSuites,
-            randomImages,
-            attachmentPrefix: process.env.ATTACHMENTS ?? attachmentPrefix,
+            randomImages: parseImageRecords(
+                randomImages,
+                testID,
+                process.env.ATTACHMENTS ?? attachmentPrefix,
+            ),
         },
     };
 }
@@ -108,19 +114,24 @@ export async function getStaticProps(): Promise<
 export default function TestRunResults(
     properties: OverviewPageProperties,
 ): ReactNode {
-    const parsedRecords = useMemo(() => {
+    const parsedRecords: ValuesInOverviewContext = useMemo(() => {
         return {
             recentTests: parseEntitiesForOverview(properties.recentTests),
             recentSuites: parseEntitiesForOverview(properties.recentSuites),
+            randomImages: properties.randomImages,
+            aggResults: properties.aggResults,
+            detailsOfTestRun: parseDetailedTestRun(properties.detailsOfTestRun),
+            summaryForAllSessions: properties.summaryForAllSessions,
+            testRunConfig: properties.testRunConfig,
         };
-    }, properties);
+    }, [properties]);
 
     return (
-        <EnsureFallback fallbackPayload={parsedRecords}>
+        <OverviewContext.Provider value={parsedRecords}>
             <LayoutStructureForRunDetails activeTab={menuTabs.overviewTab}>
                 <Overview />
             </LayoutStructureForRunDetails>
-        </EnsureFallback>
+        </OverviewContext.Provider>
     );
 }
 

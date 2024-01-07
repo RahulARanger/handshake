@@ -28,6 +28,11 @@ export const radiantBlue = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
     { offset: 1, color: '#87CEEB' }, // Darker shade at the bottom
 ]);
 
+export const radiantOrange = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+    { offset: 0, color: '#FFA500' }, // Lighter shade at the top
+    { offset: 1, color: '#FF4500' }, // Darker shade at the bottom
+]);
+
 export const standingToGradientColors = {
     PASSED: radiantGreen,
     FAILED: radiantRed,
