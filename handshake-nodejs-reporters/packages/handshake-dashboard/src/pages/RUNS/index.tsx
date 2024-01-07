@@ -5,7 +5,7 @@ import GridOfRuns from 'src/components/core/ListOfRuns';
 import { type GetStaticPropsResult } from 'next';
 import React, { type ReactNode } from 'react';
 import currentExportConfig from 'src/components/scripts/config';
-import { getAllTestRunDetails } from 'src/components/scripts/runs';
+import sqlFile from 'src/components/scripts/RunPage/script';
 
 export async function getStaticProps(): Promise<
     GetStaticPropsResult<{ runs?: TestRunRecord[] }>
@@ -13,13 +13,13 @@ export async function getStaticProps(): Promise<
     const connection = await getConnection();
     const exportConfig = await currentExportConfig(connection);
 
-    if (exportConfig?.isDynamic === true) {
+    if (process.env.isDynamic) {
         return { props: { runs: undefined } };
     }
 
-    const allRuns = await getAllTestRunDetails(
-        connection,
-        exportConfig?.maxTestRuns,
+    const allRuns = await connection.all<TestRunRecord[]>(
+        sqlFile('runs-page.sql'),
+        Number(exportConfig?.maxTestRuns ?? -1),
     );
     await connection.close();
 

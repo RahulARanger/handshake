@@ -49,3 +49,9 @@ export interface RetriedRecord {
     tests: string[];
     length: number;
 }
+
+export interface ImageRecord {
+    path: string;
+    title: string;
+    description?: string;
+}

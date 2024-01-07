@@ -1,5 +1,6 @@
 import type { dataBaseConnection } from 'src/components/scripts/connection';
 import type { SuiteDetails } from 'src/types/generated-response';
+import type { ImageRecord } from 'src/types/test-entity-related';
 import type { TestRunConfig, TestRunSummary } from 'src/types/test-run-records';
 import type TestRunRecord from 'src/types/test-run-records';
 
@@ -73,10 +74,10 @@ export async function getAllSessionIds(
 
 export interface OverallAggResults {
     parentSuites: number;
-    fileCount: number;
+    files: number;
     sessionCount: number;
     imageCount: number;
-    randomImages: string[];
+    randomImages: ImageRecord[];
     recentSuites: SuiteDetails[];
     recentTests: SuiteDetails[];
 }

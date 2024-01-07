@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "handshake"
-version = "0.2.0"
+version = "0.2.1"
 description = "A service that's keen to process your test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"

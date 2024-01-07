@@ -5,35 +5,6 @@ import type TestRunRecord from 'src/types/test-run-records';
 const miniConditionForTestRuns = "WHERE ended <> ''";
 const conditionForTestRuns = `${miniConditionForTestRuns} order by started desc limit ?`;
 
-export default async function latestTestRun(
-    connection: dataBaseConnection,
-): Promise<string> {
-    const result = await connection.get<{ testID: string }>(
-        `select testID from runbase where started = (select max(started) from runbase ${miniConditionForTestRuns});`,
-    );
-    return result?.testID ?? '';
-}
-
-export async function getDetailsOfTestRun(
-    connection: dataBaseConnection,
-    testID: string,
-): Promise<TestRunRecord | undefined> {
-    return connection.get<TestRunRecord>(
-        "SELECT * from runbase where testID = ? AND ended <> '';",
-        testID,
-    );
-}
-
-export async function getAllTestRunDetails(
-    connection: dataBaseConnection,
-    maxTestRuns?: number,
-): Promise<TestRunRecord[] | undefined> {
-    return connection.all<TestRunRecord[]>(
-        `SELECT * from runbase ${conditionForTestRuns}`,
-        maxTestRuns ?? -1,
-    );
-}
-
 export async function getDetailsOfRelatedRuns(
     connection: dataBaseConnection,
     projectName: string,
