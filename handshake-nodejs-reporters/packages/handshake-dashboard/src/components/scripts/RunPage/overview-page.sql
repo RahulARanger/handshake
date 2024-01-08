@@ -1,10 +1,10 @@
 -- save the test run id
-CREATE TEMP TABLE CURRENT_RUN_ID AS SELECT testID from runbase where testID = "?" AND ended <> '';
+CREATE TEMP TABLE CURRENT_RUN_ID AS SELECT testID from runbase where testID = '?' AND ended <> '';
 -- and the config associated with this test run
 CREATE TEMP TABLE TEST_CONFIG AS SELECT * from testconfigbase where test_id in CURRENT_RUN_ID;
 
 -- fetches all the sessions under the test run
-CREATE TEMP TABLE CURRENT_SESSIONS AS SELECT sessionID FROM SESSIONBASE;
+CREATE TEMP TABLE CURRENT_SESSIONS AS SELECT sessionID FROM SESSIONBASE where test_id in CURRENT_RUN_ID;
 -- saves their summary
 CREATE TEMP TABLE SESSION_SUMMARY AS select entityName, entityVersion, sum(tests) as tests from sessionbase where sessionID in CURRENT_SESSIONS group by entityName, entityVersion;
 -- stores the ids of all test entities
@@ -52,7 +52,7 @@ INSERT INTO KEY_NUMBERS
   count(*) from staticbase where type = 'PNG' and entity_id in CURRENT_SUITES;
 
 create temp table LOOK_FOR_TESTS as
-	select suiteID from suitebase where suiteType = 'TEST' and standing in ('RETRIED', 'FAILED');
+	select suiteID from suitebase where suiteID in CURRENT_SUITES and suiteType = 'TEST' and standing in ('RETRIED', 'FAILED');
 
 
 -- Number of Broken Tests

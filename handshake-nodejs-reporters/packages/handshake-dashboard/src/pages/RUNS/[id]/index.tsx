@@ -27,15 +27,17 @@ import {
     parseImageRecords,
 } from 'src/components/parse-utils';
 
-export async function getStaticProps(): Promise<
-    GetStaticPropsResult<OverviewPageProperties>
-> {
-    const testID = '0e329d8f-9624-44e1-8d04-93e3771dd750';
+export async function getStaticProps(prepareProperties: {
+    params: {
+        id: string;
+    };
+}): Promise<GetStaticPropsResult<OverviewPageProperties>> {
+    const testID = prepareProperties.params.id;
 
     const connection = await getConnection();
 
     await connection.exec({
-        sql: sqlFile('overview-script.sql').replace('?', testID),
+        sql: sqlFile('overview-page.sql').replace('?', testID),
     });
     const detailsOfTestRun = await connection.get<TestRunRecord>(
         'SELECT * FROM CURRENT_RUN',

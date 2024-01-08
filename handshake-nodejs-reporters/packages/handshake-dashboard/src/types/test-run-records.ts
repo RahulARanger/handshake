@@ -48,8 +48,3 @@ export interface TestRunConfig {
     bail: number;
     test_id: string;
 }
-
-export interface AttachmentValueForConfig {
-    platformName: string;
-    version: string;
-}

@@ -1,10 +1,5 @@
-import type { ShareToOtherPages } from './parsed-records';
 import type SessionRecordDetails from './session-records';
-import type {
-    Attachment,
-    RetriedRecord,
-    SuiteRecordDetails,
-} from './test-entity-related';
+import type { RetriedRecord, SuiteRecordDetails } from './test-entity-related';
 
 export interface SWRResponse<Details> {
     data?: Details;

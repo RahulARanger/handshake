@@ -155,23 +155,24 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
     const today = dayjs();
     const yesterday = today.subtract(1, 'day');
     const startOfThisMonth = today.startOf('month');
-    const thisWeek = yesterday.subtract(yesterday.get('day') + 1, 'days');
+    const thisWeek = today.startOf('week');
     const thisMonth = yesterday.set('date', 1);
 
     const forPreviousMonth = chronological.filter((run) =>
         run.Started[0].isBefore(startOfThisMonth),
     );
 
-    const forThisMonth = chronological.filter(
-        (run) =>
-            run.Started[0].isAfter(thisMonth.subtract(1, 'day'), 'date') &&
-            run.Started[0].isBefore(thisWeek, 'date'),
+    const forThisMonth = chronological.filter((run) =>
+        run.Started[0].isBetween(
+            thisMonth.subtract(1, 'day'),
+            thisWeek,
+            'date',
+            '[)',
+        ),
     );
 
-    const forThisWeek = chronological.filter(
-        (run) =>
-            run.Started[0].isAfter(thisWeek, 'date') &&
-            run.Started[0].isBefore(yesterday, 'date'),
+    const forThisWeek = chronological.filter((run) =>
+        run.Started[0].isBetween(thisWeek, yesterday, 'date', '[]'),
     );
 
     const forYesterday = chronological.filter((run) =>
