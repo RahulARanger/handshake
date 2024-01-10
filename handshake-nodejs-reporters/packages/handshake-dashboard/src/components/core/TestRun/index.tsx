@@ -14,18 +14,18 @@ import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from 'src/styles/header.module.css';
 import Link from 'next/link';
 import StarFilled from '@ant-design/icons/StarFilled';
-import { OverviewContext } from 'src/types/parsed-overview-records';
+import { DetailedContext } from 'src/types/records-in-detailed';
 
 export default function LayoutStructureForRunDetails(properties: {
     children: ReactNode;
     activeTab: string;
     changeDefault?: (tab: string) => void;
 }): ReactNode {
-    const overviewContext = useContext(OverviewContext);
-    if (overviewContext == undefined) {
+    const context = useContext(DetailedContext);
+    if (context == undefined) {
         return <></>;
     }
-    const { detailsOfTestRun: data } = overviewContext;
+    const { detailsOfTestRun: data } = context;
     const items: MenuProps['items'] = [
         {
             label: <Link href={runPage(data.Id)}>Overview</Link>,

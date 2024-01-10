@@ -101,10 +101,15 @@ export function RenderEntityType(properties: {
         <Tooltip title={properties.simplified}>
             <Badge
                 count={properties.entityVersion?.slice(0, 5)}
-                color="lime"
+                color="transparent"
                 size="small"
                 overflowCount={200}
-                style={{ top: -3, right: -3 }}
+                style={{
+                    top: -3,
+                    borderColor: 'transparent',
+                    right: -3,
+                    color: 'whitesmoke',
+                }}
             >
                 {entityIcon(properties.entityName)}
             </Badge>

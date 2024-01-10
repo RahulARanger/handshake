@@ -30,6 +30,8 @@ export interface SimpleSuiteDetails {
     entityName: string;
     entityVersion: string;
     simplified: string;
+    Parent: string;
+
     hooks: number;
 }
 

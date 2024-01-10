@@ -1,26 +1,13 @@
 import { menuTabs } from 'src/types/ui-constants';
-import type {
-    SessionDetails,
-    SuiteDetails,
-} from 'src/types/generated-response';
 import type { statusOfEntity } from 'src/types/session-records';
-import { parseDetailedTestEntity } from '../parse-utils';
-import {
-    getSuites,
-    getSessions,
-    getTestRun,
-} from 'src/components/scripts/helper';
 import type { possibleEntityNames } from 'src/types/session-records';
-import type { PreviewForDetailedEntities } from 'src/types/parsed-records';
 import { RenderEntityType, RenderStatus } from '../utils/renderers';
-import MetaCallContext from './TestRun/context';
 import RenderPassedRate from '../charts/stacked-bar-chart';
-import TestEntityDrawer from './TestEntity';
-import ProjectStructure from './TestRun/structure-tab';
+// import TestEntityDrawer from './TestEntity';
+// import ProjectStructure from './TestRun/structure-tab';
 
 import React, { useContext, type ReactNode, useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
-import useSWR from 'swr';
 import Table from 'antd/lib/table/Table';
 import Button from 'antd/lib/button/button';
 import Space from 'antd/lib/space/index';
@@ -28,79 +15,65 @@ import type { Duration } from 'dayjs/plugin/duration';
 import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
 import { timeFormatUsed } from '../utils/Datetime/format';
-import type TestRunRecord from 'src/types/test-run-records';
 import Badge from 'antd/lib/badge/index';
 import { Spin } from 'antd/lib';
 import { RenderDuration } from '../utils/relative-time';
 import RelativeTo from '../utils/Datetime/relative-time';
 import { StaticPercent } from '../utils/counter';
-
-interface SuiteNode extends PreviewForDetailedEntities {
-    children: undefined | SuiteNode[];
-    key: string;
-}
-
-function extractSuiteTree(
-    suites: SuiteDetails,
-    parent: string,
-    startDate: Dayjs,
-    sessions: SessionDetails,
-): undefined | SuiteNode[] {
-    const result = suites['@order']
-        .filter(
-            (suiteID) =>
-                parent === suites[suiteID].parent &&
-                suites[suiteID].standing !== 'RETRIED',
-        )
-        .map((suiteID) => ({
-            children: extractSuiteTree(suites, suiteID, startDate, sessions),
-            key: suiteID,
-            ...parseDetailedTestEntity(
-                suites[suiteID],
-                startDate,
-                sessions[suites[suiteID].session_id],
-            ),
-        }));
-    return result.length > 0 ? result : undefined;
-}
+import { DetailedContext } from 'src/types/records-in-detailed';
+import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
+import ProjectStructure from './TestRun/structure-tab';
+// import ProjectStructure from './TestRun/structure-tab';
 
 export function TestRunStarted(): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data } = useSWR<TestRunRecord>(getTestRun(port, testID));
-    if (data == undefined) return <></>;
+    const context = useContext(DetailedContext);
+    if (context == undefined)
+        return <Text>There&apos;s no context over the current Test run</Text>;
+    const { detailsOfTestRun } = context;
     return (
-        <Typography>{`Test Run Started at: ${dayjs(data.started).format(
+        <Typography>{`Test Run Started at: ${detailsOfTestRun.Started[0].format(
             timeFormatUsed,
         )}`}</Typography>
     );
 }
 
+function extractSuiteTree(
+    suites: SuiteDetails,
+    parent?: string,
+): undefined | ParsedSuiteRecord[] {
+    const result = suites['@order']
+        .filter(
+            (suiteID) =>
+                suites[suiteID].Parent === (parent ?? '') &&
+                suites[suiteID].Status !== 'RETRIED',
+        )
+        .map((suiteID) => ({
+            children: extractSuiteTree(suites, suiteID),
+            key: suiteID,
+            ...suites[suiteID],
+        }));
+    return result.length > 0 ? result : undefined;
+}
+
 export default function TestEntities(properties: {
     defaultTab: string;
 }): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: run } = useSWR<TestRunRecord>(getTestRun(port, testID));
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: sessions } = useSWR<SessionDetails>(
-        getSessions(port, testID),
-    );
-    const [toShowTestID, setTestID] = useState<string>();
+    const context = useContext(DetailedContext);
+    if (context == undefined) return <></>;
 
-    const [showEntity, setShowEntity] = useState<boolean>(false);
+    const { suites } = context;
 
-    const onClose = (): void => {
-        setShowEntity(false);
-    };
+    // const [toShowTestID, setTestID] = useState<string>();
+    // const [showEntity, setShowEntity] = useState<boolean>(false);
 
-    if (run == undefined || suites == undefined || sessions == undefined)
-        return <></>;
+    // const onClose = (): void => {
+    //     setShowEntity(false);
+    // };
 
-    const data = extractSuiteTree(suites, '', dayjs(run.started), sessions);
-
-    const helperToSetTestID = (testID: string): void => {
-        setTestID(testID);
-        setShowEntity(true);
-    };
+    // const helperToSetTestID = (testID: string): void => {
+    //     setTestID(testID);
+    //     setShowEntity(true);
+    // };
 
     let selectedTab = <></>;
 
@@ -111,7 +84,7 @@ export default function TestEntities(properties: {
         case menuTabs.testEntitiesTab.gridViewMode: {
             selectedTab = (
                 <Table
-                    dataSource={data}
+                    dataSource={extractSuiteTree(suites)}
                     size="small"
                     bordered
                     scroll={{ x: 'max-content' }}
@@ -125,24 +98,6 @@ export default function TestEntities(properties: {
                             <RenderStatus value={value} />
                         )}
                         fixed="left"
-                        filterMode="menu"
-                        filterMultiple
-                        filters={['PASSED', 'FAILED', 'SKIPPED'].map(
-                            (status) => ({
-                                text: (
-                                    <Space>
-                                        <RenderStatus value={status} />
-                                        {`${status.at(0)}${status
-                                            .slice(1)
-                                            .toLowerCase()}`}
-                                    </Space>
-                                ),
-                                value: status,
-                            }),
-                        )}
-                        onFilter={(value, record: SuiteNode) =>
-                            value === record.Status
-                        }
                     />
                     <Table.Column
                         title="Name"
@@ -150,20 +105,11 @@ export default function TestEntities(properties: {
                         width={200}
                         fixed="left"
                         filterSearch={true}
-                        filters={[
-                            ...new Set(data?.map((suite) => suite.Title)),
-                        ]?.map((suite) => ({
-                            text: suite,
-                            value: suite,
-                        }))}
-                        onFilter={(value, record: SuiteNode) =>
-                            value === record.Title
-                        }
-                        render={(value: string, record: SuiteNode) => (
+                        render={(value: string) => (
                             <Space>
                                 <Button
                                     type="link"
-                                    onClick={() => helperToSetTestID(record.id)}
+                                    // onClick={() => (record.id)}
                                     style={{
                                         textAlign: 'left',
                                         padding: '2px',
@@ -186,11 +132,14 @@ export default function TestEntities(properties: {
                         )}
                     />
                     <Table.Column
-                        title="Tests"
-                        dataIndex="Rate"
+                        title="Progress"
+                        dataIndex="RollupValues"
                         width={60}
-                        sorter={(a: SuiteNode, b: SuiteNode) => {
-                            return a.Rate[0] - b.Rate[0];
+                        sorter={(
+                            a: ParsedSuiteRecord,
+                            b: ParsedSuiteRecord,
+                        ) => {
+                            return a.RollupValues[0] - b.RollupValues[0];
                         }}
                         render={(
                             value: [number, number, number],
@@ -226,31 +175,20 @@ export default function TestEntities(properties: {
                                 }}
                             />
                         )}
-                        sorter={(a: SuiteNode, b: SuiteNode) => {
-                            return Number(a.Started[0].isBefore(b.Started[0]));
-                        }}
                     />
+
                     <Table.Column
-                        dataIndex="Rate"
+                        dataIndex="Contribution"
                         title="Contribution"
                         width={50}
                         align="center"
-                        render={(_, record: SuiteNode) => (
+                        render={(_) => (
                             <StaticPercent
-                                percent={
-                                    Number(
-                                        (
-                                            (suites[record.id]?.rollup_tests ??
-                                                0) / run.tests
-                                        ).toFixed(2),
-                                    ) * 1e2
-                                }
+                                percent={Number(_.toFixed(2)) * 1e2}
                             />
                         )}
-                        sorter={(a: SuiteNode, b: SuiteNode) => {
-                            return Number(a.Started[0].isBefore(b.Started[0]));
-                        }}
                     />
+
                     <Table.Column
                         title="Duration"
                         width={100}
@@ -259,6 +197,7 @@ export default function TestEntities(properties: {
                             <RenderDuration value={value} maxWidth="120px" />
                         )}
                     />
+
                     <Table.Column
                         title="Entity"
                         width={25}
@@ -266,7 +205,7 @@ export default function TestEntities(properties: {
                         align="center"
                         render={(
                             value: possibleEntityNames,
-                            record: SuiteNode,
+                            record: ParsedSuiteRecord,
                         ) => (
                             <Space>
                                 <RenderEntityType
@@ -276,37 +215,11 @@ export default function TestEntities(properties: {
                                 />
                             </Space>
                         )}
-                        filterMode="menu"
-                        filterMultiple
-                        filters={['chrome'].map((status) => ({
-                            text: (
-                                <Space>
-                                    <RenderEntityType entityName={status} />
-                                    {`${status.at(0)}${status
-                                        .slice(1)
-                                        .toLowerCase()}`}
-                                </Space>
-                            ),
-                            value: status,
-                        }))}
-                        onFilter={(value, record: SuiteNode) =>
-                            record.entityName.toLowerCase() == value
-                        }
                     />
                     <Table.Column
                         dataIndex="File"
                         title="File"
                         width={100}
-                        filterSearch={true}
-                        filters={[
-                            ...new Set(data?.map((suite) => suite.File)),
-                        ]?.map((suite) => ({
-                            text: suite,
-                            value: suite,
-                        }))}
-                        onFilter={(value, record: SuiteNode) =>
-                            value === record.File
-                        }
                         render={(value) =>
                             (value as string).replace(/^.*[/\\]/, '')
                         }
@@ -316,7 +229,7 @@ export default function TestEntities(properties: {
             break;
         }
         case menuTabs.testEntitiesTab.treeViewMode: {
-            selectedTab = <ProjectStructure setTestID={helperToSetTestID} />;
+            selectedTab = <ProjectStructure />;
             break;
         }
     }
@@ -324,12 +237,12 @@ export default function TestEntities(properties: {
     return (
         <>
             {selectedTab}
-            <TestEntityDrawer
+            {/* <TestEntityDrawer
                 open={showEntity}
                 onClose={onClose}
                 testID={toShowTestID}
                 setTestID={helperToSetTestID}
-            />
+            /> */}
         </>
     );
 }

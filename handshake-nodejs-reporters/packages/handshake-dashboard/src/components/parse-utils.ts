@@ -1,10 +1,18 @@
 import { runPage } from 'src/components/scripts/helper';
 import type TestRunRecord from 'src/types/test-run-records';
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 
-import type { DetailedTestRecord } from 'src/types/parsed-records';
-import type { ImageRecord } from 'src/types/test-entity-related';
+import type {
+    DetailedTestRecord,
+    SuiteDetails,
+} from 'src/types/parsed-records';
+import type {
+    ImageRecord,
+    SuiteRecordDetails,
+} from 'src/types/test-entity-related';
+import type { specNode } from 'src/types/test-run-records';
 
 dayjs.extend(duration);
 
@@ -91,7 +99,47 @@ export function parseDetailedTestRun(
         Suites: summary.count,
         Link: runPage(testRun.testID),
         projectName: testRun.projectName,
+        specStructure: JSON.parse(testRun.specStructure) as specNode,
     };
+}
+
+export function parseSuites(
+    suites: SuiteRecordDetails[],
+    testStartedAt: Dayjs,
+    totalTests: number,
+) {
+    // @ts-expect-error not sure why this is happening, but for now let's ignore this
+    const parsedRecords: SuiteDetails = { '@order': [] };
+
+    for (const suite of suites) {
+        parsedRecords['@order'].push(suite.suiteID);
+        parsedRecords[suite.suiteID] = {
+            Started: [dayjs(suite.started), testStartedAt],
+            Ended: [dayjs(suite.ended), testStartedAt],
+            Status: suite.standing,
+            Title: suite.title,
+            Duration: dayjs.duration({ milliseconds: suite.duration }),
+            Rate: [suite.passed, suite.failed, suite.skipped],
+            Id: suite.suiteID,
+            errors: JSON.parse(suite.errors),
+            error: suite.error,
+            RollupValues: [
+                suite.rollup_passed,
+                suite.rollup_failed,
+                suite.rollup_skipped,
+            ],
+            totalRollupValue: suite.rollup_tests,
+            entityName: suite.entityName,
+            entityVersion: suite.entityVersion,
+            simplified: suite.simplified,
+            hooks: suite.hooks,
+            numberOfErrors: suite.numberOfErrors,
+            File: suite.file,
+            Contribution: suite.rollup_tests / totalTests,
+            Parent: suite.parent,
+        };
+    }
+    return parsedRecords;
 }
 
 export function convertForWrittenAttachments(

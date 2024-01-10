@@ -29,7 +29,9 @@ create temp table SUITES as
       join CURRENT_SESSION_RECORDS 
       on CURRENT_SESSION_RECORDS.sessionID = suitebase.session_id and suitebase.suiteType = 'SUITE'
       join rollupbase
-      on suitebase.suiteID = rollupbase.suite_id;
+      on suitebase.suiteID = rollupbase.suite_id
+  order by started;
+    
       
 -- extract all the assertions
 create temp table ASSERTIONS as select * from assertbase where entity_id in CURRENT_ENTITIES;
@@ -56,8 +58,9 @@ select suitebase.*,
 	from suitebase 
 	left join PROPERLY_FAILED
 	on PROPERLY_FAILED.entity_id = suitebase.suiteID
-  where suitebase.suiteType = 'TEST' and suitebase.session_id in CURRENT_SESSIONS;
-  
+  where suitebase.suiteType = 'TEST' and suitebase.session_id in CURRENT_SESSIONS
+  order by started;
+
 -- other attachments
 create temp table LINKS as 
 select 

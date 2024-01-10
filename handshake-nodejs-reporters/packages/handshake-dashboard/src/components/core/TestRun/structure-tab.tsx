@@ -2,7 +2,6 @@ import type TestRunRecord from 'src/types/test-run-records';
 import type { SuiteDetails } from 'src/types/generated-response';
 import type { specNode } from 'src/types/test-run-records';
 import { getSuites, getTestRun } from 'src/components/scripts/helper';
-import MetaCallContext from './context';
 import Dotted from 'src/styles/dotted.module.css';
 import React, { useContext, type ReactNode, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -15,6 +14,7 @@ import TreeMapComponent from 'src/components/charts/tree-map';
 import type { StatusContext } from 'src/types/transfer-structure-context';
 import { RenderStatus } from 'src/components/utils/renderers';
 import RenderTestType from 'src/components/utils/test-status-dot';
+import { DetailedContext } from 'src/types/records-in-detailed';
 
 function MousedPart(properties: { info?: StatusContext }): ReactNode {
     if (properties?.info === undefined)
@@ -89,22 +89,15 @@ function SuiteStatus(properties: { info?: StatusContext }): ReactNode {
 export default function ProjectStructure(properties: {
     setTestID: (testID: string) => void;
 }): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: detailsOfTestRun } = useSWR<TestRunRecord>(
-        getTestRun(port, testID),
-    );
-
-    const structure = useMemo<specNode>(() => {
-        return JSON.parse(detailsOfTestRun?.specStructure ?? '[]');
-    }, [detailsOfTestRun]);
-
     const [selected, setSelected] = useState<string>();
     const [hovered, setHovered] = useState<StatusContext>();
 
-    if (detailsOfTestRun == undefined || suites == undefined) return <></>;
+    const context = useContext(DetailedContext);
+    if (context == undefined) return <></>;
 
-    // const projectStructure = treeData(structure, suites);
+    const { suites, detailsOfTestRun } = context;
+    const structure = detailsOfTestRun.specStructure;
+
     return (
         <Card
             type="inner"

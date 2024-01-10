@@ -2,6 +2,7 @@ import type { Dayjs } from 'dayjs';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { Duration } from 'dayjs/plugin/duration';
 import type { SimpleSuiteDetails } from './test-entity-related';
+import type { specNode } from './test-run-records';
 
 export default interface BasicDetails {
     Started: [Dayjs, Dayjs];
@@ -19,12 +20,15 @@ export interface DetailedTestRecord extends BasicDetails {
     Suites: number;
     Link: string;
     projectName: string;
+    specStructure: specNode;
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     errors: string[];
     RollupValues: [number, number, number];
     totalRollupValue: number;
+    Contribution: number;
+    File: string;
 }
 
 export type SuiteDetails = { '@order': string[] } & Record<

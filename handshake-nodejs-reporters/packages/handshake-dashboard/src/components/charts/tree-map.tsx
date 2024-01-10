@@ -24,8 +24,8 @@ import type { ComposeOption } from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import { standingToColors, toolTipFormats } from './constants';
 import type { TreemapSeriesOption } from 'echarts/lib/echarts';
-import type { SuiteDetails } from 'src/types/generated-response';
 import type { StatusContext } from 'src/types/transfer-structure-context';
+import type { SuiteDetails } from 'src/types/parsed-records';
 
 type composed = ComposeOption<
     | TreemapSeriesOption
@@ -102,24 +102,24 @@ function treeData(
         // these are suites
         for (const suiteID of pulled) {
             const suite = suites[suiteID];
-            if (suite.standing === 'RETRIED' || !suite.file.startsWith(current))
+            if (suite.Status === 'RETRIED' || !suite.File.startsWith(current))
                 continue;
-            if (suite.file !== current) continue;
+            if (suite.File !== current) continue;
 
-            const parent = suites[suiteID].parent;
+            const parent = suites[suiteID].Parent;
 
-            if (suites[suiteID].parent === '') {
-                passed += suite.rollup_passed ?? 0;
-                failed += suite.rollup_failed ?? 0;
-                skipped += suite.rollup_skipped ?? 0;
+            if (parent === '') {
+                passed += suite.RollupValues[0] ?? 0;
+                failed += suite.RollupValues[1] ?? 0;
+                skipped += suite.RollupValues[2] ?? 0;
             }
             const suiteNode: treeNode = {
                 id: suiteID,
-                name: suite.title,
+                name: suite.Title,
                 // icon: <RenderStatus value={suite.Status} marginTop="6px" />,
                 children: [],
-                value: suite.rollup_tests ?? 0,
-                color: [standingToColors[suite.standing]],
+                value: suite.totalRollupValue ?? 0,
+                color: [standingToColors[suite.Status]],
             };
 
             suiteNodes[suiteID] = suiteNode;
@@ -178,11 +178,11 @@ export default class TreeMapComponent extends Component<{
         const isSuite = this.props.suites[parameters?.data?.id];
         if (!isSuite) return this.props.setHovered(parameters?.data?.extra);
         this.props.setHovered({
-            passed: isSuite.rollup_passed ?? 0,
-            failed: isSuite.rollup_failed ?? 0,
-            skipped: isSuite.rollup_skipped ?? 0,
-            status: isSuite.standing,
-            title: isSuite.title,
+            passed: isSuite.RollupValues[0],
+            failed: isSuite.RollupValues[1],
+            skipped: isSuite.RollupValues[2],
+            status: isSuite.Status,
+            title: isSuite.Title,
         });
     }
 

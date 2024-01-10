@@ -1,5 +1,5 @@
-import { createContext } from 'react';
-import type { DetailedTestRecord } from './parsed-records';
+import type { Context } from 'react';
+import type { DetailedTestRecord, SuiteDetails } from './parsed-records';
 import type {
     AssertionRecord,
     ImageRecord,
@@ -7,6 +7,7 @@ import type {
     TestRecordDetails,
 } from './test-entity-related';
 import type TestRunRecord from './test-run-records';
+import { OverviewContext } from './parsed-overview-records';
 
 export default interface DetailedPageProperties {
     detailsOfTestRun: TestRunRecord;
@@ -19,8 +20,9 @@ export default interface DetailedPageProperties {
 export interface ValuesInDetailedContext {
     detailsOfTestRun: DetailedTestRecord;
     images: ImageRecord[];
+    suites: SuiteDetails;
 }
 
-export const DetailedContext = createContext<
+export const DetailedContext = OverviewContext as Context<
     ValuesInDetailedContext | undefined
->(undefined);
+>;
