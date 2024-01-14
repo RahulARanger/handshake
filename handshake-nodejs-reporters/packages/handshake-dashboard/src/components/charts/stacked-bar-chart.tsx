@@ -85,7 +85,10 @@ export default function RenderPassedRate(properties: {
                 type: 'bar',
                 color: radiantGreen,
                 stack: 'total',
-                label: { show: true, verticalAlign: 'top' },
+                label: {
+                    show: true,
+                    verticalAlign: 'top',
+                },
                 data: [properties.value[0]],
             },
             {

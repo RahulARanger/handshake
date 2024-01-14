@@ -5,11 +5,11 @@ from handshake.services.DBService.models import (
     RunBase,
     SessionBase,
     AttachmentBase,
+    AssertBase,
     TestConfigBase,
+    TestLogBase,
 )
-from handshake.services.DBService.models.types import (
-    AttachmentType,
-)
+from handshake.services.DBService.models.enums import LogType, AttachmentType
 from sanic import Sanic
 
 
@@ -40,8 +40,12 @@ class TestAttachmentEndpoints:
         second_suite = await create_suite(session.sessionID)
 
         first_error_payload = dict(
+            entityID=str(suite.suiteID), type=AttachmentType.ASSERT, value=dict()
+        )
+        expected_error_payload = dict(
             entityID=str(suite.suiteID),
             type=AttachmentType.ASSERT,
+            value=dict(wait=-1, interval=-1),
         )
 
         second_error_payload = dict(
@@ -76,29 +80,28 @@ class TestAttachmentEndpoints:
         assert await AttachmentBase.filter(entity_id=second_suite.suiteID).count() == 1
 
         test_id = str((await session.test).testID)
-        assert await TestConfigBase.filter(test_id=test_id).count() == 2
+        assert await TestLogBase.filter(test_id=test_id).count() == 2
 
-        first, second = await TestConfigBase.filter(
-            test_id=test_id, type=AttachmentType.WARN
+        first, second = await TestLogBase.filter(
+            test_id=test_id, type=LogType.WARN
         ).all()
 
-        assert first.attachmentValue["url"] == "/addAttachmentsForEntities"
-        assert first.attachmentValue["payload"] == first_error_payload
+        assert first.feed["url"] == "/addAttachmentsForEntities"
+        assert first.feed["payload"] == expected_error_payload
 
-        assert "missing" in first.attachmentValue["reason"]
-        assert "value" in first.attachmentValue["reason"]
+        assert "missing" in first.feed["reason"]
+        assert "value" in first.feed["reason"]
 
-        assert second.attachmentValue["url"] == "/addAttachmentsForEntities"
-        assert second.attachmentValue["payload"] == second_error_payload
+        assert second.feed["url"] == "/addAttachmentsForEntities"
+        assert second.feed["payload"] == second_error_payload
 
-        assert "missing" in first.attachmentValue["reason"]
-        assert "entityID" in second.attachmentValue["reason"]
+        assert "missing" in first.feed["reason"]
+        assert "entityID" in second.feed["reason"]
 
     async def test_bulk_attachments(
         self, app, client, sample_test_session, create_suite
     ):
         session = await set_config(app, sample_test_session)
-
         suite = await create_suite(session.sessionID)
 
         payload = [
@@ -110,7 +113,22 @@ class TestAttachmentEndpoints:
             dict(
                 entityID=str(suite.suiteID),
                 type=AttachmentType.ASSERT,
-                value="https://test.com",
+                title="toExist",
+                value=dict(
+                    passed=True,
+                    message="This log existed",
+                ),
+            ),
+            dict(
+                entityID=str(suite.suiteID),
+                type=AttachmentType.ASSERT,
+                title="toExist",
+                value=dict(
+                    passed=True,
+                    message="This log existed",
+                    wait=500,
+                    interval=69,
+                ),
             ),
             dict(
                 entityID=str(suite.suiteID),
@@ -152,13 +170,24 @@ class TestAttachmentEndpoints:
         assert link.attachmentValue["value"] == "https://test.com"
         assert link.type == AttachmentType.LINK
 
-        added_assert = await AttachmentBase.filter(
-            type=AttachmentType.ASSERT, entity_id=suite.suiteID
-        ).first()
-        assert added_assert.attachmentValue["value"] == "https://test.com"
-        assert added_assert.type == AttachmentType.ASSERT
-
-        assert await AttachmentBase.filter(entity_id=suite.suiteID).count() == 4
+        assert await AssertBase.filter(entity_id=suite.suiteID).count() == 2
+        assert await AssertBase.exists(
+            entity_id=suite.suiteID,
+            message="This log existed",
+            interval=69,
+            wait=500,
+            title="toExist",
+            passed=True,
+        )
+        assert await AssertBase.exists(
+            entity_id=suite.suiteID,
+            message="This log existed",
+            title="toExist",
+            interval=-1,
+            wait=-1,
+            passed=True,
+        )
+        assert await AttachmentBase.filter(entity_id=suite.suiteID).count() == 3
 
 
 @mark.usefixtures("sample_test_session")
@@ -199,3 +228,26 @@ class TestSaveEndPoints:
             assert missing["loc"][0] in required
             assert missing["msg"] == "Field required"
             assert missing["input"] == payload
+
+    async def test_set_config_api(self, client, sample_test_run, app):
+        test = await self.set_test_run(app, sample_test_run)
+
+        payload = dict(
+            maxInstances=1,
+            fileRetries=1,
+            framework="pytest",
+            exitCode=1,
+            bail=1,
+            platformName="windows",
+            avoidParentSuitesInCount=False,
+        )
+        request, response = await client.put("/save/currentRun", json=payload)
+        assert response.status == 200
+
+        record = await TestConfigBase.filter(test_id=test.testID).first()
+        assert record is not None
+        assert record.exitCode == 1
+        assert record.platform == "windows"
+        assert record.maxInstances == 1
+        assert record.fileRetries == 1
+        assert record.avoidParentSuitesInCount is False

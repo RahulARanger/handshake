@@ -5,19 +5,13 @@ from handshake.services.DBService.models.result_base import (
     RetriedBase,
     SessionBase,
 )
-from handshake.services.DBService.models.static_base import (
-    TestConfigBase,
-    AttachmentType,
-)
-from handshake.services.DBService.models.types import PydanticModalForTestRunConfigBase
+from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.enums import Status, SuiteType
 from tortoise.expressions import Q
 from tortoise.functions import Count, Lower, Sum
 from loguru import logger
-from handshake.services.SchedularService.register import (
-    skip_test_run,
-)
+from handshake.services.SchedularService.register import skip_test_run
 from itertools import chain
 
 
@@ -155,9 +149,7 @@ async def _patchTestSuite(suiteID: str, testID: str):
     # suiteID can also be treated as a ticketID
     task = await TaskBase.filter(ticketID=suiteID).first()
     suite = await SuiteBase.filter(suiteID=suiteID).first()
-    test_config_record = await TestConfigBase.filter(
-        type=AttachmentType.CONFIG, test_id=testID
-    ).first()
+    test_config = await TestConfigBase.filter(test_id=testID).first()
 
     logger.info("Patching Suite: {} | {}", suite.suiteID, suite.title)
 
@@ -197,13 +189,7 @@ async def _patchTestSuite(suiteID: str, testID: str):
     await suite.save()
 
     await rollup_suite_values(suiteID)
-    test_config = (
-        0
-        if not test_config_record
-        else PydanticModalForTestRunConfigBase.model_validate(
-            test_config_record.attachmentValue, strict=False
-        )
-    )
+
     if test_config and test_config.fileRetries > 0:
         await handleRetries(suiteID, testID)
 
@@ -216,8 +202,7 @@ async def patchTestSuite(suiteID: str, testID: str):
         return await _patchTestSuite(suiteID, testID)
     except Exception:
         await skip_test_run(
-            f"Failed to process the test suite {suiteID}",
             testID,
-            f"Failed to patch the test suite, error in calculation, {traceback.format_exc()}",
+            f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}",
         )
         return False

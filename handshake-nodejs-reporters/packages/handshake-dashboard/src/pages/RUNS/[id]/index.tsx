@@ -1,45 +1,52 @@
-import {
-    getOverAllAggResultsURL,
-    getRelatedRuns,
-    getSessionSummaryURL,
-    getTestRun,
-    getTestRunConfig,
-    getTestRunSummary,
-} from 'src/components/scripts/helper';
-import type { DetailedTestRunPageProperties } from 'src/types/generated-response';
 import getConnection from 'src/components/scripts/connection';
-import DetailedTestRun from 'src/components/core/TestRun';
-
-import React from 'react';
+import LayoutStructureForRunDetails from 'src/components/core/TestRun';
+import React, { useMemo } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import EnsureFallback from 'src/components/utils/swr-fallback';
-import { overviewTab } from 'src/types/ui-constants';
-import {
-    getSessionSummary,
-    getDetailsOfTestRun,
-    generateTestRunSummary,
-    getTestRunConfigRecords,
-    getSomeAggResults,
-} from 'src/components/scripts/RunPage/overview';
+import { menuTabs } from 'src/types/ui-constants';
 import Overview from 'src/components/core/TestRun/overview-tab';
-import { attachmentPrefix } from 'src/components/core/TestRun/context';
-
-import { getDetailsOfRelatedRuns } from 'src/components/scripts/runs';
+import sqlFile from 'src/components/scripts/RunPage/script';
+import type TestRunRecord from 'src/types/test-run-records';
+import type { TestRunConfig } from 'src/types/test-run-records';
+import type {
+    ImageRecord,
+    SuiteRecordDetails,
+} from 'src/types/test-entity-related';
+import { parseEntitiesForOverview } from 'src/components/utils/parse-overview-records';
+import type {
+    OverallAggResults,
+    OverviewPageProperties,
+    SessionSummary,
+} from 'src/types/records-in-overview';
+import {
+    OverviewContext,
+    type ValuesInOverviewContext,
+} from 'src/types/parsed-overview-records';
+import {
+    parseDetailedTestRun,
+    parseImageRecords,
+} from 'src/components/parse-utils';
 
 export async function getStaticProps(prepareProperties: {
     params: {
         id: string;
     };
-}): Promise<GetStaticPropsResult<DetailedTestRunPageProperties>> {
+}): Promise<GetStaticPropsResult<OverviewPageProperties>> {
     const testID = prepareProperties.params.id;
 
     const connection = await getConnection();
 
-    const details = await getDetailsOfTestRun(connection, testID);
-    const sessions = await getSessionSummary(connection, testID);
+    await connection.exec({
+        sql: sqlFile('overview-page.sql').replace('?', testID),
+    });
+    const detailsOfTestRun = await connection.get<TestRunRecord>(
+        'SELECT * FROM CURRENT_RUN',
+    );
+    const summaryForAllSessions = await connection.all<SessionSummary[]>(
+        'SELECT * FROM SESSION_SUMMARY',
+    );
 
-    if (sessions == undefined || details == undefined) {
+    if (summaryForAllSessions == undefined || detailsOfTestRun == undefined) {
         return {
             redirect: {
                 permanent: true,
@@ -48,43 +55,81 @@ export async function getStaticProps(prepareProperties: {
         };
     }
 
-    const testRunConfig = await getTestRunConfigRecords(connection, testID);
-    const aggResults = await getSomeAggResults(connection, testID);
-    const relatedRuns = await getDetailsOfRelatedRuns(
-        connection,
-        details.projectName,
+    const testRunConfig =
+        (await connection.get<TestRunConfig>('SELECT * FROM TEST_CONFIG;')) ??
+        false;
+
+    const recentSuites =
+        (await connection.all<SuiteRecordDetails[]>(
+            "SELECT * FROM RECENT_ENTITIES WHERE suiteType = 'SUITE';",
+        )) ?? [];
+
+    const recentTests =
+        (await connection.all<SuiteRecordDetails[]>(
+            "SELECT * FROM RECENT_ENTITIES WHERE suiteType = 'TEST';",
+        )) ?? [];
+
+    const randomImages = await connection.all<ImageRecord[]>(
+        'SELECT * FROM IMAGES;',
+    );
+
+    const aggResults: OverallAggResults = {
+        parentSuites: 0,
+        files: 0,
+        sessionCount: 0,
+        imageCount: 0,
+        brokenTests: 0,
+    };
+
+    await connection.each<{ key: string; value: number }>(
+        'SELECT * FROM KEY_NUMBERS',
+        (_, row) => {
+            aggResults[
+                row.key as
+                    | 'parentSuites'
+                    | 'files'
+                    | 'sessionCount'
+                    | 'imageCount'
+            ] = row.value;
+        },
     );
 
     await connection.close();
-    const port = process.env.NEXT_PUBLIC_PY_PORT ?? '1212';
 
     return {
         props: {
-            fallback: {
-                [getTestRun(port, testID)]: details,
-                [getTestRunSummary(port, testID)]:
-                    generateTestRunSummary(details), // not a sql query
-                [getSessionSummaryURL(port, testID)]: sessions,
-                [getTestRunConfig(port, testID)]: testRunConfig,
-                [getOverAllAggResultsURL(port, testID)]: aggResults,
-                [getRelatedRuns(port, testID)]: relatedRuns,
-            },
-            testID,
-            port,
-            attachmentPrefix: process.env.ATTACHMENTS ?? attachmentPrefix,
+            detailsOfTestRun,
+            summaryForAllSessions,
+            testRunConfig,
+            aggResults,
+            recentTests,
+            recentSuites,
+            randomImages: parseImageRecords(randomImages, testID),
         },
     };
 }
 
 export default function TestRunResults(
-    properties: DetailedTestRunPageProperties,
+    properties: OverviewPageProperties,
 ): ReactNode {
+    const parsedRecords: ValuesInOverviewContext = useMemo(() => {
+        return {
+            recentTests: parseEntitiesForOverview(properties.recentTests),
+            recentSuites: parseEntitiesForOverview(properties.recentSuites),
+            randomImages: properties.randomImages,
+            aggResults: properties.aggResults,
+            detailsOfTestRun: parseDetailedTestRun(properties.detailsOfTestRun),
+            summaryForAllSessions: properties.summaryForAllSessions,
+            testRunConfig: properties.testRunConfig,
+        };
+    }, [properties]);
+
     return (
-        <EnsureFallback fallbackPayload={properties}>
-            <DetailedTestRun activeTab={overviewTab}>
+        <OverviewContext.Provider value={parsedRecords}>
+            <LayoutStructureForRunDetails activeTab={menuTabs.overviewTab}>
                 <Overview />
-            </DetailedTestRun>
-        </EnsureFallback>
+            </LayoutStructureForRunDetails>
+        </OverviewContext.Provider>
     );
 }
 

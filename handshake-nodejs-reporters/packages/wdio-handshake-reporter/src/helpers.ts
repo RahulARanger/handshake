@@ -64,7 +64,12 @@ export function skipIfRequired() {
   return false;
 }
 
-export async function attachScreenshot(title: string, content: string, description?:string) {
+export async function attachScreenshot(
+  title: string,
+  content: string,
+  description?:string,
+  is_suite?: boolean,
+) {
   if (skipIfRequired()) {
     return;
   }
@@ -72,23 +77,23 @@ export async function attachScreenshot(title: string, content: string, descripti
   await currentReporter?.supporter?.attachScreenshot(
     title,
     content,
-    currentReporter?.currentTestID ?? '',
+    currentReporter?.currentEntity(is_suite),
     description,
   );
 }
 
-export async function addDescription(content: string) {
+export async function addDescription(content: string, is_suite?: boolean) {
   if (skipIfRequired()) {
     return;
   }
 
   await currentReporter?.supporter?.addDescription(
     content,
-    currentReporter?.currentTestID ?? '',
+    currentReporter?.currentEntity(is_suite),
   );
 }
 
-export async function addLink(url: string, title: string) {
+export async function addLink(url: string, title: string, is_suite?: boolean) {
   if (skipIfRequired()) {
     return;
   }
@@ -96,16 +101,17 @@ export async function addLink(url: string, title: string) {
   await currentReporter?.supporter?.addLink(
     url,
     title,
-    currentReporter?.currentTestID ?? '',
+    currentReporter?.currentEntity(is_suite),
   );
 }
 
-export async function addAssertion(assertion: Assertion) {
+export async function addAssertion(title: string, assertion: Assertion) {
   if (skipIfRequired()) {
     return;
   }
 
   await currentReporter?.supporter?.addAssertion(
+    title,
     assertion,
     currentReporter?.currentTestID ?? '',
   );

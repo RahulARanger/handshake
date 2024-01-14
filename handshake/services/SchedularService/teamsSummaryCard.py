@@ -1,7 +1,7 @@
 import typing
 
 from handshake.services.DBService.models.result_base import RunBase
-from handshake.services.DBService.models.static_base import TestConfigBase
+from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.enums import AttachmentType
 from httpx import AsyncClient
 

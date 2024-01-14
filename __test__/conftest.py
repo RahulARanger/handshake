@@ -41,17 +41,21 @@ def init_db(root_dir):
     return lambda: subprocess.call(f'handshake config "{root_dir}"', shell=True)
 
 
-@fixture
-async def get_v3_connection(scripts):
+async def get_connection(scripts, v=3):
     connection = connections.get("default")
 
-    # assuming we are at v4
-    await connection.execute_script((scripts / "revert-v4.sql").read_text())
-    await connection.execute_query(
-        "UPDATE CONFIGBASE set value = '3' where key = ?", (ConfigKeys.version,)
-    )
+    # assuming we are at v5
+    if v < 5:
+        await connection.execute_script((scripts / "revert-v5.sql").read_text())
+    if v < 4:
+        await connection.execute_script((scripts / "revert-v4.sql").read_text())
 
     return connection
+
+
+@fixture
+def get_vth_connection():
+    return get_connection
 
 
 @fixture

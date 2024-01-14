@@ -1,16 +1,12 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun, sourceUrl } from 'src/components/parse-utils';
-import RenderTimeRelativeToStart, {
-    RenderDuration,
-} from 'src/components/utils/renderers';
+import { parseDetailedTestRun } from 'src/components/parse-utils';
+import { RenderDuration } from 'src/components/utils/relative-time';
 import AreaChartForRuns from 'src/components/charts/collection-of-runs';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import crumbs from './test-items';
-import type { QuickPreviewForTestRun } from 'src/types/parsed-records';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import HeaderStyles from 'src/styles/header.module.css';
-
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -29,12 +25,17 @@ import Text from 'antd/lib/typography/Text';
 import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import Button from 'antd/lib/button/button';
-import type { RangePickerProps } from 'antd/es/date-picker';
+import type { RangePickerProps } from 'antd/lib/date-picker';
 import GithubOutlined from '@ant-design/icons/GithubOutlined';
+import Tag from 'antd/lib/tag/index';
+import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import { RenderStatus } from 'src/components/utils/renderers';
+import type { DetailedTestRecord } from 'src/types/parsed-records';
+import { sourceUrl } from 'src/types/ui-constants';
 
 dayjs.extend(isBetween);
 
-function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
+function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
     const [isTest, showTest] = useState(true);
     const item = properties.run;
 
@@ -65,9 +66,12 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
         >
             <List.Item.Meta
                 title={
-                    <Link href={item.Link}>{`${item.Started[0].format(
-                        dateFormatUsed,
-                    )} - ${item.Title}`}</Link>
+                    <Space align="center">
+                        <RenderStatus value={item.Status} />
+                        <Link href={item.Link}>{`${item.Started[0].format(
+                            dateFormatUsed,
+                        )} - ${item.Title}`}</Link>
+                    </Space>
                 }
                 description={
                     <Tooltip
@@ -76,32 +80,30 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
                         placement="bottomRight"
                         arrow
                     >
-                        <Space
-                            size="small"
-                            align="baseline"
-                            split={
-                                <Divider
-                                    type="vertical"
-                                    style={{ margin: '0px' }}
+                        <Space align="start" size={0}>
+                            <Tag color="cyan">
+                                <RelativeTo
+                                    dateTime={item.Started[0]}
+                                    secondDateTime={item.Ended[0]}
+                                    autoPlay
+                                    style={{
+                                        maxWidth: '170px',
+                                        textAlign: 'right',
+                                    }}
                                 />
-                            }
-                        >
-                            <RenderTimeRelativeToStart
-                                value={item.Started}
-                                style={{ maxWidth: '103px' }}
-                            />
-                            <RenderTimeRelativeToStart
-                                value={item.Ended}
-                                style={{ maxWidth: '103px' }}
-                            />
-                            <RenderDuration
-                                value={item.Duration}
+                            </Tag>
+                            <Tag
+                                color="volcano"
                                 style={{
-                                    minWidth: '90px',
-                                    maxWidth: '90px',
+                                    minWidth: '95px',
+                                    maxWidth: '95px',
                                 }}
-                                autoPlay={true}
-                            />
+                            >
+                                <RenderDuration
+                                    value={item.Duration}
+                                    autoPlay={true}
+                                />
+                            </Tag>
                         </Space>
                     </Tooltip>
                 }
@@ -111,7 +113,7 @@ function RunCard(properties: { run: QuickPreviewForTestRun }): ReactNode {
 }
 
 function RawList(properties: {
-    dataSource: Array<undefined | QuickPreviewForTestRun>;
+    dataSource: Array<undefined | DetailedTestRecord>;
 }): ReactNode {
     const [showMax, setShowMax] = useState<number>(10);
     const items = properties.dataSource?.slice(0, showMax);
@@ -153,23 +155,24 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
     const today = dayjs();
     const yesterday = today.subtract(1, 'day');
     const startOfThisMonth = today.startOf('month');
-    const thisWeek = yesterday.subtract(yesterday.get('day') + 1, 'days');
+    const thisWeek = today.startOf('week');
     const thisMonth = yesterday.set('date', 1);
 
     const forPreviousMonth = chronological.filter((run) =>
         run.Started[0].isBefore(startOfThisMonth),
     );
 
-    const forThisMonth = chronological.filter(
-        (run) =>
-            run.Started[0].isAfter(thisMonth.subtract(1, 'day'), 'date') &&
-            run.Started[0].isBefore(thisWeek, 'date'),
+    const forThisMonth = chronological.filter((run) =>
+        run.Started[0].isBetween(
+            thisMonth.subtract(1, 'day'),
+            thisWeek,
+            'date',
+            '[)',
+        ),
     );
 
-    const forThisWeek = chronological.filter(
-        (run) =>
-            run.Started[0].isAfter(thisWeek, 'date') &&
-            run.Started[0].isBefore(yesterday, 'date'),
+    const forThisWeek = chronological.filter((run) =>
+        run.Started[0].isBetween(thisWeek, yesterday, 'date', '[]'),
     );
 
     const forYesterday = chronological.filter((run) =>

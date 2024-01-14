@@ -1,3 +1,4 @@
+import os
 import shutil
 import uuid
 from functools import partial
@@ -18,10 +19,12 @@ from concurrent.futures import ThreadPoolExecutor
 
 
 async def createExportTicket(
-    maxTestRuns: int, path: Path, store: List[str], runs: List[str]
+    maxTestRuns: int, path: Path, store: List[str], runs: List[str], clarity
 ):
     await init_tortoise_orm(path)
-    ticket = await ExportBase.create(maxTestRuns=maxTestRuns)
+    ticket = await ExportBase.create(
+        maxTestRuns=maxTestRuns, clarity="" if not clarity else os.getenv("CLARITY")
+    )
 
     runs.extend(
         await RunBase.all()
@@ -55,7 +58,8 @@ async def deleteExportTicket(ticketID: str):
     help="Asks Sanic to set the use max. number of workers",
 )
 @option("--out", type=C_Path(dir_okay=True), required=True)
-def export(collection_path, max_runs, out):
+@option("--clarity", is_flag=True)
+def export(collection_path, max_runs, out, clarity):
     saved_db_path = db_path(collection_path)
     if not saved_db_path.exists():
         raise FileNotFoundError(f"DB file not in {collection_path}")
@@ -85,7 +89,7 @@ def export(collection_path, max_runs, out):
 
     ticket_i_ds = []
     runs = []
-    run_async(createExportTicket(max_runs, saved_db_path, ticket_i_ds, runs))
+    run_async(createExportTicket(max_runs, saved_db_path, ticket_i_ds, runs, clarity))
 
     if len(ticket_i_ds) == 0:
         logger.error("Ticket was not created, please report this as a issue")

@@ -1,16 +1,16 @@
 import type { BadgeProps } from 'antd/lib/badge/index';
 import Badge from 'antd/lib/badge/index';
 import React, { type ReactNode } from 'react';
+import type { suiteType } from 'src/types/test-entity-related';
 
-export default function BadgeForSuiteType(properties: {
-    text: BadgeProps['count'];
-    color: BadgeProps['color'];
+export default function RenderTestType(properties: {
+    value: suiteType;
     size?: BadgeProps['size'];
 }): ReactNode {
     return (
         <Badge
-            color={properties.color}
-            count={properties.text}
+            color={properties.value === 'SUITE' ? 'purple' : 'magenta'}
+            count={properties.value}
             size={properties.size}
             style={{
                 fontWeight: 'bold',

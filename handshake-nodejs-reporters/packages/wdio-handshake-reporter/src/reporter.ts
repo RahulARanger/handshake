@@ -3,7 +3,6 @@ import type {
   RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
 import {
-  Assertion,
   MarkTestEntity, MarkTestSession, RegisterTestEntity, Standing, SuiteType, sanitizePaths,
 } from 'common-handshakes';
 import ReporterContacts from './contacts';
@@ -201,8 +200,21 @@ export default class HandshakeReporter extends ReporterContacts {
     }
   }
 
-  async onAfterAssertion(assertionArgs: Assertion) {
-    await this.supporter.addAssertion(assertionArgs, this.currentTestID);
+  async onAfterAssertion(
+    assertionArgs: {
+      matcherName: string, expectedValue: any,
+      options: { wait: number, interval: number },
+      result: { pass: boolean, message: () => string } },
+  ) {
+    await this.supporter.addAssertion(
+      assertionArgs.matcherName,
+      {
+        expected: assertionArgs.expectedValue,
+        message: assertionArgs.result.message(),
+        passed: assertionArgs.result.pass,
+      },
+      this.currentTestID,
+    );
   }
 
   get isSynchronised(): boolean {

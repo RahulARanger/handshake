@@ -14,7 +14,7 @@ from tortoise.fields import (
     TextField,
 )
 from tortoise.contrib.pydantic import pydantic_model_creator
-from handshake.services.DBService.models.enums import Status, SuiteType
+from handshake.services.DBService.models.enums import Status, SuiteType, LogType
 
 
 class CommandReportFields(Model):
@@ -150,6 +150,17 @@ class RetriedBase(Model):
 
     modified = DatetimeField(
         auto_now=True, description="Modified timestamp", null=False
+    )
+
+
+class TestLogBase(Model):
+    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
+        "models.RunBase", related_name="log", to_field="testID", pk=True
+    )
+    type = CharEnumField(LogType, description="Log type", null=False)
+    message = TextField(description="Log Message", null=False)
+    feed = JSONField(
+        description="If you want to share any feed here", null=True, default={}
     )
 
 

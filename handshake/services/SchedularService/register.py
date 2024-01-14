@@ -3,9 +3,9 @@ from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from uuid import uuid4, UUID
 from typing import Union
 from handshake.services.DBService.models.static_base import (
-    TestConfigBase,
     AttachmentType,
 )
+from handshake.services.DBService.models.result_base import TestLogBase, LogType
 
 
 async def register_patch_suite(suiteID: str, testID: str) -> TaskBase:
@@ -27,29 +27,18 @@ async def mark_for_prune_task(test_id: str):
     )
 
 
-async def skip_test_run(
-    description: str, test_id: Union[str, UUID], reason: str, **extra
-) -> False:
+async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
     logger.error(reason)
-    await TestConfigBase.create(
-        test_id=str(test_id),
-        attachmentValue=dict(reason=reason, test_id=str(test_id), **extra),
-        type=AttachmentType.ERROR,
-        description=description,
+    await TestLogBase.create(
+        test_id=str(test_id), message=reason, type=LogType.ERROR, feed=extra
     )
     await mark_for_prune_task(test_id)
     return False
 
 
-async def warn_about_test_run(
-    about: str, test_id: Union[str, UUID], description: str, **extra
-) -> False:
-    logger.warning(description)
-    await TestConfigBase.create(
-        test_id=str(test_id),
-        attachmentValue=dict(about=about, **extra),
-        type=AttachmentType.WARN,
-        description=description,
+async def warn_about_test_run(test_id: Union[str, UUID], about: str, **extra) -> True:
+    logger.warning(about)
+    await TestLogBase.create(
+        test_id=str(test_id), message=about, type=LogType.WARN, feed=extra
     )
-    await mark_for_prune_task(test_id)
-    return False
+    return True

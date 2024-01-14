@@ -1,5 +1,5 @@
 from handshake.services.DBService.models.types import AttachmentType
-from handshake.services.DBService.models.result_base import SuiteBase, RunBase
+from handshake.services.DBService.models.result_base import SuiteBase
 from tortoise.models import Model
 from tortoise.fields import (
     JSONField,
@@ -31,12 +31,6 @@ class AttachmentBase(AttachmentFields):
     table = "AttachmentBase"
     entity: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
         "models.SuiteBase", related_name="attachment", to_field="suiteID"
-    )
-
-
-class TestConfigBase(AttachmentFields):
-    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="config", to_field="testID"
     )
 
 

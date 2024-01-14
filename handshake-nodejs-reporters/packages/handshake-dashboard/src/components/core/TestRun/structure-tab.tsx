@@ -1,193 +1,108 @@
-import type TestRunRecord from 'src/types/test-run-records';
-import type {
-    SessionDetails,
-    SuiteDetails,
-} from 'src/types/generated-response';
-import type { specNode } from 'src/types/test-run-records';
-import {
-    getSessions,
-    getSuites,
-    getTestRun,
-} from 'src/components/scripts/helper';
-import { RenderEntityType, RenderStatus } from 'src/components/utils/renderers';
-import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
-import MetaCallContext from './context';
-
-import React, { useContext, type ReactNode, useMemo } from 'react';
-import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
-import Button from 'antd/lib/button/button';
-import useSWR from 'swr';
+import Dotted from 'src/styles/dotted.module.css';
+import React, { useContext, type ReactNode, useState } from 'react';
 import Space from 'antd/lib/space';
-import DirectoryTree from 'antd/lib/tree/DirectoryTree';
-import type { DataNode } from 'antd/es/tree';
-import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
-import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
-import { timeFormatUsed } from 'src/components/utils/Datetime/format';
-import { parseDetailedTestEntity } from 'src/components/parse-utils';
+import Card from 'antd/lib/card/Card';
+import Counter from 'src/components/utils/counter';
+import { Tooltip } from 'antd/lib';
+import TreeMapComponent from 'src/components/charts/tree-map';
+import type { StatusContext } from 'src/types/transfer-structure-context';
+import { RenderStatus } from 'src/components/utils/renderers';
+import RenderTestType from 'src/components/utils/test-status-dot';
+import { DetailedContext } from 'src/types/records-in-detailed';
 
-function treeData(
-    node: specNode,
-    suites: SuiteDetails,
-    setTestID: (testID: string) => void,
-    started: Dayjs,
-    sessions: SessionDetails,
-): DataNode[] {
-    const root: DataNode = { title: 'Root', key: '', children: [] };
-    const structure: DataNode[] = [root];
-    const pulled = new Set(suites['@order']);
-    const nodes = [{ node, childrenSpace: root.children, pathNode: root }];
-    const treeNodes: Record<string, DataNode> = {};
+function MousedPart(properties: { info?: StatusContext }): ReactNode {
+    if (properties?.info === undefined)
+        return (
+            <Text style={{ fontStyle: 'italic' }}>
+                Double click on any suite to drill down
+            </Text>
+        );
 
-    while (nodes.length > 0) {
-        const result = nodes.pop();
-        if (result?.node == undefined || result?.childrenSpace == undefined)
-            continue;
-        const { node, childrenSpace } = result;
+    return (
+        <>
+            <Space>
+                {properties.info.isPath ? (
+                    <Text>{properties.info.isFile ? '📄' : '📂'}</Text>
+                ) : (
+                    <RenderStatus value={properties.info.status} />
+                )}
+                {properties.info.isFile ? (
+                    <> </>
+                ) : (
+                    <RenderTestType value="SUITE" />
+                )}
+                <Text>{properties.info?.title}</Text>
+            </Space>
+        </>
+    );
+}
 
-        const current = node['<path>'];
+function SuiteStatus(properties: { info?: StatusContext }): ReactNode {
+    if (properties?.info === undefined)
+        return (
+            <Text style={{ fontStyle: 'italic' }}>
+                Mouse over to view the details
+            </Text>
+        );
 
-        const childParts = new Set(Object.keys(node));
-        childParts.delete('<path>');
-
-        // these are paths
-        for (const child of childParts) {
-            const childNode = {
-                key: current + child,
-                title: child,
-                children: [],
-            };
-            childrenSpace.push(childNode);
-            nodes.push({
-                node: node[child],
-                childrenSpace: childNode.children,
-                pathNode: childNode,
-            });
-        }
-
-        let passed = 0;
-        let failed = 0;
-        let skipped = 0;
-
-        // these are suites
-        for (const suiteID of pulled) {
-            const suite = parseDetailedTestEntity(
-                suites[suiteID],
-                started,
-                sessions[suites[suiteID].session_id],
-            );
-            const parent = suites[suiteID].parent;
-
-            if (suite.Status === 'RETRIED' || !suite.File.startsWith(current))
-                continue;
-
-            if (suites[suiteID].parent === '') {
-                passed += suite.Rate[0];
-                failed += suite.Rate[1];
-                skipped += suite.Rate[2];
-            }
-
-            if (suite.File !== current) continue;
-
-            const treeNode: DataNode = {
-                key: suiteID,
-                title: (
-                    <Space direction="vertical" style={{ marginLeft: '5px' }}>
-                        <Space
-                            align="baseline"
-                            style={{
-                                alignItems: 'center',
-                            }}
-                        >
-                            <RenderEntityType entityName={suite.entityName} />
-                            <Typography>{suite.Title}</Typography>
-                            <Button
-                                icon={<ExpandAltOutlined />}
-                                shape="circle"
-                                onClick={() => {
-                                    setTestID(suiteID);
-                                }}
-                                size="small"
-                            />
-                        </Space>
-                        <Space style={{ marginLeft: '5px' }}>
-                            <RenderPassedRate
-                                value={suite.Rate}
-                                title="Tests"
-                            />
-                            <Text
-                                italic
-                            >{`Executed from ${suite.Started[0].format(
-                                timeFormatUsed,
-                            )} to ${suite.Ended[0].format(
-                                timeFormatUsed,
-                            )} for ${suite.Duration.humanize()}`}</Text>
-                        </Space>
-                    </Space>
-                ),
-                icon: <RenderStatus value={suite.Status} marginTop="6px" />,
-                children: [],
-            };
-            treeNodes[suiteID] = treeNode;
-            if (parent.length === 0) childrenSpace.push(treeNode);
-            else treeNodes[parent].children?.push(treeNode);
-
-            pulled.delete(suiteID);
-        }
-        const { pathNode } = result;
-        pathNode.title = (
-            <Space align="center" style={{ columnGap: '12px' }}>
-                <Text>{(pathNode.title as string) ?? ''}</Text>
-                <RenderPassedRate
-                    value={[passed, failed, skipped]}
-                    title="Tests"
+    return (
+        <Tooltip
+            defaultOpen
+            placement="bottomRight"
+            title="Passed > Failed > Skipped"
+        >
+            <Space>
+                <Counter
+                    end={properties.info.passed}
+                    cssClassName={Dotted.greenGlowText}
+                    style={{
+                        fontSize: '1.0009rem',
+                    }}
+                />
+                <Counter
+                    cssClassName={Dotted.redGlowText}
+                    end={properties.info.failed}
+                    style={{
+                        fontSize: '1.0009rem',
+                    }}
+                />
+                <Counter
+                    cssClassName={Dotted.yellowGlowText}
+                    end={properties.info.skipped}
+                    style={{
+                        fontSize: '1.0009rem',
+                    }}
                 />
             </Space>
-        );
-    }
-
-    return structure;
+        </Tooltip>
+    );
 }
 
 export default function ProjectStructure(properties: {
     setTestID: (testID: string) => void;
 }): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
+    const [hovered, setHovered] = useState<StatusContext>();
 
-    const { data: sessions } = useSWR<SessionDetails>(
-        getSessions(port, testID),
-    );
-    const { data: detailsOfTestRun } = useSWR<TestRunRecord>(
-        getTestRun(port, testID),
-    );
+    const context = useContext(DetailedContext);
+    if (context == undefined) return <></>;
 
-    const structure = useMemo<specNode>(() => {
-        return JSON.parse(detailsOfTestRun?.specStructure ?? '[]');
-    }, [detailsOfTestRun]);
-
-    if (
-        sessions == undefined ||
-        detailsOfTestRun == undefined ||
-        suites == undefined
-    )
-        return <></>;
-
-    const projectStructure = treeData(
-        structure,
-        suites,
-        properties.setTestID,
-        dayjs(detailsOfTestRun.started),
-        sessions,
-    );
+    const { suites, detailsOfTestRun } = context;
+    const structure = detailsOfTestRun.specStructure;
 
     return (
-        <DirectoryTree
-            treeData={projectStructure}
-            showLine
-            selectable={false}
-            defaultExpandedKeys={projectStructure.map((key) => key.key)} // open the first key
-        />
+        <Card
+            type="inner"
+            className={Dotted.dotted}
+            title={<MousedPart info={hovered} />}
+            extra={<SuiteStatus info={hovered} />}
+        >
+            <TreeMapComponent
+                suites={suites}
+                node={structure}
+                setHovered={setHovered}
+                onClick={properties.setTestID}
+            />
+        </Card>
     );
 }

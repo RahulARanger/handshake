@@ -62,10 +62,9 @@ describe('Verifying the handshake-server helper class', () => {
         exitCode: 0,
         fileRetries: 1,
         platformName: 'windows',
-        saveOptions: {},
       });
       expect(resp).not.toBeUndefined();
-      expect(resp?.status).toBe(201);
+      expect(resp?.status).toBe(200);
     });
     test('verifying the update run config with invalid payload', async () => {
       const resp = await instance.updateRunConfig({ maxInstances: 2 });

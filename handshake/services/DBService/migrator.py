@@ -29,7 +29,7 @@ def check_version(
             "INFO" if not migration_required else "ERROR",
             "Currently at: v{}."
             if not migration_required
-            else 'Found version: v{}. but required is v{}. Please execute: \n"handshake db migrate [COLLECTION_PATH]"',
+            else 'Found version: v{}. but required is v{}. Please execute: \n"handshake migrate [COLLECTION_PATH]"',
             result[0],
             DB_VERSION,
         )
@@ -41,37 +41,47 @@ def check_version(
     )
 
 
-def migrate(connection):
-    is_required, connection, bump_if_required, version_stored = check_version(
-        connection=connection
-    )
+# returns True if it requires further migration
+def migrate(connection, db_path=None) -> bool:
+    if db_path:
+        connection = connect(db_path)
 
-    if not is_required:
-        logger.info("Already migrated to required version")
-        return True
-
-    if not bump_if_required:
-        logger.error(
-            "You have more recent version of database, v{}. but we can only support: v{}. "
-            "Hence requesting either to update your reporter or "
-            "use your backup database inside the collection_path.",
-            version_stored,
-            DB_VERSION,
+    try:
+        is_required, connection, bump_if_required, version_stored = check_version(
+            connection=connection
         )
-        return True
 
-    script = Path(__file__).parent / "scripts" / f"bump-v{version_stored}.sql"
-    logger.info("Executing {}", script.name)
-    connection.executescript(script.read_text())
+        if not is_required:
+            logger.info("Already migrated to required version")
+            return False
 
-    check_version(None, connection)
+        if not bump_if_required:
+            logger.error(
+                "You have more recent version of database, v{}. but we can only support: v{}. "
+                "Hence requesting either to update your reporter",
+                # "use your backup database inside the collection_path.",
+                version_stored,
+                DB_VERSION,
+            )
+            return False
+
+        script = Path(__file__).parent / "scripts" / f"bump-v{version_stored}.sql"
+        logger.info("Executing {} to migrate from v{}", script.name, version_stored)
+        connection.executescript(script.read_text())
+    finally:
+        if db_path:
+            connection.close()
+
+    return (version_stored + 1) < DB_VERSION
 
 
 def migration(path):
     connection = connect(path)
 
     try:
-        migrate(connection)
+        while migrate(connection):
+            ...
+
         connection.commit()
     except Exception as error:
         logger.error(f"Failed to execute migration script, due to {error}")

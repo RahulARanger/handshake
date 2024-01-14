@@ -98,36 +98,28 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       expect(reporter.misFire).toBe(0);
     });
   });
+  let added = 0;
 
   describe('Verifying the attachments', () => {
     test('Verifying the description attachment', async () => {
-      const testAttachment = await reporter.addDescription('Sample-description for test - 0 - 0', reporter.idMapped['test-0-0']);
-      expect(testAttachment).toBe(true);
-      expect(reporter.misFire).toBe(0);
-
-      const suiteAttachment = await reporter.addDescription('Sample-description for suite - 0', reporter.idMapped['suite-0']);
-      expect(suiteAttachment).toBe(true);
-      expect(reporter.misFire).toBe(0);
+      await reporter.addDescription('Sample-description for test - 0 - 0', reporter.idMapped['test-0-0']);
+      await reporter.addDescription('Sample-description for suite - 0', reporter.idMapped['suite-0']);
+      added += 2;
     });
 
     test('Verifying the link attachment', async () => {
-      const testAttachment = await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.idMapped['test-0-0']);
-      expect(testAttachment).toBe(true);
-      expect(reporter.misFire).toBe(0);
-
-      const suiteAttachment = await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.idMapped['suite-0']);
-      expect(suiteAttachment).toBe(true);
-      expect(reporter.misFire).toBe(0);
+      await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.idMapped['test-0-0']);
+      await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.idMapped['suite-0']);
+      added += 2;
     });
 
     test('verifying the assertion attachment', async () => {
-      const testAttachment = await reporter.addAssertion({ expected: 2, matcherName: 'toEqual', options: { status: 'PASSED' } }, reporter.idMapped['test-0-1']);
-      expect(testAttachment).toBe(true);
-      expect(reporter.misFire).toBe(0);
+      await reporter.addAssertion('toEqual', { expected: 2, passed: true, message: 'Passed' }, reporter.idMapped['test-0-1']);
+      await reporter.addAssertion('toEqual', {
+        expected: 2, passed: true, message: 'Passed', interval: 100, wait: 500,
+      }, reporter.idMapped['suite-0']);
 
-      const suiteAttachment = await reporter.addAssertion({ expected: 2, matcherName: 'toEqual', options: { status: 'PASSED' } }, reporter.idMapped['suite-0']);
-      expect(suiteAttachment).toBe(true);
-      expect(reporter.misFire).toBe(0);
+      added += 2;
     });
 
     test('verifying the png attachment', async () => {
@@ -191,6 +183,8 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     });
 
     test('verifying the marking of the session', async () => {
+      expect(reporter.requests).toHaveLength(added);
+
       const job = reporter
         .markTestSession(
           () => (

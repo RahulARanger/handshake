@@ -15,7 +15,7 @@ permissions:
 
 jobs:
     test:
-      name: Test Dashboard
+      name: Testing the Changes made in the Reporters for Nodejs [Client side]
       runs-on: 'macos-latest'
       permissions: write-all
 
@@ -32,21 +32,28 @@ jobs:
           working-directory: ./handshake-nodejs-reporters
           run: npm install && npm run build && sudo npm run sanity
 
-        - name: Download required for Dashboard
-          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-          run: npm install
+#        - name: Download required packages for Dashboard
+#          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+#          run: npm install
 
-        - name: exporting results
+#        - name: Exporting static results
+#          working-directory: ./handshake-nodejs-reporters
+#          run: |
+#            sudo npx handshake export ../TestResults --out ../TestReports
+
+        - name: Release prep
           working-directory: ./handshake-nodejs-reporters
-          run: |
-            sudo npx handshake export ../TestResults --out ../TestReports
+          run: | 
+            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+          env:
+              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
         - name: Create Release Pull Request
           uses: changesets/action@v1
           with:
             cwd: ./handshake-nodejs-reporters
             publish: npm run release
-            title: "version handshake-nodejs-reporters"
+            title: "bump: handshake-nodejs-reporters"
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

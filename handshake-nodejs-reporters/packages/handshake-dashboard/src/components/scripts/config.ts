@@ -14,14 +14,3 @@ export default async function currentExportConfig(
     );
     return result;
 }
-
-export async function getAllTestRuns(
-    connection: dataBaseConnection,
-    limit: number,
-): Promise<string[]> {
-    const result = await connection.all<Array<{ testID: string }>>(
-        "select testID, ended from runbase where ended <> '' order by started desc limit ?;",
-        limit,
-    );
-    return result.map((result) => result.testID);
-}

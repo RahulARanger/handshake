@@ -1,5 +1,4 @@
-from handshake.services.DBService.models.enums import AttachmentType
-from handshake.services.DBService.models.static_base import TestConfigBase
+from handshake.services.DBService.models.result_base import TestLogBase, LogType
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from loguru import logger
 from typing import Optional
@@ -10,11 +9,11 @@ from uuid import UUID
 
 async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
     logger.error(reason)
-    await TestConfigBase.create(
+    await TestLogBase.create(
         test_id=str(test_id),
-        attachmentValue=dict(reason=reason, test_id=str(test_id), **extra),
-        type=AttachmentType.ERROR,
-        description="Job Failed: Complete Test Run",
+        feed=extra,
+        type=LogType.ERROR,
+        message=reason,
     )
     return False
 
@@ -27,7 +26,7 @@ async def pruneTasks(request_id: Optional[str] = ""):
 
     await TaskBase.filter(
         Q(
-            test_id__in=await TestConfigBase.filter(type=AttachmentType.ERROR)
+            test_id__in=await TestLogBase.filter(type=LogType.ERROR)
             .filter(
                 test_id__in=await TaskBase.all()
                 .only("test_id")

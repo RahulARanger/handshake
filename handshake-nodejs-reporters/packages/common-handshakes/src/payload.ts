@@ -47,20 +47,23 @@ export interface UpdateTestRunConfig {
   platformName: string;
   exitCode:number;
   fileRetries:number;
-  saveOptions: object;
+  bail?: number;
   avoidParentSuitesInCount: boolean;
+  teamsHook?:string;
 }
 
 export interface Assertion {
-  matcherName: string;
   expected: any;
-  options: any;
+  passed?:boolean;
+  wait?:number;
+  interval?:number;
+  message: string;
 }
 
 export interface Attachment {
   entityID: string;
   title?: string;
   description?:string;
-  value:string;
+  value:string | Assertion;
   type: 'DESC' | 'LINK' | 'PNG' | 'ASSERT'
 }

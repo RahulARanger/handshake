@@ -79,10 +79,7 @@ export default class HandshakeService
       framework: config.framework ?? 'WebdriverIO',
       avoidParentSuitesInCount: this.options.testConfig.avoidParentSuitesInCount ?? false,
       fileRetries: config.specFileRetries ?? 0,
-      saveOptions: {
-        bail: config.bail ?? 0,
-        protocol: config.baseUrl ?? '/',
-      },
+      bail: config.bail ?? 0,
       exitCode,
     });
 

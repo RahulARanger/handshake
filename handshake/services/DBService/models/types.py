@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional, Dict
+from typing import List, Optional, Union
 from handshake.services.DBService.models.enums import Status, SuiteType, AttachmentType
 from pydantic import BaseModel
 from datetime import datetime
@@ -53,11 +53,18 @@ class MarkSuite(BaseModel):
     standing: Optional[Status] = Status.SKIPPED
 
 
+class AssertionPayload(TypedDict):
+    passed: bool
+    wait: Optional[int]
+    interval: Optional[int]
+    message: str
+
+
 class AddAttachmentForEntity(BaseModel):
     entityID: uuid.UUID
     type: AttachmentType
     description: Optional[str] = ""
-    value: str
+    value: Union[AssertionPayload, str]
     color: Optional[str] = ""
     title: Optional[str] = ""
 
@@ -72,7 +79,7 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     platformName: str
     framework: str
     exitCode: int
-    saveOptions: Optional[Dict] = {}
-    fileRetries: int
+    bail: Optional[int] = 0
+    fileRetries: Optional[int] = 0
     avoidParentSuitesInCount: Optional[bool] = False
     teamsHook: Optional[str] = ""

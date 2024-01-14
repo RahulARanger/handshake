@@ -1,5 +1,3 @@
-from handshake.services.DBService.models.static_base import AttachmentFields
-from handshake.services.DBService.models.result_base import SuiteBase
 from tortoise.models import Model
 from tortoise.fields import (
     CharField,
@@ -35,13 +33,6 @@ class TaskBase(Model):
         null=True,
         default=False,
         description="True if the task is picked by the job else False",
-    )
-
-
-class DynamicVideoBase(AttachmentFields):
-    table = "VideoBase"
-    test: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
-        "models.SuiteBase", related_name="attachments", to_field="suiteID"
     )
 
 

@@ -1,88 +1,31 @@
 import { runPage } from 'src/components/scripts/helper';
-import type {
-    Attachment,
-    SuiteRecordDetails,
-} from 'src/types/test-entity-related';
-import type {
-    QuickPreviewForScenarios,
-    QuickPreviewForTestRun,
-    PreviewForDetailedEntities,
-    PreviewForTests,
-    QuickPreviewForAttachments,
-} from 'src/types/parsed-records';
 import type TestRunRecord from 'src/types/test-run-records';
-import type SessionRecordDetails from 'src/types/session-records';
-import dayjs, { type Dayjs } from 'dayjs';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-import type { statusOfEntity } from 'src/types/session-records';
-import type { BadgeProps } from 'antd';
-import type { TimelineItemProps } from 'antd/lib';
+
+import type {
+    DetailedTestRecord,
+    ParsedRetriedRecords,
+    SuiteDetails,
+    TestDetails,
+} from 'src/types/parsed-records';
+import type {
+    ErrorRecord,
+    ImageRecord,
+    RetriedRecord,
+    SuiteRecordDetails,
+    TestRecordDetails,
+} from 'src/types/test-entity-related';
+import type { specNode } from 'src/types/test-run-records';
+import Convert from 'ansi-to-html';
+import { attachmentPrefix } from 'src/types/ui-constants';
 
 dayjs.extend(duration);
 
-export default function parseTestEntity(
-    testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs,
-): QuickPreviewForScenarios {
-    return {
-        Started: [dayjs(testORSuite.started), testStartedAt],
-        Ended: [dayjs(testORSuite.ended), testStartedAt],
-        Status: testORSuite.standing,
-        Title: testORSuite.title,
-        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
-        Tests: testORSuite.tests,
-    };
-}
-
-export function parseDetailedTestEntity(
-    testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs,
-    session: SessionRecordDetails,
-): PreviewForDetailedEntities {
-    return {
-        Started: [dayjs(testORSuite.started), testStartedAt],
-        Ended: [dayjs(testORSuite.ended), testStartedAt],
-        Status: testORSuite.standing,
-        Title: testORSuite.title,
-        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [
-            testORSuite.rollup_passed ?? 0,
-            testORSuite.rollup_failed ?? 0,
-            testORSuite.rollup_skipped ?? 0,
-        ],
-        Tests: testORSuite.tests,
-        File: testORSuite.file,
-        Retried: testORSuite.retried,
-        Description: testORSuite.description,
-        id: testORSuite.suiteID,
-        entityName: session.entityName,
-        entityVersion: session.entityVersion,
-    };
-}
-
-export function parseTestCaseEntity(
-    testORSuite: SuiteRecordDetails,
-    testStartedAt: Dayjs,
-): PreviewForTests {
-    return {
-        Started: [dayjs(testORSuite.started), testStartedAt],
-        Ended: [dayjs(testORSuite.ended), testStartedAt],
-        Status: testORSuite.standing,
-        Title: testORSuite.title,
-        Duration: dayjs.duration({ milliseconds: testORSuite.duration }),
-        Rate: [testORSuite.passed, testORSuite.failed, testORSuite.skipped],
-        Errors: JSON.parse(testORSuite.errors),
-        Description: testORSuite.description,
-        id: testORSuite.suiteID,
-        type: testORSuite.suiteType,
-        Parent: testORSuite.parent,
-    };
-}
-
 export function parseDetailedTestRun(
     testRun: TestRunRecord,
-): QuickPreviewForTestRun {
+): DetailedTestRecord {
     const summary: {
         passed: number;
         failed: number;
@@ -93,6 +36,7 @@ export function parseDetailedTestRun(
         Started: [dayjs(testRun.started), dayjs()],
         Ended: [dayjs(testRun.ended), dayjs()],
         Title: testRun.projectName,
+        Id: testRun.testID,
         Status: testRun.standing,
         Rate: [testRun.passed, testRun.failed, testRun.skipped],
         Duration: dayjs.duration({ milliseconds: testRun.duration }),
@@ -100,60 +44,132 @@ export function parseDetailedTestRun(
         SuitesSummary: [summary.passed, summary.failed, summary.skipped],
         Suites: summary.count,
         Link: runPage(testRun.testID),
+        projectName: testRun.projectName,
+        specStructure: JSON.parse(testRun.specStructure) as specNode,
     };
 }
 
-export function parseAttachment(
-    attached: Attachment,
-): QuickPreviewForAttachments {
-    return {
-        ...attached,
-        parsed: JSON.parse(attached.attachmentValue),
-    };
+function parseError(ansiToHTML: Convert, error: ErrorRecord): ErrorRecord {
+    error.message = ansiToHTML.toHtml(error.message ?? '');
+    error.stack = ansiToHTML.toHtml(error.stack ?? '');
+
+    return error;
+}
+
+export function parseSuites(
+    suites: SuiteRecordDetails[],
+    testStartedAt: Dayjs,
+    totalTests: number,
+) {
+    // @ts-expect-error not sure why this is happening, but for now let's ignore this
+    const parsedRecords: SuiteDetails = { '@order': [] };
+    const ansiToHTML = new Convert();
+
+    for (const suite of suites) {
+        parsedRecords['@order'].push(suite.suiteID);
+
+        const error = parseError(ansiToHTML, JSON.parse(suite?.error ?? '{}'));
+
+        const errors = (JSON.parse(suite.errors) as ErrorRecord[]).map(
+            (error) => parseError(ansiToHTML, error),
+        );
+
+        parsedRecords[suite.suiteID] = {
+            Started: [dayjs(suite.started), testStartedAt],
+            Ended: [dayjs(suite.ended), testStartedAt],
+            Status: suite.standing,
+            Title: suite.title,
+            Duration: dayjs.duration({ milliseconds: suite.duration }),
+            Rate: [suite.passed, suite.failed, suite.skipped],
+            Id: suite.suiteID,
+            errors,
+            error: error,
+            RollupValues: [
+                suite.rollup_passed,
+                suite.rollup_failed,
+                suite.rollup_skipped,
+            ],
+            totalRollupValue: suite.rollup_tests,
+            entityName: suite.entityName,
+            entityVersion: suite.entityVersion,
+            simplified: suite.simplified,
+            hooks: suite.hooks,
+            numberOfErrors: suite.numberOfErrors,
+            File: suite.file,
+            Contribution: suite.rollup_tests / totalTests,
+            Parent: suite.parent,
+            type: suite.suiteType,
+            Tests: suite.tests,
+            Desc: suite.description,
+        };
+    }
+    return parsedRecords;
+}
+
+export function parseTests(
+    records: TestRecordDetails[],
+    suites: SuiteDetails,
+): TestDetails {
+    const testDetails: TestDetails = {};
+    const ansiToHTML = new Convert();
+
+    for (const record of records) {
+        const suiteStartedAt = suites[record.parent].Started[0];
+
+        const error = parseError(ansiToHTML, JSON.parse(record?.error ?? '{}'));
+
+        testDetails[record.suiteID] = {
+            Title: record.title,
+            Id: record.suiteID,
+            type: record.suiteType,
+            isBroken: record.broken,
+            numberOfErrors: record.numberOfErrors,
+            Started: [dayjs(record.started), dayjs(suiteStartedAt)],
+            Ended: [dayjs(record.ended), dayjs(suiteStartedAt)],
+            Duration: dayjs.duration(record.duration),
+            Parent: record.parent,
+            Tests: record.tests,
+            error,
+            errors: (JSON.parse(record.errors) as ErrorRecord[]).map((error) =>
+                parseError(ansiToHTML, error),
+            ),
+            Rate: [record.passed, record.failed, record.skipped],
+            Status: record.standing,
+            Desc: record.description,
+        };
+    }
+    return testDetails;
 }
 
 export function convertForWrittenAttachments(
-    prefix: string,
     testID: string,
     attachmentID: string,
 ): string {
-    return [prefix, testID, attachmentID].join('/');
+    const note = process?.env?.IMAGE_PROXY_URL
+        ? [process.env.IMAGE_PROXY_URL]
+        : [];
+    return [...note, attachmentPrefix, testID, attachmentID].join('/');
 }
 
-export function badgeStatus(status: string): BadgeProps['status'] {
-    switch (status as statusOfEntity) {
-        case 'FAILED': {
-            return 'error';
-        }
-        case 'PASSED': {
-            return 'success';
-        }
-        case 'PENDING': {
-            return 'processing';
-        }
-        case 'SKIPPED': {
-            return 'warning';
-        }
-    }
+export function parseImageRecords(
+    images: ImageRecord[],
+    testID: string,
+): ImageRecord[] {
+    return images.map((image) => ({
+        ...image,
+        path: convertForWrittenAttachments(testID, image.path),
+    }));
 }
 
-export function timelineColor(status: string): TimelineItemProps['color'] {
-    switch (status as statusOfEntity) {
-        case 'FAILED': {
-            return 'red';
-        }
-        case 'PASSED': {
-            return 'green';
-        }
-        case 'PENDING': {
-            return 'blue';
-        }
-        case 'SKIPPED': {
-            return 'gray';
-        }
-    }
+export function parseRetriedRecords(retriedRecords: RetriedRecord[]) {
+    const records: ParsedRetriedRecords = {};
+    for (const record of retriedRecords)
+        records[record.test] = {
+            key: record.key,
+            test: record.test,
+            tests: JSON.parse(record.tests),
+            length: record.length,
+            suite_id: record.suite_id,
+        };
+    return records;
 }
-
-export const optionsForEntities = ['Timeline'];
-
-export const sourceUrl = 'https://github.com/RahulARanger/handshake';

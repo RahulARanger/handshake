@@ -1,5 +1,12 @@
+import json
+
 from pytest import fixture
-from handshake.services.DBService.models import SuiteBase, TestConfigBase, SessionBase
+from handshake.services.DBService.models import (
+    SuiteBase,
+    TestConfigBase,
+    SessionBase,
+    AttachmentBase,
+)
 from handshake.services.DBService.models.enums import SuiteType, Status, AttachmentType
 from handshake.services.SchedularService.register import register_patch_suite
 import datetime
@@ -82,18 +89,32 @@ async def helper_create_test_config(
     test_id: str, file_retries=0, avoidParentSuitesInCount=False
 ):
     await TestConfigBase.create(
-        type=AttachmentType.CONFIG,
-        attachmentValue=dict(
-            fileRetries=file_retries,
-            framework="pytest",
-            exitCode=0,
-            platformName="windows",
-            maxInstances=1,
-            saveOptions=dict(),
-            avoidParentSuitesInCount=avoidParentSuitesInCount,
-        ),
-        description="sample-test",
+        fileRetries=file_retries,
+        framework="pytest",
+        exitCode=0,
+        platform="windows",
+        maxInstances=1,
+        avoidParentSuitesInCount=avoidParentSuitesInCount,
         test_id=test_id,
+    )
+
+
+async def helper_create_assertion(entity_id: str, title: str, passed: bool):
+    await AttachmentBase.create(
+        type=AttachmentType.ASSERT,
+        attachmentValue=dict(
+            color="",
+            title="toExist",
+            value=json.dumps(
+                dict(
+                    matcherName=title,
+                    options=dict(wait=1000, interval=500),
+                    result={"pass": passed},
+                ),
+            ),
+        ),
+        description="",
+        entity_id=str(entity_id),
     )
 
 
@@ -126,6 +147,11 @@ def create_hierarchy():
 @fixture
 def attach_config():
     return helper_create_test_config
+
+
+@fixture
+def add_assertion():
+    return helper_create_assertion
 
 
 @fixture

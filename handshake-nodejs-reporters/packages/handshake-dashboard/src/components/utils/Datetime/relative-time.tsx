@@ -1,4 +1,4 @@
-import Typography from 'antd/lib/typography/Typography';
+import Text from 'antd/lib/typography/Text';
 import Tooltip from 'antd/lib/tooltip/index';
 import dayjs, { type Dayjs } from 'dayjs';
 import React, {
@@ -15,6 +15,7 @@ import { type Duration } from 'dayjs/plugin/duration';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { timeFormatUsed } from './format';
 import carouselStyles from 'src/styles/carousel.module.css';
+import Typography from 'antd/lib/typography/Typography';
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
@@ -57,13 +58,18 @@ export default function RelativeTo(properties: {
             className={carouselStyles.embla}
             ref={emblaReference}
             style={{
-                maxWidth: '120px',
+                maxWidth: '165px',
                 cursor: hover ? 'grabbing' : 'grab',
                 ...properties.style,
             }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
-                <Typography className={carouselStyles.slide}>
+                {/* dateTime */}
+                <Text
+                    className={carouselStyles.slide}
+                    style={properties.style}
+                    ellipsis={{ tooltip: true }}
+                >
                     {`${properties.dateTime.format(
                         properties.format ?? timeFormatUsed,
                     )} ${
@@ -73,7 +79,7 @@ export default function RelativeTo(properties: {
                                   properties.format ?? timeFormatUsed,
                               )}`
                     }`}
-                </Typography>
+                </Text>
                 {properties.wrt == undefined ? (
                     <span
                         className={carouselStyles.slide}
@@ -102,6 +108,7 @@ export function HumanizeDuration(properties: {
     duration?: Duration;
     style?: CSSProperties;
     autoPlay?: boolean;
+    maxWidth?: string;
 }): ReactNode {
     const [emblaReference, emblaApi] = useEmblaCarousel({ loop: true }, [
         Autoplay({
@@ -119,13 +126,16 @@ export function HumanizeDuration(properties: {
         emblaApi.on('pointerDown', () => setHover(true));
     }, [setHover, emblaApi]);
 
+    const seconds = properties?.duration?.asSeconds();
+
     return (
         <div
             className={carouselStyles.embla}
             ref={emblaReference}
             style={{
-                maxWidth: '150px',
-                minWidth: '100px',
+                maxWidth: properties.maxWidth ?? '110px',
+                minWidth: '80px',
+                textAlign: 'right',
                 cursor: hover ? 'grabbing' : 'grab',
                 ...properties.style,
             }}
@@ -135,9 +145,11 @@ export function HumanizeDuration(properties: {
                     suppressHydrationWarning
                     className={carouselStyles.slide}
                 >
-                    {`${
-                        properties?.duration?.asSeconds().toFixed(2) ?? '--'
-                    } s`}
+                    {seconds === undefined
+                        ? `--`
+                        : `${seconds < 0 ? seconds * 100 : seconds} ${
+                              seconds < 0 ? 'm' : ''
+                          }s`}
                 </Typography>
                 <Typography
                     suppressHydrationWarning

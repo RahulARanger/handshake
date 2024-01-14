@@ -1,5 +1,3 @@
-import type TestRunRecord from 'src/types/test-run-records';
-import type { SuiteSummary } from 'src/types/test-run-records';
 import React, { type ReactNode } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts/core';
@@ -26,6 +24,7 @@ import type { ComposeOption } from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import {
     radiantGreen,
+    radiantOrange,
     radiantRed,
     radiantYellow,
     serif,
@@ -54,19 +53,36 @@ echarts.use([
 ]);
 
 export default function ProgressPieChart(properties: {
-    run: TestRunRecord;
+    rate: [number, number, number];
     isTestCases: boolean;
+    broken: number;
 }): ReactNode {
-    const suite: SuiteSummary = JSON.parse(properties.run.suiteSummary);
-    const failed = properties.isTestCases
-        ? properties.run.failed
-        : suite.failed;
-    const passed = properties.isTestCases
-        ? properties.run.passed
-        : suite.passed;
-    const skipped = properties.isTestCases
-        ? properties.run.skipped
-        : suite.skipped;
+    const [passed, failed, skipped] = properties.rate;
+    const data: PieSeriesOption['data'] = [
+        {
+            value: passed,
+            name: 'Passed',
+            itemStyle: { color: radiantGreen },
+        },
+        {
+            value: failed,
+            name: 'Failed',
+            itemStyle: { color: radiantRed },
+        },
+        {
+            value: skipped,
+            name: 'Skipped',
+            itemStyle: { color: radiantYellow },
+        },
+    ];
+
+    if (properties.isTestCases) {
+        data.push({
+            value: properties.broken,
+            name: 'Broken',
+            itemStyle: { color: radiantOrange },
+        });
+    }
 
     const options: composed = {
         tooltip: {
@@ -87,10 +103,9 @@ export default function ProgressPieChart(properties: {
             {
                 name: properties.isTestCases ? 'Tests' : 'Suites',
                 type: 'pie',
-                top: 80,
-                left: -35,
-                radius: ['200%', '400%'],
-                startAngle: 180,
+                top: -15,
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
                 itemStyle: {
                     borderRadius: 5,
                 },
@@ -98,48 +113,12 @@ export default function ProgressPieChart(properties: {
                     show: true,
                     color: 'white',
                     verticalAlign: 'bottom',
-                    formatter: '{b}:{c}',
+                    formatter: '{b}: {c}',
                 },
-                data: [
-                    {
-                        value: passed,
-                        name: 'Passed',
-                        itemStyle: { color: radiantGreen },
-                    },
-                    {
-                        value: failed,
-                        name: 'Failed',
-                        itemStyle: { color: radiantRed },
-                    },
-                    {
-                        value: skipped,
-                        name: 'Skipped',
-                        itemStyle: { color: radiantYellow },
-                    },
-                    {
-                        name: 'Buffer',
-                        itemStyle: {
-                            // stop the chart from rendering this piece
-                            color: 'none',
-                            decal: {
-                                symbol: 'none',
-                            },
-                        },
-                        label: {
-                            show: false,
-                        },
-                        value: passed + skipped + failed,
-                    },
-                ],
+                data,
             },
         ],
     };
 
-    return (
-        <ReactECharts
-            option={options}
-            style={{ height: '120px' }}
-            opts={{ renderer: 'svg' }}
-        />
-    );
+    return <ReactECharts option={options} style={{ height: '220px' }} />;
 }

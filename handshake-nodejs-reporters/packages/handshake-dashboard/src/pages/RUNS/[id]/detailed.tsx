@@ -1,45 +1,50 @@
-import {
-    getEntityLevelAttachment,
-    getRetriedRecords,
-    getSessions,
-    getSuites,
-    getTestRun,
-    getTestRunSummary,
-    getTests,
-    getWrittenAttachments,
-} from 'src/components/scripts/helper';
-import type { DetailedTestRunPageProperties } from 'src/types/generated-response';
 import getConnection from 'src/components/scripts/connection';
-import DetailedTestRun from 'src/components/core/TestRun';
+import LayoutStructureForRunDetails from 'src/components/core/TestRun';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import EnsureFallback from 'src/components/utils/swr-fallback';
-import { testEntitiesTab, timelineTab } from 'src/types/ui-constants';
+import sqlFile from 'src/components/scripts/RunPage/script';
+import type TestRunRecord from 'src/types/test-run-records';
+import type {
+    TestRecordDetails,
+    ImageRecord,
+    AssertionRecord,
+    RetriedRecord,
+} from 'src/types/test-entity-related';
+import { type SuiteRecordDetails } from 'src/types/test-entity-related';
+import type DetailedPageProperties from 'src/types/records-in-detailed';
+import type { ValuesInDetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from 'src/types/records-in-detailed';
 import {
-    getDetailsOfTestRun,
-    generateTestRunSummary,
-} from 'src/components/scripts/RunPage/overview';
-import { attachmentPrefix } from 'src/components/core/TestRun/context';
-
+    parseDetailedTestRun,
+    parseImageRecords,
+    parseRetriedRecords,
+    parseSuites,
+    parseTests,
+} from 'src/components/parse-utils';
+import { menuTabs } from 'src/types/ui-constants';
+import { useRouter } from 'next/router';
 import TestEntities from 'src/components/core/test-entities';
-import { getDrillDownResults } from 'src/components/scripts/RunPage/detailed';
-import GanttChartForTestEntities from 'src/components/charts/gantt-chart-for-test-suites';
-import SpinFC from 'antd/lib/spin';
 
 export async function getStaticProps(prepareProperties: {
     params: {
         id: string;
     };
-}): Promise<GetStaticPropsResult<DetailedTestRunPageProperties>> {
+}): Promise<GetStaticPropsResult<DetailedPageProperties>> {
     const testID = prepareProperties.params.id;
 
     const connection = await getConnection();
 
-    const details = await getDetailsOfTestRun(connection, testID);
+    await connection.exec({
+        sql: sqlFile('detailed-page.sql').replace('?', testID),
+    });
 
-    if (details == undefined) {
+    const detailsOfTestRun = await connection.get<TestRunRecord>(
+        'SELECT * from CURRENT_RUN;',
+    );
+
+    if (detailsOfTestRun == undefined) {
         return {
             redirect: {
                 permanent: true,
@@ -48,66 +53,77 @@ export async function getStaticProps(prepareProperties: {
         };
     }
 
-    const {
-        tests,
-        suites,
-        sessions,
-        attachments,
-        writtenAttachments,
-        retriedRecords,
-    } = await getDrillDownResults(connection, testID);
+    const suites =
+        (await connection.all<SuiteRecordDetails[]>('SELECT * FROM SUITES;')) ??
+        [];
+
+    const tests =
+        (await connection.all<TestRecordDetails[]>('SELECT * FROM TESTS;')) ??
+        [];
+
+    const assertions = await connection.all<AssertionRecord[]>(
+        'SELECT * from ASSERTIONS;',
+    );
+    const images = await connection.all<ImageRecord[]>('SELECT * FROM IMAGES;');
+
+    const retriedRecords =
+        (await connection.all<RetriedRecord[]>('SELECT * FROM RETRIES;')) ?? [];
 
     await connection.close();
-    const port = process.env.NEXT_PUBLIC_PY_PORT ?? '1212';
 
     return {
         props: {
-            fallback: {
-                [getTestRun(port, testID)]: details,
-                [getSessions(port, testID)]: sessions,
-                [getTestRunSummary(port, testID)]:
-                    generateTestRunSummary(details), // not a sql query
-                [getSuites(port, testID)]: suites,
-                [getTests(port, testID)]: tests,
-                [getEntityLevelAttachment(port, testID)]: attachments,
-                [getWrittenAttachments(port, testID)]: writtenAttachments,
-                [getRetriedRecords(port, testID)]: retriedRecords,
-            },
-            testID: testID,
-            port,
-            attachmentPrefix: process.env.ATTACHMENTS ?? attachmentPrefix,
+            detailsOfTestRun,
+            suites,
+            tests,
+            assertions,
+            images,
+            retriedRecords,
         },
     };
 }
 
-function ReturnChild(properties: { tab: string }) {
-    switch (properties.tab) {
-        case testEntitiesTab: {
-            return <TestEntities />;
-        }
-        case timelineTab: {
-            return <GanttChartForTestEntities />;
-        }
-        default: {
-            return <SpinFC tip="Loading..." size="large" fullscreen />;
-        }
-    }
-}
-
 export default function TestRunResults(
-    properties: DetailedTestRunPageProperties,
+    properties: DetailedPageProperties,
 ): ReactNode {
-    const [current, setCurrent] = useState(testEntitiesTab);
+    const parsedRecords: ValuesInDetailedContext = useMemo(() => {
+        const testRun = parseDetailedTestRun(properties.detailsOfTestRun);
+        const suites = parseSuites(
+            properties.suites,
+            testRun.Started[0],
+            testRun.Tests,
+        );
+        return {
+            detailsOfTestRun: testRun,
+            images: parseImageRecords(
+                properties.images,
+                properties.detailsOfTestRun.testID,
+            ),
+            suites,
+            tests: parseTests(properties.tests, suites),
+            retriedRecords: parseRetriedRecords(properties.retriedRecords),
+        };
+    }, [properties]);
+    const router = useRouter();
+    const [viewMode, setViewMode] = useState<string>(
+        menuTabs.testEntitiesTab.gridViewMode,
+    );
+
+    useEffect(() => {
+        if (!router.isReady) return;
+        const query = router.query as { tab: string };
+        setViewMode(query.tab);
+    }, [setViewMode, router]);
+
     return (
-        <EnsureFallback fallbackPayload={properties}>
-            <DetailedTestRun
-                activeTab={current}
-                show
-                onChange={(now) => setCurrent(now)}
+        <DetailedContext.Provider value={parsedRecords}>
+            <LayoutStructureForRunDetails
+                activeTab={viewMode}
+                changeDefault={setViewMode}
             >
-                <ReturnChild tab={current} />
-            </DetailedTestRun>
-        </EnsureFallback>
+                <TestEntities defaultTab={viewMode} />
+            </LayoutStructureForRunDetails>
+        </DetailedContext.Provider>
     );
 }
 

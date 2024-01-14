@@ -1,4 +1,3 @@
-import json
 from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
 from handshake.services.DBService.models.types import (
     RegisterSession,
@@ -15,9 +14,11 @@ from handshake.services.Endpoints.blueprints.utils import (
     extractPydanticErrors,
 )
 from handshake.services.DBService.models.static_base import (
-    TestConfigBase,
     AttachmentBase,
+    AttachmentType,
 )
+from handshake.services.DBService.models.config_base import TestConfigBase
+from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import Status, SuiteType
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
@@ -110,9 +111,15 @@ async def update_session(request: Request) -> HTTPResponse:
 async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     attachments = []
     note = []
+    assertions = []
 
     for _ in request.json:
         try:
+            if _["type"] == AttachmentType.ASSERT:
+                value = _.get("value", dict())
+                value["wait"] = value.get("wait", -1)
+                value["interval"] = value.get("interval", -1)
+
             attachment = AddAttachmentForEntity.model_validate(_)
         except ValidationError as error:
             note.append(_.get("entityID", False))
@@ -120,38 +127,61 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
             await attachWarn(extractPydanticErrors(url, _, error), url)
             continue
 
-        attachments.append(
-            await AttachmentBase(
-                **dict(
-                    entity_id=attachment.entityID,
-                    description=attachment.description,
-                    type=attachment.type,
-                    attachmentValue=dict(
-                        color=attachment.color,
-                        value=attachment.value,
-                        title=attachment.title,
-                    ),
+        match attachment.type:
+            case AttachmentType.ASSERT:
+                assertions.append(
+                    await AssertBase(
+                        **dict(
+                            entity_id=attachment.entityID,
+                            title=attachment.title,
+                            message=attachment.value["message"],
+                            passed=attachment.value["passed"],
+                            interval=attachment.value["interval"],
+                            wait=attachment.value["wait"],
+                        )
+                    )
                 )
-            )
-        )
 
-    await AttachmentBase.bulk_create(attachments)
+            case _:
+                (
+                    attachments.append(
+                        await AttachmentBase(
+                            **dict(
+                                entity_id=attachment.entityID,
+                                description=attachment.description,
+                                type=attachment.type,
+                                attachmentValue=dict(
+                                    color=attachment.color,
+                                    value=attachment.value,
+                                    title=attachment.title,
+                                ),
+                            )
+                        )
+                    )
+                )
+
+    if attachments:
+        await AttachmentBase.bulk_create(attachments)
+    if assertions:
+        await AssertBase.bulk_create(assertions)
     return text(
-        "Attachments have been added successfully", status=201 if not len(note) else 206
+        "Attachments was added successfully", status=201 if not len(note) else 206
     )
 
 
 @service.put("/currentRun")
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
-
-    config = await TestConfigBase.filter(test_id=get_test_id()).first()
-    if not config:
-        return text(get_test_id() + " || Test Run not found", status=404)
-
-    updated_value = config.attachmentValue
-    updated_value.update(run_config)
-
-    await config.update_from_dict(dict(attachmentValue=updated_value))
+    config = await TestConfigBase.create(
+        test_id=get_test_id(),
+        platform=run_config.platformName,
+        framework=run_config.framework,
+        maxInstances=run_config.maxInstances,
+        exitCode=run_config.exitCode,
+        fileRetries=run_config.fileRetries,
+        avoidParentSuitesInCount=run_config.avoidParentSuitesInCount,
+        bail=run_config.bail,
+    )
     await config.save()
-    return text(json.dumps(updated_value), status=201)
+
+    return text("provided config was saved successfully.", status=200)

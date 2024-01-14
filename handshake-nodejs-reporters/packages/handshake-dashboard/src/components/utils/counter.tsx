@@ -3,6 +3,7 @@ import type { CSSProperties } from 'react';
 import React, { Component, type ReactNode } from 'react';
 import CountUp from 'react-countup';
 import type { TooltipComponentOption } from 'echarts/components';
+import { Tooltip } from 'antd/lib';
 export default class Counter extends Component<
     {
         style?: CSSProperties;
@@ -12,6 +13,7 @@ export default class Counter extends Component<
         decimalPoints?: number;
         maxDigits?: number;
         cssClassName?: string;
+        title?: string;
     },
     { start: number }
 > {
@@ -19,26 +21,28 @@ export default class Counter extends Component<
 
     render(): ReactNode {
         return (
-            <CountUp
-                start={this.state.start}
-                end={this.props.end}
-                useIndianSeparators={true}
-                style={this.props.style}
-                formattingFn={(n: number) =>
-                    `${this.props.prefix ?? ''}${n
-                        .toString()
-                        .padStart(
-                            Math.floor(
-                                Math.log10(
-                                    this.props.maxDigits ?? this.props.end,
-                                ) + 1,
-                            ),
-                            '0',
-                        )}${this.props.suffix ?? ''}`
-                }
-                decimals={this.props.decimalPoints ?? 0}
-                className={this.props.cssClassName}
-            />
+            <Tooltip title={this.props.title}>
+                <CountUp
+                    start={this.state.start}
+                    end={this.props.end}
+                    useIndianSeparators={true}
+                    style={this.props.style}
+                    formattingFn={(n: number) =>
+                        `${this.props.prefix ?? ''}${n
+                            .toString()
+                            .padStart(
+                                Math.floor(
+                                    Math.log10(
+                                        this.props.maxDigits ?? this.props.end,
+                                    ) + 1,
+                                ),
+                                '0',
+                            )}${this.props.suffix ?? ''}`
+                    }
+                    decimals={this.props.decimalPoints ?? 0}
+                    className={this.props.cssClassName}
+                />
+            </Tooltip>
         );
     }
 
@@ -56,11 +60,12 @@ export function StatisticNumber(properties: {
     end: number;
 }): ReactNode {
     return (
-        <Statistic
-            title={properties.title}
-            value={properties.end}
-            formatter={() => <Counter end={properties.end} />}
-        />
+        <Tooltip title={properties.title}>
+            <Statistic
+                value={properties.end}
+                formatter={() => <Counter end={properties.end} />}
+            />
+        </Tooltip>
     );
 }
 export const getColorCode = (value: number) => {
@@ -83,6 +88,7 @@ export function StaticPercent(properties: { percent: number }): ReactNode {
         <Counter
             end={properties.percent}
             suffix={'%'}
+            title="Number of Tests (rolled_up) / Total Number of tests"
             style={{
                 color: getColorCode(properties.percent),
             }}

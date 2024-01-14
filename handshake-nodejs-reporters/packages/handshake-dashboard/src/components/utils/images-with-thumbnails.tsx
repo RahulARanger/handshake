@@ -1,5 +1,7 @@
-import React, { type ReactNode } from 'react';
+import type { MutableRefObject } from 'react';
+import React, { useCallback, useEffect, type ReactNode } from 'react';
 import carouselStyles from '../../styles/carousel.module.css';
+import type { UseEmblaCarouselType } from 'embla-carousel-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import Image from 'antd/lib/image';
@@ -7,8 +9,47 @@ import Paragraph from 'antd/lib/typography/Paragraph';
 import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
 import Meta from 'antd/lib/card/Meta';
-import Ribbon from 'antd/lib/badge/Ribbon';
 import Tooltip from 'antd/lib/tooltip/index';
+import PreviewGroup from 'antd/lib/image/PreviewGroup';
+
+export function PlainImage(properties: {
+    title: string;
+    url: string;
+    maxHeight?: string;
+    isPlain?: boolean;
+    id?: string;
+}) {
+    const image = (
+        <Image
+            height={'95%'}
+            style={{
+                maxHeight: properties.maxHeight ?? '250px',
+                objectFit: 'cover',
+                objectPosition: 'top',
+                border: '1px solid grey',
+            }}
+            width={'95%'}
+            alt={`Image Attached: ${properties.title}`}
+            src={properties.url}
+            id={properties.id}
+        />
+    );
+
+    if (properties.isPlain) {
+        return <>{image}</>;
+    }
+    return (
+        <Card
+            size="small"
+            type="inner"
+            bordered
+            hoverable
+            style={{ margin: '2px', padding: '0px' }}
+        >
+            {image}
+        </Card>
+    );
+}
 
 export function CardForAImage(properties: {
     url: string;
@@ -16,29 +57,15 @@ export function CardForAImage(properties: {
     desc?: string;
     index?: number;
     maxHeight?: string;
+    sendCurrentIndex?: (_: number) => void;
 }) {
-    const rawImage =
-        properties.index == undefined ? (
-            <Image src={properties.url} />
-        ) : (
-            <Ribbon
-                placement="start"
-                color="orange-inverse"
-                text={properties.index + 1}
-            >
-                <Image
-                    height={'95%'}
-                    style={{
-                        maxHeight: properties.maxHeight ?? '250px',
-                        objectFit: 'cover',
-                        objectPosition: 'top',
-                    }}
-                    width={'95%'}
-                    alt={`Image Attached: ${properties.title}`}
-                    src={properties.url}
-                />
-            </Ribbon>
-        );
+    const rawImage = (
+        <PlainImage
+            title={properties.title}
+            maxHeight={properties.maxHeight}
+            url={properties.url}
+        />
+    );
 
     const desc =
         properties.desc == undefined ? (
@@ -88,22 +115,54 @@ export default function GalleryOfImages(properties: {
     loop?: boolean;
     children: ReactNode[];
     maxWidth?: string;
+    height?: string;
+    apiReference?: MutableRefObject<UseEmblaCarouselType[1] | null>;
+    sendIndexOnChange?: (_: number) => void;
 }): ReactNode {
-    const [emblaReference] = useEmblaCarousel(
+    const [emblaReference, emblaApi] = useEmblaCarousel(
         {
             loop: properties.loop,
             align: 'center',
+            axis: 'y',
         },
-        [Autoplay({})],
+        [Autoplay({ stopOnInteraction: true, active: properties.loop })],
     );
+
+    if (properties.apiReference) properties.apiReference.current = emblaApi;
+
+    const onSlidesInView = useCallback(
+        (emblaApi: UseEmblaCarouselType[1]) => {
+            properties?.sendIndexOnChange!(
+                emblaApi?.slidesInView()?.at(0) ?? 0,
+            ); // 0 -indexed
+        },
+        [properties.sendIndexOnChange],
+    );
+
+    useEffect(() => {
+        emblaApi?.on('slidesInView', onSlidesInView);
+    }, [emblaApi, onSlidesInView]);
+
     return (
         <div
             className={carouselStyles.embla}
             ref={emblaReference}
             style={{ maxWidth: properties.maxWidth }}
         >
-            <div className={carouselStyles.container}>
-                {properties.children}
+            <div
+                className={carouselStyles.container}
+                style={{
+                    flexDirection: 'column',
+                    maxHeight: properties.height ?? '240px',
+                }}
+            >
+                <PreviewGroup>
+                    {properties.children.map((child, index) => (
+                        <div className={carouselStyles.slide} key={index}>
+                            {child}
+                        </div>
+                    ))}
+                </PreviewGroup>
             </div>
         </div>
     );
