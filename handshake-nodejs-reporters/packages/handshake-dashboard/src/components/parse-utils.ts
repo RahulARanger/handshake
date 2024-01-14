@@ -148,12 +148,7 @@ export function convertForWrittenAttachments(
     const note = process?.env?.IMAGE_PROXY_URL
         ? [process.env.IMAGE_PROXY_URL]
         : [];
-    return [
-        'http://127.0.0.1:8000/',
-        attachmentPrefix,
-        testID,
-        attachmentID,
-    ].join('/');
+    return [...note, attachmentPrefix, testID, attachmentID].join('/');
 }
 
 export function parseImageRecords(

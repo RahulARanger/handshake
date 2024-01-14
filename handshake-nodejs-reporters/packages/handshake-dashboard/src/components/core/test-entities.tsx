@@ -60,7 +60,7 @@ export default function TestEntities(properties: {
     const [showEntity, setShowEntity] = useState<boolean>(false);
 
     if (context == undefined) return <></>;
-    const { suites } = context;
+    const { suites, retriedRecords } = context;
 
     const onClose = (): void => {
         setShowEntity(false);
@@ -139,13 +139,15 @@ export default function TestEntities(properties: {
                         }}
                         render={(
                             value: [number, number, number],
-                            record: SuiteNode,
+                            record: ParsedSuiteRecord,
                         ) => (
                             <Badge
-                                count={record.Retried}
+                                count={
+                                    retriedRecords[record.Id]?.length - 1 ?? 0
+                                }
                                 showZero={false}
                                 size="small"
-                                status="error"
+                                status="warning"
                                 title="Retried"
                             >
                                 <RenderPassedRate
@@ -161,7 +163,10 @@ export default function TestEntities(properties: {
                         dataIndex="Started"
                         title="Range"
                         width={165}
-                        render={(value: [Dayjs, Dayjs], record: SuiteNode) => (
+                        render={(
+                            value: [Dayjs, Dayjs],
+                            record: ParsedSuiteRecord,
+                        ) => (
                             <RelativeTo
                                 dateTime={value[0]}
                                 secondDateTime={record.Ended[0]}

@@ -14,8 +14,8 @@ import type { TabsProps } from 'antd/lib/tabs/index';
 import EntityItem, {
     ListOfErrors,
     ListOfImages,
-    assertionsTab,
-    descriptionTab,
+    // assertionsTab,
+    // descriptionTab,
     errorsTab,
     imagesTab,
 } from './entity-item';
@@ -216,12 +216,12 @@ export function attachedTabItems(
     setTestID: (_: string) => void,
 ): TabsProps['items'] {
     return [
-        { key: descriptionTab, label: 'Description' },
-        {
-            key: assertionsTab,
-            label: 'Assertions',
-            // children: <ListOfAssertions assertions={assertionsUsed} />,
-        },
+        // { key: descriptionTab, label: 'Description' },
+        // {
+        //     key: assertionsTab,
+        //     label: 'Assertions',
+        //     // children: <ListOfAssertions assertions={assertionsUsed} />,
+        // },
         {
             key: imagesTab,
             label: 'Images',

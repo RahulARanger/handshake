@@ -1,28 +1,22 @@
-import type {
-    Attachment,
-    AttachmentContent,
-    ErrorRecord,
-} from 'src/types/test-entity-related';
+import type { ErrorRecord } from 'src/types/test-entity-related';
 import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
 
-import React, { type ReactNode } from 'react';
+import React, { useRef, useState, type ReactNode } from 'react';
 import Space from 'antd/lib/space';
 import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import Descriptions from 'antd/lib/descriptions/index';
+// import Descriptions from 'antd/lib/descriptions/index';
 import Text from 'antd/lib/typography/Text';
-import { Divider, Tag, Tooltip } from 'antd/lib';
-import Avatar from 'antd/lib/avatar/avatar';
+import { Divider, Tooltip } from 'antd/lib';
+// import Avatar from 'antd/lib/avatar/avatar';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import type {
-    Assertion,
     ParsedSuiteRecord,
     ParsedTestRecord,
 } from 'src/types/parsed-records';
 import { useContext } from 'react';
 import List from 'antd/lib/list';
 import Alert from 'antd/lib/alert/Alert';
-import PreviewGroup from 'antd/lib/image/PreviewGroup';
 import Typography from 'antd/lib/typography/index';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import { RenderDuration } from 'src/components/utils/relative-time';
@@ -33,10 +27,14 @@ import GalleryOfImages, {
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
 import Sider from 'antd/lib/layout/Sider';
 import RenderTestType from 'src/components/utils/test-status-dot';
+import InternalPreviewGroup from 'antd/lib/image/PreviewGroup';
+import Ribbon from 'antd/lib/badge/Ribbon';
+import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
+import type { UseEmblaCarouselType } from 'embla-carousel-react';
 
 export default function EntityItem(properties: {
     entity: ParsedSuiteRecord | ParsedTestRecord;
-    links: Attachment[];
+    // links: Attachment[];
 }) {
     return (
         <Space
@@ -86,7 +84,7 @@ export default function EntityItem(properties: {
                     }
                 />
             </Space>
-            {properties.links?.length > 0 ? (
+            {/* {properties.links?.length > 0 ? (
                 <Space wrap>
                     {properties.links?.map((link) => {
                         const value: AttachmentContent = JSON.parse(
@@ -112,7 +110,7 @@ export default function EntityItem(properties: {
                 </Space>
             ) : (
                 <></>
-            )}
+            )} */}
             {properties.entity.error?.message ? (
                 <Alert
                     type="error"
@@ -218,62 +216,6 @@ function ErrorMessage(properties: {
     );
 }
 
-function AssertionComponent(properties: {
-    attached: AttachmentContent;
-}): ReactNode {
-    const assertValue: Assertion = JSON.parse(properties.attached.value);
-    return (
-        <List.Item>
-            <Alert
-                showIcon
-                type={assertValue.result?.pass ? 'success' : 'error'}
-                message={
-                    <Space
-                        style={{ width: '100%' }}
-                        styles={{ item: { width: '100%' } }}
-                    >
-                        <Descriptions
-                            bordered
-                            size="small"
-                            column={2}
-                            style={{ width: '100%' }}
-                            items={[
-                                {
-                                    key: 'name',
-                                    label: 'Name',
-                                    children: (
-                                        <Text ellipsis={{ tooltip: true }}>
-                                            {assertValue.matcherName}
-                                        </Text>
-                                    ),
-                                },
-                                {
-                                    key: 'expected',
-                                    label: 'Expected',
-                                    children: (
-                                        <Text>{assertValue.expectedValue}</Text>
-                                    ),
-                                },
-                                {
-                                    key: 'options',
-                                    label: 'Options',
-                                    children: (
-                                        <Text>
-                                            {JSON.stringify(
-                                                assertValue.options,
-                                            )}
-                                        </Text>
-                                    ),
-                                },
-                            ]}
-                        />
-                    </Space>
-                }
-            />
-        </List.Item>
-    );
-}
-
 function SelectedSuiteOrTest(properties: {
     selected: ParsedSuiteRecord | ParsedTestRecord;
 }): ReactNode {
@@ -304,34 +246,41 @@ export function ListOfErrors(properties: {
     );
 }
 
-export function ListOfAssertions(properties: {
-    assertions: Attachment[];
-}): ReactNode {
-    return (
-        <List
-            size="small"
-            bordered
-            itemLayout="vertical"
-            dataSource={properties.assertions}
-            renderItem={(item, index) => (
-                <AssertionComponent
-                    attached={JSON.parse(item.attachmentValue)}
-                    key={index}
-                    // title={tests[item.entity_id].title}
-                />
-            )}
-            pagination={
-                properties.assertions.length > 0
-                    ? { align: 'end', size: 'small' }
-                    : undefined
-            }
-        />
-    );
-}
+// export function ListOfAssertions(properties: {
+//     assertions: Attachment[];
+// }): ReactNode {
+//     return (
+//         <List
+//             size="small"
+//             bordered
+//             itemLayout="vertical"
+//             dataSource={properties.assertions}
+//             renderItem={(item, index) => (
+//                 <AssertionComponent
+//                     attached={JSON.parse(item.attachmentValue)}
+//                     key={index}
+//                     // title={tests[item.entity_id].title}
+//                 />
+//             )}
+//             pagination={
+//                 properties.assertions.length > 0
+//                     ? { align: 'end', size: 'small' }
+//                     : undefined
+//             }
+//         />
+//     );
+// }
+
+const imageIndex = (key: number) => `image-${key}`;
 
 export function ListOfImages(properties: { entityID: string }) {
     const context = useContext(DetailedContext);
+    const thumbnail = useRef<UseEmblaCarouselType[1] | null>(null);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [currentSlide, setCurrentSlide] = useState<number>(0);
     if (context == undefined) return <></>;
+
+    const pageSize = 10;
 
     const { tests, images, suites } = context;
     const relevant = images.filter(
@@ -341,34 +290,84 @@ export function ListOfImages(properties: { entityID: string }) {
     );
 
     return (
-        <Layout style={{ overflowY: 'scroll', height: '100%' }}>
-            <Sider
-                theme="light"
-                width={150}
-                style={{
-                    overflowY: 'scroll',
-                    height: '100%',
-                }}
-            >
-                <List
-                    bordered
-                    size="small"
-                    dataSource={relevant}
-                    style={{ overflowY: 'scroll' }}
-                    itemLayout="vertical"
-                    pagination={{ align: 'start' }}
-                    renderItem={(image, index) => {
-                        return (
-                            <PlainImage
-                                url={image.path}
-                                key={index}
-                                title={image.title}
-                                maxHeight={'50px'}
-                                isPlain={true}
-                            />
-                        );
-                    }}
-                />
+        <Layout style={{ overflow: 'hidden', height: '58vh' }}>
+            <Sider theme="light" width={180}>
+                <InternalPreviewGroup>
+                    <List
+                        bordered
+                        size="small"
+                        dataSource={relevant}
+                        style={{ overflowY: 'scroll', height: '100%' }}
+                        itemLayout="vertical"
+                        pagination={{
+                            align: 'start',
+                            size: 'small',
+                            responsive: true,
+                            current: currentPage,
+                            onChange(page) {
+                                setCurrentPage(page);
+                            },
+                        }}
+                        renderItem={(image, index) => {
+                            return (
+                                <List.Item
+                                    style={{ margin: '2px', padding: '3px' }}
+                                >
+                                    <Ribbon
+                                        text={
+                                            currentSlide ===
+                                            (currentPage - 1) * pageSize + index
+                                                ? '➡️'
+                                                : ''
+                                        }
+                                        placement="start"
+                                        color="transparent"
+                                    >
+                                        <Ribbon
+                                            color="transparent"
+                                            text={
+                                                <Button
+                                                    size="small"
+                                                    shape="circle"
+                                                    icon={
+                                                        <ExpandAltOutlined
+                                                            size={4}
+                                                            color={'orangered'}
+                                                        />
+                                                    }
+                                                    onClick={() => {
+                                                        if (thumbnail.current) {
+                                                            thumbnail.current.scrollTo(
+                                                                (currentPage -
+                                                                    1) *
+                                                                    pageSize +
+                                                                    index,
+                                                                false,
+                                                            );
+                                                        }
+                                                    }}
+                                                />
+                                            }
+                                            placement="end"
+                                            style={{
+                                                right: '5px',
+                                            }}
+                                        >
+                                            <PlainImage
+                                                url={image.path}
+                                                key={index}
+                                                title={image.title}
+                                                maxHeight={'200px'}
+                                                isPlain={true}
+                                                id={imageIndex(index)}
+                                            />
+                                        </Ribbon>
+                                    </Ribbon>
+                                </List.Item>
+                            );
+                        }}
+                    />
+                </InternalPreviewGroup>
             </Sider>
             <Layout>
                 <Header
@@ -385,14 +384,29 @@ export function ListOfImages(properties: { entityID: string }) {
                         selected={suites[properties.entityID]}
                     />
                 </Header>
-                <Content style={{ marginLeft: '6px', height: '100%' }}>
+                <Content style={{ marginLeft: '6px' }}>
                     {relevant.length > 0 ? (
-                        <GalleryOfImages loop={true} height={'600px'}>
+                        <GalleryOfImages
+                            loop={false}
+                            height={'310px'}
+                            apiReference={thumbnail}
+                            sendIndexOnChange={(index) => {
+                                const page = Math.floor(index / pageSize) + 1;
+                                setCurrentPage(page);
+                                setCurrentSlide(index);
+                                document.querySelector(
+                                    `#${imageIndex(
+                                        index - (page - 1) * pageSize,
+                                    )}`,
+                                )?.scrollIntoView!({ behavior: 'smooth' });
+                            }}
+                        >
                             {relevant.map((image, index) => (
                                 <PlainImage
                                     url={image.path}
                                     key={index}
                                     title={image.title}
+                                    maxHeight="300px"
                                     isPlain={false}
                                 />
                             ))}

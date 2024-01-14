@@ -1,8 +1,8 @@
-import { writeFileSync, existsSync, unlinkSync } from "fs";
-import { extractStyle } from "@ant-design/static-style-extract";
-import withTheme from "../src/components/theme";
+import { writeFileSync, existsSync, unlinkSync } from 'node:fs';
+import { extractStyle } from '@ant-design/static-style-extract';
+import withTheme from '../src/components/theme';
 
-const outputPath = "./src/styles/antd.min.css";
+const outputPath = './src/styles/antd.min.css';
 
 if (existsSync(outputPath)) unlinkSync(outputPath);
 

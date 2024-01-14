@@ -1,5 +1,7 @@
-import React, { useState, type ReactNode, useCallback, useEffect } from 'react';
+import type { MutableRefObject } from 'react';
+import React, { useCallback, useEffect, type ReactNode } from 'react';
 import carouselStyles from '../../styles/carousel.module.css';
+import type { UseEmblaCarouselType } from 'embla-carousel-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import Image from 'antd/lib/image';
@@ -8,7 +10,6 @@ import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
 import Meta from 'antd/lib/card/Meta';
 import Tooltip from 'antd/lib/tooltip/index';
-import { flushSync } from 'react-dom';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
 
 export function PlainImage(properties: {
@@ -16,6 +17,7 @@ export function PlainImage(properties: {
     url: string;
     maxHeight?: string;
     isPlain?: boolean;
+    id?: string;
 }) {
     const image = (
         <Image
@@ -29,6 +31,7 @@ export function PlainImage(properties: {
             width={'95%'}
             alt={`Image Attached: ${properties.title}`}
             src={properties.url}
+            id={properties.id}
         />
     );
 
@@ -41,7 +44,7 @@ export function PlainImage(properties: {
             type="inner"
             bordered
             hoverable
-            style={{ margin: '2px', padding: '3px' }}
+            style={{ margin: '2px', padding: '0px' }}
         >
             {image}
         </Card>
@@ -54,6 +57,7 @@ export function CardForAImage(properties: {
     desc?: string;
     index?: number;
     maxHeight?: string;
+    sendCurrentIndex?: (_: number) => void;
 }) {
     const rawImage = (
         <PlainImage
@@ -106,17 +110,15 @@ export function CardForAImage(properties: {
         </Card>
     );
 }
-const numberWithinRange = (number: number, min: number, max: number): number =>
-    Math.min(Math.max(number, min), max);
 
 export default function GalleryOfImages(properties: {
     loop?: boolean;
     children: ReactNode[];
     maxWidth?: string;
     height?: string;
+    apiReference?: MutableRefObject<UseEmblaCarouselType[1] | null>;
+    sendIndexOnChange?: (_: number) => void;
 }): ReactNode {
-    const factor = 4.2;
-    const [tweenValues, setTweenValues] = useState<number[]>([]);
     const [emblaReference, emblaApi] = useEmblaCarousel(
         {
             loop: properties.loop,
@@ -126,47 +128,26 @@ export default function GalleryOfImages(properties: {
         [Autoplay({ stopOnInteraction: true, active: properties.loop })],
     );
 
-    const onScroll = useCallback(() => {
-        if (!emblaApi) return;
+    if (properties.apiReference) properties.apiReference.current = emblaApi;
 
-        const engine = emblaApi.internalEngine();
-        const scrollProgress = emblaApi.scrollProgress();
-
-        const styles = emblaApi.scrollSnapList().map((scrollSnap, index) => {
-            let diffToTarget = scrollSnap - scrollProgress;
-
-            if (engine.options.loop) {
-                for (const loopItem of engine.slideLooper.loopPoints) {
-                    const target = loopItem.target();
-                    if (index === loopItem.index && target !== 0) {
-                        const sign = Math.sign(target);
-                        if (sign === -1)
-                            diffToTarget = scrollSnap - (1 + scrollProgress);
-                        if (sign === 1)
-                            diffToTarget = scrollSnap + (1 - scrollProgress);
-                    }
-                }
-            }
-            const tweenValue = 1 - Math.abs(diffToTarget * factor);
-            return numberWithinRange(tweenValue, 0, 1);
-        });
-        setTweenValues(styles);
-    }, [emblaApi, setTweenValues]);
+    const onSlidesInView = useCallback(
+        (emblaApi: UseEmblaCarouselType[1]) => {
+            properties?.sendIndexOnChange!(
+                emblaApi?.slidesInView()?.at(0) ?? 0,
+            ); // 0 -indexed
+        },
+        [properties.sendIndexOnChange],
+    );
 
     useEffect(() => {
-        if (!emblaApi) return;
-        onScroll();
-        emblaApi.on('scroll', () => {
-            flushSync(() => onScroll());
-        });
-        emblaApi.on('reInit', onScroll);
-    }, [emblaApi, onScroll]);
+        emblaApi?.on('slidesInView', onSlidesInView);
+    }, [emblaApi, onSlidesInView]);
 
     return (
         <div
             className={carouselStyles.embla}
             ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth, height: '100%' }}
+            style={{ maxWidth: properties.maxWidth }}
         >
             <div
                 className={carouselStyles.container}
@@ -177,16 +158,7 @@ export default function GalleryOfImages(properties: {
             >
                 <PreviewGroup>
                     {properties.children.map((child, index) => (
-                        <div
-                            className={carouselStyles.slide}
-                            key={index}
-                            style={{
-                                ...(tweenValues.length > 0 && {
-                                    opacity: tweenValues[index],
-                                }),
-                                flex: '0 0 50%',
-                            }}
-                        >
+                        <div className={carouselStyles.slide} key={index}>
                             {child}
                         </div>
                     ))}
