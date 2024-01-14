@@ -1,10 +1,5 @@
-import type TestRunRecord from 'src/types/test-run-records';
-import type { SuiteDetails } from 'src/types/generated-response';
-import type { specNode } from 'src/types/test-run-records';
-import { getSuites, getTestRun } from 'src/components/scripts/helper';
 import Dotted from 'src/styles/dotted.module.css';
-import React, { useContext, type ReactNode, useMemo, useState } from 'react';
-import useSWR from 'swr';
+import React, { useContext, type ReactNode, useState } from 'react';
 import Space from 'antd/lib/space';
 import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
@@ -20,7 +15,7 @@ function MousedPart(properties: { info?: StatusContext }): ReactNode {
     if (properties?.info === undefined)
         return (
             <Text style={{ fontStyle: 'italic' }}>
-                Double click on Suites to drill down
+                Double click on any suite to drill down
             </Text>
         );
 
@@ -84,12 +79,9 @@ function SuiteStatus(properties: { info?: StatusContext }): ReactNode {
     );
 }
 
-// export function SuiteSelection(properties: {setTestID: (testID: string)})
-
 export default function ProjectStructure(properties: {
     setTestID: (testID: string) => void;
 }): ReactNode {
-    const [selected, setSelected] = useState<string>();
     const [hovered, setHovered] = useState<StatusContext>();
 
     const context = useContext(DetailedContext);
@@ -109,6 +101,7 @@ export default function ProjectStructure(properties: {
                 suites={suites}
                 node={structure}
                 setHovered={setHovered}
+                onClick={properties.setTestID}
             />
         </Card>
     );

@@ -11,7 +11,6 @@ export interface RecurringFields {
     retried: number;
     standing: statusOfEntity;
     tests: number;
-    error: string;
     numberOfErrors: number;
     suiteID: string;
     session_id: string;
@@ -26,13 +25,9 @@ export interface RecurringFields {
 
 export interface SimpleSuiteDetails {
     numberOfErrors: number;
-    error: string;
-    entityName: string;
-    entityVersion: string;
-    simplified: string;
     Parent: string;
-
-    hooks: number;
+    type: suiteType;
+    Desc: string;
 }
 
 export interface SuiteRecordDetails
@@ -42,10 +37,16 @@ export interface SuiteRecordDetails
     rollup_failed: number;
     rollup_skipped: number;
     rollup_tests: number;
+    entityName: string;
+    entityVersion: string;
+    error: string;
+    hooks: number;
+    simplified: string;
 }
 
 export interface TestRecordDetails extends RecurringFields {
     broken: boolean;
+    error: string;
 }
 
 export interface Tag {
@@ -65,12 +66,21 @@ export interface AssertionRecord {
 
 export interface RetriedRecord {
     suite_id: string;
-    tests: string[];
-    length: number;
+    tests: string; // history
+    length: number; // length of history
+    test: string; // suite at any point of history
+    key: number; // 0 - index of that test in history
 }
 
 export interface ImageRecord {
     path: string;
     title: string;
+    entity_id: string;
     description?: string;
+}
+
+export interface ErrorRecord {
+    message: string;
+    stack: string;
+    mailedFrom: string[];
 }

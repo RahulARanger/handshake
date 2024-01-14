@@ -31,7 +31,14 @@ import { LabelLayout, UniversalTransition } from 'echarts/features';
 // Note that including the CanvasRenderer or SVGRenderer is a required step
 import { SVGRenderer } from 'echarts/renderers';
 import { standingToColors, toolTipFormats } from './constants';
-import type { SuiteRecordDetails } from 'src/types/test-entity-related';
+import type {
+    ParsedSuiteRecord,
+    ParsedTestRecord,
+} from 'src/types/parsed-records';
+import type {
+    CallbackDataParams,
+    TopLevelFormatterParams,
+} from 'echarts/types/dist/shared';
 
 // Register the required components
 echarts.use([
@@ -45,17 +52,25 @@ echarts.use([
 ]);
 
 export default function TestEntitiesBars(properties: {
-    entities: SuiteRecordDetails[];
+    entities: Array<ParsedTestRecord | ParsedSuiteRecord>;
 }): ReactNode {
     const options: composed = {
-        tooltip: toolTipFormats,
+        tooltip: {
+            ...toolTipFormats,
+            formatter: (parameters: TopLevelFormatterParams) => {
+                const arguments_ = parameters as CallbackDataParams;
+                return `${arguments_.marker} ${arguments_.name} - <b>${
+                    properties.entities[arguments_.dataIndex ?? 0].type
+                }</b>`;
+            },
+        },
         legend: { show: false },
 
         grid: { left: 0, right: 1, top: 0, bottom: 0 },
         xAxis: [
             {
                 type: 'category',
-                data: properties.entities.map((entity) => entity.title),
+                data: properties.entities.map((entity) => entity.Title),
                 show: false,
             },
         ],
@@ -69,10 +84,9 @@ export default function TestEntitiesBars(properties: {
             {
                 name: 'Test Entities',
                 type: 'bar',
-                barWidth: '50%',
                 data: properties.entities.map((entity) => ({
                     value: 1,
-                    itemStyle: { color: standingToColors[entity.standing] },
+                    itemStyle: { color: standingToColors[entity.Status] },
                 })),
                 itemStyle: {
                     borderRadius: 150,

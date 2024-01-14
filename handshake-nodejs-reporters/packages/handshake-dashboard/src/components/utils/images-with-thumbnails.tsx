@@ -9,6 +9,7 @@ import Card from 'antd/lib/card/Card';
 import Meta from 'antd/lib/card/Meta';
 import Tooltip from 'antd/lib/tooltip/index';
 import { flushSync } from 'react-dom';
+import PreviewGroup from 'antd/lib/image/PreviewGroup';
 
 export function PlainImage(properties: {
     title: string;
@@ -16,18 +17,34 @@ export function PlainImage(properties: {
     maxHeight?: string;
     isPlain?: boolean;
 }) {
-    return (
+    const image = (
         <Image
             height={'95%'}
             style={{
                 maxHeight: properties.maxHeight ?? '250px',
                 objectFit: 'cover',
                 objectPosition: 'top',
+                border: '1px solid grey',
             }}
             width={'95%'}
             alt={`Image Attached: ${properties.title}`}
             src={properties.url}
         />
+    );
+
+    if (properties.isPlain) {
+        return <>{image}</>;
+    }
+    return (
+        <Card
+            size="small"
+            type="inner"
+            bordered
+            hoverable
+            style={{ margin: '2px', padding: '3px' }}
+        >
+            {image}
+        </Card>
     );
 }
 
@@ -96,6 +113,7 @@ export default function GalleryOfImages(properties: {
     loop?: boolean;
     children: ReactNode[];
     maxWidth?: string;
+    height?: string;
 }): ReactNode {
     const factor = 4.2;
     const [tweenValues, setTweenValues] = useState<number[]>([]);
@@ -148,26 +166,31 @@ export default function GalleryOfImages(properties: {
         <div
             className={carouselStyles.embla}
             ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth }}
+            style={{ maxWidth: properties.maxWidth, height: '100%' }}
         >
             <div
                 className={carouselStyles.container}
-                style={{ flexDirection: 'column', height: '230px' }}
+                style={{
+                    flexDirection: 'column',
+                    maxHeight: properties.height ?? '240px',
+                }}
             >
-                {properties.children.map((child, index) => (
-                    <div
-                        className={carouselStyles.slide}
-                        key={index}
-                        style={{
-                            ...(tweenValues.length && {
-                                opacity: tweenValues[index],
-                            }),
-                            flex: '0 0 50%',
-                        }}
-                    >
-                        {child}
-                    </div>
-                ))}
+                <PreviewGroup>
+                    {properties.children.map((child, index) => (
+                        <div
+                            className={carouselStyles.slide}
+                            key={index}
+                            style={{
+                                ...(tweenValues.length > 0 && {
+                                    opacity: tweenValues[index],
+                                }),
+                                flex: '0 0 50%',
+                            }}
+                        >
+                            {child}
+                        </div>
+                    ))}
+                </PreviewGroup>
             </div>
         </div>
     );

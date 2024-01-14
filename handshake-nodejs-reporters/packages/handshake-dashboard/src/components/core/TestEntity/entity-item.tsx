@@ -1,62 +1,42 @@
 import type {
     Attachment,
     AttachmentContent,
-    SuiteRecordDetails,
+    ErrorRecord,
 } from 'src/types/test-entity-related';
-import { RenderInfo } from 'src/components/utils/renderers';
+import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
 
 import React, { type ReactNode } from 'react';
-import dayjs from 'dayjs';
-
 import Space from 'antd/lib/space';
 import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import Descriptions, {
-    type DescriptionsProps,
-} from 'antd/lib/descriptions/index';
+import Descriptions from 'antd/lib/descriptions/index';
 import Text from 'antd/lib/typography/Text';
 import { Divider, Tag, Tooltip } from 'antd/lib';
 import Avatar from 'antd/lib/avatar/avatar';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import { CardForAImage } from 'src/components/utils/images-with-thumbnails';
-import type { Assertion, AttachedError } from 'src/types/parsed-records';
-import RenderTestType from 'src/components/utils/test-status-dot';
+import type {
+    Assertion,
+    ParsedSuiteRecord,
+    ParsedTestRecord,
+} from 'src/types/parsed-records';
 import { useContext } from 'react';
-import type Convert from 'ansi-to-html';
 import List from 'antd/lib/list';
 import Alert from 'antd/lib/alert/Alert';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
-import {
-    convertForWrittenAttachments,
-    parseAttachment,
-} from 'src/components/parse-utils';
-import MetaCallContext from '../TestRun/context';
-import useSWR from 'swr';
-import {
-    getEntityLevelAttachment,
-    getSuites,
-    getTestRun,
-    getTests,
-    getWrittenAttachments,
-} from 'src/components/scripts/helper';
-import Drawer from 'antd/lib/drawer/index';
-import Tabs from 'antd/lib/tabs/index';
-import type TestRunRecord from 'src/types/test-run-records';
-import type {
-    AttachmentDetails,
-    SuiteDetails,
-    TestDetails,
-} from 'src/types/generated-response';
 import Typography from 'antd/lib/typography/index';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import { RenderDuration } from 'src/components/utils/relative-time';
+import { DetailedContext } from 'src/types/records-in-detailed';
+import GalleryOfImages, {
+    PlainImage,
+} from 'src/components/utils/images-with-thumbnails';
+import Layout, { Content, Header } from 'antd/lib/layout/layout';
+import Sider from 'antd/lib/layout/Sider';
+import RenderTestType from 'src/components/utils/test-status-dot';
 
 export default function EntityItem(properties: {
-    entity: SuiteRecordDetails;
-    started: dayjs.Dayjs;
+    entity: ParsedSuiteRecord | ParsedTestRecord;
     links: Attachment[];
-    firstError?: string;
-    totalErrors?: number;
 }) {
     return (
         <Space
@@ -73,9 +53,9 @@ export default function EntityItem(properties: {
             style={{ width: '100%' }}
         >
             <Space direction="vertical">
-                <Text>{properties.entity.title}</Text>
-                {properties.entity.description ? (
-                    <Paragraph>{properties.entity.description}</Paragraph>
+                <Text>{properties.entity.Title}</Text>
+                {properties.entity.Desc ? (
+                    <Paragraph>{properties.entity.Desc}</Paragraph>
                 ) : (
                     <></>
                 )}
@@ -87,9 +67,7 @@ export default function EntityItem(properties: {
                     color="purple"
                     value={
                         <RenderDuration
-                            value={dayjs.duration({
-                                milliseconds: properties.entity.duration,
-                            })}
+                            value={properties.entity.Duration}
                             style={{ fontStyle: 'italic' }}
                             autoPlay
                         />
@@ -100,9 +78,9 @@ export default function EntityItem(properties: {
                     color="cyan"
                     value={
                         <RelativeTo
-                            dateTime={dayjs(properties.entity.started)}
-                            secondDateTime={dayjs(properties.entity.ended)}
-                            wrt={properties.started}
+                            dateTime={properties.entity.Started[0]}
+                            secondDateTime={properties.entity.Ended[0]}
+                            wrt={properties.entity.Started[1]}
                             autoPlay
                         />
                     }
@@ -135,21 +113,27 @@ export default function EntityItem(properties: {
             ) : (
                 <></>
             )}
-            {properties.firstError ? (
+            {properties.entity.error?.message ? (
                 <Alert
                     type="error"
-                    message={properties.firstError}
+                    message={
+                        <div
+                            dangerouslySetInnerHTML={{
+                                __html: properties.entity.error.message,
+                            }}
+                        />
+                    }
                     showIcon
                     style={{ whiteSpace: 'pretty', wordWrap: 'break-word' }}
                     action={
                         <Tooltip
                             title={`Found ${
-                                properties.totalErrors ?? 1
+                                properties.entity.numberOfErrors ?? 1
                             } errors...`}
                             color="red"
                         >
                             <Button type="dashed" color="red">
-                                {properties.totalErrors ?? 1}
+                                {properties.entity.numberOfErrors ?? 1}
                             </Button>
                         </Tooltip>
                     }
@@ -162,19 +146,15 @@ export default function EntityItem(properties: {
 }
 
 function ErrorMessage(properties: {
-    item: AttachedError;
-    converter: Convert;
+    item: ErrorRecord;
     setTestID: (testID: string) => void;
 }): ReactNode {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
-    const { data: tests } = useSWR<TestDetails>(getTests(port, testID));
-
-    if (tests == undefined || suites == undefined) return <></>;
-
+    const context = useContext(DetailedContext);
+    if (context == undefined) return <></>;
+    const { suites, tests } = context;
     return (
         <List.Item
-            key={properties.item.name}
+            key={properties.item.mailedFrom.at(-1)}
             actions={[
                 properties.item.mailedFrom ? (
                     <Breadcrumb
@@ -192,13 +172,13 @@ function ErrorMessage(properties: {
                                                     : 'pointer',
                                         }}
                                     >
-                                        {(tests[suite] ?? suites[suite]).title}
+                                        {(tests[suite] ?? suites[suite]).Title}
                                     </Typography>
                                 ),
                                 onClick: suites[suite]
                                     ? () => {
                                           properties.setTestID(
-                                              suites[suite].suiteID,
+                                              suites[suite].Id,
                                           );
                                       }
                                     : undefined,
@@ -217,9 +197,7 @@ function ErrorMessage(properties: {
                             <Text>
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: properties.converter.toHtml(
-                                            properties.item.message,
-                                        ),
+                                        __html: properties.item.message,
                                     }}
                                 />
                             </Text>
@@ -228,9 +206,7 @@ function ErrorMessage(properties: {
                             <Text>
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: properties.converter.toHtml(
-                                            properties.item.stack ?? '',
-                                        ),
+                                        __html: properties.item.stack,
                                     }}
                                 />
                             </Text>
@@ -298,7 +274,22 @@ function AssertionComponent(properties: {
     );
 }
 
-export function ListOfErrors(properties: { errors: AttachedError[] }) {
+function SelectedSuiteOrTest(properties: {
+    selected: ParsedSuiteRecord | ParsedTestRecord;
+}): ReactNode {
+    return (
+        <Space>
+            <RenderTestType value={properties.selected.type} />
+            <RenderStatus value={properties.selected.Status} />
+            <Text>{properties.selected.Title}</Text>
+        </Space>
+    );
+}
+
+export function ListOfErrors(properties: {
+    errors: ErrorRecord[];
+    setTestID: (_: string) => void;
+}) {
     return (
         <List
             size="small"
@@ -306,11 +297,7 @@ export function ListOfErrors(properties: { errors: AttachedError[] }) {
             itemLayout="vertical"
             dataSource={properties.errors}
             renderItem={(item) => (
-                <ErrorMessage
-                    setTestID={properties.setTestID}
-                    converter={converter}
-                    item={item}
-                />
+                <ErrorMessage setTestID={properties.setTestID} item={item} />
             )}
             pagination={{ align: 'end' }}
         />
@@ -339,6 +326,83 @@ export function ListOfAssertions(properties: {
                     : undefined
             }
         />
+    );
+}
+
+export function ListOfImages(properties: { entityID: string }) {
+    const context = useContext(DetailedContext);
+    if (context == undefined) return <></>;
+
+    const { tests, images, suites } = context;
+    const relevant = images.filter(
+        (image) =>
+            tests[image.entity_id].Parent == properties.entityID ||
+            image.entity_id === properties.entityID,
+    );
+
+    return (
+        <Layout style={{ overflowY: 'scroll', height: '100%' }}>
+            <Sider
+                theme="light"
+                width={150}
+                style={{
+                    overflowY: 'scroll',
+                    height: '100%',
+                }}
+            >
+                <List
+                    bordered
+                    size="small"
+                    dataSource={relevant}
+                    style={{ overflowY: 'scroll' }}
+                    itemLayout="vertical"
+                    pagination={{ align: 'start' }}
+                    renderItem={(image, index) => {
+                        return (
+                            <PlainImage
+                                url={image.path}
+                                key={index}
+                                title={image.title}
+                                maxHeight={'50px'}
+                                isPlain={true}
+                            />
+                        );
+                    }}
+                />
+            </Sider>
+            <Layout>
+                <Header
+                    style={{
+                        backgroundColor: 'transparent',
+                        height: '40px',
+                        padding: '0px',
+                        lineHeight: '0px',
+                        paddingTop: '6px',
+                        paddingLeft: '9px',
+                    }}
+                >
+                    <SelectedSuiteOrTest
+                        selected={suites[properties.entityID]}
+                    />
+                </Header>
+                <Content style={{ marginLeft: '6px', height: '100%' }}>
+                    {relevant.length > 0 ? (
+                        <GalleryOfImages loop={true} height={'600px'}>
+                            {relevant.map((image, index) => (
+                                <PlainImage
+                                    url={image.path}
+                                    key={index}
+                                    title={image.title}
+                                    isPlain={false}
+                                />
+                            ))}
+                        </GalleryOfImages>
+                    ) : (
+                        <></>
+                    )}
+                </Content>
+            </Layout>
+        </Layout>
     );
 }
 

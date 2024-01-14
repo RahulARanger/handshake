@@ -10,6 +10,7 @@ import type {
     TestRecordDetails,
     ImageRecord,
     AssertionRecord,
+    RetriedRecord,
 } from 'src/types/test-entity-related';
 import { type SuiteRecordDetails } from 'src/types/test-entity-related';
 import type DetailedPageProperties from 'src/types/records-in-detailed';
@@ -18,9 +19,11 @@ import { DetailedContext } from 'src/types/records-in-detailed';
 import {
     parseDetailedTestRun,
     parseImageRecords,
+    parseRetriedRecords,
     parseSuites,
+    parseTests,
 } from 'src/components/parse-utils';
-import { attachmentPrefix, menuTabs } from 'src/types/ui-constants';
+import { menuTabs } from 'src/types/ui-constants';
 import { useRouter } from 'next/router';
 import TestEntities from 'src/components/core/test-entities';
 
@@ -63,6 +66,9 @@ export async function getStaticProps(prepareProperties: {
     );
     const images = await connection.all<ImageRecord[]>('SELECT * FROM IMAGES;');
 
+    const retriedRecords =
+        (await connection.all<RetriedRecord[]>('SELECT * FROM RETRIES;')) ?? [];
+
     await connection.close();
 
     return {
@@ -72,6 +78,7 @@ export async function getStaticProps(prepareProperties: {
             tests,
             assertions,
             images,
+            retriedRecords,
         },
     };
 }
@@ -81,18 +88,20 @@ export default function TestRunResults(
 ): ReactNode {
     const parsedRecords: ValuesInDetailedContext = useMemo(() => {
         const testRun = parseDetailedTestRun(properties.detailsOfTestRun);
+        const suites = parseSuites(
+            properties.suites,
+            testRun.Started[0],
+            testRun.Tests,
+        );
         return {
             detailsOfTestRun: testRun,
             images: parseImageRecords(
                 properties.images,
-                attachmentPrefix,
                 properties.detailsOfTestRun.testID,
             ),
-            suites: parseSuites(
-                properties.suites,
-                testRun.Started[0],
-                testRun.Tests,
-            ),
+            suites,
+            tests: parseTests(properties.tests, suites),
+            retriedRecords: parseRetriedRecords(properties.retriedRecords),
         };
     }, [properties]);
     const router = useRouter();

@@ -1,48 +1,39 @@
-import type { RetriedRecords } from 'src/types/generated-response';
-import type { SuiteRecordDetails } from 'src/types/test-entity-related';
-import { getRetriedRecords } from 'src/components/scripts/helper';
-import MetaCallContext from '../TestRun/context';
 import React, { useContext } from 'react';
 import CaretRightOutlined from '@ant-design/icons/CaretRightOutlined';
 import CaretLeftOutlined from '@ant-design/icons/CaretLeftOutlined';
 import Space from 'antd/lib/space';
 import Button from 'antd/lib/button/button';
-import useSWR from 'swr';
-import type { SuiteDetails } from 'src/types/generated-response';
-import { getSuites } from 'src/components/scripts/helper';
 import RenderTestType from 'src/components/utils/test-status-dot';
 import Text from 'antd/lib/typography/Text';
 import { Badge, Divider, Tooltip } from 'antd/lib';
 import { childBadge, parentBadge, retriedBadge } from './constants';
 import { StaticPercent } from 'src/components/utils/counter';
 import { RenderEntityType } from 'src/components/utils/renderers';
+import { DetailedContext } from 'src/types/records-in-detailed';
+import type { ParsedSuiteRecord } from 'src/types/parsed-records';
 
 export function NavigationButtons(properties: {
-    selectedSuite: SuiteRecordDetails;
+    selectedSuite: ParsedSuiteRecord;
     setTestID: (testID: string) => void;
 }) {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: retriedRecords } = useSWR<RetriedRecords>(
-        getRetriedRecords(port, testID),
-    );
+    const context = useContext(DetailedContext);
+    if (!context) return <></>;
 
+    const { retriedRecords } = context;
     const records = retriedRecords ?? {};
-    const record = records[properties.selectedSuite.suiteID] ?? {
+    const record = records[properties.selectedSuite.Id] ?? {
         tests: [],
         length: 0,
     };
 
-    const index =
-        record?.tests?.indexOf(properties.selectedSuite.suiteID) ?? -1;
+    const previousSuite = record.tests.at(record.key - 1);
+    const nextSuite = record.tests.at(record.key + 1);
 
-    const previousSuite = record.tests.at(index - 1);
-    const nextSuite = record.tests.at(index + 1);
-
-    const hasPreviousRetry = previousSuite != undefined && index > 0;
+    const hasPreviousRetry = previousSuite != undefined && record.key > 0;
     const hasNextRetry = nextSuite != undefined;
     const hasParent =
-        properties.selectedSuite?.parent != undefined &&
-        properties.selectedSuite?.parent != '';
+        properties.selectedSuite.Parent != undefined &&
+        properties.selectedSuite.Parent != '';
 
     return (
         <Space>
@@ -62,7 +53,7 @@ export function NavigationButtons(properties: {
                     type="dashed"
                     size="small"
                     onClick={() =>
-                        properties.setTestID(properties.selectedSuite.parent)
+                        properties.setTestID(properties.selectedSuite.Parent)
                     }
                 >
                     Parent Suite
@@ -84,7 +75,7 @@ export function NavigationButtons(properties: {
 }
 
 export function RightSideOfHeader(properties: {
-    selected: SuiteRecordDetails;
+    selected: ParsedSuiteRecord;
     setTestID: (_: string) => void;
     entityName: string;
     entityVersion: string;
@@ -108,13 +99,12 @@ export function RightSideOfHeader(properties: {
 }
 
 export default function LeftSideOfHeader(properties: { selected?: string }) {
-    const { port, testID } = useContext(MetaCallContext);
-    const { data: suites } = useSWR<SuiteDetails>(getSuites(port, testID));
+    const context = useContext(DetailedContext);
+    if (!context) return <></>;
+    const { suites } = context;
 
-    if (suites == undefined) return <></>;
     const selected = suites[properties?.selected ?? ''];
-
-    const wasRetried = selected?.standing === 'RETRIED';
+    const wasRetried = selected?.Status === 'RETRIED';
 
     return (
         <Space align="baseline">
@@ -134,14 +124,14 @@ export default function LeftSideOfHeader(properties: { selected?: string }) {
             ) : (
                 <></>
             )}
-            <Tooltip title={selected.parent ? childBadge : parentBadge}>
+            <Tooltip title={selected.Parent ? childBadge : parentBadge}>
                 <Badge
-                    count={selected.parent ? 'CHILD' : 'PARENT'}
+                    count={selected.Parent ? 'CHILD' : 'PARENT'}
                     style={{
                         fontWeight: 'bold',
                         color: 'white',
                     }}
-                    color={selected.parent ? 'volcano' : 'geekblue'}
+                    color={selected.Parent ? 'volcano' : 'geekblue'}
                     size="default"
                     title=""
                 />
@@ -149,7 +139,7 @@ export default function LeftSideOfHeader(properties: { selected?: string }) {
             <RenderTestType value="SUITE" />
 
             <Text>
-                {selected.title}
+                {selected.Title}
                 <sub>
                     <Text
                         italic
@@ -159,7 +149,7 @@ export default function LeftSideOfHeader(properties: { selected?: string }) {
                             marginLeft: '5px',
                         }}
                     >
-                        {selected.file}
+                        {selected.File}
                     </Text>
                 </sub>
             </Text>

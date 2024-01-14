@@ -3,11 +3,8 @@ import type { statusOfEntity } from 'src/types/session-records';
 import type { possibleEntityNames } from 'src/types/session-records';
 import { RenderEntityType, RenderStatus } from '../utils/renderers';
 import RenderPassedRate from '../charts/stacked-bar-chart';
-// import TestEntityDrawer from './TestEntity';
-// import ProjectStructure from './TestRun/structure-tab';
-
 import React, { useContext, type ReactNode, useState } from 'react';
-import dayjs, { type Dayjs } from 'dayjs';
+import { type Dayjs } from 'dayjs';
 import Table from 'antd/lib/table/Table';
 import Button from 'antd/lib/button/button';
 import Space from 'antd/lib/space/index';
@@ -23,7 +20,7 @@ import { StaticPercent } from '../utils/counter';
 import { DetailedContext } from 'src/types/records-in-detailed';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
-// import ProjectStructure from './TestRun/structure-tab';
+import TestEntityDrawer from './TestEntity';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -59,21 +56,20 @@ export default function TestEntities(properties: {
     defaultTab: string;
 }): ReactNode {
     const context = useContext(DetailedContext);
-    if (context == undefined) return <></>;
+    const [toShowTestID, setTestID] = useState<string>();
+    const [showEntity, setShowEntity] = useState<boolean>(false);
 
+    if (context == undefined) return <></>;
     const { suites } = context;
 
-    // const [toShowTestID, setTestID] = useState<string>();
-    // const [showEntity, setShowEntity] = useState<boolean>(false);
+    const onClose = (): void => {
+        setShowEntity(false);
+    };
 
-    // const onClose = (): void => {
-    //     setShowEntity(false);
-    // };
-
-    // const helperToSetTestID = (testID: string): void => {
-    //     setTestID(testID);
-    //     setShowEntity(true);
-    // };
+    const helperToSetTestID = (testID: string): void => {
+        setTestID(testID);
+        setShowEntity(true);
+    };
 
     let selectedTab = <></>;
 
@@ -105,11 +101,11 @@ export default function TestEntities(properties: {
                         width={200}
                         fixed="left"
                         filterSearch={true}
-                        render={(value: string) => (
+                        render={(value: string, record: ParsedSuiteRecord) => (
                             <Space>
                                 <Button
                                     type="link"
-                                    // onClick={() => (record.id)}
+                                    onClick={() => helperToSetTestID(record.Id)}
                                     style={{
                                         textAlign: 'left',
                                         padding: '2px',
@@ -229,7 +225,7 @@ export default function TestEntities(properties: {
             break;
         }
         case menuTabs.testEntitiesTab.treeViewMode: {
-            selectedTab = <ProjectStructure />;
+            selectedTab = <ProjectStructure setTestID={helperToSetTestID} />;
             break;
         }
     }
@@ -237,12 +233,12 @@ export default function TestEntities(properties: {
     return (
         <>
             {selectedTab}
-            {/* <TestEntityDrawer
+            <TestEntityDrawer
                 open={showEntity}
                 onClose={onClose}
                 testID={toShowTestID}
                 setTestID={helperToSetTestID}
-            /> */}
+            />
         </>
     );
 }

@@ -186,9 +186,11 @@ export default class TreeMapComponent extends Component<{
         });
     }
 
-    // onDoubleClick(parameters: {data:{id: string; extra?:StatusContext}}){
-
-    // }
+    onDblclick(parameters: { data: { id: string } }) {
+        const isSuite = this.props.suites[parameters?.data?.id];
+        if (!isSuite) return;
+        this.props.onClick(parameters.data.id);
+    }
 
     render(): ReactNode {
         const options: composed = {
@@ -264,6 +266,7 @@ export default class TreeMapComponent extends Component<{
                 style={{ height: '400px', width: '100%' }}
                 onEvents={{
                     mouseover: this.onMouseOver.bind(this),
+                    dblclick: this.onDblclick.bind(this),
                 }}
             />
         );

@@ -78,6 +78,6 @@ from attachmentbase where type = 'DESC' and entity_id in CURRENT_ENTITIES;
 
 -- identifying and listing all the required retried suites
 CREATE TEMP TABLE RETRIES AS 
-	select value as test, tests, length, suite_id from 
+	select key, value as test, tests, length, suite_id from 
   	retriedbase join json_each(tests) where suite_id in CURRENT_ENTITIES;
  

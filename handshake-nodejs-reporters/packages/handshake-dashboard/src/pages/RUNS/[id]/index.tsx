@@ -3,7 +3,7 @@ import LayoutStructureForRunDetails from 'src/components/core/TestRun';
 import React, { useMemo } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import { attachmentPrefix, menuTabs } from 'src/types/ui-constants';
+import { menuTabs } from 'src/types/ui-constants';
 import Overview from 'src/components/core/TestRun/overview-tab';
 import sqlFile from 'src/components/scripts/RunPage/script';
 import type TestRunRecord from 'src/types/test-run-records';
@@ -104,11 +104,7 @@ export async function getStaticProps(prepareProperties: {
             aggResults,
             recentTests,
             recentSuites,
-            randomImages: parseImageRecords(
-                randomImages,
-                testID,
-                process.env.ATTACHMENTS ?? attachmentPrefix,
-            ),
+            randomImages: parseImageRecords(randomImages, testID),
         },
     };
 }
