@@ -17,7 +17,7 @@ jobs:
         exists : ${{ steps.checkTag.outputs.exists }} # str, "false" or "true
 
       steps:
-        - uses: actions/checkout@4
+        - uses: actions/checkout@v4
 
         - name: Release Prep
           id: current
@@ -51,7 +51,7 @@ jobs:
             bash ./.github/scripts/build-sqlite.sh 
 
         - name: Set up Python 3.11
-          uses: actions/setup-python@v3
+          uses: actions/setup-python@v5
           with:
             python-version: "3.11"
 
@@ -84,7 +84,7 @@ jobs:
           run: pytest __test__/test_sanity
 
         - name: Upload Executable
-          uses: actions/upload-artifact@v3
+          uses: actions/upload-artifact@v4
           with:
             name: ${{ matrix.os }}
             path: dist/*
@@ -99,8 +99,8 @@ jobs:
       if: ${{ needs.build.outputs.skipped == 'false' }}
 
       steps:
-        - uses: actions/checkout@v3
-        - uses: actions/download-artifact@v3
+        - uses: actions/checkout@v4
+        - uses: actions/download-artifact@v4
           with:
             path: dist
 
