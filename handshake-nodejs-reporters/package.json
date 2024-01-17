@@ -14,7 +14,7 @@
     "test": "npm run build && turbo run test --concurrency=1 --continue",
     "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "release": "npx changeset publish",
+    "release": "npm run build && npx changeset publish",
     "publish": "turbo run build lint && changeset version && changeset publish",
     "export": "npx handshake export ../TestResults --out ../TestReports",
     "display": "npx handshake display ../TestReports"

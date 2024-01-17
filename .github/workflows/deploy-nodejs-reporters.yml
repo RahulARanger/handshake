@@ -1,9 +1,9 @@
-name: 'deploy-nodejs-reporters'
+name: 'test-workflow-for-deploying-nodejs-reporters'
 
 on:
   push:
     branches:
-      - "nodejs-reporters"
+      - "test-nodejs-reporters"
     paths:
       - '**.js'
       - '**.ts'
@@ -12,6 +12,8 @@ on:
 permissions:
     contents: write
     pull-requests: write
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
     test:
@@ -40,14 +42,6 @@ jobs:
 #          working-directory: ./handshake-nodejs-reporters
 #          run: |
 #            sudo npx handshake export ../TestResults --out ../TestReports
-
-        - name: Release prep
-          working-directory: ./handshake-nodejs-reporters
-          run: | 
-            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
-          env:
-              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
         - name: Create Release Pull Request
           uses: changesets/action@v1
           with:
