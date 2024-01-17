@@ -47,6 +47,7 @@ jobs:
         - uses: actions/checkout@v4
 
         - name: If in ubuntu, Install sqlite3 3.45.0
+          if: ${{ matrix.os == 'ubuntu-latest' }}
           run: |
             bash ./.github/scripts/build-sqlite.sh 
 
