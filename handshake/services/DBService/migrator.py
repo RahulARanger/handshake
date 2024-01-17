@@ -70,6 +70,7 @@ def migrate(connection, db_path=None) -> bool:
         connection.executescript(script.read_text())
     finally:
         if db_path:
+            connection.commit()
             connection.close()
 
     return (version_stored + 1) < DB_VERSION

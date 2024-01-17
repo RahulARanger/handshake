@@ -42,4 +42,4 @@ class TestMigration:
         assert result.returncode == 0
 
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 4
+        assert int(version.value) == 5

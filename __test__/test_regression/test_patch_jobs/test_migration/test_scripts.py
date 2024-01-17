@@ -1,3 +1,5 @@
+import sqlite3
+
 import tortoise
 from handshake.services.DBService.models import (
     ConfigBase,
@@ -23,6 +25,10 @@ async def assertEntityNameType(connection, expected):
 
 
 class TestMigrationScripts:
+    async def test_sqlite_version(self):
+        assert int(sqlite3.sqlite_version_info[0]) >= 3
+        assert int(sqlite3.sqlite_version_info[1]) >= 38
+
     async def test_bump_v3(
         self, get_vth_connection, scripts, sample_test_run, create_session, db_path
     ):

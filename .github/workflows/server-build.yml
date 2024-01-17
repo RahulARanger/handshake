@@ -17,7 +17,7 @@ jobs:
         exists : ${{ steps.checkTag.outputs.exists }} # str, "false" or "true
 
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@4
 
         - name: Release Prep
           id: current
@@ -25,7 +25,7 @@ jobs:
             bash ./.github/scripts/fetch-server-version.sh
 
         - name: Check if release already exists
-          uses: mukunku/tag-exists-action@v1.4.0
+          uses: mukunku/tag-exists-action@v1.5.0
           id: checkTag
           with:
             tag: ${{steps.current.outputs.VERSION}}
@@ -44,7 +44,11 @@ jobs:
           os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
 
       steps:
-        - uses: actions/checkout@v3
+        - uses: actions/checkout@v4
+
+        - name: If in ubuntu, Install sqlite3 3.45.0
+          run: |
+            bash ./.github/scripts/build-sqlite.sh 
 
         - name: Set up Python 3.11
           uses: actions/setup-python@v3
