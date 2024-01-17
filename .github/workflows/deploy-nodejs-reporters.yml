@@ -54,5 +54,5 @@ jobs:
 
         - name: Publish the package if required
           working-directory: ./handshake-nodejs-reporters
-          if: steps.changesets.outputs.published == 'false'
+#          if: steps.changesets.outputs.published == 'false'
           run: npx changeset publish
