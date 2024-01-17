@@ -53,5 +53,6 @@ jobs:
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
         - name: Publish the package if required
-          if: steps.changesets.outputs.published == 'true'
-          run: echo 'published packages'
+          working-directory: ./handshake-nodejs-reporters
+          if: steps.changesets.outputs.published == 'false'
+          run: npx changeset publish
