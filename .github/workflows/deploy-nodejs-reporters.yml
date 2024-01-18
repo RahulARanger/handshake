@@ -14,8 +14,8 @@ permissions:
     pull-requests: write
 
 jobs:
-    deploy:
-      name: Building the Nodejs Reporters and Dashboard
+    deploy-nodejs-reporters:
+      name: build & publish
       runs-on: 'macos-latest'
       permissions: write-all
 
@@ -55,6 +55,7 @@ jobs:
           uses: changesets/action@v1
           id: changesets
           with:
+            cwd: ./handshake-nodejs-reporters
             title: "bump: handshake-nodejs-reporters"
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
