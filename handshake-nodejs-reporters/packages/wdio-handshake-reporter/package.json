@@ -19,7 +19,7 @@
 		"@wdio/types": "^8.28.6",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"common-handshakes": "0.3.8"
+		"common-handshakes": "0.3.7"
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.2",

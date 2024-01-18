@@ -15,8 +15,8 @@ const metaConfig = {
     capabilities: [{
         browserName: 'chrome',
         'goog:chromeOptions': {
-            args: ['headless', 'disable-gpu'],
-        },
+            args: ['headless', 'disable-gpu']
+        }
     }],
     logLevel: 'info',
     // outputDir: './logs',
