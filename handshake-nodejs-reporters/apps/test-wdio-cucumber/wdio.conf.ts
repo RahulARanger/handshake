@@ -62,9 +62,9 @@ const options: Options.Testrunner = {
 	//
 	capabilities: [
 		{
-			browserName: "chrome",
-			"goog:chromeOptions": {
-				args: ["headless", "disable-gpu"],
+			browserName: "msedge",
+			"ms:edgeOptions": {
+				args: ["--headless"],
 			},
 		},
 	],
