@@ -1,5 +1,11 @@
 # handshake
 
+## 0.4.0
+
+### Minor Changes
+
+- 6e6cf4c: reworked on ui for dashboard and added bulk api for attachments
+
 ## 0.3.7
 
 ### Patch Changes
