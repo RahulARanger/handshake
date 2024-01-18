@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.3.8
+
+### Patch Changes
+
+- 1ec91ad: bump server build
+
 ## 0.3.7
 
 ### Patch Changes
