@@ -1,5 +1,16 @@
 # wdio-graspit-reporter
 
+## 0.4.0
+
+### Minor Changes
+
+- 9df34e4: reworked on ui for dashboard and added bulk api for attachments
+
+### Patch Changes
+
+- Updated dependencies [9df34e4]
+  - common-handshakes@0.4.0
+
 ## 0.3.7
 
 ### Patch Changes
