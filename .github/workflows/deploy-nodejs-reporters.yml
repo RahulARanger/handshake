@@ -29,6 +29,8 @@ jobs:
           uses: actions/setup-node@v3
           with:
             node-version: 20.9.0
+            registry-url: "https://registry.npmjs.org"
+
 
         - name: Setup Turbo Repo and conduct sanity test
           working-directory: ./handshake-nodejs-reporters
@@ -51,14 +53,6 @@ jobs:
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-        - name: Publish the package if required
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          working-directory: ./handshake-nodejs-reporters
-#          if: steps.changesets.outputs.published == 'false'
-          run: echo "$NPM_TOKEN"
 
         - name: Publish the package if required
           env:
