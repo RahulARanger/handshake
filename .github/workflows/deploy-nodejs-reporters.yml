@@ -58,4 +58,12 @@ jobs:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           working-directory: ./handshake-nodejs-reporters
 #          if: steps.changesets.outputs.published == 'false'
+          run: echo "$NPM_TOKEN"
+
+        - name: Publish the package if required
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          working-directory: ./handshake-nodejs-reporters
+#          if: steps.changesets.outputs.published == 'false'
           run: npx changeset publish
