@@ -54,13 +54,12 @@ jobs:
         - name: Create Release Pull Request
           uses: changesets/action@v1
           with:
-            cwd: ./handshake-nodejs-reporters
-            publish: npm run release
             title: "bump: handshake-nodejs-reporters"
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-        - name: Publish the package if required
-          if: steps.changesets.outputs.published == 'true'
-          run: echo 'published packages'
+        - name: Publish Packages
+          working-directory: ./handshake-nodejs-reporters
+          if: steps.changesets.outputs.hasChangesets == 'true'
+          run: npm run publish
