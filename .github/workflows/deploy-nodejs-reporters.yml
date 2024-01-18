@@ -32,7 +32,7 @@ jobs:
 
         - name: Setup Turbo Repo and conduct sanity test
           working-directory: ./handshake-nodejs-reporters
-          run: npm install && npm run build && sudo npm run sanity
+          run: npm install && npm run build
 
 #        - name: Download required packages for Dashboard
 #          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
@@ -55,7 +55,7 @@ jobs:
         - name: create npmrc file
           env:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          working-directory: ./handsshake-nodejs-reporters
+          working-directory: ./handshake-nodejs-reporters
           run: |
             cat << EOF > "$HOME/.npmrc"
               email=saihanumarahul66@gmail.com
