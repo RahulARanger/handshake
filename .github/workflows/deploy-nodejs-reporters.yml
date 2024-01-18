@@ -14,17 +14,17 @@ permissions:
     pull-requests: write
 
 jobs:
-    test:
-      name: Testing the Changes made in the Reporters for Nodejs [Client side]
+    deploy:
+      name: Building the Nodejs Reporters and Dashboard
       runs-on: 'macos-latest'
       permissions: write-all
 
       steps:
         - name: Checkout code
-          uses: actions/checkout@v3
+          uses: actions/checkout@v4
 
         - name: Use Node.js
-          uses: actions/setup-node@v3
+          uses: actions/setup-node@v4
           with:
             node-version: 20.9.0
 
@@ -41,12 +41,15 @@ jobs:
 #          run: |
 #            sudo npx handshake export ../TestResults --out ../TestReports
 
-        - name: Release prep
-          working-directory: ./handshake-nodejs-reporters
-          run: | 
-            echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+        - name: Create .npmrc file
           env:
-              NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          working-directory: ./handshake-nodejs-reporters
+          run: |
+              cat << EOF > "$HOME/.npmrc"
+                email=saihanumarahul66@gmail.com
+                //registry.npmjs.org/:_authToken=$NPM_TOKEN
+              EOF
 
         - name: Create Release Pull Request
           uses: changesets/action@v1
