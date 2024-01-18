@@ -29,8 +29,6 @@ jobs:
           uses: actions/setup-node@v3
           with:
             node-version: 20.9.0
-            registry-url: "https://registry.npmjs.org"
-
 
         - name: Setup Turbo Repo and conduct sanity test
           working-directory: ./handshake-nodejs-reporters
@@ -53,6 +51,16 @@ jobs:
           env:
               GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+        - name: create npmrc file
+          env:
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          working-directory: ./handsshake-nodejs-reporters
+          run: |
+            cat << EOF > "$HOME/.npmrc"
+              email=saihanumarahul66@gmail.com
+              //registry.npmjs.org/:_authToken=$NPM_TOKEN
+            EOF
 
         - name: Publish the package if required
           env:
