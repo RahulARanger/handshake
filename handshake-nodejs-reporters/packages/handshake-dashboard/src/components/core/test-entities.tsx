@@ -143,7 +143,7 @@ export default function TestEntities(properties: {
                         ) => (
                             <Badge
                                 count={
-                                    retriedRecords[record.Id]?.length - 1 ?? 0
+                                    (retriedRecords[record.Id]?.length ?? 1) - 1
                                 }
                                 showZero={false}
                                 size="small"
