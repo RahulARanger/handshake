@@ -19,9 +19,7 @@ const withTheme = (node: ReactNode): JSX.Element => {
     };
     return (
         <>
-            <ConfigProvider theme={customTheme} wave={{}}>
-                {node}
-            </ConfigProvider>
+            <ConfigProvider theme={customTheme}>{node}</ConfigProvider>
         </>
     );
 };
