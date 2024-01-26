@@ -79,6 +79,7 @@ export async function getStaticProps(prepareProperties: {
         sessionCount: 0,
         imageCount: 0,
         brokenTests: 0,
+        isRecent: false,
     };
 
     await connection.each<{ key: string; value: number }>(

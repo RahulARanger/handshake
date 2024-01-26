@@ -14,3 +14,5 @@ export const menuTabs = {
 
 export const sourceUrl = 'https://github.com/RahulARanger/handshake';
 export const attachmentPrefix = '/Attachments';
+
+export const showOnly = 'show-only'; // has user-select: 'none'

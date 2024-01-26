@@ -17,7 +17,7 @@ import Typography from 'antd/lib/typography/Typography';
 import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
 import Tabs from 'antd/lib/tabs/index';
-import { Affix } from 'antd/lib';
+import { Affix, Tag } from 'antd/lib';
 import { standingToColors } from 'src/components/charts/constants';
 import Dotted from 'src/styles/dotted.module.css';
 import RenderProgress from 'src/components/utils/progress-rate';
@@ -284,6 +284,16 @@ export default function Overview(): ReactNode {
                         ))}
                     </Space>
                     <Tabs
+                        tabBarExtraContent={
+                            <Space>
+                                {aggResults.isRecent ? (
+                                    <Tag color="blue">Recent Run</Tag>
+                                ) : (
+                                    <></>
+                                )}
+                                {/* <Tag color="red">Bailed</Tag> */}
+                            </Space>
+                        }
                         items={[
                             {
                                 key: 'recent',

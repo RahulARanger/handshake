@@ -5,16 +5,19 @@ import Document, {
     NextScript,
     type DocumentContext,
 } from 'next/document';
-import React, { type ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 
 const MyDocument = (): ReactNode => (
-    <Html lang="en">
-        <Head title="🫱🏾‍🫲🏼 Handshake" />
-        <body>
-            <Main />
-            <NextScript />
-        </body>
-    </Html>
+    <>
+        <Html lang="en">
+            <Head title="🫱🏾‍🫲🏼 Handshake" />
+            <body>
+                <Main />
+                <NextScript />
+            </body>
+        </Html>
+    </>
 );
 
 MyDocument.getInitialProps = async (context: DocumentContext) => {

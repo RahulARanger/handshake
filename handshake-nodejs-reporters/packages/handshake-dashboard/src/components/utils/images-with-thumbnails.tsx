@@ -116,6 +116,7 @@ export default function GalleryOfImages(properties: {
     children: ReactNode[];
     maxWidth?: string;
     height?: string;
+    dragFree?: boolean;
     apiReference?: MutableRefObject<UseEmblaCarouselType[1] | null>;
     sendIndexOnChange?: (_: number) => void;
 }): ReactNode {
@@ -124,19 +125,20 @@ export default function GalleryOfImages(properties: {
             loop: properties.loop,
             align: 'center',
             axis: 'y',
+            dragFree: properties.dragFree ?? true,
         },
         [Autoplay({ stopOnInteraction: true, active: properties.loop })],
     );
 
     if (properties.apiReference) properties.apiReference.current = emblaApi;
 
+    const moveTo = properties?.sendIndexOnChange;
+
     const onSlidesInView = useCallback(
         (emblaApi: UseEmblaCarouselType[1]) => {
-            properties?.sendIndexOnChange!(
-                emblaApi?.slidesInView()?.at(0) ?? 0,
-            ); // 0 -indexed
+            if (moveTo) moveTo(emblaApi?.slidesInView()?.at(0) ?? 0); // 0 -indexed
         },
-        [properties.sendIndexOnChange],
+        [moveTo],
     );
 
     useEffect(() => {
@@ -147,13 +149,14 @@ export default function GalleryOfImages(properties: {
         <div
             className={carouselStyles.embla}
             ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth }}
+            style={{ maxWidth: properties.maxWidth, userSelect: 'none' }}
         >
             <div
                 className={carouselStyles.container}
                 style={{
                     flexDirection: 'column',
                     maxHeight: properties.height ?? '240px',
+                    userSelect: 'none',
                 }}
             >
                 <PreviewGroup>
