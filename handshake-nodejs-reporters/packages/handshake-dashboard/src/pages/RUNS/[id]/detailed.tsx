@@ -108,6 +108,7 @@ export default function TestRunResults(
     const [viewMode, setViewMode] = useState<string>(
         menuTabs.testEntitiesTab.gridViewMode,
     );
+    const [highlight, setHightLight] = useState<string>('');
 
     useEffect(() => {
         if (!router.isReady) return;
@@ -120,8 +121,12 @@ export default function TestRunResults(
             <LayoutStructureForRunDetails
                 activeTab={viewMode}
                 changeDefault={setViewMode}
+                highlight={highlight}
             >
-                <TestEntities defaultTab={viewMode} />
+                <TestEntities
+                    defaultTab={viewMode}
+                    setHightLight={setHightLight}
+                />
             </LayoutStructureForRunDetails>
         </DetailedContext.Provider>
     );

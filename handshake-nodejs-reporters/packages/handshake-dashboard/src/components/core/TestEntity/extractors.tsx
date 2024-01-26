@@ -1,4 +1,4 @@
-import { Badge, Tooltip, type StepProps, type StepsProps } from 'antd/lib';
+import { type StepProps, type StepsProps } from 'antd/lib';
 import type { ErrorRecord } from 'src/types/test-entity-related';
 import Space from 'antd/lib/space/index';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
@@ -8,7 +8,7 @@ import Text from 'antd/lib/typography/Text';
 import Button from 'antd/lib/button/button';
 import type { Dayjs } from 'dayjs';
 import React from 'react';
-import { RenderStatus } from 'src/components/utils/renderers';
+import { RenderTestItem } from 'src/components/utils/renderers';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { TabsProps } from 'antd/lib/tabs/index';
 import EntityItem, {
@@ -31,8 +31,8 @@ import type {
 export function extractNeighborSuite(
     suites: SuiteDetails,
     location: number,
-    returnPrevious: boolean,
-    includeRetried: boolean,
+    returnPrevious?: boolean,
+    includeRetried?: boolean,
 ) {
     if (includeRetried)
         return suites[
@@ -226,9 +226,16 @@ export function attachedTabItems(
             key: imagesTab,
             label: 'Images',
             children: <ListOfImages entityID={id} />,
+            style: {
+                overflow: 'auto',
+                height: '100%',
+                border: '4px solid orangered',
+            },
+            animated: true,
         },
         {
             key: errorsTab,
+            animated: true,
             label: 'Errors',
             children: <ListOfErrors errors={errors} setTestID={setTestID} />,
         },
@@ -237,16 +244,10 @@ export function attachedTabItems(
 
 export function extractDetailedTestEntities(
     source: Array<ParsedSuiteRecord | ParsedTestRecord>,
-    testStartedAt: Dayjs,
     setTestID: (_: string) => void,
 ): CollapseProps['items'] {
     return source.map((test) => {
         const actions = [];
-        // const openDetailedView = (tab: string): void => {
-        //     setShowDetailedView(true);
-        //     setDetailed(parsed.id);
-        //     setTabForDetailed(tab);
-        // };
 
         if (test.type === 'SUITE') {
             actions.push(
@@ -265,39 +266,7 @@ export function extractDetailedTestEntities(
         return {
             key: test.Id,
             label: (
-                <Space align="center" id={test.Id} style={{ width: '100%' }}>
-                    <RenderStatus value={test.Status} />
-                    <Text
-                        ellipsis={{ tooltip: true }}
-                        style={{
-                            maxWidth: 460,
-                            textDecoration:
-                                test.type === 'SUITE' ? 'underline' : undefined,
-                            textDecorationThickness: 0.5,
-                        }}
-                        type={testStatusText(test.Status)}
-                    >
-                        {test.Title}
-                    </Text>
-                    {
-                        // @ts-expect-error we do not have isBroken for test
-                        test.type === 'SUITE' || !test?.isBroken ? (
-                            <></>
-                        ) : (
-                            <Tooltip title="No Assertion under it has failed">
-                                <Badge
-                                    color="yellow"
-                                    count="BROKEN"
-                                    title=""
-                                    style={{
-                                        color: 'black',
-                                        fontWeight: 'bold',
-                                    }}
-                                />
-                            </Tooltip>
-                        )
-                    }
-                </Space>
+                <RenderTestItem record={test} layoutStyle={{ width: '100%' }} />
             ),
             children: <EntityItem entity={test} />,
             extra: <Space>{actions}</Space>,

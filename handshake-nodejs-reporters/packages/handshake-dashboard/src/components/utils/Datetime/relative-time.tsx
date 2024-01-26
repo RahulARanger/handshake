@@ -58,7 +58,7 @@ export default function RelativeTo(properties: {
             className={carouselStyles.embla}
             ref={emblaReference}
             style={{
-                maxWidth: '165px',
+                maxWidth: '167px',
                 cursor: hover ? 'grabbing' : 'grab',
                 ...properties.style,
             }}
@@ -126,8 +126,6 @@ export function HumanizeDuration(properties: {
         emblaApi.on('pointerDown', () => setHover(true));
     }, [setHover, emblaApi]);
 
-    const seconds = properties?.duration?.asSeconds();
-
     return (
         <div
             className={carouselStyles.embla}
@@ -141,16 +139,7 @@ export function HumanizeDuration(properties: {
             }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
-                <Typography
-                    suppressHydrationWarning
-                    className={carouselStyles.slide}
-                >
-                    {seconds === undefined
-                        ? `--`
-                        : `${seconds < 0 ? seconds * 100 : seconds} ${
-                              seconds < 0 ? 'm' : ''
-                          }s`}
-                </Typography>
+                <DurationText duration={properties.duration} />
                 <Typography
                     suppressHydrationWarning
                     className={carouselStyles.slide}
@@ -159,5 +148,18 @@ export function HumanizeDuration(properties: {
                 </Typography>
             </div>
         </div>
+    );
+}
+
+export function DurationText(properties: { duration?: Duration }): ReactNode {
+    const seconds = properties?.duration?.asSeconds();
+    return (
+        <Typography suppressHydrationWarning className={carouselStyles.slide}>
+            {seconds === undefined
+                ? `--`
+                : `${seconds < 0 ? seconds * 100 : seconds} ${
+                      seconds < 0 ? 'm' : ''
+                  }s`}
+        </Typography>
     );
 }

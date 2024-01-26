@@ -5,9 +5,10 @@ import Space from 'antd/lib/space';
 import Collapse from 'antd/lib/collapse/Collapse';
 import Empty from 'antd/lib/empty/index';
 import Drawer from 'antd/lib/drawer/index';
-import LeftSideOfHeader, { RightSideOfHeader } from './header';
+import BadgeLayer, { RightSideOfBoard } from './header';
 import Dotted from 'src/styles/dotted.module.css';
-import RenderProgress from 'src/components/utils/progress-rate';
+import Text from 'antd/lib/typography/Text';
+
 import Steps from 'antd/lib/steps/index';
 import {
     attachedTabItems,
@@ -17,10 +18,16 @@ import {
 } from './extractors';
 import { Divider, Tabs } from 'antd/lib';
 import TestEntitiesBars from 'src/components/charts/test-bars';
-import Layout, { Header } from 'antd/lib/layout/layout';
+import Layout, { Content, Header } from 'antd/lib/layout/layout';
 import { DetailedContext } from 'src/types/records-in-detailed';
 import { PanelGroup, Panel, PanelResizeHandle } from 'react-resizable-panels';
 import PanelResizerStyles from 'src/styles/panelResizer.module.css';
+import Sider from 'antd/lib/layout/Sider';
+import ProgressPieChart from 'src/components/charts/status-pie-chart';
+import Paragraph from 'antd/lib/typography/Paragraph';
+import RelativeTo, {
+    DurationText,
+} from 'src/components/utils/Datetime/relative-time';
 
 export default function TestEntityDrawer(properties: {
     open: boolean;
@@ -59,164 +66,106 @@ export default function TestEntityDrawer(properties: {
 
     const contributed = selectedSuiteDetails.Contribution * 100;
 
-    // const savedAttachments = Object.values(writtenAttachments)
-    //     .flat()
-    //     .filter(
-    //         (attached) =>
-    //             tests[attached.entity_id]?.parent ===
-    //             selectedSuiteDetails.suiteID,
-    //     );
-
     return (
-        <Drawer
-            open={properties.open}
-            onClose={() => {
-                properties.onClose();
-                // closeTimeline();
-            }}
-            // footer={
-            //     tags.length > 0 ? (
-            //         <Space>
-            //             <>Tags:</>
-            //             {tags}
-            //         </Space>
-            //     ) : undefined
-            // }
-            title={
-                <Space style={{ marginBottom: '-5px' }} align="start">
-                    <LeftSideOfHeader selected={properties.testID} />
-                </Space>
-            }
-            size="large"
-            closeIcon={<CloseOutlined style={{ marginTop: '5px' }} />}
-            width={'100%'}
-            extra={
-                <RightSideOfHeader
-                    selected={selectedSuiteDetails}
-                    setTestID={setTestID}
-                    contributed={contributed}
-                    entityName={selectedSuiteDetails.entityName}
-                    entityVersion={selectedSuiteDetails.entityVersion}
-                    simplified={selectedSuiteDetails.simplified}
-                />
-            }
-            styles={{
-                body: { padding: '15px', paddingTop: '10px' },
-            }}
-            classNames={{ body: Dotted.dotted }}
-            className={`${Dotted.dotted} ${Dotted.drawer}`}
-            style={{
-                opacity: 0.96,
-                margin: 0,
-            }}
-        >
-            <Layout
-                style={{
-                    flexGrow: 1,
-                    height: '100%',
-                    padding: '0px',
-                    lineHeight: 0,
-                    backgroundColor: 'transparent',
-                }}
-            >
+        <Layout hasSider>
+            <Layout>
                 <Header
                     style={{
-                        height: '120px',
-                        padding: 0,
-                        margin: 0,
-                        lineHeight: 0,
+                        width: '100%',
+                        height: '50px',
                         backgroundColor: 'transparent',
                     }}
                 >
-                    <Space
-                        direction="horizontal"
-                        align="center"
-                        style={{ width: '100%' }}
-                        size={50}
-                    >
-                        <RenderProgress
-                            passed={selectedSuiteDetails.Rate[0]}
-                            failed={selectedSuiteDetails.Rate[1]}
-                            skipped={selectedSuiteDetails.Rate[2]}
-                        />
-                        <Space direction="vertical">
-                            <Steps
-                                items={stepItemsForSuiteTimeline(
-                                    selectedSuiteDetails.Id,
-                                    suites,
-                                    run.Started[0],
-                                    run.Ended[0],
-                                    properties.setTestID,
-                                )}
-                                size="small"
-                                style={{
-                                    flexGrow: 2,
-                                    width: '100%',
-                                }}
-                            />
-                            <TestEntitiesBars entities={rawSource} />
-                        </Space>
-                    </Space>
-                    <Divider type="horizontal" style={{ marginTop: '6px' }} />
+                    <TestEntitiesBars entities={rawSource} />
                 </Header>
-
-                <Layout
-                    style={{
-                        lineHeight: 0,
-                        padding: 0,
-                        margin: 0,
-                        backgroundColor: 'transparent',
-                    }}
-                >
-                    <PanelGroup direction="horizontal">
-                        <Panel style={{ overflowY: 'auto' }}>
-                            {rawSource.length > 0 ? (
-                                <Collapse
-                                    defaultActiveKey={['Latest Run']}
-                                    bordered
-                                    size="small"
-                                    items={extractDetailedTestEntities(
-                                        rawSource,
-                                        run.Started[0],
-                                        setTestID,
-                                    )}
-                                    style={{
-                                        justifyContent: 'stretch',
-                                    }}
-                                />
-                            ) : (
-                                <Empty
-                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                    description="No Test Entities were found"
-                                    style={{
-                                        alignSelf: 'center',
-                                        overflowY: 'auto',
-                                    }}
-                                />
+                <Content>
+                    <Space
+                        style={{ width: '100%', paddingTop: '6px' }}
+                        direction="vertical"
+                    >
+                        <Divider
+                            type="horizontal"
+                            style={{
+                                width: '100%',
+                                marginBottom: '0px',
+                            }}
+                        >
+                            <BadgeLayer selected={selectedSuiteDetails} />
+                        </Divider>
+                        <Collapse
+                            defaultActiveKey={['Latest Run']}
+                            size="small"
+                            bordered={false}
+                            items={extractDetailedTestEntities(
+                                rawSource,
+                                properties.setTestID,
                             )}
-                        </Panel>
-                        <PanelResizeHandle
-                            className={PanelResizerStyles.panelResizer}
+                            style={{
+                                justifyContent: 'stretch',
+                            }}
                         />
-                        <Panel style={{ marginLeft: '3px' }}>
-                            <Tabs
-                                items={attachedTabItems(
-                                    selectedSuiteDetails.Id,
-                                    selectedSuiteDetails.errors,
-                                    properties.setTestID,
-                                )}
-                                tabPosition="top"
-                                tabBarStyle={{
-                                    zIndex: 3,
-                                    marginBottom: '3px',
-                                }}
-                                size="small"
-                                animated
-                            />
-                        </Panel>
-                    </PanelGroup>
-                </Layout>
+                    </Space>
+                </Content>
             </Layout>
-        </Drawer>
+            <Sider theme="light" width={'400px'} style={{ padding: '6px' }}>
+                <Space
+                    direction="vertical"
+                    style={{ width: '100%' }}
+                    align="center"
+                >
+                    <RightSideOfBoard
+                        contributed={contributed}
+                        selected={selectedSuiteDetails}
+                        setTestID={setTestID}
+                    />
+                    <Divider
+                        type="horizontal"
+                        style={{
+                            width: '360px',
+                            position: 'relative',
+                            top: '-20px',
+                            marginBottom: '0px',
+                        }}
+                    >
+                        <BadgeLayer selected={selectedSuiteDetails} />
+                    </Divider>
+                    <div style={{ width: '350px' }}>
+                        <ProgressPieChart
+                            rate={selectedSuiteDetails.Rate}
+                            fullRound
+                            forceText="Tests"
+                        />
+                    </div>
+                    <Divider
+                        type="horizontal"
+                        style={{
+                            width: '360px',
+                            position: 'relative',
+                            marginBottom: '0px',
+                        }}
+                    >
+                        <Space align="start">
+                            <RelativeTo
+                                dateTime={selectedSuiteDetails.Started[0]}
+                                secondDateTime={selectedSuiteDetails.Ended[0]}
+                                wrt={run.Started[0]}
+                                style={{ fontWeight: 'normal' }}
+                            />
+                            <Text style={{ fontWeight: 'normal' }} italic>
+                                <DurationText
+                                    duration={selectedSuiteDetails.Duration}
+                                />
+                            </Text>
+                        </Space>
+                    </Divider>
+                    <Paragraph
+                        type="secondary"
+                        style={{ paddingLeft: '6px', paddingRight: '6px' }}
+                    >
+                        {selectedSuiteDetails.Desc}
+                    </Paragraph>
+                </Space>
+            </Sider>
+        </Layout>
     );
 }

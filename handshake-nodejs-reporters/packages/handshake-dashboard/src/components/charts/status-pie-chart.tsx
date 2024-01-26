@@ -54,8 +54,10 @@ echarts.use([
 
 export default function ProgressPieChart(properties: {
     rate: [number, number, number];
-    isTestCases: boolean;
-    broken: number;
+    isTestCases?: boolean;
+    broken?: number;
+    fullRound?: boolean;
+    forceText?: string;
 }): ReactNode {
     const [passed, failed, skipped] = properties.rate;
     const data: PieSeriesOption['data'] = [
@@ -101,10 +103,12 @@ export default function ProgressPieChart(properties: {
         },
         series: [
             {
-                name: properties.isTestCases ? 'Tests' : 'Suites',
+                name:
+                    properties.forceText ??
+                    (properties.isTestCases ? 'Tests' : 'Suites'),
                 type: 'pie',
                 top: -15,
-                radius: ['40%', '70%'],
+                radius: properties.fullRound ? ['2%', '70%'] : ['40%', '70%'],
                 avoidLabelOverlap: false,
                 itemStyle: {
                     borderRadius: 5,

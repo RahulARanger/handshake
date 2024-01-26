@@ -13,14 +13,15 @@ import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
 import { timeFormatUsed } from '../utils/Datetime/format';
 import Badge from 'antd/lib/badge/index';
-import { Spin } from 'antd/lib';
+import { Spin, Tabs } from 'antd/lib';
 import { RenderDuration } from '../utils/relative-time';
 import RelativeTo from '../utils/Datetime/relative-time';
 import { StaticPercent } from '../utils/counter';
 import { DetailedContext } from 'src/types/records-in-detailed';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
-import TestEntityDrawer from './TestEntity';
+import DetailedTestEntity from './TestEntity';
+import useEmblaCarousel from 'embla-carousel-react';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -54,6 +55,7 @@ function extractSuiteTree(
 
 export default function TestEntities(properties: {
     defaultTab: string;
+    setHightLight: (_: string) => void;
 }): ReactNode {
     const context = useContext(DetailedContext);
     const [toShowTestID, setTestID] = useState<string>();
@@ -68,6 +70,7 @@ export default function TestEntities(properties: {
 
     const helperToSetTestID = (testID: string): void => {
         setTestID(testID);
+        properties.setHightLight(suites[testID].Title);
         setShowEntity(true);
     };
 
@@ -237,12 +240,28 @@ export default function TestEntities(properties: {
 
     return (
         <>
-            {selectedTab}
-            <TestEntityDrawer
-                open={showEntity}
-                onClose={onClose}
-                testID={toShowTestID}
-                setTestID={helperToSetTestID}
+            <Tabs
+                activeKey={showEntity ? 'detailed' : 'selected'}
+                renderTabBar={() => <></>}
+                items={[
+                    {
+                        key: 'selected',
+                        label: 'selected',
+                        children: selectedTab,
+                    },
+                    {
+                        key: 'detailed',
+                        label: 'detailed',
+                        children: (
+                            <DetailedTestEntity
+                                open={showEntity}
+                                onClose={onClose}
+                                testID={toShowTestID}
+                                setTestID={helperToSetTestID}
+                            />
+                        ),
+                    },
+                ]}
             />
         </>
     );

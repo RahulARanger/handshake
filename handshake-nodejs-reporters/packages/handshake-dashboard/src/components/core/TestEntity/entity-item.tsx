@@ -1,5 +1,5 @@
 import type { ErrorRecord } from 'src/types/test-entity-related';
-import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
+import { RenderInfo } from 'src/components/utils/renderers';
 
 import React, { useRef, useState, type ReactNode } from 'react';
 import Space from 'antd/lib/space';
@@ -21,13 +21,9 @@ import Typography from 'antd/lib/typography/index';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import { DetailedContext } from 'src/types/records-in-detailed';
-import GalleryOfImages, {
-    PlainImage,
-} from 'src/components/utils/images-with-thumbnails';
-import Layout, { Content, Header } from 'antd/lib/layout/layout';
+import { PlainImage } from 'src/components/utils/images-with-thumbnails';
+import Layout from 'antd/lib/layout/layout';
 import Sider from 'antd/lib/layout/Sider';
-import RenderTestType from 'src/components/utils/test-status-dot';
-import InternalPreviewGroup from 'antd/lib/image/PreviewGroup';
 import Ribbon from 'antd/lib/badge/Ribbon';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import type { UseEmblaCarouselType } from 'embla-carousel-react';
@@ -216,33 +212,26 @@ function ErrorMessage(properties: {
     );
 }
 
-function SelectedSuiteOrTest(properties: {
-    selected: ParsedSuiteRecord | ParsedTestRecord;
-}): ReactNode {
-    return (
-        <Space>
-            <RenderTestType value={properties.selected.type} />
-            <RenderStatus value={properties.selected.Status} />
-            <Text>{properties.selected.Title}</Text>
-        </Space>
-    );
-}
-
 export function ListOfErrors(properties: {
     errors: ErrorRecord[];
     setTestID: (_: string) => void;
 }) {
     return (
-        <List
-            size="small"
-            bordered
-            itemLayout="vertical"
-            dataSource={properties.errors}
-            renderItem={(item) => (
-                <ErrorMessage setTestID={properties.setTestID} item={item} />
-            )}
-            pagination={{ align: 'end' }}
-        />
+        <Layout>
+            <List
+                size="small"
+                bordered
+                itemLayout="vertical"
+                dataSource={properties.errors}
+                renderItem={(item) => (
+                    <ErrorMessage
+                        setTestID={properties.setTestID}
+                        item={item}
+                    />
+                )}
+                pagination={{ align: 'end' }}
+            />
+        </Layout>
     );
 }
 
@@ -290,132 +279,99 @@ export function ListOfImages(properties: { entityID: string }) {
     );
 
     return (
-        <Layout style={{ overflow: 'hidden', height: '58vh' }}>
-            <Sider theme="light" width={180}>
-                <InternalPreviewGroup>
-                    <List
-                        bordered
-                        size="small"
-                        dataSource={relevant}
-                        style={{ overflowY: 'scroll', height: '100%' }}
-                        itemLayout="vertical"
-                        pagination={{
-                            align: 'start',
-                            size: 'small',
-                            responsive: true,
-                            current: currentPage,
-                            onChange(page) {
-                                setCurrentPage(page);
-                            },
-                        }}
-                        renderItem={(image, index) => {
-                            return (
-                                <List.Item
-                                    style={{ margin: '2px', padding: '3px' }}
+        <Layout
+            hasSider
+            style={{
+                height: '100%',
+                margin: '.5px',
+                border: '1px solid red',
+                overflowY: 'clip',
+            }}
+        >
+            <Sider
+                theme="light"
+                width={180}
+                style={{
+                    margin: '6px',
+                    height: '100%',
+                    overflowY: 'clip',
+                    border: '1px solid red',
+                }}
+            >
+                <List
+                    bordered
+                    size="small"
+                    dataSource={relevant}
+                    itemLayout="vertical"
+                    style={{ overflow: 'auto' }}
+                    pagination={{
+                        align: 'start',
+                        size: 'small',
+                        responsive: true,
+                        current: currentPage,
+                        onChange(page) {
+                            setCurrentPage(page);
+                        },
+                    }}
+                    renderItem={(image, index) => {
+                        return (
+                            <List.Item
+                                style={{ margin: '2px', padding: '3px' }}
+                            >
+                                <Ribbon
+                                    text={
+                                        currentSlide ===
+                                        (currentPage - 1) * pageSize + index
+                                            ? '➡️'
+                                            : ''
+                                    }
+                                    placement="start"
+                                    color="transparent"
                                 >
                                     <Ribbon
-                                        text={
-                                            currentSlide ===
-                                            (currentPage - 1) * pageSize + index
-                                                ? '➡️'
-                                                : ''
-                                        }
-                                        placement="start"
                                         color="transparent"
-                                    >
-                                        <Ribbon
-                                            color="transparent"
-                                            text={
-                                                <Button
-                                                    size="small"
-                                                    shape="circle"
-                                                    icon={
-                                                        <ExpandAltOutlined
-                                                            size={4}
-                                                            color={'orangered'}
-                                                        />
+                                        text={
+                                            <Button
+                                                size="small"
+                                                shape="circle"
+                                                icon={
+                                                    <ExpandAltOutlined
+                                                        size={4}
+                                                        color={'orangered'}
+                                                    />
+                                                }
+                                                onClick={() => {
+                                                    if (thumbnail.current) {
+                                                        thumbnail.current.scrollTo(
+                                                            (currentPage - 1) *
+                                                                pageSize +
+                                                                index,
+                                                            false,
+                                                        );
                                                     }
-                                                    onClick={() => {
-                                                        if (thumbnail.current) {
-                                                            thumbnail.current.scrollTo(
-                                                                (currentPage -
-                                                                    1) *
-                                                                    pageSize +
-                                                                    index,
-                                                                false,
-                                                            );
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            placement="end"
-                                            style={{
-                                                right: '5px',
-                                            }}
-                                        >
-                                            <PlainImage
-                                                url={image.path}
-                                                key={index}
-                                                title={image.title}
-                                                maxHeight={'200px'}
-                                                isPlain={true}
-                                                id={imageIndex(index)}
+                                                }}
                                             />
-                                        </Ribbon>
+                                        }
+                                        placement="end"
+                                        style={{
+                                            right: '5px',
+                                        }}
+                                    >
+                                        <PlainImage
+                                            url={image.path}
+                                            key={index}
+                                            title={image.title}
+                                            maxHeight={'200px'}
+                                            isPlain={true}
+                                            id={imageIndex(index)}
+                                        />
                                     </Ribbon>
-                                </List.Item>
-                            );
-                        }}
-                    />
-                </InternalPreviewGroup>
-            </Sider>
-            <Layout>
-                <Header
-                    style={{
-                        backgroundColor: 'transparent',
-                        height: '40px',
-                        padding: '0px',
-                        lineHeight: '0px',
-                        paddingTop: '6px',
-                        paddingLeft: '9px',
+                                </Ribbon>
+                            </List.Item>
+                        );
                     }}
-                >
-                    <SelectedSuiteOrTest
-                        selected={suites[properties.entityID]}
-                    />
-                </Header>
-                <Content style={{ marginLeft: '6px' }}>
-                    {relevant.length > 0 ? (
-                        <GalleryOfImages
-                            loop={false}
-                            height={'310px'}
-                            apiReference={thumbnail}
-                            sendIndexOnChange={(index) => {
-                                const page = Math.floor(index / pageSize) + 1;
-                                setCurrentPage(page);
-                                setCurrentSlide(index);
-                                document.querySelector(
-                                    `#${imageIndex(
-                                        index - (page - 1) * pageSize,
-                                    )}`,
-                                )?.scrollIntoView!({ behavior: 'smooth' });
-                            }}
-                        >
-                            {relevant.map((image, index) => (
-                                <PlainImage
-                                    url={image.path}
-                                    key={index}
-                                    title={image.title}
-                                    maxHeight="300px"
-                                    isPlain={false}
-                                />
-                            ))}
-                        </GalleryOfImages>
-                    ) : (
-                        <></>
-                    )}
-                </Content>
-            </Layout>
+                />
+            </Sider>
         </Layout>
     );
 }

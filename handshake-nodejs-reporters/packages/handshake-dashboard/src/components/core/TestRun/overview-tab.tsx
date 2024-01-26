@@ -163,8 +163,8 @@ export default function Overview(): ReactNode {
                         >
                             <Select
                                 key={'switch'}
-                                bordered={false}
                                 style={{ zIndex: 2 }}
+                                variant="borderless"
                                 options={[
                                     {
                                         value: true,

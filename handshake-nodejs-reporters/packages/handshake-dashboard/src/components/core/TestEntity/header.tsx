@@ -11,6 +11,7 @@ import { StaticPercent } from 'src/components/utils/counter';
 import { RenderEntityType } from 'src/components/utils/renderers';
 import { DetailedContext } from 'src/types/records-in-detailed';
 import type { ParsedSuiteRecord } from 'src/types/parsed-records';
+import { extractNeighborSuite } from './extractors';
 
 export function NavigationButtons(properties: {
     selectedSuite: ParsedSuiteRecord;
@@ -19,76 +20,72 @@ export function NavigationButtons(properties: {
     const context = useContext(DetailedContext);
     if (!context) return <></>;
 
-    const { retriedRecords } = context;
-    const records = retriedRecords ?? {};
-    const record = records[properties.selectedSuite.Id] ?? {
-        tests: [],
-        length: 0,
-    };
+    const { suites } = context;
 
-    const previousSuite = record.tests.at(record.key - 1);
-    const nextSuite = record.tests.at(record.key + 1);
+    const current = suites['@order'].indexOf(properties.selectedSuite.Id);
+    const previousSuite = extractNeighborSuite(suites, current, true);
+    const nextSuite = extractNeighborSuite(suites, current, false);
 
-    const hasPreviousRetry = previousSuite != undefined && record.key > 0;
-    const hasNextRetry = nextSuite != undefined;
+    const hasPrevious = previousSuite != undefined;
+    const hasNext = nextSuite != undefined;
     const hasParent =
         properties.selectedSuite.Parent != undefined &&
         properties.selectedSuite.Parent != '';
 
     return (
         <Space>
-            <Tooltip title="Previous Retry">
+            <Tooltip title="Previous Suite">
                 <Button
                     size="small"
                     icon={<CaretLeftOutlined />}
-                    disabled={!hasPreviousRetry}
-                    title={hasPreviousRetry ? 'Prev Retry' : 'No Retries Found'}
+                    disabled={!hasPrevious}
+                    title={hasPrevious ? 'Prev Retry' : 'No Retries Found'}
                     onClick={() =>
-                        properties.setTestID(previousSuite as string)
+                        properties.setTestID(previousSuite?.Id as string)
                     }
                 />
             </Tooltip>
-            {hasParent ? (
-                <Button
-                    type="dashed"
-                    size="small"
-                    onClick={() =>
-                        properties.setTestID(properties.selectedSuite.Parent)
-                    }
-                >
-                    Parent Suite
-                </Button>
-            ) : (
-                <></>
-            )}
-            <Tooltip title="Next Retry">
+            <Button
+                size="small"
+                onClick={() =>
+                    properties.setTestID(properties.selectedSuite.Parent)
+                }
+                disabled={!hasParent}
+            >
+                Parent Suite
+            </Button>
+            <Tooltip title="Next Suite">
                 <Button
                     size="small"
-                    disabled={!hasNextRetry}
+                    disabled={!hasNext}
                     icon={<CaretRightOutlined />}
-                    title={hasNextRetry ? 'Next Retry' : 'No Entities found'}
-                    onClick={() => properties.setTestID(nextSuite as string)}
+                    title={hasNext ? 'Next Retry' : 'No Entities found'}
+                    onClick={() =>
+                        properties.setTestID(nextSuite?.Id as string)
+                    }
                 />
             </Tooltip>
         </Space>
     );
 }
 
-export function RightSideOfHeader(properties: {
+export function RightSideOfBoard(properties: {
     selected: ParsedSuiteRecord;
     setTestID: (_: string) => void;
-    entityName: string;
-    entityVersion: string;
-    simplified: string;
     contributed: number;
 }) {
     return (
-        <Space split={<Divider type="vertical" />}>
-            <StaticPercent percent={properties.contributed} />
+        <Space
+            split={<Divider type="vertical" />}
+            style={{ paddingTop: '5px', paddingBottom: '5px' }}
+        >
+            <Text>
+                Contributed: <StaticPercent percent={properties.contributed} />
+            </Text>
             <RenderEntityType
-                entityName={properties.entityName}
-                simplified={properties.simplified}
-                entityVersion={properties.entityVersion}
+                entityName={properties.selected.entityName}
+                simplified={properties.selected.simplified}
+                entityVersion={properties.selected.entityVersion}
             />
             <NavigationButtons
                 selectedSuite={properties.selected}
@@ -98,12 +95,10 @@ export function RightSideOfHeader(properties: {
     );
 }
 
-export default function LeftSideOfHeader(properties: { selected?: string }) {
-    const context = useContext(DetailedContext);
-    if (!context) return <></>;
-    const { suites } = context;
-
-    const selected = suites[properties?.selected ?? ''];
+export default function BadgeLayer(properties: {
+    selected: ParsedSuiteRecord;
+}) {
+    const selected = properties.selected;
     const wasRetried = selected?.Status === 'RETRIED';
 
     return (
@@ -137,22 +132,6 @@ export default function LeftSideOfHeader(properties: { selected?: string }) {
                 />
             </Tooltip>
             <RenderTestType value="SUITE" />
-
-            <Text>
-                {selected.Title}
-                <sub>
-                    <Text
-                        italic
-                        style={{
-                            fontSize: '10px',
-                            fontWeight: 'lighter',
-                            marginLeft: '5px',
-                        }}
-                    >
-                        {selected.File}
-                    </Text>
-                </sub>
-            </Text>
         </Space>
     );
 }
