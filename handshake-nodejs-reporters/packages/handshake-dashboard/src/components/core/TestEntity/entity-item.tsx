@@ -1,5 +1,5 @@
 import type { ErrorRecord } from 'src/types/test-entity-related';
-import { RenderInfo } from 'src/components/utils/renderers';
+import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
 
 import React, { useRef, useState, type ReactNode } from 'react';
 import Space from 'antd/lib/space';
@@ -7,9 +7,9 @@ import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
 // import Descriptions from 'antd/lib/descriptions/index';
 import Text from 'antd/lib/typography/Text';
-import { Divider, Tooltip } from 'antd/lib';
+import type { CollapseProps } from 'antd/lib';
+import { Collapse, Divider, Tag, Tooltip } from 'antd/lib';
 // import Avatar from 'antd/lib/avatar/avatar';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import type {
     ParsedSuiteRecord,
     ParsedTestRecord,
@@ -27,211 +27,164 @@ import Sider from 'antd/lib/layout/Sider';
 import Ribbon from 'antd/lib/badge/Ribbon';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import type { UseEmblaCarouselType } from 'embla-carousel-react';
+import type { Dayjs } from 'dayjs';
+import { DurationLayer } from './header';
 
 export default function EntityItem(properties: {
     entity: ParsedSuiteRecord | ParsedTestRecord;
+    setTestID: (_: string) => void;
+    testStartedAt: Dayjs;
     // links: Attachment[];
 }) {
+    const items: CollapseProps['items'] = [];
+
+    properties.entity.errors.length > 0 &&
+        items.push({
+            key: 'errors',
+            label: 'Errors',
+            children: (
+                <ListOfErrors
+                    errors={properties.entity.errors}
+                    setTestID={properties.setTestID}
+                    ghost
+                />
+            ),
+        });
+
     return (
         <Space
             direction="vertical"
-            split={
-                <Divider
-                    style={{
-                        padding: 0,
-                        margin: 0,
-                        marginTop: '3px',
-                    }}
-                />
-            }
-            style={{ width: '100%' }}
+            style={{
+                width: '100%',
+            }}
         >
-            <Space direction="vertical">
+            <DurationLayer
+                selected={properties.entity}
+                wrt={properties.testStartedAt}
+                offsetTop={5}
+            />
+            <Space
+                direction="vertical"
+                style={{
+                    paddingLeft: '20px',
+                    top: -10,
+                    position: 'relative',
+                }}
+                size="small"
+            >
                 <Text>{properties.entity.Title}</Text>
                 {properties.entity.Desc ? (
-                    <Paragraph>{properties.entity.Desc}</Paragraph>
+                    <Paragraph type="secondary">
+                        {properties.entity.Desc}
+                    </Paragraph>
+                ) : (
+                    <></>
+                )}
+                {properties.entity.Status != 'SKIPPED' &&
+                properties.entity.errors.length === 0 ? (
+                    <Tag color="green">No Errors Found</Tag>
                 ) : (
                     <></>
                 )}
             </Space>
-
-            <Space>
-                <RenderInfo
-                    itemKey="Duration"
-                    color="purple"
-                    value={
-                        <RenderDuration
-                            value={properties.entity.Duration}
-                            style={{ fontStyle: 'italic' }}
-                            autoPlay
-                        />
-                    }
-                />
-                <RenderInfo
-                    itemKey="Range"
-                    color="cyan"
-                    value={
-                        <RelativeTo
-                            dateTime={properties.entity.Started[0]}
-                            secondDateTime={properties.entity.Ended[0]}
-                            wrt={properties.entity.Started[1]}
-                            autoPlay
-                        />
-                    }
-                />
-            </Space>
-            {/* {properties.links?.length > 0 ? (
-                <Space wrap>
-                    {properties.links?.map((link) => {
-                        const value: AttachmentContent = JSON.parse(
-                            link.attachmentValue,
-                        );
-                        return (
-                            <Tag
-                                key={link.entity_id}
-                                icon={
-                                    <Avatar
-                                        size="small"
-                                        style={{ padding: '3px' }}
-                                        src={`http://www.google.com/s2/favicons?domain=${value.value}`}
-                                    />
-                                }
-                            >
-                                <Button href={value.value} type="link">
-                                    {value.title}
-                                </Button>
-                            </Tag>
-                        );
-                    })}
-                </Space>
-            ) : (
-                <></>
-            )} */}
-            {properties.entity.error?.message ? (
-                <Alert
-                    type="error"
-                    message={
-                        <div
-                            dangerouslySetInnerHTML={{
-                                __html: properties.entity.error.message,
-                            }}
-                        />
-                    }
-                    showIcon
-                    style={{ whiteSpace: 'pretty', wordWrap: 'break-word' }}
-                    action={
-                        <Tooltip
-                            title={`Found ${
-                                properties.entity.numberOfErrors ?? 1
-                            } errors...`}
-                            color="red"
-                        >
-                            <Button type="dashed" color="red">
-                                {properties.entity.numberOfErrors ?? 1}
-                            </Button>
-                        </Tooltip>
-                    }
-                />
-            ) : (
-                <></>
-            )}
+            <Collapse bordered items={items} ghost />
         </Space>
-    );
-}
-
-function ErrorMessage(properties: {
-    item: ErrorRecord;
-    setTestID: (testID: string) => void;
-}): ReactNode {
-    const context = useContext(DetailedContext);
-    if (context == undefined) return <></>;
-    const { suites, tests } = context;
-    return (
-        <List.Item
-            key={properties.item.mailedFrom.at(-1)}
-            actions={[
-                properties.item.mailedFrom ? (
-                    <Breadcrumb
-                        items={properties.item.mailedFrom
-                            .toReversed()
-                            .map((suite) => ({
-                                key: suite,
-                                title: (
-                                    <Typography
-                                        style={{
-                                            fontStyle: 'italic',
-                                            cursor:
-                                                suites[suite] == undefined
-                                                    ? undefined
-                                                    : 'pointer',
-                                        }}
-                                    >
-                                        {(tests[suite] ?? suites[suite]).Title}
-                                    </Typography>
-                                ),
-                                onClick: suites[suite]
-                                    ? () => {
-                                          properties.setTestID(
-                                              suites[suite].Id,
-                                          );
-                                      }
-                                    : undefined,
-                            }))}
-                    />
-                ) : (
-                    <></>
-                ),
-            ]}
-        >
-            <List.Item.Meta
-                description={
-                    <Alert
-                        type="error"
-                        message={
-                            <Text>
-                                <div
-                                    dangerouslySetInnerHTML={{
-                                        __html: properties.item.message,
-                                    }}
-                                />
-                            </Text>
-                        }
-                        description={
-                            <Text>
-                                <div
-                                    dangerouslySetInnerHTML={{
-                                        __html: properties.item.stack,
-                                    }}
-                                />
-                            </Text>
-                        }
-                    />
-                }
-            />
-        </List.Item>
     );
 }
 
 export function ListOfErrors(properties: {
     errors: ErrorRecord[];
-    setTestID: (_: string) => void;
+    ghost?: boolean;
+    setTestID?: (_: string) => void;
 }) {
+    const context = useContext(DetailedContext);
+    if (context == undefined) return <></>;
+    const { tests, suites } = context;
+
     return (
-        <Layout>
-            <List
-                size="small"
-                bordered
-                itemLayout="vertical"
-                dataSource={properties.errors}
-                renderItem={(item) => (
-                    <ErrorMessage
-                        setTestID={properties.setTestID}
-                        item={item}
+        <Collapse
+            size="small"
+            ghost={properties.ghost}
+            expandIconPosition="right"
+            style={{ backgroundColor: 'transparent' }}
+            items={properties.errors.map((error, index) => ({
+                key: error?.mailedFrom?.at(-1) ?? index,
+                showArrow: false,
+                label: (
+                    <Alert
+                        type="error"
+                        message={
+                            <Text style={{ fontSize: '0.8rem' }}>
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: error.message,
+                                    }}
+                                />
+                            </Text>
+                        }
                     />
-                )}
-                pagination={{ align: 'end' }}
-            />
-        </Layout>
+                ),
+                children: (
+                    <Alert
+                        type="error"
+                        message={
+                            <Space direction="vertical">
+                                <Paragraph>
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: error.stack,
+                                        }}
+                                    />
+                                </Paragraph>
+                                {error.mailedFrom &&
+                                error.mailedFrom?.length > 0 ? (
+                                    <Breadcrumb
+                                        items={error.mailedFrom
+                                            .toReversed()
+                                            .map((suite) => ({
+                                                key: suite,
+                                                title: (
+                                                    <Text
+                                                        type="secondary"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {
+                                                            (
+                                                                tests[suite] ??
+                                                                suites[suite]
+                                                            ).Title
+                                                        }
+                                                    </Text>
+                                                ),
+                                                onClick: suites[suite]
+                                                    ? () => {
+                                                          properties.setTestID &&
+                                                              properties.setTestID(
+                                                                  suites[suite]
+                                                                      .Id ??
+                                                                      suites[
+                                                                          tests[
+                                                                              suite
+                                                                          ]
+                                                                              .Parent
+                                                                      ].Id,
+                                                              );
+                                                      }
+                                                    : undefined,
+                                            }))}
+                                    />
+                                ) : (
+                                    <></>
+                                )}
+                            </Space>
+                        }
+                    />
+                ),
+                style: { backgroundColor: 'transparent' },
+            }))}
+        />
     );
 }
 

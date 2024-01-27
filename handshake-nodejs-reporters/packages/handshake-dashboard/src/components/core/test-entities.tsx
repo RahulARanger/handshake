@@ -21,7 +21,6 @@ import { DetailedContext } from 'src/types/records-in-detailed';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';
-import useEmblaCarousel from 'embla-carousel-react';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -260,6 +259,12 @@ export default function TestEntities(properties: {
                                 setTestID={helperToSetTestID}
                             />
                         ),
+                        style: {
+                            height: '89vh',
+                            overflow: 'clip',
+                            minHeight: '500px',
+                            paddingBottom: '3px',
+                        },
                     },
                 ]}
             />

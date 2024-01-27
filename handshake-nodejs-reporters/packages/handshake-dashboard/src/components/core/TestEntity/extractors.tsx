@@ -245,6 +245,7 @@ export function attachedTabItems(
 export function extractDetailedTestEntities(
     source: Array<ParsedSuiteRecord | ParsedTestRecord>,
     setTestID: (_: string) => void,
+    testStartedAt: Dayjs,
 ): CollapseProps['items'] {
     return source.map((test) => {
         const actions = [];
@@ -268,7 +269,13 @@ export function extractDetailedTestEntities(
             label: (
                 <RenderTestItem record={test} layoutStyle={{ width: '100%' }} />
             ),
-            children: <EntityItem entity={test} />,
+            children: (
+                <EntityItem
+                    entity={test}
+                    setTestID={setTestID}
+                    testStartedAt={testStartedAt}
+                />
+            ),
             extra: <Space>{actions}</Space>,
         };
     });

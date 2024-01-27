@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import React, { useContext } from 'react';
 import CaretRightOutlined from '@ant-design/icons/CaretRightOutlined';
 import CaretLeftOutlined from '@ant-design/icons/CaretLeftOutlined';
@@ -10,8 +11,15 @@ import { childBadge, parentBadge, retriedBadge } from './constants';
 import { StaticPercent } from 'src/components/utils/counter';
 import { RenderEntityType } from 'src/components/utils/renderers';
 import { DetailedContext } from 'src/types/records-in-detailed';
-import type { ParsedSuiteRecord } from 'src/types/parsed-records';
+import type {
+    ParsedSuiteRecord,
+    ParsedTestRecord,
+} from 'src/types/parsed-records';
 import { extractNeighborSuite } from './extractors';
+import RelativeTo, {
+    DurationText,
+} from 'src/components/utils/Datetime/relative-time';
+import type { Dayjs } from 'dayjs';
 
 export function NavigationButtons(properties: {
     selectedSuite: ParsedSuiteRecord;
@@ -133,5 +141,35 @@ export default function BadgeLayer(properties: {
             </Tooltip>
             <RenderTestType value="SUITE" />
         </Space>
+    );
+}
+
+export function DurationLayer(properties: {
+    selected: ParsedSuiteRecord | ParsedTestRecord;
+    wrt: Dayjs;
+    offsetTop: number;
+}): ReactNode {
+    return (
+        <Divider
+            type="horizontal"
+            style={{
+                width: '360px',
+                position: 'relative',
+                marginBottom: '0px',
+                marginTop: '0px',
+                top: -properties.offsetTop,
+            }}
+        >
+            <Space align="start" style={{ fontWeight: 'normal' }}>
+                <RelativeTo
+                    dateTime={properties.selected.Started[0]}
+                    secondDateTime={properties.selected.Ended[0]}
+                    wrt={properties.wrt}
+                />
+                <Text italic>
+                    <DurationText duration={properties.selected.Duration} />
+                </Text>
+            </Space>
+        </Divider>
     );
 }

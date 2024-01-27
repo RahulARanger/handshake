@@ -1,7 +1,11 @@
 import type { Dayjs } from 'dayjs';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { Duration } from 'dayjs/plugin/duration';
-import type { ErrorRecord, SimpleSuiteDetails } from './test-entity-related';
+import type {
+    ErrorRecord,
+    SimpleSuiteDetails,
+    Tag,
+} from './test-entity-related';
 import type { specNode } from './test-run-records';
 
 export default interface BasicDetails {
@@ -34,6 +38,7 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     entityVersion: string;
     simplified: string;
     hooks: number;
+    Tags: Tag[];
 }
 
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {

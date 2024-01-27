@@ -101,6 +101,7 @@ export function parseSuites(
             type: suite.suiteType,
             Tests: suite.tests,
             Desc: suite.description,
+            Tags: JSON.parse(suite.tags ?? '{}'),
         };
     }
     return parsedRecords;

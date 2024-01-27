@@ -99,6 +99,7 @@ export default function TestEntitiesBars(properties: {
             option={options}
             style={{
                 height: '40px',
+                flexGrow: 1,
                 width:
                     properties.entities.length < 15
                         ? `${100 + (50 * properties.entities.length) / 3}px`

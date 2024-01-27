@@ -82,5 +82,5 @@ export interface ImageRecord {
 export interface ErrorRecord {
     message: string;
     stack: string;
-    mailedFrom: string[];
+    mailedFrom?: string[];
 }
