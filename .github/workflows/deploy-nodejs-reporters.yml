@@ -1,7 +1,6 @@
 name: 'deploy-nodejs-reporters'
 
 on:
-  workflow_dispatch:
   push:
     branches:
       - "nodejs-reporters"
