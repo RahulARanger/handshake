@@ -21,7 +21,7 @@
 		"@wdio/local-runner": "^8.29.2",
 		"@wdio/spec-reporter": "^8.29.1",
 		"@wdio/static-server-service": "^8.29.1",
-		"handshake-utils": "0.4.0",
+		"handshake-utils": "0.4.1",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7"
 	},

@@ -1,6 +1,6 @@
 {
     "name": "handshake-dashboard",
-    "version": "0.4.0",
+    "version": "0.4.1",
     "license": "MIT",
     "scripts": {
         "dev": "next dev",
@@ -46,7 +46,7 @@
         "eslint-plugin-react": "^7.33.2",
         "eslint-plugin-react-hooks": "^4.6.0",
         "eslint-plugin-unicorn": "^50.0.1",
-        "handshake-utils": "0.4.0",
+        "handshake-utils": "0.4.1",
         "prettier": "^3.2.4",
         "ts-node": "^10.9.2"
     }
