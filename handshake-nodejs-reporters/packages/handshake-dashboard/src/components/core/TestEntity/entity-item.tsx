@@ -1,426 +1,277 @@
-import type { ErrorRecord } from 'src/types/test-entity-related';
-import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
-
-import React, { useRef, useState, type ReactNode } from 'react';
+import type { Assertion, ErrorRecord } from 'src/types/test-entity-related';
+import React from 'react';
 import Space from 'antd/lib/space';
-import Button from 'antd/lib/button/button';
 import Paragraph from 'antd/lib/typography/Paragraph';
-// import Descriptions from 'antd/lib/descriptions/index';
 import Text from 'antd/lib/typography/Text';
-import { Divider, Tooltip } from 'antd/lib';
-// import Avatar from 'antd/lib/avatar/avatar';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import type { CollapseProps } from 'antd/lib';
+import { Collapse, Tag, Tooltip } from 'antd/lib';
 import type {
     ParsedSuiteRecord,
     ParsedTestRecord,
 } from 'src/types/parsed-records';
 import { useContext } from 'react';
-import List from 'antd/lib/list';
 import Alert from 'antd/lib/alert/Alert';
-import Typography from 'antd/lib/typography/index';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import { RenderDuration } from 'src/components/utils/relative-time';
 import { DetailedContext } from 'src/types/records-in-detailed';
-import GalleryOfImages, {
+import {
+    GalleryOfImagesLeftToRight,
     PlainImage,
 } from 'src/components/utils/images-with-thumbnails';
-import Layout, { Content, Header } from 'antd/lib/layout/layout';
-import Sider from 'antd/lib/layout/Sider';
-import RenderTestType from 'src/components/utils/test-status-dot';
-import InternalPreviewGroup from 'antd/lib/image/PreviewGroup';
-import Ribbon from 'antd/lib/badge/Ribbon';
-import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
-import type { UseEmblaCarouselType } from 'embla-carousel-react';
+import type { Dayjs } from 'dayjs';
+import { DurationLayer } from './header';
+import Counter from 'src/components/utils/counter';
 
 export default function EntityItem(properties: {
     entity: ParsedSuiteRecord | ParsedTestRecord;
-    // links: Attachment[];
+    setTestID: (_: string) => void;
+    testStartedAt: Dayjs;
 }) {
+    const items: CollapseProps['items'] = [];
+
+    properties.entity.errors.length > 0 &&
+        items.push({
+            key: 'errors',
+            label: 'Errors',
+            extra: (
+                <Tooltip title="Total Errors" color="red">
+                    <Counter end={properties.entity.errors.length} />
+                </Tooltip>
+            ),
+            children: (
+                <GroupedErrors
+                    errors={properties.entity.errors}
+                    setTestID={properties.setTestID}
+                    ghost
+                />
+            ),
+        });
+
+    const forTestEntity = properties.entity as ParsedTestRecord;
+
+    forTestEntity.Images?.length > 0 &&
+        items.push({
+            key: 'images',
+            label: 'Images',
+            extra: (
+                <Tooltip title="Total Images" color="orange">
+                    <Counter end={forTestEntity.Images.length} />
+                </Tooltip>
+            ),
+            children: (
+                <GalleryOfImagesLeftToRight>
+                    {forTestEntity.Images.map((image) => (
+                        <PlainImage
+                            url={image.path}
+                            title={image.title}
+                            key={image.entity_id}
+                            desc={image.description}
+                        />
+                    ))}
+                </GalleryOfImagesLeftToRight>
+            ),
+        });
+
+    forTestEntity.Assertions?.length > 0 &&
+        items.push({
+            key: 'assertions',
+            label: 'Assertions',
+            extra: (
+                <Tooltip title="Total Assertions" color="orange">
+                    <Counter end={forTestEntity.Assertions.length} />
+                </Tooltip>
+            ),
+            children: (
+                <GroupedAssertions
+                    assertions={forTestEntity.Assertions}
+                    ghost
+                />
+            ),
+        });
+
     return (
         <Space
             direction="vertical"
-            split={
-                <Divider
-                    style={{
-                        padding: 0,
-                        margin: 0,
-                        marginTop: '3px',
-                    }}
-                />
-            }
-            style={{ width: '100%' }}
+            style={{
+                width: '100%',
+            }}
         >
-            <Space direction="vertical">
+            <DurationLayer
+                selected={properties.entity}
+                wrt={properties.testStartedAt}
+                offsetTop={5}
+            />
+            <Space
+                direction="vertical"
+                style={{
+                    paddingLeft: '20px',
+                    top: -10,
+                    position: 'relative',
+                }}
+                size="small"
+            >
                 <Text>{properties.entity.Title}</Text>
                 {properties.entity.Desc ? (
-                    <Paragraph>{properties.entity.Desc}</Paragraph>
+                    <Paragraph type="secondary">
+                        {properties.entity.Desc}
+                    </Paragraph>
+                ) : (
+                    <></>
+                )}
+                {properties.entity.Status != 'SKIPPED' &&
+                properties.entity.errors.length === 0 ? (
+                    <Tag color="green">No Errors Found</Tag>
                 ) : (
                     <></>
                 )}
             </Space>
-
-            <Space>
-                <RenderInfo
-                    itemKey="Duration"
-                    color="purple"
-                    value={
-                        <RenderDuration
-                            value={properties.entity.Duration}
-                            style={{ fontStyle: 'italic' }}
-                            autoPlay
-                        />
-                    }
-                />
-                <RenderInfo
-                    itemKey="Range"
-                    color="cyan"
-                    value={
-                        <RelativeTo
-                            dateTime={properties.entity.Started[0]}
-                            secondDateTime={properties.entity.Ended[0]}
-                            wrt={properties.entity.Started[1]}
-                            autoPlay
-                        />
-                    }
-                />
-            </Space>
-            {/* {properties.links?.length > 0 ? (
-                <Space wrap>
-                    {properties.links?.map((link) => {
-                        const value: AttachmentContent = JSON.parse(
-                            link.attachmentValue,
-                        );
-                        return (
-                            <Tag
-                                key={link.entity_id}
-                                icon={
-                                    <Avatar
-                                        size="small"
-                                        style={{ padding: '3px' }}
-                                        src={`http://www.google.com/s2/favicons?domain=${value.value}`}
-                                    />
-                                }
-                            >
-                                <Button href={value.value} type="link">
-                                    {value.title}
-                                </Button>
-                            </Tag>
-                        );
-                    })}
-                </Space>
-            ) : (
-                <></>
-            )} */}
-            {properties.entity.error?.message ? (
-                <Alert
-                    type="error"
-                    message={
-                        <div
-                            dangerouslySetInnerHTML={{
-                                __html: properties.entity.error.message,
-                            }}
-                        />
-                    }
-                    showIcon
-                    style={{ whiteSpace: 'pretty', wordWrap: 'break-word' }}
-                    action={
-                        <Tooltip
-                            title={`Found ${
-                                properties.entity.numberOfErrors ?? 1
-                            } errors...`}
-                            color="red"
-                        >
-                            <Button type="dashed" color="red">
-                                {properties.entity.numberOfErrors ?? 1}
-                            </Button>
-                        </Tooltip>
-                    }
-                />
-            ) : (
-                <></>
-            )}
+            <Collapse bordered items={items} ghost />
         </Space>
     );
 }
 
-function ErrorMessage(properties: {
-    item: ErrorRecord;
-    setTestID: (testID: string) => void;
-}): ReactNode {
+export function GroupedErrors(properties: {
+    errors: ErrorRecord[];
+    ghost?: boolean;
+    setTestID?: (_: string) => void;
+}) {
     const context = useContext(DetailedContext);
     if (context == undefined) return <></>;
-    const { suites, tests } = context;
+    const { tests, suites } = context;
+
     return (
-        <List.Item
-            key={properties.item.mailedFrom.at(-1)}
-            actions={[
-                properties.item.mailedFrom ? (
-                    <Breadcrumb
-                        items={properties.item.mailedFrom
-                            .toReversed()
-                            .map((suite) => ({
-                                key: suite,
-                                title: (
-                                    <Typography
-                                        style={{
-                                            fontStyle: 'italic',
-                                            cursor:
-                                                suites[suite] == undefined
-                                                    ? undefined
-                                                    : 'pointer',
-                                        }}
-                                    >
-                                        {(tests[suite] ?? suites[suite]).Title}
-                                    </Typography>
-                                ),
-                                onClick: suites[suite]
-                                    ? () => {
-                                          properties.setTestID(
-                                              suites[suite].Id,
-                                          );
-                                      }
-                                    : undefined,
-                            }))}
-                    />
-                ) : (
-                    <></>
-                ),
-            ]}
-        >
-            <List.Item.Meta
-                description={
+        <Collapse
+            size="small"
+            ghost={properties.ghost}
+            expandIconPosition="right"
+            items={properties.errors.map((error, index) => ({
+                key: error?.mailedFrom?.at(-1) ?? index,
+                // showArrow: false,
+                label: (
                     <Alert
                         type="error"
                         message={
-                            <Text>
+                            <Text
+                                style={{
+                                    fontSize: '0.8rem',
+                                }}
+                            >
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: properties.item.message,
-                                    }}
-                                />
-                            </Text>
-                        }
-                        description={
-                            <Text>
-                                <div
-                                    dangerouslySetInnerHTML={{
-                                        __html: properties.item.stack,
+                                        __html: error.message,
                                     }}
                                 />
                             </Text>
                         }
                     />
-                }
-            />
-        </List.Item>
-    );
-}
-
-function SelectedSuiteOrTest(properties: {
-    selected: ParsedSuiteRecord | ParsedTestRecord;
-}): ReactNode {
-    return (
-        <Space>
-            <RenderTestType value={properties.selected.type} />
-            <RenderStatus value={properties.selected.Status} />
-            <Text>{properties.selected.Title}</Text>
-        </Space>
-    );
-}
-
-export function ListOfErrors(properties: {
-    errors: ErrorRecord[];
-    setTestID: (_: string) => void;
-}) {
-    return (
-        <List
-            size="small"
-            bordered
-            itemLayout="vertical"
-            dataSource={properties.errors}
-            renderItem={(item) => (
-                <ErrorMessage setTestID={properties.setTestID} item={item} />
-            )}
-            pagination={{ align: 'end' }}
+                ),
+                children: (
+                    <Alert
+                        type="error"
+                        message={
+                            <Space direction="vertical">
+                                <Paragraph>
+                                    <div
+                                        dangerouslySetInnerHTML={{
+                                            __html: error.stack,
+                                        }}
+                                    />
+                                </Paragraph>
+                                {error.mailedFrom &&
+                                error.mailedFrom?.length > 0 ? (
+                                    <Breadcrumb
+                                        items={error.mailedFrom
+                                            .toReversed()
+                                            .map((suite) => ({
+                                                key: suite,
+                                                title: (
+                                                    <Text
+                                                        type="secondary"
+                                                        style={{
+                                                            cursor: 'pointer',
+                                                        }}
+                                                    >
+                                                        {
+                                                            (
+                                                                tests[suite] ??
+                                                                suites[suite]
+                                                            ).Title
+                                                        }
+                                                    </Text>
+                                                ),
+                                                onClick: suites[suite]
+                                                    ? () => {
+                                                          properties.setTestID &&
+                                                              properties.setTestID(
+                                                                  suites[suite]
+                                                                      .Id ??
+                                                                      suites[
+                                                                          tests[
+                                                                              suite
+                                                                          ]
+                                                                              .Parent
+                                                                      ].Id,
+                                                              );
+                                                      }
+                                                    : undefined,
+                                            }))}
+                                    />
+                                ) : (
+                                    <></>
+                                )}
+                            </Space>
+                        }
+                    />
+                ),
+            }))}
         />
     );
 }
 
-// export function ListOfAssertions(properties: {
-//     assertions: Attachment[];
-// }): ReactNode {
-//     return (
-//         <List
-//             size="small"
-//             bordered
-//             itemLayout="vertical"
-//             dataSource={properties.assertions}
-//             renderItem={(item, index) => (
-//                 <AssertionComponent
-//                     attached={JSON.parse(item.attachmentValue)}
-//                     key={index}
-//                     // title={tests[item.entity_id].title}
-//                 />
-//             )}
-//             pagination={
-//                 properties.assertions.length > 0
-//                     ? { align: 'end', size: 'small' }
-//                     : undefined
-//             }
-//         />
-//     );
-// }
-
-const imageIndex = (key: number) => `image-${key}`;
-
-export function ListOfImages(properties: { entityID: string }) {
-    const context = useContext(DetailedContext);
-    const thumbnail = useRef<UseEmblaCarouselType[1] | null>(null);
-    const [currentPage, setCurrentPage] = useState<number>(1);
-    const [currentSlide, setCurrentSlide] = useState<number>(0);
-    if (context == undefined) return <></>;
-
-    const pageSize = 10;
-
-    const { tests, images, suites } = context;
-    const relevant = images.filter(
-        (image) =>
-            tests[image.entity_id].Parent == properties.entityID ||
-            image.entity_id === properties.entityID,
-    );
-
+function GroupedAssertions(properties: {
+    assertions: Assertion[];
+    ghost?: boolean;
+}) {
     return (
-        <Layout style={{ overflow: 'hidden', height: '58vh' }}>
-            <Sider theme="light" width={180}>
-                <InternalPreviewGroup>
-                    <List
-                        bordered
-                        size="small"
-                        dataSource={relevant}
-                        style={{ overflowY: 'scroll', height: '100%' }}
-                        itemLayout="vertical"
-                        pagination={{
-                            align: 'start',
-                            size: 'small',
-                            responsive: true,
-                            current: currentPage,
-                            onChange(page) {
-                                setCurrentPage(page);
-                            },
-                        }}
-                        renderItem={(image, index) => {
-                            return (
-                                <List.Item
-                                    style={{ margin: '2px', padding: '3px' }}
-                                >
-                                    <Ribbon
-                                        text={
-                                            currentSlide ===
-                                            (currentPage - 1) * pageSize + index
-                                                ? '➡️'
-                                                : ''
-                                        }
-                                        placement="start"
-                                        color="transparent"
-                                    >
-                                        <Ribbon
-                                            color="transparent"
-                                            text={
-                                                <Button
-                                                    size="small"
-                                                    shape="circle"
-                                                    icon={
-                                                        <ExpandAltOutlined
-                                                            size={4}
-                                                            color={'orangered'}
-                                                        />
-                                                    }
-                                                    onClick={() => {
-                                                        if (thumbnail.current) {
-                                                            thumbnail.current.scrollTo(
-                                                                (currentPage -
-                                                                    1) *
-                                                                    pageSize +
-                                                                    index,
-                                                                false,
-                                                            );
-                                                        }
-                                                    }}
-                                                />
-                                            }
-                                            placement="end"
-                                            style={{
-                                                right: '5px',
-                                            }}
-                                        >
-                                            <PlainImage
-                                                url={image.path}
-                                                key={index}
-                                                title={image.title}
-                                                maxHeight={'200px'}
-                                                isPlain={true}
-                                                id={imageIndex(index)}
-                                            />
-                                        </Ribbon>
-                                    </Ribbon>
-                                </List.Item>
-                            );
-                        }}
-                    />
-                </InternalPreviewGroup>
-            </Sider>
-            <Layout>
-                <Header
-                    style={{
-                        backgroundColor: 'transparent',
-                        height: '40px',
-                        padding: '0px',
-                        lineHeight: '0px',
-                        paddingTop: '6px',
-                        paddingLeft: '9px',
-                    }}
-                >
-                    <SelectedSuiteOrTest
-                        selected={suites[properties.entityID]}
-                    />
-                </Header>
-                <Content style={{ marginLeft: '6px' }}>
-                    {relevant.length > 0 ? (
-                        <GalleryOfImages
-                            loop={false}
-                            height={'310px'}
-                            apiReference={thumbnail}
-                            sendIndexOnChange={(index) => {
-                                const page = Math.floor(index / pageSize) + 1;
-                                setCurrentPage(page);
-                                setCurrentSlide(index);
-                                document.querySelector(
-                                    `#${imageIndex(
-                                        index - (page - 1) * pageSize,
-                                    )}`,
-                                )?.scrollIntoView!({ behavior: 'smooth' });
-                            }}
-                        >
-                            {relevant.map((image, index) => (
-                                <PlainImage
-                                    url={image.path}
-                                    key={index}
-                                    title={image.title}
-                                    maxHeight="300px"
-                                    isPlain={false}
+        <Collapse
+            size="small"
+            ghost={properties.ghost}
+            expandIconPosition="right"
+            items={properties.assertions.map((assertion, index) => ({
+                key: index,
+                // showArrow: false,
+                label: <Text>{assertion.title}</Text>,
+                extra: (
+                    <Tag color={assertion.passed ? 'green' : 'red'}>
+                        {assertion.passed ? 'PASS' : 'FAIL'}
+                    </Tag>
+                ),
+                children: (
+                    <Space direction="vertical">
+                        <Alert
+                            type={assertion.passed ? 'success' : 'error'}
+                            message={
+                                <div
+                                    dangerouslySetInnerHTML={{
+                                        __html: assertion.message,
+                                    }}
                                 />
-                            ))}
-                        </GalleryOfImages>
-                    ) : (
-                        <></>
-                    )}
-                </Content>
-            </Layout>
-        </Layout>
+                            }
+                        />
+                        <Space>
+                            {assertion.wait > 0 ? (
+                                <Tag color="geekblue">{`Waited for ${assertion.wait} ms`}</Tag>
+                            ) : (
+                                <></>
+                            )}
+                            {assertion.interval > 0 ? (
+                                <Tag color="cyan">{`at an Interval ${assertion.interval} ms`}</Tag>
+                            ) : (
+                                <></>
+                            )}
+                        </Space>
+                    </Space>
+                ),
+            }))}
+        />
     );
 }
-
-export const errorsTab = 'errors';
-export const imagesTab = 'images';
-export const assertionsTab = 'assertions';
-export const descriptionTab = 'description';

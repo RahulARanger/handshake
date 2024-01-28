@@ -1,0 +1,8 @@
+{
+	"cucumberautocomplete.steps": ["./tests/steps/*.steps.ts"],
+	"cucumberautocomplete.strictGherkinCompletion": true,
+	"editor.formatOnSave": true,
+	"code-runner.executorMap": {
+		"feature": "npx wdio run wdio.conf.ts --spec $fileName"
+	}
+}

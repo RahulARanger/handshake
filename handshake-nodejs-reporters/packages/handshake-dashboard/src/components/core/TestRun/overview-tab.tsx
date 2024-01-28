@@ -17,12 +17,13 @@ import Typography from 'antd/lib/typography/Typography';
 import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
 import Tabs from 'antd/lib/tabs/index';
-import { Affix } from 'antd/lib';
+import { Affix, Tag } from 'antd/lib';
 import { standingToColors } from 'src/components/charts/constants';
 import Dotted from 'src/styles/dotted.module.css';
 import RenderProgress from 'src/components/utils/progress-rate';
 import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
 import { OverviewContext } from 'src/types/parsed-overview-records';
+import { LOCATORS } from 'handshake-utils';
 
 function TopSuites(properties: {
     suites: OverviewOfEntities[];
@@ -163,8 +164,9 @@ export default function Overview(): ReactNode {
                         >
                             <Select
                                 key={'switch'}
-                                bordered={false}
                                 style={{ zIndex: 2 }}
+                                variant="borderless"
+                                id={LOCATORS.OVERVIEW.testEntitySwitch}
                                 options={[
                                     {
                                         value: true,
@@ -208,6 +210,7 @@ export default function Overview(): ReactNode {
                         align="center"
                     >
                         <Counter
+                            cssClassName={LOCATORS.OVERVIEW.total}
                             end={total}
                             style={{
                                 fontSize: '2.5rem',
@@ -284,6 +287,21 @@ export default function Overview(): ReactNode {
                         ))}
                     </Space>
                     <Tabs
+                        tabBarExtraContent={
+                            <Space>
+                                {aggResults.isRecent ? (
+                                    <Tag
+                                        color="blue"
+                                        id={LOCATORS.OVERVIEW.recentRunBadge}
+                                    >
+                                        Recent Run
+                                    </Tag>
+                                ) : (
+                                    <></>
+                                )}
+                                {/* <Tag color="red">Bailed</Tag> */}
+                            </Space>
+                        }
                         items={[
                             {
                                 key: 'recent',

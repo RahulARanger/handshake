@@ -1,9 +1,10 @@
 import { detailedPage, runPage } from 'src/components/scripts/helper';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
-import { timelineTab, menuTabs } from 'src/types/ui-constants';
+import { menuTabs } from 'src/types/ui-constants';
 import React, { useContext, type ReactNode } from 'react';
 import Layout from 'antd/lib/layout/index';
+import Text from 'antd/lib/typography/Text';
 import BreadCrumb from 'antd/lib/breadcrumb/Breadcrumb';
 import { crumbsForRun } from '../ListOfRuns/test-items';
 import HomeOutlined from '@ant-design/icons/HomeOutlined';
@@ -19,6 +20,7 @@ import { DetailedContext } from 'src/types/records-in-detailed';
 export default function LayoutStructureForRunDetails(properties: {
     children: ReactNode;
     activeTab: string;
+    highlight?: string;
     changeDefault?: (tab: string) => void;
 }): ReactNode {
     const context = useContext(DetailedContext);
@@ -70,7 +72,7 @@ export default function LayoutStructureForRunDetails(properties: {
 
                 {
                     label: 'Timeline',
-                    key: timelineTab,
+                    key: 'timeline-upcoming',
                     disabled: true,
                 },
             ],
@@ -80,13 +82,18 @@ export default function LayoutStructureForRunDetails(properties: {
     return (
         <Layout style={{ overflow: 'hidden', height: '99.3vh' }}>
             <Layout.Header
-                className={HeaderStyles.header}
+                className={`${HeaderStyles.header} header`}
                 style={{
                     position: 'sticky',
                     top: 0,
                 }}
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
+                {properties.highlight ? (
+                    <Text id="highlight">{properties.highlight}</Text>
+                ) : (
+                    <></>
+                )}
                 <RelativeTo
                     dateTime={data.Ended[0]}
                     style={{

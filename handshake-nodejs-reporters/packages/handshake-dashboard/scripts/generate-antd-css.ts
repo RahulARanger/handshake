@@ -2,7 +2,7 @@ import { writeFileSync, existsSync, unlinkSync } from 'node:fs';
 import { extractStyle } from '@ant-design/static-style-extract';
 import withTheme from '../src/components/theme';
 
-const outputPath = './src/styles/antd.min.css';
+const outputPath = './public/antd.min.css';
 
 if (existsSync(outputPath)) unlinkSync(outputPath);
 

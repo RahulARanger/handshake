@@ -1,0 +1,9 @@
+{
+    "extends": "./tsconfig.pure.node.json",
+    "compilerOptions": {
+        "strictNullChecks": true,
+        "module": "NodeNext",
+        "jsx": "react",
+        "esModuleInterop": true
+    }
+}

@@ -12,6 +12,7 @@ export interface OverallAggResults {
     parentSuites: number;
     files: number;
     sessionCount: number;
+    isRecent: boolean;
     imageCount: number;
     brokenTests: number;
 }

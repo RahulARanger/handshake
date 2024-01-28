@@ -53,10 +53,12 @@ echarts.use([
 
 export default function TestEntitiesBars(properties: {
     entities: Array<ParsedTestRecord | ParsedSuiteRecord>;
+    onClick: (_: string) => void;
 }): ReactNode {
     const options: composed = {
         tooltip: {
             ...toolTipFormats,
+            position: 'bottom',
             formatter: (parameters: TopLevelFormatterParams) => {
                 const arguments_ = parameters as CallbackDataParams;
                 return `${arguments_.marker} ${arguments_.name} - <b>${
@@ -87,9 +89,13 @@ export default function TestEntitiesBars(properties: {
                 data: properties.entities.map((entity) => ({
                     value: 1,
                     itemStyle: { color: standingToColors[entity.Status] },
+                    id: entity.Id,
                 })),
                 itemStyle: {
                     borderRadius: 150,
+                    borderColor: 'black',
+                    borderType: 'solid',
+                    borderWidth: 0.69,
                 },
             },
         ],
@@ -99,12 +105,17 @@ export default function TestEntitiesBars(properties: {
             option={options}
             style={{
                 height: '40px',
+                flexGrow: 1,
                 width:
                     properties.entities.length < 15
                         ? `${100 + (50 * properties.entities.length) / 3}px`
                         : '100%',
             }}
             opts={{ renderer: 'svg' }}
+            onEvents={{
+                click: (_: { data: { id: string } }) =>
+                    properties.onClick(_.data.id),
+            }}
         />
     );
 }
