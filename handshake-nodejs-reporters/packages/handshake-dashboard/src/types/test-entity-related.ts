@@ -84,3 +84,12 @@ export interface ErrorRecord {
     stack: string;
     mailedFrom?: string[];
 }
+
+export interface Assertion {
+    entity_id: string;
+    passed: boolean;
+    wait: number;
+    interval: number;
+    message: string;
+    title: string;
+}

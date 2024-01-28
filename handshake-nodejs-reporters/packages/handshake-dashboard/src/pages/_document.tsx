@@ -1,3 +1,4 @@
+import { TEXT } from 'handshake-utils';
 import Document, {
     Html,
     Head,
@@ -11,7 +12,7 @@ import React from 'react';
 const MyDocument = (): ReactNode => (
     <>
         <Html lang="en">
-            <Head title="🫱🏾‍🫲🏼 Handshake" />
+            <Head title={TEXT.applicationName} />
             <body>
                 <Main />
                 <NextScript />

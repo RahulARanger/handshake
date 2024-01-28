@@ -16,6 +16,7 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { timeFormatUsed } from './format';
 import carouselStyles from 'src/styles/carousel.module.css';
 import Typography from 'antd/lib/typography/Typography';
+import { LOCATORS } from 'handshake-utils';
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
@@ -64,9 +65,8 @@ export default function RelativeTo(properties: {
             }}
         >
             <div suppressHydrationWarning className={carouselStyles.container}>
-                {/* dateTime */}
                 <Text
-                    className={carouselStyles.slide}
+                    className={`${carouselStyles.slide} ${LOCATORS.DAYS.relativeToRange}`}
                     style={properties.style}
                     ellipsis={{ tooltip: true }}
                 >
@@ -142,7 +142,7 @@ export function HumanizeDuration(properties: {
                 <DurationText duration={properties.duration} />
                 <Typography
                     suppressHydrationWarning
-                    className={carouselStyles.slide}
+                    className={`${carouselStyles.slide} humanized`}
                 >
                     {properties?.duration?.humanize() ?? '--'}
                 </Typography>
@@ -154,7 +154,10 @@ export function HumanizeDuration(properties: {
 export function DurationText(properties: { duration?: Duration }): ReactNode {
     const seconds = properties?.duration?.asSeconds();
     return (
-        <Typography suppressHydrationWarning className={carouselStyles.slide}>
+        <Typography
+            suppressHydrationWarning
+            className={`${carouselStyles.slide} ${LOCATORS.DAYS.duration}`}
+        >
             {seconds === undefined
                 ? `--`
                 : `${seconds < 0 ? seconds * 100 : seconds} ${

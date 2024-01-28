@@ -42,12 +42,13 @@ export function NavigationButtons(properties: {
 
     return (
         <Space>
-            <Tooltip title="Previous Suite">
+            <Tooltip
+                title={hasPrevious ? 'Prev Retry' : 'No Prev. Suite Found'}
+            >
                 <Button
                     size="small"
                     icon={<CaretLeftOutlined />}
                     disabled={!hasPrevious}
-                    title={hasPrevious ? 'Prev Retry' : 'No Retries Found'}
                     onClick={() =>
                         properties.setTestID(previousSuite?.Id as string)
                     }
@@ -62,12 +63,11 @@ export function NavigationButtons(properties: {
             >
                 Parent Suite
             </Button>
-            <Tooltip title="Next Suite">
+            <Tooltip title={hasNext ? 'Next Suite' : 'Ends here'}>
                 <Button
                     size="small"
                     disabled={!hasNext}
                     icon={<CaretRightOutlined />}
-                    title={hasNext ? 'Next Retry' : 'No Entities found'}
                     onClick={() =>
                         properties.setTestID(nextSuite?.Id as string)
                     }

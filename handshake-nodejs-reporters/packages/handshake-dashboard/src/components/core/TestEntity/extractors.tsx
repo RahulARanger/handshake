@@ -1,26 +1,13 @@
-import { type StepProps, type StepsProps } from 'antd/lib';
-import type { ErrorRecord } from 'src/types/test-entity-related';
 import Space from 'antd/lib/space/index';
 import ExpandAltOutlined from '@ant-design/icons/ExpandAltOutlined';
 import type { CollapseProps } from 'antd/lib/collapse/Collapse';
 import type { TextProps } from 'antd/lib/typography/Text';
-import Text from 'antd/lib/typography/Text';
 import Button from 'antd/lib/button/button';
 import type { Dayjs } from 'dayjs';
 import React from 'react';
 import { RenderTestItem } from 'src/components/utils/renderers';
 import type { statusOfEntity } from 'src/types/session-records';
-import type { TabsProps } from 'antd/lib/tabs/index';
-import EntityItem, {
-    ListOfErrors,
-    ListOfImages,
-    // assertionsTab,
-    // descriptionTab,
-    errorsTab,
-    imagesTab,
-} from './entity-item';
-import RenderTimeRelativeToStart from 'src/components/utils/relative-time';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import EntityItem from './entity-item';
 import type {
     ParsedSuiteRecord,
     ParsedTestRecord,
@@ -47,110 +34,6 @@ export function extractNeighborSuite(
         const suite = suites[suites['@order'][pointTo]];
         if (suite?.Status !== 'RETRIED') return suite;
     }
-}
-
-export function stepItemsForSuiteTimeline(
-    current: string,
-    suites: SuiteDetails,
-    started: Dayjs,
-    ended: Dayjs,
-    setTestID: (_: string) => void,
-): StepsProps['items'] {
-    const currentSuiteRecord = suites[current];
-    const here = suites['@order'].indexOf(current);
-    if (here === -1) return [];
-
-    const previous = extractNeighborSuite(suites, here, true, false);
-    const next = extractNeighborSuite(suites, here, false, false);
-
-    const steps: StepsProps['items'] = [];
-
-    steps.push({
-        title: 'Test Started at',
-        description: <RelativeTo dateTime={started} autoPlay />,
-        status: 'finish',
-    });
-
-    previous &&
-        steps.push({
-            title: (
-                <Button
-                    type="text"
-                    style={{
-                        paddingTop: '0px',
-                        paddingBottom: '0px',
-                        paddingLeft: '3px',
-                        paddingRight: '3px',
-                        height: '20px',
-                    }}
-                >
-                    {`Prev ${
-                        previous?.Status === 'RETRIED' ? 'Retry' : 'Suite'
-                    }`}
-                </Button>
-            ),
-            description: (
-                <RenderTimeRelativeToStart value={previous.Started} autoPlay />
-            ),
-            onClick: () => setTestID(previous.Id),
-            status: stepStatus(previous.Status),
-        });
-    steps.push({
-        title: <Text>Current Suite</Text>,
-        description: (
-            <RelativeTo
-                dateTime={currentSuiteRecord.Started[0]}
-                secondDateTime={currentSuiteRecord.Ended[0]}
-                autoPlay
-                wrt={started}
-                style={{ minWidth: '165px' }}
-            />
-        ),
-        status: stepStatus(currentSuiteRecord.Status),
-        style: { minWidth: '210px' },
-    });
-    next &&
-        steps.push({
-            title: (
-                <Button
-                    type="text"
-                    style={{
-                        paddingTop: '0px',
-                        paddingBottom: '0px',
-                        paddingLeft: '3px',
-                        paddingRight: '3px',
-                        height: '20px',
-                    }}
-                >
-                    {`Next ${
-                        previous?.Status === 'RETRIED' ? 'Retry' : 'Suite'
-                    }`}
-                </Button>
-            ),
-            description: (
-                <RelativeTo
-                    dateTime={next.Started[0]}
-                    autoPlay
-                    wrt={next.Started[1]}
-                />
-            ),
-            onClick: () => setTestID(next.Id),
-            status: stepStatus(next.Status),
-        });
-
-    steps.push({
-        title: 'Test Ended at',
-        description: (
-            <RelativeTo
-                dateTime={ended}
-                autoPlay
-                wrt={currentSuiteRecord.Ended[0]}
-            />
-        ),
-        status: 'finish',
-    });
-
-    return steps;
 }
 
 export function filterTestsAndSuites(
@@ -191,57 +74,6 @@ export function testStatusText(standing: statusOfEntity): TextProps['type'] {
     }
 }
 
-export function stepStatus(standing: statusOfEntity): StepProps['status'] {
-    switch (standing) {
-        case 'PASSED': {
-            return 'finish';
-        }
-        case 'RETRIED':
-        case 'FAILED': {
-            return 'error';
-        }
-
-        case 'SKIPPED': {
-            return 'wait';
-        }
-        case 'PENDING': {
-            return 'process';
-        }
-    }
-}
-
-export function attachedTabItems(
-    id: string,
-    errors: ErrorRecord[],
-    setTestID: (_: string) => void,
-): TabsProps['items'] {
-    return [
-        // { key: descriptionTab, label: 'Description' },
-        // {
-        //     key: assertionsTab,
-        //     label: 'Assertions',
-        //     // children: <ListOfAssertions assertions={assertionsUsed} />,
-        // },
-        {
-            key: imagesTab,
-            label: 'Images',
-            children: <ListOfImages entityID={id} />,
-            style: {
-                overflow: 'auto',
-                height: '100%',
-                border: '4px solid orangered',
-            },
-            animated: true,
-        },
-        {
-            key: errorsTab,
-            animated: true,
-            label: 'Errors',
-            children: <ListOfErrors errors={errors} setTestID={setTestID} />,
-        },
-    ];
-}
-
 export function extractDetailedTestEntities(
     source: Array<ParsedSuiteRecord | ParsedTestRecord>,
     setTestID: (_: string) => void,
@@ -257,6 +89,7 @@ export function extractDetailedTestEntities(
                     icon={<ExpandAltOutlined />}
                     shape="circle"
                     size="small"
+                    style={{ backgroundColor: 'transparent' }}
                     onClick={() => {
                         setTestID(test.Id);
                     }}
@@ -269,6 +102,7 @@ export function extractDetailedTestEntities(
             label: (
                 <RenderTestItem record={test} layoutStyle={{ width: '100%' }} />
             ),
+            id: test.Id,
             children: (
                 <EntityItem
                     entity={test}

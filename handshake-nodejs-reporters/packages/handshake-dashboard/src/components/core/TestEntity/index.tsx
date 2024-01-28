@@ -6,12 +6,16 @@ import {
     extractDetailedTestEntities,
     filterTestsAndSuites,
 } from './extractors';
-import { Divider, Tag } from 'antd/lib';
+import Button from 'antd/lib/button/button';
+import { Divider, Tag, Tooltip } from 'antd/lib';
 import TestEntitiesBars from 'src/components/charts/test-bars';
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
 import { DetailedContext } from 'src/types/records-in-detailed';
 import Sider from 'antd/lib/layout/Sider';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
+
+import PreviewGroup from 'antd/lib/image/PreviewGroup';
+
 import Paragraph from 'antd/lib/typography/Paragraph';
 
 export default function DetailedTestEntityWindow(properties: {
@@ -66,7 +70,35 @@ export default function DetailedTestEntityWindow(properties: {
                             'linear-gradient(to right, #3a6186, #89253e)',
                     }}
                 >
-                    <TestEntitiesBars entities={rawSource} />
+                    <Tooltip title="Back">
+                        <Button
+                            type="text"
+                            style={{
+                                position: 'absolute',
+                                left: -10,
+                                top: -10,
+                                color: 'whitesmoke',
+                                boxSizing: 'content-box',
+                                paddingBottom: '3px',
+                                fontSize: '1.5rem',
+                                border: '1px ridge grey',
+                                borderRadius: '10px',
+                                backdropFilter: 'blur(12px)',
+                            }}
+                            onClick={properties.onClose}
+                        >
+                            ←
+                        </Button>
+                    </Tooltip>
+                    <TestEntitiesBars
+                        entities={rawSource}
+                        onClick={(testEntity) => {
+                            document
+                                // eslint-disable-next-line unicorn/prefer-query-selector
+                                .getElementById(testEntity)
+                                ?.scrollIntoView({ behavior: 'smooth' });
+                        }}
+                    />
                 </Header>
                 <Content
                     style={{
@@ -97,19 +129,21 @@ export default function DetailedTestEntityWindow(properties: {
                                 <BadgeLayer selected={selectedSuiteDetails} />
                             )}
                         </Divider>
-                        <Collapse
-                            defaultActiveKey={['Latest Run']}
-                            size="small"
-                            bordered={false}
-                            items={extractDetailedTestEntities(
-                                rawSource,
-                                properties.setTestID,
-                                run.Started[0],
-                            )}
-                            style={{
-                                justifyContent: 'stretch',
-                            }}
-                        />
+                        <PreviewGroup>
+                            <Collapse
+                                defaultActiveKey={['Latest Run']}
+                                size="small"
+                                bordered={false}
+                                items={extractDetailedTestEntities(
+                                    rawSource,
+                                    properties.setTestID,
+                                    run.Started[0],
+                                )}
+                                style={{
+                                    justifyContent: 'stretch',
+                                }}
+                            />
+                        </PreviewGroup>
                     </Space>
                 </Content>
             </Layout>

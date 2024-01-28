@@ -1,3 +1,5 @@
-export const dateTimeFormatUsed = 'ddd, MMM Do YYYY hh:mm A';
-export const dateFormatUsed = 'ddd, MMM Do YYYY';
-export const timeFormatUsed = 'HH:mm:ss A';
+import { TEXT } from 'handshake-utils';
+
+export const dateTimeFormatUsed = TEXT.dateTimeFormatUsed;
+export const dateFormatUsed = TEXT.dateFormatUsed;
+export const timeFormatUsed = TEXT.timeFormatUsed;

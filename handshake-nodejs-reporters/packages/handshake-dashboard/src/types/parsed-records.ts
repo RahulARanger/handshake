@@ -2,7 +2,9 @@ import type { Dayjs } from 'dayjs';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { Duration } from 'dayjs/plugin/duration';
 import type {
+    Assertion,
     ErrorRecord,
+    ImageRecord,
     SimpleSuiteDetails,
     Tag,
 } from './test-entity-related';
@@ -45,6 +47,8 @@ export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
     isBroken: boolean;
     errors: ErrorRecord[];
     error: ErrorRecord;
+    Images: ImageRecord[];
+    Assertions: Assertion[];
 }
 
 export type SuiteDetails = { '@order': string[] } & Record<

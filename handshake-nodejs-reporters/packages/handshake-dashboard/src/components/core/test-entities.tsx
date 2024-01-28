@@ -65,6 +65,7 @@ export default function TestEntities(properties: {
 
     const onClose = (): void => {
         setShowEntity(false);
+        properties.setHightLight('');
     };
 
     const helperToSetTestID = (testID: string): void => {

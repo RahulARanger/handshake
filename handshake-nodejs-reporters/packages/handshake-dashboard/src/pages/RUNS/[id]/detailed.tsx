@@ -93,14 +93,19 @@ export default function TestRunResults(
             testRun.Started[0],
             testRun.Tests,
         );
+        const images = parseImageRecords(
+            properties.images,
+            properties.detailsOfTestRun.testID,
+        );
         return {
             detailsOfTestRun: testRun,
-            images: parseImageRecords(
-                properties.images,
-                properties.detailsOfTestRun.testID,
-            ),
             suites,
-            tests: parseTests(properties.tests, suites),
+            tests: parseTests(
+                properties.tests,
+                suites,
+                images,
+                properties.assertions,
+            ),
             retriedRecords: parseRetriedRecords(properties.retriedRecords),
         };
     }, [properties]);

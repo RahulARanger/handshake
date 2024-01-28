@@ -18,6 +18,7 @@ import type {
     ParsedTestRecord,
 } from 'src/types/parsed-records';
 import { testStatusText } from '../core/TestEntity/extractors';
+import { LOCATORS } from 'handshake-utils';
 
 export function RenderStatus(properties: {
     value: string;
@@ -31,7 +32,7 @@ export function RenderStatus(properties: {
                         position: 'relative',
                         top: '-1px',
                     }}
-                    className={showOnly}
+                    className={`${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 >
                     ✅
                 </Text>
@@ -40,7 +41,7 @@ export function RenderStatus(properties: {
         case 'FAILED': {
             return (
                 <Text
-                    className={`${Dotted.redGlowText} ${Dotted.spin} ${showOnly}`}
+                    className={`${Dotted.redGlowText} ${Dotted.spin} ${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 >
                     ❌
                 </Text>
@@ -49,7 +50,7 @@ export function RenderStatus(properties: {
         case 'SKIPPED': {
             return (
                 <Text
-                    className={`${showOnly} ${Dotted.yellowGlowText}`}
+                    className={`${showOnly} ${Dotted.yellowGlowText} ${LOCATORS.RUNS.statusForTestEntity}`}
                     style={{
                         position: 'relative',
                         top: '-1px',
@@ -69,7 +70,7 @@ export function RenderStatus(properties: {
                         borderRadius: '50px',
                     }}
                     title="Pending"
-                    className={`warn-glow ${showOnly}`}
+                    className={`warn-glow ${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 />
             );
         }
@@ -84,7 +85,7 @@ export function RenderStatus(properties: {
                     }}
                     spin
                     title="Retried Suite"
-                    className={`retried-glow ${showOnly}`}
+                    className={`retried-glow ${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 />
             );
         }
@@ -177,11 +178,6 @@ export function RenderTestItem(properties: {
                 ellipsis={{ tooltip: true }}
                 style={{
                     minWidth: 160,
-                    textDecoration:
-                        properties.record.type === 'SUITE'
-                            ? 'underline'
-                            : undefined,
-                    textDecorationThickness: 0.5,
                     textWrap: 'balance',
                 }}
                 type={testStatusText(properties.record.Status)}
