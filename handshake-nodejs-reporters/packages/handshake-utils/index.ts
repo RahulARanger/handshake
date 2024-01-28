@@ -21,8 +21,15 @@ export const LOCATORS = {
         relativeToRange: "relativeTo"
     },
 	CHARTS: {
-		rate: "stacked-rate"
+		rate: "stacked-rate",
+        progress: "progress-pie-chart"
 	},
+    OVERVIEW:{
+        total: "total",
+        testEntitySwitch: "test-entity-switch",
+        recentRunBadge: "recent-run-badge"
+    }
+   
 };
 
 export const TEXT = {
@@ -32,6 +39,10 @@ export const TEXT = {
 		description: "It lists your Tests Runs",
         noteForTime: "Time Range & Duration (in s)"
 	},
+    OVERVIEW: {
+        greet: "In Summary",
+        description: "This page would show the summary of the test run"
+    },
 	AUTHOR: "RahulARanger<saihanumarahul66@gmail.com>",
 	dateFormatUsed: "ddd, MMM Do YYYY",
 	timeFormatUsed: "HH:mm:ss A",

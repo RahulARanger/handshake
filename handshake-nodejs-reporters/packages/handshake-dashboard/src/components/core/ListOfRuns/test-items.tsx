@@ -31,6 +31,6 @@ export default function crumbs(
 
 export function crumbsForRun(projectName: string): crumbItems {
     const previousItems = crumbs(true);
-    previousItems.push({ title: projectName });
+    previousItems.push({ title: <Text id="projectName">{projectName}</Text> });
     return previousItems;
 }

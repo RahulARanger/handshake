@@ -23,6 +23,7 @@ import Dotted from 'src/styles/dotted.module.css';
 import RenderProgress from 'src/components/utils/progress-rate';
 import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
 import { OverviewContext } from 'src/types/parsed-overview-records';
+import { LOCATORS } from 'handshake-utils';
 
 function TopSuites(properties: {
     suites: OverviewOfEntities[];
@@ -165,6 +166,7 @@ export default function Overview(): ReactNode {
                                 key={'switch'}
                                 style={{ zIndex: 2 }}
                                 variant="borderless"
+                                id={LOCATORS.OVERVIEW.testEntitySwitch}
                                 options={[
                                     {
                                         value: true,
@@ -208,6 +210,7 @@ export default function Overview(): ReactNode {
                         align="center"
                     >
                         <Counter
+                            cssClassName={LOCATORS.OVERVIEW.total}
                             end={total}
                             style={{
                                 fontSize: '2.5rem',
@@ -287,7 +290,12 @@ export default function Overview(): ReactNode {
                         tabBarExtraContent={
                             <Space>
                                 {aggResults.isRecent ? (
-                                    <Tag color="blue">Recent Run</Tag>
+                                    <Tag
+                                        color="blue"
+                                        id={LOCATORS.OVERVIEW.recentRunBadge}
+                                    >
+                                        Recent Run
+                                    </Tag>
                                 ) : (
                                     <></>
                                 )}

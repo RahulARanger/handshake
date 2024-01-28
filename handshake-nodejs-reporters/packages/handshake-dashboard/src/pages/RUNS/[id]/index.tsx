@@ -26,6 +26,8 @@ import {
     parseDetailedTestRun,
     parseImageRecords,
 } from 'src/components/parse-utils';
+import Head from 'next/head';
+import { TEXT } from 'handshake-utils';
 
 export async function getStaticProps(prepareProperties: {
     params: {
@@ -126,11 +128,19 @@ export default function TestRunResults(
     }, [properties]);
 
     return (
-        <OverviewContext.Provider value={parsedRecords}>
-            <LayoutStructureForRunDetails activeTab={menuTabs.overviewTab}>
-                <Overview />
-            </LayoutStructureForRunDetails>
-        </OverviewContext.Provider>
+        <>
+            <Head>
+                <title>{TEXT.OVERVIEW.greet}</title>
+                <meta name="keywords" content="Test Results, List of Runs" />
+                <meta name="author" content={TEXT.AUTHOR} />
+                <meta name="description" content={TEXT.OVERVIEW.description} />
+            </Head>
+            <OverviewContext.Provider value={parsedRecords}>
+                <LayoutStructureForRunDetails activeTab={menuTabs.overviewTab}>
+                    <Overview />
+                </LayoutStructureForRunDetails>
+            </OverviewContext.Provider>
+        </>
     );
 }
 

@@ -1,7 +1,7 @@
 import { detailedPage, runPage } from 'src/components/scripts/helper';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
-import { timelineTab, menuTabs } from 'src/types/ui-constants';
+import { menuTabs } from 'src/types/ui-constants';
 import React, { useContext, type ReactNode } from 'react';
 import Layout from 'antd/lib/layout/index';
 import Text from 'antd/lib/typography/Text';
@@ -72,7 +72,7 @@ export default function LayoutStructureForRunDetails(properties: {
 
                 {
                     label: 'Timeline',
-                    key: timelineTab,
+                    key: 'timeline-upcoming',
                     disabled: true,
                 },
             ],
@@ -82,7 +82,7 @@ export default function LayoutStructureForRunDetails(properties: {
     return (
         <Layout style={{ overflow: 'hidden', height: '99.3vh' }}>
             <Layout.Header
-                className={HeaderStyles.header}
+                className={`${HeaderStyles.header} header`}
                 style={{
                     position: 'sticky',
                     top: 0,
@@ -90,7 +90,7 @@ export default function LayoutStructureForRunDetails(properties: {
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
                 {properties.highlight ? (
-                    <Text>{properties.highlight}</Text>
+                    <Text id="highlight">{properties.highlight}</Text>
                 ) : (
                     <></>
                 )}

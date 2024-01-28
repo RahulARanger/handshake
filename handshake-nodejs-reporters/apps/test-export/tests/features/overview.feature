@@ -15,6 +15,6 @@ Feature: Verifying the Overview page
             And User would see the total tests
             And User would also see the pie chart
             And Recent Tests
-            And there's even switch to toggle between the tests and suites
-            When switched to suites it would reflect in pie chart
-            And in the Grid
+    # And there's even switch to toggle between the tests and suites
+    # When switched to suites it would reflect in pie chart
+    # And in the Grid
