@@ -19,7 +19,7 @@
 		"@wdio/mocha-framework": "^8.29.1",
 		"@wdio/spec-reporter": "^8.29.1",
 		"ts-node": "^10.9.2",
-		"wdio-handshake-reporter": "0.4.1"
+		"wdio-handshake-reporter": "0.4.2"
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.3"
