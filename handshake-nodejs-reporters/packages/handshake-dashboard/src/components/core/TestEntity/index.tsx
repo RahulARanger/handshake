@@ -7,7 +7,8 @@ import {
     filterTestsAndSuites,
 } from './extractors';
 import Button from 'antd/lib/button/button';
-import { Divider, Tag, Tooltip } from 'antd/lib';
+import { Affix, Divider, Tag } from 'antd/lib';
+import Text from 'antd/lib/typography/Text';
 import TestEntitiesBars from 'src/components/charts/test-bars';
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
 import { DetailedContext } from 'src/types/records-in-detailed';
@@ -70,26 +71,31 @@ export default function DetailedTestEntityWindow(properties: {
                             'linear-gradient(to right, #3a6186, #89253e)',
                     }}
                 >
-                    <Tooltip title="Back">
+                    <Affix
+                        offsetTop={10}
+                        style={{
+                            position: 'relative',
+                            border: '1px solid grey',
+                            top: '-12px',
+                            left: '-60px',
+                            width: '0px',
+                            height: '0px',
+                        }}
+                    >
                         <Button
-                            type="text"
                             style={{
-                                position: 'absolute',
-                                left: -10,
-                                top: -10,
                                 color: 'whitesmoke',
-                                boxSizing: 'content-box',
-                                paddingBottom: '3px',
-                                fontSize: '1.5rem',
-                                border: '1px ridge grey',
-                                borderRadius: '10px',
                                 backdropFilter: 'blur(12px)',
+                                fontWeight: 'bolder',
+                                backgroundColor: 'transparent',
+                                border: '1px solid transparent',
                             }}
                             onClick={properties.onClose}
+                            shape="round"
                         >
-                            ←
+                            ⟵
                         </Button>
-                    </Tooltip>
+                    </Affix>
                     <TestEntitiesBars
                         entities={rawSource}
                         onClick={(testEntity) => {
@@ -167,6 +173,14 @@ export default function DetailedTestEntityWindow(properties: {
                         selected={selectedSuiteDetails}
                         setTestID={setTestID}
                     />
+                    <Affix
+                        style={{
+                            position: 'relative',
+                            right: '-.5%',
+                        }}
+                    >
+                        <Text italic>{selectedSuiteDetails.File}</Text>
+                    </Affix>
                     <Divider
                         type="horizontal"
                         style={{
@@ -188,7 +202,7 @@ export default function DetailedTestEntityWindow(properties: {
                     <DurationLayer
                         selected={selectedSuiteDetails}
                         wrt={run.Started[0]}
-                        offsetTop={30}
+                        offsetTop={5}
                     />
                     <Paragraph
                         type="secondary"
