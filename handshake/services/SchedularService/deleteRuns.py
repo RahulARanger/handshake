@@ -60,8 +60,9 @@ async def deleteOldRuns(db_path: Path, punch_out: List[bool]):
         logger.warning("Deleting the attachments for run {}", run)
         rmtree(entry)
 
-    await ConfigBase.update_or_create(
-        key=ConfigKeys.recentlyDeleted, value=str(recently_deleted)
-    )
+    record, _ = await ConfigBase.update_or_create(key=ConfigKeys.recentlyDeleted)
+    await record.update_from_dict(dict(value=str(recently_deleted)))
+    await record.save()
+
     logger.info("Delete job is completed.")
     return punch_out.pop()
