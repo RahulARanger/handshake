@@ -243,6 +243,7 @@ export default function TestEntities(properties: {
             <Tabs
                 activeKey={showEntity ? 'detailed' : 'selected'}
                 renderTabBar={() => <></>}
+                animated
                 items={[
                     {
                         key: 'selected',

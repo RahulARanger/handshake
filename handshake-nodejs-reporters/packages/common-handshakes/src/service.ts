@@ -86,7 +86,7 @@ export class ServiceDialPad extends DialPad {
 
   async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
-      'Not able to connect with handshake-server within 20 seconds 😢.',
+      'Not able to connect with handshake-server within a minute😢.',
     );
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout;
@@ -97,7 +97,7 @@ export class ServiceDialPad extends DialPad {
         cleanup();
         await this.terminateServer();
         reject(waitingForTheServer);
-      }, force ?? 20e3);
+      }, force ?? 60e3);
 
       timer = setInterval(async () => {
         const isOnline = await this.ping();

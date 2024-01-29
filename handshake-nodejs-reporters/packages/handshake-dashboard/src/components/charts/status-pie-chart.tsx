@@ -95,10 +95,11 @@ export default function ProgressPieChart(properties: {
                 // correct the percentage
                 return `${arguments_.seriesName}<br/>${arguments_.marker}  ${
                     arguments_.name
-                }: ${arguments_.value} (${(arguments_.percent ?? 0) * 2}%)`;
+                }: ${arguments_.value} (${arguments_.percent ?? 0}%)`;
             },
             ...toolTipFormats,
         },
+
         textStyle: {
             fontFamily: serif.style.fontFamily,
         },
@@ -107,8 +108,9 @@ export default function ProgressPieChart(properties: {
                 name:
                     properties.forceText ??
                     (properties.isTestCases ? 'Tests' : 'Suites'),
+
                 type: 'pie',
-                top: -15,
+                bottom: -10,
                 left: -6,
                 radius: properties.fullRound ? ['2%', '70%'] : ['40%', '70%'],
                 avoidLabelOverlap: false,
@@ -129,7 +131,10 @@ export default function ProgressPieChart(properties: {
     return (
         <ReactECharts
             option={options}
-            style={{ height: '220px' }}
+            style={{
+                height: '220px',
+                borderRadius: '10px',
+            }}
             className={`${properties.rate[0]}-${properties.rate[1]}-${properties.rate[2]} ${LOCATORS.CHARTS.progress}`}
         />
     );
