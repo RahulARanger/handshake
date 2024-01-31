@@ -2,15 +2,16 @@ from handshake.services.DBService.models.result_base import RunBase
 from handshake.services.DBService.models.config_base import ConfigBase, ConfigKeys
 from handshake.services.SchedularService.constants import (
     JobType,
-    writtenAttachmentFolderName,
 )
 from loguru import logger
 from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from pathlib import Path
-from shutil import rmtree
 from typing import List
 from tortoise.expressions import Q
+from handshake.services.SchedularService.handleTestResults import (
+    deleteTestRunsRelatedAttachments,
+)
 
 
 def addDeleteJob(_scheduler: AsyncIOScheduler, path: Path, mapped: List[bool]):
@@ -48,17 +49,7 @@ async def deleteOldRuns(db_path: Path, punch_out: List[bool]):
     )
     await RunBase.filter(Q(testID__in=runs)).delete()
 
-    collection = db_path.parent / writtenAttachmentFolderName
-
-    for _run in runs:
-        run = str(_run)  # UUID to string
-
-        entry = collection / run
-        if not entry.exists():
-            continue
-
-        logger.warning("Deleting the attachments for run {}", run)
-        rmtree(entry)
+    deleteTestRunsRelatedAttachments(db_path, runs)
 
     record, _ = await ConfigBase.update_or_create(key=ConfigKeys.recentlyDeleted)
     await record.update_from_dict(dict(value=str(recently_deleted)))

@@ -18,11 +18,11 @@ async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> Fals
     return False
 
 
-async def pruneTasks(request_id: Optional[str] = ""):
-    if request_id:
+async def pruneTasks(task_id: Optional[str] = ""):
+    if task_id:
         logger.error("Deleting Few Tasks as per request")
     else:
-        logger.warning("Pruning some Tasks")
+        logger.warning("Pruning some Tasks, which are related to error test runs")
 
     await TaskBase.filter(
         Q(
@@ -37,5 +37,5 @@ async def pruneTasks(request_id: Optional[str] = ""):
             .distinct()
             .values_list("test_id", flat=True)
         )
-        & ~Q(ticketID=request_id)
+        & ~Q(ticketID=task_id)
     ).delete()

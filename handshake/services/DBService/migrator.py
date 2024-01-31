@@ -19,14 +19,14 @@ def check_version(
 
     if not result:
         logger.warning(
-            f"Could not find the version, Please raise this as an issue or re-run after deleting the folder {path}."
+            f"Could not find the version, Please raise this as an issue or re-run after deleting the folder at: {path}."
         )
     else:
         version_stored = result if not result else int(result[0])
         migration_required = version_stored != DB_VERSION
 
         logger.log(
-            "INFO" if not migration_required else "ERROR",
+            "INFO" if not migration_required else "WARNING",
             "Currently at: v{}."
             if not migration_required
             else 'Found version: v{}. but required is v{}. Please execute: \n"handshake migrate [COLLECTION_PATH]"',

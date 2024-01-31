@@ -49,7 +49,6 @@ async def init_jobs_connections(
     db_path: Path, _scheduler: AsyncIOScheduler, mapped: List[bool]
 ):
     await init_tortoise_orm(db_path)
-    logger.info("DB Services are now online 🌍")
     await pick_previous_tasks()
     addDeleteJob(_scheduler, db_path, mapped)
     add_lookup_task(_scheduler)

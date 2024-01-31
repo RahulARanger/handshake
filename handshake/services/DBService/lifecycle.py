@@ -3,6 +3,7 @@ from handshake.services.DBService.models.config_base import ConfigBase
 from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
 from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
@@ -18,6 +19,7 @@ def config_file(provided_db_path: Path):
 
 async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
     chosen = force_db_path if force_db_path else db_path()
+    migration(chosen)
 
     await Tortoise.init(
         db_url=r"{}".format(f"sqlite://{chosen}"),
