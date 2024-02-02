@@ -8,7 +8,7 @@ from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
 from typing import Optional, Union
-
+from loguru import logger
 
 models = ["handshake.services.DBService.models"]
 
@@ -59,3 +59,5 @@ async def set_default_config(path: Path):
 
 async def close_connection():
     await connections.close_all()
+    # waiting for the logs to be sent or saved
+    await logger.complete()

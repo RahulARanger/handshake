@@ -77,8 +77,23 @@ process. This involves consolidating errors from child tests to the suite level 
 tests from child suites to parent suites.
 """,
 )
+@option(
+    "--log-file",
+    "-l",
+    help="give me file name to store the logs for the patch command.",
+    type=C_Path(),
+    default="",
+    required=False,
+)
 @general_requirement
-def patch(collection_path):
+def patch(collection_path, log_file: str):
+    if log_file:
+        logger.add(
+            log_file if log_file.endswith(".log") else f"{log_file}.log",
+            backtrace=True,
+            diagnose=True,
+        )
+
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
     start_service(db_path(collection_path))

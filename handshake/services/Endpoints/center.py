@@ -13,14 +13,8 @@ async def before_start_of_day(app: Sanic, loop):
     await init_tortoise_orm()
 
 
-@service_provider.after_server_stop
-async def close_scheduler(app: Sanic, loop):
-    await close_connection()
-
-
 def close_app(*args):
     asyncio.run(close_connection())
-    logger.info("Services are offline as requested. 👋")
 
 
 @service_provider.main_process_ready

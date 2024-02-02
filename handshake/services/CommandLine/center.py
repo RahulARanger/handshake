@@ -43,8 +43,6 @@ def setup_app(
     path: str,
     port: int = 6969,
     workers: int = 2,
-    fast: bool = False,
-    debug: bool = True,
 ):
     @service_provider.main_process_start
     async def get_me_started(app, loop):
@@ -59,9 +57,7 @@ def setup_app(
         await close_connection()
 
     _app, loader = prepare_loader()
-    _app.prepare(
-        port=port, workers=min(2, workers), host="127.0.0.1", fast=fast, debug=debug
-    )
+    _app.prepare(port=port, workers=min(2, workers), host="127.0.0.1")
     logger.debug("Serving at port: {}", port)
     Sanic.serve(primary=_app, app_loader=loader)
 
@@ -69,7 +65,9 @@ def setup_app(
 @handle_cli.command(
     short_help="Starts the server which would listen for your input",
     help="""
-Starts the Handshake server to listen for inputs at the specified port on localhost. This command initiates a test run, allowing the server to handle a single test run at a time. For multiple test runs, spawn the process separately on different ports.
+Starts the Handshake server to listen for inputs at the specified port on localhost. This command initiates a test run,
+allowing the server to handle a single test run at a time. For multiple test runs, spawn the process separately on different
+ports.
 """,
 )
 @argument("PROJECT_NAME", nargs=1, required=True, type=str)
@@ -90,34 +88,19 @@ Starts the Handshake server to listen for inputs at the specified port on localh
     help="Number of workers to use",
     type=int,
 )
-@option(
-    "-f",
-    "--fast",
-    default=False,
-    help="Asks Sanic to set the use max. number of workers",
-    is_flag=True,
-    type=bool,
-    show_default=True,
-)
-@option(
-    "-d",
-    "--debug",
-    default=False,
-    is_flag=True,
-    type=bool,
-    show_default=True,
-    help="Run the Sanic Server in debug mode for better logs",
-)
 def run_app(
     collection_path: str,
     project_name: str,
     port: int,
     workers: int,
-    fast: bool,
-    debug: bool,
 ):
+    if workers < 2:
+        logger.warning(
+            "we have set default of 2 workers, if it's less than that, server might miss results sent from the runner."
+        )
+
     P_Path(collection_path).mkdir(exist_ok=True)
-    setup_app(project_name, collection_path, port, workers, fast, debug)
+    setup_app(project_name, collection_path, port, workers)
 
 
 @handle_cli.command(
@@ -126,7 +109,15 @@ def run_app(
     short_help="serves generated report",
 )
 @argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
-def display(static_path: Union[str, P_Path] = "TestReports"):
+@option(
+    "-p",
+    "--port",
+    default=8000,
+    show_default=True,
+    help="Port for the service to connect to",
+    type=int,
+)
+def display(static_path: Union[str, P_Path] = "TestReports", port: int = 8000):
     if static_path:
         static_path = P_Path(static_path)
 
@@ -135,7 +126,7 @@ def display(static_path: Union[str, P_Path] = "TestReports"):
 
     loader = AppLoader(factory=partial(feed_static_provider, static_path))
     _app = loader.load()
-    _app.prepare(host="127.0.0.1")
+    _app.prepare(host="127.0.0.1", port=port)
     Sanic.serve(primary=_app, app_loader=loader)
 
 
