@@ -125,7 +125,15 @@ def run_app(
     short_help="serves generated report",
 )
 @argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
-def display(static_path: Union[str, P_Path] = "TestReports"):
+@option(
+    "-p",
+    "--port",
+    default=8000,
+    show_default=True,
+    help="Port for the reports to host in",
+    type=int,
+)
+def display(static_path: Union[str, P_Path] = "TestReports", port: int = 8000):
     if static_path:
         static_path = P_Path(static_path)
 
@@ -134,7 +142,7 @@ def display(static_path: Union[str, P_Path] = "TestReports"):
 
     loader = AppLoader(factory=partial(feed_static_provider, static_path))
     _app = loader.load()
-    _app.prepare(host="127.0.0.1")
+    _app.prepare(host="127.0.0.1", port=port)
     Sanic.serve(primary=_app, app_loader=loader)
 
 
