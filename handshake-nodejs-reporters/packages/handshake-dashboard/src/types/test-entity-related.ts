@@ -82,5 +82,14 @@ export interface ImageRecord {
 export interface ErrorRecord {
     message: string;
     stack: string;
-    mailedFrom: string[];
+    mailedFrom?: string[];
+}
+
+export interface Assertion {
+    entity_id: string;
+    passed: boolean;
+    wait: number;
+    interval: number;
+    message: string;
+    title: string;
 }

@@ -11,6 +11,7 @@ import type {
     TestDetails,
 } from 'src/types/parsed-records';
 import type {
+    Assertion,
     ErrorRecord,
     ImageRecord,
     RetriedRecord,
@@ -101,6 +102,7 @@ export function parseSuites(
             type: suite.suiteType,
             Tests: suite.tests,
             Desc: suite.description,
+            Tags: JSON.parse(suite.tags ?? '{}'),
         };
     }
     return parsedRecords;
@@ -109,6 +111,8 @@ export function parseSuites(
 export function parseTests(
     records: TestRecordDetails[],
     suites: SuiteDetails,
+    images: ImageRecord[],
+    assertions: Assertion[],
 ): TestDetails {
     const testDetails: TestDetails = {};
     const ansiToHTML = new Convert();
@@ -136,6 +140,15 @@ export function parseTests(
             Rate: [record.passed, record.failed, record.skipped],
             Status: record.standing,
             Desc: record.description,
+            Images: images.filter(
+                (image) => image.entity_id === record.suiteID,
+            ),
+            Assertions: assertions
+                .filter((assertion) => assertion.entity_id === record.suiteID)
+                .map((assertion) => ({
+                    ...assertion,
+                    message: ansiToHTML.toHtml(assertion.message),
+                })),
         };
     }
     return testDetails;

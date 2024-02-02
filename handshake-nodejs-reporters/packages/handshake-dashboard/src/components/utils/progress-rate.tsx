@@ -33,6 +33,7 @@ export default function RenderProgress(properties: {
                     strokeColor={'green'}
                     gapDegree={40}
                     size={85}
+                    className={'passed'}
                 />
             </Tooltip>
             <Tooltip title="Failed Test Cases %" color="red">
@@ -42,6 +43,7 @@ export default function RenderProgress(properties: {
                     strokeColor={'red'}
                     gapDegree={40}
                     size={85}
+                    className="failed"
                 />
             </Tooltip>
 
@@ -52,6 +54,7 @@ export default function RenderProgress(properties: {
                     strokeColor={'yellow'}
                     gapDegree={40}
                     size={85}
+                    className="skipped"
                 />
             </Tooltip>
             {properties.broken ? (
@@ -72,6 +75,7 @@ export default function RenderProgress(properties: {
                         strokeColor={'volcano'}
                         gapDegree={40}
                         size={85}
+                        className="broken"
                     />
                 </Tooltip>
             ) : (

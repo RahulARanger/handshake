@@ -1,0 +1,20 @@
+{
+	"extends": "@tsconfig/node20/tsconfig.json",
+	"compilerOptions": {
+		"strict": true,
+		"declaration": true,
+		"declarationMap": true,
+		"resolveJsonModule": true,
+		"removeComments": true,
+		"strictFunctionTypes": false,
+		"experimentalDecorators": true,
+		"esModuleInterop": true,
+		"moduleResolution": "Node",
+		"module": "ESNext",
+		"lib": ["dom", "es2021"],
+		"types": ["node"],
+		"composite": false,
+		"forceConsistentCasingInFileNames": true
+	},
+	"exclude": ["node_modules", "dist"]
+}

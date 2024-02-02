@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import React, { type ReactNode } from 'react';
 import type { statusOfEntity } from 'src/types/session-records';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
@@ -11,6 +12,13 @@ import type { possibleEntityNames } from 'src/types/session-records';
 import Avatar from 'antd/lib/avatar/avatar';
 import GraphCardCss from 'src/styles/GraphCard.module.css';
 import { Badge, Tooltip } from 'antd/lib';
+import { showOnly } from 'src/types/ui-constants';
+import type {
+    ParsedSuiteRecord,
+    ParsedTestRecord,
+} from 'src/types/parsed-records';
+import { testStatusText } from '../core/TestEntity/extractors';
+import { LOCATORS } from 'handshake-utils';
 
 export function RenderStatus(properties: {
     value: string;
@@ -24,6 +32,7 @@ export function RenderStatus(properties: {
                         position: 'relative',
                         top: '-1px',
                     }}
+                    className={`${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 >
                     ✅
                 </Text>
@@ -31,7 +40,9 @@ export function RenderStatus(properties: {
         }
         case 'FAILED': {
             return (
-                <Text className={`${Dotted.redGlowText} ${Dotted.spin}`}>
+                <Text
+                    className={`${Dotted.redGlowText} ${Dotted.spin} ${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
+                >
                     ❌
                 </Text>
             );
@@ -39,7 +50,7 @@ export function RenderStatus(properties: {
         case 'SKIPPED': {
             return (
                 <Text
-                    className={Dotted.yellowGlowText}
+                    className={`${showOnly} ${Dotted.yellowGlowText} ${LOCATORS.RUNS.statusForTestEntity}`}
                     style={{
                         position: 'relative',
                         top: '-1px',
@@ -59,7 +70,7 @@ export function RenderStatus(properties: {
                         borderRadius: '50px',
                     }}
                     title="Pending"
-                    className="warn-glow"
+                    className={`warn-glow ${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 />
             );
         }
@@ -74,7 +85,7 @@ export function RenderStatus(properties: {
                     }}
                     spin
                     title="Retried Suite"
-                    className="retried-glow"
+                    className={`retried-glow ${showOnly} ${LOCATORS.RUNS.statusForTestEntity}`}
                 />
             );
         }
@@ -142,6 +153,7 @@ export function RenderInfo(properties: {
             bodyStyle={{
                 padding: '6px',
                 paddingTop: '12px',
+                userSelect: 'none',
                 paddingBottom: '12px',
             }}
         >
@@ -152,5 +164,43 @@ export function RenderInfo(properties: {
                 {properties.value}
             </Space>
         </Card>
+    );
+}
+
+export function RenderTestItem(properties: {
+    record: ParsedTestRecord | ParsedSuiteRecord;
+    layoutStyle?: CSSProperties;
+}): ReactNode {
+    return (
+        <Space align="center" style={properties.layoutStyle ?? {}}>
+            <RenderStatus value={properties.record.Status} />
+            <Text
+                ellipsis={{ tooltip: true }}
+                style={{
+                    minWidth: 160,
+                    textWrap: 'balance',
+                }}
+                type={testStatusText(properties.record.Status)}
+            >
+                {properties.record.Title}
+            </Text>
+            {properties.record.type === 'SUITE' ||
+            // @ts-expect-error we do not have isBroken for test
+            !properties.record?.isBroken ? (
+                <></>
+            ) : (
+                <Tooltip title="No Assertion under it has failed">
+                    <Badge
+                        color="yellow"
+                        count="BROKEN"
+                        title=""
+                        style={{
+                            color: 'black',
+                            fontWeight: 'bold',
+                        }}
+                    />
+                </Tooltip>
+            )}
+        </Space>
     );
 }

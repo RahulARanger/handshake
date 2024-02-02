@@ -1,7 +1,5 @@
-import type { MutableRefObject } from 'react';
-import React, { useCallback, useEffect, type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import carouselStyles from '../../styles/carousel.module.css';
-import type { UseEmblaCarouselType } from 'embla-carousel-react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
 import Image from 'antd/lib/image';
@@ -18,6 +16,7 @@ export function PlainImage(properties: {
     maxHeight?: string;
     isPlain?: boolean;
     id?: string;
+    desc?: string;
 }) {
     const image = (
         <Image
@@ -38,35 +37,6 @@ export function PlainImage(properties: {
     if (properties.isPlain) {
         return <>{image}</>;
     }
-    return (
-        <Card
-            size="small"
-            type="inner"
-            bordered
-            hoverable
-            style={{ margin: '2px', padding: '0px' }}
-        >
-            {image}
-        </Card>
-    );
-}
-
-export function CardForAImage(properties: {
-    url: string;
-    title: string;
-    desc?: string;
-    index?: number;
-    maxHeight?: string;
-    sendCurrentIndex?: (_: number) => void;
-}) {
-    const rawImage = (
-        <PlainImage
-            title={properties.title}
-            maxHeight={properties.maxHeight}
-            url={properties.url}
-        />
-    );
-
     const desc =
         properties.desc == undefined ? (
             <> </>
@@ -105,7 +75,7 @@ export function CardForAImage(properties: {
             className={carouselStyles.slide}
             style={{ margin: '6px' }}
         >
-            {rawImage}
+            {image}
             {desc}
         </Card>
     );
@@ -116,44 +86,30 @@ export default function GalleryOfImages(properties: {
     children: ReactNode[];
     maxWidth?: string;
     height?: string;
-    apiReference?: MutableRefObject<UseEmblaCarouselType[1] | null>;
-    sendIndexOnChange?: (_: number) => void;
+    dragFree?: boolean;
 }): ReactNode {
-    const [emblaReference, emblaApi] = useEmblaCarousel(
+    const [emblaReference] = useEmblaCarousel(
         {
             loop: properties.loop,
             align: 'center',
             axis: 'y',
+            dragFree: properties.dragFree ?? true,
         },
         [Autoplay({ stopOnInteraction: true, active: properties.loop })],
     );
-
-    if (properties.apiReference) properties.apiReference.current = emblaApi;
-
-    const onSlidesInView = useCallback(
-        (emblaApi: UseEmblaCarouselType[1]) => {
-            properties?.sendIndexOnChange!(
-                emblaApi?.slidesInView()?.at(0) ?? 0,
-            ); // 0 -indexed
-        },
-        [properties.sendIndexOnChange],
-    );
-
-    useEffect(() => {
-        emblaApi?.on('slidesInView', onSlidesInView);
-    }, [emblaApi, onSlidesInView]);
 
     return (
         <div
             className={carouselStyles.embla}
             ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth }}
+            style={{ maxWidth: properties.maxWidth, userSelect: 'none' }}
         >
             <div
                 className={carouselStyles.container}
                 style={{
                     flexDirection: 'column',
                     maxHeight: properties.height ?? '240px',
+                    userSelect: 'none',
                 }}
             >
                 <PreviewGroup>
@@ -163,6 +119,45 @@ export default function GalleryOfImages(properties: {
                         </div>
                     ))}
                 </PreviewGroup>
+            </div>
+        </div>
+    );
+}
+
+export function GalleryOfImagesLeftToRight(properties: {
+    loop?: boolean;
+    children: ReactNode[];
+    maxWidth?: string;
+    height?: string;
+}): ReactNode {
+    const [emblaReference] = useEmblaCarousel({
+        loop: properties.loop,
+        align: 'center',
+        dragFree: true,
+    });
+
+    return (
+        <div
+            className={carouselStyles.embla}
+            ref={emblaReference}
+            style={{ maxWidth: properties.maxWidth, userSelect: 'none' }}
+        >
+            <div
+                className={carouselStyles.container}
+                style={{
+                    maxHeight: properties.height ?? '240px',
+                    userSelect: 'none',
+                }}
+            >
+                {properties.children.map((child, index) => (
+                    <div
+                        className={carouselStyles.slide}
+                        key={index}
+                        style={{ flex: '0 0 75%' }}
+                    >
+                        {child}
+                    </div>
+                ))}
             </div>
         </div>
     );

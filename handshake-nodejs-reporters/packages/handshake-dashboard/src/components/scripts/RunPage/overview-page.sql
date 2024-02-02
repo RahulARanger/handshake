@@ -61,6 +61,11 @@ INSERT INTO KEY_NUMBERS
   count(*) as broken from LOOK_FOR_TESTS where suiteID not in
 	  (select distinct entity_id from assertbase where passed = 0 and entity_id in LOOK_FOR_TESTS);
 
+-- number of sessions
+INSERT INTO KEY_NUMBERS 
+	select 'isRecent' as key,
+  (select testID from CURRENT_RUN_ID) in (select testID from runbase where ended <> '' order by ended desc limit 1);
+
 
 -- fetch the details of the requested test run
 CREATE TEMP TABLE CURRENT_RUN AS

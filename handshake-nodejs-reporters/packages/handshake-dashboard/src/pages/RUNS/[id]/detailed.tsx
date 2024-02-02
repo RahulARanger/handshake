@@ -93,14 +93,19 @@ export default function TestRunResults(
             testRun.Started[0],
             testRun.Tests,
         );
+        const images = parseImageRecords(
+            properties.images,
+            properties.detailsOfTestRun.testID,
+        );
         return {
             detailsOfTestRun: testRun,
-            images: parseImageRecords(
-                properties.images,
-                properties.detailsOfTestRun.testID,
-            ),
             suites,
-            tests: parseTests(properties.tests, suites),
+            tests: parseTests(
+                properties.tests,
+                suites,
+                images,
+                properties.assertions,
+            ),
             retriedRecords: parseRetriedRecords(properties.retriedRecords),
         };
     }, [properties]);
@@ -108,6 +113,7 @@ export default function TestRunResults(
     const [viewMode, setViewMode] = useState<string>(
         menuTabs.testEntitiesTab.gridViewMode,
     );
+    const [highlight, setHightLight] = useState<string>('');
 
     useEffect(() => {
         if (!router.isReady) return;
@@ -120,8 +126,12 @@ export default function TestRunResults(
             <LayoutStructureForRunDetails
                 activeTab={viewMode}
                 changeDefault={setViewMode}
+                highlight={highlight}
             >
-                <TestEntities defaultTab={viewMode} />
+                <TestEntities
+                    defaultTab={viewMode}
+                    setHightLight={setHightLight}
+                />
             </LayoutStructureForRunDetails>
         </DetailedContext.Provider>
     );

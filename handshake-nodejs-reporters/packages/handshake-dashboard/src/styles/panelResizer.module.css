@@ -1,8 +1,8 @@
 .panelResizer {
     border: 1px solid rgba(255, 255, 255, 0.15);
-    width: 5px;
-    margin-left: 3px;
-    margin-right: 3px;
+    width: 6px;
+    margin-left: 6px;
+    margin-right: 6px;
     border-radius: 20px;
     background-color: var(--background-color);
 }

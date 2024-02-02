@@ -37,6 +37,7 @@ import {
     serif,
     toolTipFormats,
 } from './constants';
+import { LOCATORS } from 'handshake-utils';
 
 // Register the required components
 echarts.use([
@@ -118,6 +119,7 @@ export default function RenderPassedRate(properties: {
                 marginTop: '3px',
                 padding: '0px',
             }}
+            className={`${properties.value[0]}-${properties.value[1]}-${properties.value[2]} ${LOCATORS.CHARTS.rate}`}
             opts={{ renderer: 'svg' }}
         />
     );

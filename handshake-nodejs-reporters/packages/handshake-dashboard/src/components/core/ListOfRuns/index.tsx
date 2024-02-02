@@ -10,6 +10,7 @@ import HeaderStyles from 'src/styles/header.module.css';
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
+import type { CollapseProps } from 'antd/lib/collapse/Collapse';
 import Collapse from 'antd/lib/collapse/Collapse';
 import Card from 'antd/lib/card/Card';
 import dayjs, { type Dayjs } from 'dayjs';
@@ -32,6 +33,7 @@ import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderStatus } from 'src/components/utils/renderers';
 import type { DetailedTestRecord } from 'src/types/parsed-records';
 import { sourceUrl } from 'src/types/ui-constants';
+import { LOCATORS, TEXT } from 'handshake-utils';
 
 dayjs.extend(isBetween);
 
@@ -42,6 +44,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
     return (
         <List.Item
             key={item.Link}
+            id={item.Id}
             actions={[
                 <Space key={'space'}>
                     <RenderPassedRate
@@ -60,6 +63,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                             showTest(checked);
                         }}
                         checked={isTest}
+                        className="switch"
                     />
                 </Space>,
             ]}
@@ -68,20 +72,24 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                 title={
                     <Space align="center">
                         <RenderStatus value={item.Status} />
-                        <Link href={item.Link}>{`${item.Started[0].format(
+                        <Link
+                            href={item.Link}
+                            id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
+                        >{`${item.Started[0].format(
                             dateFormatUsed,
                         )} - ${item.Title}`}</Link>
                     </Space>
                 }
                 description={
                     <Tooltip
-                        title="Start Time | End Time | Duration (in s)"
+                        title={TEXT.RUNS.noteForTime}
                         color="volcano"
                         placement="bottomRight"
                         arrow
+                        className="tooltip"
                     >
                         <Space align="start" size={0}>
-                            <Tag color="cyan">
+                            <Tag color="cyan" className="time-range">
                                 <RelativeTo
                                     dateTime={item.Started[0]}
                                     secondDateTime={item.Ended[0]}
@@ -98,6 +106,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                                     minWidth: '95px',
                                     maxWidth: '95px',
                                 }}
+                                className="duration"
                             >
                                 <RenderDuration
                                     value={item.Duration}
@@ -114,6 +123,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
 
 function RawList(properties: {
     dataSource: Array<undefined | DetailedTestRecord>;
+    id: string;
 }): ReactNode {
     const [showMax, setShowMax] = useState<number>(10);
     const items = properties.dataSource?.slice(0, showMax);
@@ -122,6 +132,7 @@ function RawList(properties: {
             bordered
             itemLayout="vertical"
             size="small"
+            id={properties.id}
             dataSource={items}
             renderItem={(item) =>
                 item == undefined ? <></> : <RunCard run={item} />
@@ -131,11 +142,12 @@ function RawList(properties: {
                     <Button
                         size="middle"
                         style={{ width: '100%', marginTop: '1px' }}
+                        type="text"
                         onClick={() => {
                             setShowMax(showMax + 10);
                         }}
                     >
-                        Load More
+                        Show More
                     </Button>
                 ) : (
                     <></>
@@ -183,35 +195,47 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
         run.Started[0].isSame(today, 'date'),
     );
 
-    const data = [
-        { items: [firstRun], label: 'Latest Run' },
+    const data: CollapseProps['items'] = [
+        { items: [firstRun], label: 'Latest Run', id: LOCATORS.RUNS.latestRun },
         {
             items: forToday,
             label: 'Today',
+            id: LOCATORS.RUNS.today,
         },
         {
             items: forYesterday,
             label: 'Yesterday',
+            id: LOCATORS.RUNS.yesterday,
         },
         {
             items: forThisWeek,
             label: 'This Week',
+            id: LOCATORS.RUNS.thisWeek,
         },
         {
             items: forThisMonth,
             label: 'This Month',
+            id: LOCATORS.RUNS.forThisMonth,
         },
         {
             items: forPreviousMonth,
             label: 'Prev Month',
+            id: LOCATORS.RUNS.prevMonth,
         },
     ]
         .filter((item) => item.items.length > 0)
         .map((item) => ({
             key: item.label,
-            label: item.label,
-            extra: <Text type="secondary">{`(${item.items.length})`}</Text>,
-            children: <RawList dataSource={item.items} />,
+            label: <Text id={item.id}>{item.label}</Text>,
+            extra: (
+                <Text
+                    type="secondary"
+                    id={`${item.id}-count`}
+                >{`(${item.items.length})`}</Text>
+            ),
+            children: (
+                <RawList dataSource={item.items} id={`${item.id}-list`} />
+            ),
         }));
 
     return (
@@ -222,6 +246,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
             defaultActiveKey={['Latest Run']}
             bordered
             style={{ height: '100%' }}
+            key={LOCATORS.RUNS.testRuns}
         />
     );
 }
@@ -233,6 +258,7 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
         <Card
             title="Test Runs"
             bordered={true}
+            id={LOCATORS.RUNS.testRunsCard}
             size="small"
             extra={
                 <Switch
@@ -243,6 +269,8 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
                         showTest(checked);
                     }}
                     checked={isTest}
+                    className="switch"
+                    id={LOCATORS.RUNS.testRunsSwitch}
                 />
             }
         >
@@ -373,6 +401,7 @@ export default function GridOfRuns(properties: {
                             allowClear
                             value={selectedProjectName}
                             placeholder="Select Project Name"
+                            id={LOCATORS.RUNS.projectNameDropdown}
                             style={{ minWidth: '180px' }}
                             onChange={(selected) => {
                                 filterProjectName(selected);
@@ -380,6 +409,7 @@ export default function GridOfRuns(properties: {
                         />
                         <DatePicker.RangePicker
                             value={dateRange}
+                            id={LOCATORS.RUNS.dateRangeSelector}
                             onChange={(values) => {
                                 setDateRange(values);
                             }}
@@ -390,6 +420,7 @@ export default function GridOfRuns(properties: {
                         icon={<GithubOutlined style={{ fontSize: 20 }} />}
                         href={sourceUrl}
                         target="_blank"
+                        id={LOCATORS.RUNS.githubURL}
                     />
                 </Space>
             </Layout.Header>

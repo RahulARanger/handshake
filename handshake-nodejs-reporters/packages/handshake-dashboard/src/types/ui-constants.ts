@@ -1,6 +1,5 @@
-export const timelineTab = 'timelineTab';
+import { TEXT } from 'handshake-utils';
 
-export const summaryTab = 'summary';
 export const configTab = 'config';
 
 export const menuTabs = {
@@ -12,5 +11,7 @@ export const menuTabs = {
     },
 };
 
-export const sourceUrl = 'https://github.com/RahulARanger/handshake';
+export const sourceUrl = TEXT.REPO;
 export const attachmentPrefix = '/Attachments';
+
+export const showOnly = 'show-only'; // has user-select: 'none'

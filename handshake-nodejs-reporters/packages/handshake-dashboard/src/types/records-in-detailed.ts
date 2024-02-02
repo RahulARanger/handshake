@@ -26,7 +26,6 @@ export default interface DetailedPageProperties {
 
 export interface ValuesInDetailedContext {
     detailsOfTestRun: DetailedTestRecord;
-    images: ImageRecord[];
     suites: SuiteDetails;
     tests: TestDetails;
     retriedRecords: ParsedRetriedRecords;
