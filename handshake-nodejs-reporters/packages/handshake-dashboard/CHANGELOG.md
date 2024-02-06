@@ -1,5 +1,11 @@
 # handshake
 
+## 0.4.6
+
+### Patch Changes
+
+- 2d007ce: fix affix components
+
 ## 0.4.5
 
 ### Patch Changes
