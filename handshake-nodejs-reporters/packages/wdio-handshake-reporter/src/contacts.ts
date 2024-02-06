@@ -26,9 +26,13 @@ export default class ReporterContacts extends WDIOReporter {
     this.options = options;
 
     this.logger = log4js.getLogger('wdio-py-reporter');
-    this.logger.level = 'debug';
+    this.logger.level = this.options.logLevel ?? 'debug';
 
-    this.supporter = new ReporterDialPad(this.options.port, this.options.timeout);
+    this.supporter = new ReporterDialPad(
+      this.options.port,
+      this.options.timeout,
+      this.options.logLevel,
+    );
     currentReporter = this;
   }
 
@@ -62,8 +66,12 @@ export class ContactsForService {
 
   constructor(options: HandshakeServiceOptions) {
     this.logger = log4js.getLogger('wdio-py-service');
-    this.logger.level = 'debug';
     this.options = options;
-    this.supporter = new ServiceDialPad(this.options.port, this.options.exePath);
+    this.logger.level = this.options.logLevel ?? 'debug';
+    this.supporter = new ServiceDialPad(
+      this.options.port,
+      this.options.logLevel,
+      this.options.exePath,
+    );
   }
 }

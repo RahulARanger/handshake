@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.4.3
+
+### Patch Changes
+
+- fixed
+- Updated dependencies
+  - common-handshakes@0.4.3
+
 ## 0.4.2
 
 ### Patch Changes

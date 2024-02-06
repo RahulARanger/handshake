@@ -1,4 +1,4 @@
-import log4js from 'log4js';
+import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
 import PQueue, { QueueAddOptions } from 'p-queue';
 import PriorityQueue from 'p-queue/dist/priority-queue';
@@ -9,7 +9,7 @@ import {
 } from './payload';
 import { acceptableDateString } from './helpers';
 
-const logger = log4js.getLogger('common-handshakes');
+const logger = log4js.getLogger('handshake-reporter');
 
 log4js.configure({
   appenders: { console: { type: 'console' } },
@@ -27,8 +27,9 @@ export class ReporterDialPad extends DialPad {
 
   requests: Attachment[] = [];
 
-  constructor(port: number, timeout?:number) {
+  constructor(port: number, timeout?:number, logLevel?:Level) {
     super(port);
+    logger.level = logLevel ?? 'info';
     this.pipeQueue = new PQueue(
       { concurrency: 1, timeout: timeout ?? 180e3, throwOnTimeout: false },
     );
@@ -60,8 +61,8 @@ export class ReporterDialPad extends DialPad {
 
   async office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
     const feed = JSON.stringify((callThisInside === undefined ? payload : callThisInside()) ?? {});
-    logger.info(
-      `📠 Faxing ${callThisInside === undefined ? 'static' : 'dynamic'} payload 📃: ${feed} to ${contact}`,
+    logger.debug(
+      `Transferred payload: ${feed} to ${contact}.`,
     );
 
     await superagent.put(contact)
@@ -71,14 +72,14 @@ export class ReporterDialPad extends DialPad {
         const { text, ok } = result;
         if (!ok) {
           logger.error(
-            `❌ Server failed to understand the request sent to ${contact} with payload 📃: ${feed}. so it attached a note: ${text}`,
+            `❌ Server failed to understand the request sent to ${contact} with payload; ${feed}. It attached a note: ${text}`,
           );
           return;
         }
 
-        logger.info(`✅ Server accepted the request and attached a note: ${text}`);
+        logger.debug(`✅ Server accepted the request and attached a note: ${text}`);
         if (storeIn) {
-          logger.info(
+          logger.debug(
             `🫙 Storing received response key [${storeIn}] as ${text}`,
           );
           this.idMapped[storeIn] = String(text);
@@ -101,7 +102,7 @@ export class ReporterDialPad extends DialPad {
         () => this.office(contact, payload, callThisInside, storeIn),
       );
 
-    logger.info(`queue size in office 🏢: ${this.pipeQueue.size}`);
+    if (this.pipeQueue.size) logger.info(`Queue size in office 🏢: ${this.pipeQueue.size}`);
     return job;
   }
 
@@ -169,7 +170,7 @@ export class ReporterDialPad extends DialPad {
       .send(JSON.stringify(payload))
       .on('response', (result) => {
         if (result.ok) {
-          logger.info(`🔗 Attached a ${forWhat} for entity: ${payload.entityID} with ${result.text}`);
+          logger.debug(`🔗 Attached a ${forWhat} for entity: ${payload.entityID} with ${result.text}`);
         } else {
           logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
         }

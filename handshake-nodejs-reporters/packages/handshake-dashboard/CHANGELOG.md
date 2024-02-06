@@ -1,5 +1,25 @@
 # handshake
 
+## 0.4.5
+
+### Patch Changes
+
+- remove font for the dashboard
+
+## 0.4.4
+
+### Patch Changes
+
+- fix: nextjs config
+
+## 0.4.3
+
+### Patch Changes
+
+- fixed
+- Updated dependencies
+  - handshake-utils@0.4.2
+
 ## 0.4.2
 
 ### Patch Changes

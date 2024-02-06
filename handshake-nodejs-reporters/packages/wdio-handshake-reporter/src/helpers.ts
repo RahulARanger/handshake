@@ -21,6 +21,7 @@ export function attachReporter(
       port,
       addScreenshots: options.addScreenshots || false,
       timeout: options.timeout,
+      logLevel: options.logLevel,
     },
   ]);
 
@@ -32,6 +33,7 @@ export function attachReporter(
       root: options.root,
       workers: options.workers,
       collectionName: options.collectionName,
+      logLevel: options.logLevel,
       export: options.export,
       testConfig: {
         ...options.testConfig, avoidParentSuitesInCount: options.testConfig.avoidParentSuitesInCount ?? config.framework === 'cucumber',

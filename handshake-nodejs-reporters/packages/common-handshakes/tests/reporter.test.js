@@ -8,8 +8,8 @@ const {
 } = require('./utils');
 
 describe('Verifying the functionality of the handshake-reporter', () => {
-  const service = new ServiceDialPad(6969);
-  const reporter = new ReporterDialPad(6969, 12e3);
+  const service = new ServiceDialPad(6969, 'ERROR');
+  const reporter = new ReporterDialPad(6969, 12e3, 'ERROR');
 
   beforeAll(async () => {
     resetDir();
@@ -200,6 +200,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
               skipped: 0,
               tests: 3,
               sessionID: reporter.idMapped.session ?? '',
+              standing: 'FAILED',
             }
           ),
         );

@@ -90,7 +90,14 @@ export default function LayoutStructureForRunDetails(properties: {
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
                 {properties.highlight ? (
-                    <Text id="highlight">{properties.highlight}</Text>
+                    <Text
+                        id="highlight"
+                        style={{
+                            textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
+                        }}
+                    >
+                        {properties.highlight}
+                    </Text>
                 ) : (
                     <></>
                 )}

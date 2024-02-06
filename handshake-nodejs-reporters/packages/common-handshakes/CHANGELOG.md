@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.4.3
+
+### Patch Changes
+
+- fixed
+
 ## 0.4.2
 
 ### Patch Changes

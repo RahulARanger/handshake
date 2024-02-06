@@ -4,7 +4,12 @@ import Counter from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
-import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
+import {
+    RenderInfo,
+    RenderSimpleKeyValue,
+    RenderStatus,
+    RenderSystemType,
+} from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import GalleryOfImages, {
     PlainImage,
@@ -14,6 +19,7 @@ import dayjs from 'dayjs';
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
 import Typography from 'antd/lib/typography/Typography';
+import Text from 'antd/lib/typography/Text';
 import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
 import Tabs from 'antd/lib/tabs/index';
@@ -126,9 +132,58 @@ function PreviewForImages(): ReactNode {
     );
 }
 
+function ConfigSet(): ReactNode {
+    const context = useContext(OverviewContext);
+    if (context == undefined) return <></>;
+
+    const { testRunConfig } = context;
+
+    return (
+        <Space align="center" wrap size="large">
+            <RenderSimpleKeyValue
+                title="Platform"
+                value={testRunConfig.platform}
+            >
+                <RenderSystemType systemName={testRunConfig.platform} />
+            </RenderSimpleKeyValue>
+            <RenderSimpleKeyValue
+                title="File Retries"
+                value={'Number of the spec files retried'}
+            >
+                <Text type="warning">
+                    <Counter end={testRunConfig.fileRetries} />
+                </Text>
+            </RenderSimpleKeyValue>
+            <RenderSimpleKeyValue
+                title="ExitCode"
+                value={'exit code of test run'}
+            >
+                <Text
+                    type={testRunConfig.exitCode === 0 ? 'success' : 'danger'}
+                >
+                    {testRunConfig.exitCode}
+                </Text>
+            </RenderSimpleKeyValue>
+            <RenderSimpleKeyValue
+                title="Max Instances"
+                value={
+                    'Number of parallel instances set for the test framework'
+                }
+            >
+                <Counter end={testRunConfig.maxInstances} />
+            </RenderSimpleKeyValue>
+            <RenderSimpleKeyValue
+                title="Framework"
+                value={'exit code of test run'}
+            >
+                <Typography>{testRunConfig.framework}</Typography>
+            </RenderSimpleKeyValue>
+        </Space>
+    );
+}
 export default function Overview(): ReactNode {
     const context = useContext(OverviewContext);
-    const [isTest, setTest] = useState<boolean>(true);
+    const [isTest, setTest] = useState<boolean>(false);
 
     if (context == undefined) return <></>;
 
@@ -150,16 +205,21 @@ export default function Overview(): ReactNode {
                 align="start"
                 style={{ width: '100%', justifyContent: 'stretch' }}
             >
-                <Space direction="vertical">
+                <Space direction="vertical" align="start">
                     <div style={{ width: '350px' }}>
+                        <ProgressPieChart
+                            rate={rate}
+                            isTestCases={isTest}
+                            broken={aggResults.brokenTests}
+                            noShadow
+                        />
                         <Affix
-                            offsetBottom={150}
                             style={{
                                 position: 'relative',
-                                top: '86px',
                                 left: '124px',
                                 width: '0px',
                                 height: '0px',
+                                bottom: '123px',
                             }}
                         >
                             <Select
@@ -178,16 +238,11 @@ export default function Overview(): ReactNode {
                                     },
                                 ]}
                                 value={isTest}
-                                onChange={(checked) => {
+                                onChange={(checked: boolean) => {
                                     setTest(checked);
                                 }}
                             />
                         </Affix>
-                        <ProgressPieChart
-                            rate={rate}
-                            isTestCases={isTest}
-                            broken={aggResults.brokenTests}
-                        />
                     </div>
                     <PreviewForImages />
                 </Space>
@@ -314,6 +369,11 @@ export default function Overview(): ReactNode {
                                         isTest={isTest}
                                     />
                                 ),
+                            },
+                            {
+                                key: 'config',
+                                label: 'Config',
+                                children: <ConfigSet />,
                             },
                         ]}
                     />

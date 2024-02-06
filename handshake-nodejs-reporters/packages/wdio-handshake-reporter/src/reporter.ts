@@ -166,6 +166,8 @@ export default class HandshakeReporter extends ReporterContacts {
 
     const caps = this.runnerStat
       ?.capabilities as WebdriverIO.Capabilities;
+
+    const standing = this.counts.failures > 0 ? 'FAILED' : 'PASSED';
     const payload: MarkTestSession = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
@@ -178,6 +180,7 @@ export default class HandshakeReporter extends ReporterContacts {
       entityName: caps.browserName ?? 'no-name-found',
       entityVersion: caps.browserVersion ?? '0.0.1',
       simplified: runnerStats.sanitizedCapabilities,
+      standing: this.counts.passes ? standing : 'SKIPPED',
     };
     this.supporter.markTestSession(() => payload);
   }
