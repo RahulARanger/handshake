@@ -24,6 +24,8 @@ async def register_patch_test_run(testID: str) -> TaskBase:
 
 
 async def mark_for_prune_task(test_id: str):
+    # someone called this explicitly hence it's a warning
+
     logger.warning("Requested to prune some tasks")
     await TaskBase.create(
         ticketID=str(uuid4()), type=JobType.PRUNE_TASKS, test_id=test_id

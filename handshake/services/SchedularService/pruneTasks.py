@@ -24,11 +24,11 @@ async def pruneTasks(task_id: Optional[str] = ""):
     else:
         logger.warning("Pruning some Tasks, which are related to error test runs")
 
-    await TaskBase.filter(
+    to_prune = await TaskBase.filter(
         Q(
             test_id__in=await TestLogBase.filter(type=LogType.ERROR)
             .filter(
-                test_id__in=await TaskBase.all()
+                test_id__in=await TaskBase.filter(processed=False)
                 .only("test_id")
                 .distinct()
                 .values_list("test_id", flat=True)
@@ -38,4 +38,13 @@ async def pruneTasks(task_id: Optional[str] = ""):
             .values_list("test_id", flat=True)
         )
         & ~Q(ticketID=task_id)
-    ).delete()
+    )
+
+    for task in to_prune:
+        logger.error(
+            "Found an error in this task: {}. hence marking it as processed. Please report it as an issue.",
+            task.ticketID,
+        )
+        task.processed = True
+
+    await TaskBase.bulk_update(to_prune, ("processed",), 100)

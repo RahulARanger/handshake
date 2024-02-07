@@ -28,6 +28,7 @@ async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
     task = (
         await TaskBase.filter(
             Q(picked=False)
+            & Q(processed=False)
             & (
                 Q(type=JobType.MODIFY_SUITE)
                 | Q(type=JobType.MODIFY_TEST_RUN)
@@ -44,24 +45,25 @@ async def lookup_for_tasks(_scheduler: AsyncIOScheduler):
     await task.update_from_dict(dict(picked=True))
     await task.save()
 
-    delete_task = False
+    is_task_processed = False
 
     match task.type:
         case JobType.MODIFY_SUITE:
-            delete_task = await patchTestSuite(task.ticketID, task.test_id)
+            is_task_processed = await patchTestSuite(task.ticketID, task.test_id)
 
         case JobType.MODIFY_TEST_RUN:
-            delete_task = await patchTestRun(task.ticketID, task.test_id)
+            is_task_processed = await patchTestRun(task.ticketID, task.test_id)
 
         case JobType.PRUNE_TASKS:
             await pruneTasks(task.ticketID)
-            delete_task = True
+            is_task_processed = True
 
         case _:
-            print("Not Implemented yet..")
+            logger.warning("Not Implemented yet..")
 
-    if delete_task:
-        await task.delete()
+    if is_task_processed:
+        await task.update_from_dict(dict(processed=True))
+        await task.save()
     else:
         logger.info(
             "This Task: {} - {} will continue in the next iteration",

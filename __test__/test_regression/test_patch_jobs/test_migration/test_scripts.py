@@ -4,9 +4,9 @@ import tortoise
 from handshake.services.DBService.models import (
     ConfigBase,
     SessionBase,
-    AttachmentBase,
     AssertBase,
     ExportBase,
+    TaskBase,
 )
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.migrator import migrate
@@ -60,7 +60,7 @@ class TestMigrationScripts:
         for entity in entities:
             assert entity == "chrome", "Data changed"
 
-    async def test_bump_4(
+    async def test_bump_v4(
         self,
         get_vth_connection,
         scripts,
@@ -91,7 +91,7 @@ class TestMigrationScripts:
         for _ in range(10):
             await add_assertion(test.suiteID, title, False)
 
-        assert not migrate(None, db_path), "it should now be in the latest version"
+        assert migrate(None, db_path) is True, "we still have further migration to go"
 
         all_assertions_migrated = await AssertBase.filter(entity_id=test.suiteID).all()
         assert len(all_assertions_migrated) == 20
@@ -124,7 +124,43 @@ class TestMigrationScripts:
         generated = await AssertBase.all().values_list("id", flat=True)
         assert len(generated) == len(set(generated))
 
+    async def test_bump_v5(
+        self, sample_test_session, create_suite, get_vth_connection, scripts, db_path
+    ):
+        await get_vth_connection(scripts, 5)
+
+        session = await sample_test_session
+        test_run = await session.test
+
+        # based on the previous test we are now in version: 5
+        version = await ConfigBase.filter(key=ConfigKeys.version).first()
+        assert int(version.value) == 5
+
+        script = scripts / "bump-v5.sql"
+        assert script.exists()
+
+        suite = await create_suite(session.sessionID)
+        await tortoise.connections.get("default").execute_query(
+            'INSERT INTO "taskbase" ("ticketID","type","dropped","meta","picked","test_id") VALUES (?,?,?,?,?,?)',
+            [
+                str(suite.suiteID),
+                "fix-suite",
+                "2024-02-07 19:46:39.059284+00:00",
+                "{}",
+                0,
+                str(test_run.testID),
+            ],
+        )
+        # you cannot use this because processed col is not there yet.
+        # await register_patch_suite(suite.suiteID, test_run.testID)
+
+        assert not migrate(None, db_path), "it should now be in the latest version"
+
+        assert (await TaskBase.filter(ticketID=suite.suiteID).first()).picked == 0
+        # new column: processed, is added.
+        assert (await TaskBase.filter(ticketID=suite.suiteID).first()).processed == 0
+
     async def test_version_command(self, root_dir):
         result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)
         assert result.returncode == 0
-        assert "Currently at: v5." in result.stderr.decode()
+        assert "Currently at: v6." in result.stderr.decode()

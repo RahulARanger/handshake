@@ -34,6 +34,11 @@ class TaskBase(Model):
         default=False,
         description="True if the task is picked by the job else False",
     )
+    processed = BooleanField(
+        null=True,
+        default=False,
+        description="True if the task is processed or completed",
+    )
 
 
 class PrunedBase:

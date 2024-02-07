@@ -38,7 +38,9 @@ def start_service(db_path: Path) -> AsyncIOScheduler:
 
 async def pick_previous_tasks():
     await pruneTasks()
-    prev_picked_tasks = await TaskBase.filter(picked=True).all()
+
+    # since we are starting a-new we would just pick the ones which are picked previously
+    prev_picked_tasks = await TaskBase.filter(processed=False, picked=True).all()
     for task in prev_picked_tasks:
         logger.info("scheduling old task {} for this iteration", task.ticketID)
         task.picked = False

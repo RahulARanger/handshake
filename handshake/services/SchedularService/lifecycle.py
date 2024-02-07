@@ -22,7 +22,7 @@ def verify_pending_jobs(scheduler: AsyncIOScheduler, mapped: List[bool]):
 
 
 async def say_bye_if_required(scheduler: AsyncIOScheduler, mapped: List[bool]):
-    pending_tasks = await TaskBase.all().count()
+    pending_tasks = await TaskBase.filter(processed=False).count()
 
     if len(mapped) > 0 or pending_tasks > 0:
         return
