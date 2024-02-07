@@ -50,6 +50,6 @@ export const config = attachReporter(metaConfig, {
     export: {
         out: process.env.SANITY ? undefined : join(root, "TestReports")
     },
-    testConfig: { projectName: 'WDIO:Mocha' }
-
+    testConfig: { projectName: 'WDIO:Mocha' },
+    logLevel: "error",
 });

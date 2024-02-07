@@ -1,12 +1,5 @@
-import { REM } from 'next/font/google';
 import * as echarts from 'echarts/core';
 import type { TooltipComponentOption } from 'echarts/components';
-
-export const serif = REM({
-    subsets: ['latin'],
-    weight: '300',
-    adjustFontFallback: true,
-});
 
 export const radiantGreen = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
     { offset: 0, color: 'rgb(0, 102, 0)' }, // Lighter shade at the top
@@ -53,6 +46,5 @@ export const toolTipFormats: TooltipComponentOption = {
     borderWidth: 1,
     textStyle: {
         color: 'white',
-        fontFamily: serif.style.fontFamily,
     },
 };

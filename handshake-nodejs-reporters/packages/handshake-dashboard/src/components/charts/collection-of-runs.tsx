@@ -46,7 +46,6 @@ import {
     radiantGreen,
     radiantRed,
     radiantYellow,
-    serif,
     toolTipFormats,
 } from './constants';
 import { dateTimeFormatUsed } from '../utils/Datetime/format';
@@ -91,7 +90,9 @@ export default function AreaChartsForRuns(properties: {
             },
             ...toolTipFormats,
         },
-        textStyle: { fontFamily: serif.style.fontFamily },
+        textStyle: {
+            // fontFamily: serif.style.fontFamily
+        },
         legend: {
             data: ['Passed', 'Failed', 'Skipped'],
             align: 'right',
@@ -220,7 +221,9 @@ export function NumberOfTestsOverRuns(properties: {
             },
             ...toolTipFormats,
         },
-        textStyle: { fontFamily: serif.style.fontFamily },
+        textStyle: {
+            //  fontFamily: serif.style.fontFamily
+        },
         legend: {
             data: ['Passed', 'Failed', 'Skipped'],
             align: 'right',

@@ -128,15 +128,32 @@ export function RenderEntityType(properties: {
     );
 }
 
+export function RenderSimpleKeyValue(properties: {
+    title: string;
+    value: string;
+    children: ReactNode;
+}): ReactNode {
+    return (
+        <Card type="inner" hoverable>
+            <Tooltip title={properties.value}>
+                <Space>
+                    <Text type="secondary">{properties.title}:</Text>
+                    {properties.children}
+                </Space>
+            </Tooltip>
+        </Card>
+    );
+}
+
 export function RenderSystemType(properties: {
     systemName: string;
 }): ReactNode {
     const target = properties.systemName.toLowerCase();
 
     if (target.startsWith('win'))
-        return <Avatar src={'/windows.png'} size="large" />;
+        return <Avatar src={'/windows.png'} size="small" shape="circle" />;
     else if (target.startsWith('mac'))
-        return <Avatar src={'/mac.png'} size="large" />;
+        return <Avatar src={'/mac.png'} size="small" shape="circle" />;
     return <>{target.toLocaleUpperCase()}</>;
 }
 
@@ -150,11 +167,14 @@ export function RenderInfo(properties: {
             type="inner"
             key={properties.itemKey}
             className={GraphCardCss.card}
-            bodyStyle={{
-                padding: '6px',
-                paddingTop: '12px',
-                userSelect: 'none',
-                paddingBottom: '12px',
+            styles={{
+                body: {
+                    padding: '6px',
+                    paddingTop: '12px',
+                    userSelect: 'none',
+                    borderRadius: '10px',
+                    paddingBottom: '12px',
+                },
             }}
         >
             <Space style={{ columnGap: '5px' }}>

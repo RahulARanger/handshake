@@ -27,7 +27,7 @@ export interface ValuesInOverviewContext {
     detailsOfTestRun: DetailedTestRecord;
     summaryForAllSessions: SessionSummary[];
     randomImages: ImageRecord[];
-    testRunConfig: TestRunConfig | false;
+    testRunConfig: TestRunConfig;
     recentSuites: OverviewOfEntities[];
     recentTests: OverviewOfEntities[];
     aggResults: OverallAggResults;

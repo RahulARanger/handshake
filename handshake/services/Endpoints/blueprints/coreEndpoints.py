@@ -10,6 +10,7 @@ from handshake.services.DBService.models.types import (
 from handshake.services.Endpoints.blueprints.utils import (
     attachError,
     extractPayload,
+    attachInfo,
     attachWarn,
     extractPydanticErrors,
 )
@@ -53,6 +54,9 @@ async def register_session(request: Request) -> HTTPResponse:
     except Exception as error:
         logger.error("Failed to create a session due to exception: {}", str(error))
         return text(str(error), status=404)
+    await attachInfo(
+        dict(payload=request.json, response=session_record.sessionID), "/registerSuite"
+    )
     return text(str(session_record.sessionID), status=201)
 
 
@@ -61,6 +65,9 @@ async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
     suite_record = await SuiteBase.create(**suite.model_dump())
     await suite_record.save()
+    await attachInfo(
+        dict(payload=request.json, response=suite_record.suiteID), "/registerSuite"
+    )
     return text(str(suite_record.suiteID), status=201)
 
 
@@ -88,6 +95,9 @@ async def updateSuite(request: Request) -> HTTPResponse:
 
     if suite_record.suiteType == SuiteType.SUITE:
         await register_patch_suite(suite_record.suiteID, get_test_id())
+    await attachInfo(
+        dict(payload=request.json, response=suite_record.suiteID), "/updateSuite"
+    )
 
     return text(
         f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201
@@ -104,6 +114,9 @@ async def update_session(request: Request) -> HTTPResponse:
 
     await test_session.update_from_dict(session.model_dump())
     await test_session.save()
+    await attachInfo(
+        dict(payload=request.json, response=session.sessionID), "/updateSession"
+    )
     return text(f"{session.sessionID} was updated", status=201)
 
 
@@ -183,5 +196,6 @@ async def update_run_config(request: Request) -> HTTPResponse:
         bail=run_config.bail,
     )
     await config.save()
+    await attachInfo(dict(payload=request.json, response=get_test_id()), "/currentRun")
 
     return text("provided config was saved successfully.", status=200)

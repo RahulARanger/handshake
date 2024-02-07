@@ -90,7 +90,7 @@ export default function TestEntities(properties: {
                 >
                     <Table.Column
                         title="Status"
-                        width={40}
+                        width={60}
                         align="justify"
                         dataIndex="Status"
                         render={(value: statusOfEntity) => (

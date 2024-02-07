@@ -39,6 +39,7 @@ export interface MarkTestSession {
   entityName: string;
   entityVersion: string;
   simplified: string;
+  standing: Standing;
 }
 
 export interface UpdateTestRunConfig {

@@ -27,12 +27,12 @@ import {
     radiantOrange,
     radiantRed,
     radiantYellow,
-    serif,
     toolTipFormats,
 } from './constants';
 import type { CallbackDataParams } from 'echarts/types/dist/shared';
 import type { TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { LOCATORS } from 'handshake-utils';
+import CardStyles from 'src/styles/card.module.css';
 
 type composed = ComposeOption<
     | PieSeriesOption
@@ -59,6 +59,7 @@ export default function ProgressPieChart(properties: {
     broken?: number;
     fullRound?: boolean;
     forceText?: string;
+    noShadow?: boolean;
 }): ReactNode {
     const [passed, failed, skipped] = properties.rate;
     const data: PieSeriesOption['data'] = [
@@ -101,7 +102,7 @@ export default function ProgressPieChart(properties: {
         },
 
         textStyle: {
-            fontFamily: serif.style.fontFamily,
+            // fontFamily: serif.style.fontFamily,
         },
         series: [
             {
@@ -110,8 +111,8 @@ export default function ProgressPieChart(properties: {
                     (properties.isTestCases ? 'Tests' : 'Suites'),
 
                 type: 'pie',
-                bottom: -10,
-                left: -6,
+                bottom: -7,
+                left: -4,
                 radius: properties.fullRound ? ['2%', '70%'] : ['40%', '70%'],
                 avoidLabelOverlap: false,
                 itemStyle: {
@@ -135,7 +136,7 @@ export default function ProgressPieChart(properties: {
                 height: '220px',
                 borderRadius: '10px',
             }}
-            className={`${properties.rate[0]}-${properties.rate[1]}-${properties.rate[2]} ${LOCATORS.CHARTS.progress}`}
+            className={`${properties.rate[0]}-${properties.rate[1]}-${properties.rate[2]} ${LOCATORS.CHARTS.progress} ${properties.noShadow ? '' : CardStyles.card}`}
         />
     );
 }

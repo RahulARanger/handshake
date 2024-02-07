@@ -1,4 +1,4 @@
-import log4js from 'log4js';
+import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
 import {
   spawn, spawnSync,
@@ -19,6 +19,11 @@ export class ServiceDialPad extends DialPad {
   pyProcess?: ChildProcess;
 
   workers: number = 2;
+
+  constructor(port: number, logLevel?:Level, exePath?:string) {
+    super(port, exePath);
+    logger.level = logLevel ?? 'info';
+  }
 
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
@@ -46,7 +51,7 @@ export class ServiceDialPad extends DialPad {
   ): ChildProcess {
     this.workers = Math.max(workers ?? 0, 2);
     const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', String(this.workers)];
-    logger.warn(`Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`);
+    logger.info(`Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`);
 
     const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
     this.pyProcess = pyProcess;
@@ -79,14 +84,14 @@ export class ServiceDialPad extends DialPad {
   }
 
   async ping(): Promise<boolean> {
-    logger.warn('pinging py-server 👆...');
+    logger.info('pinging py-server 👆...');
     const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
     return resp?.statusCode === 200;
   }
 
   async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
-      'Not able to connect with handshake-server within a minute😢.',
+      'Not able to connect with handshake-server within a minute 😢.',
     );
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout;
@@ -124,7 +129,7 @@ export class ServiceDialPad extends DialPad {
   async terminateServer() {
     const results = [];
     for (let worker = 0; worker < this.workers; worker += 1) {
-      logger.info('Shutting down a worker of handshake-server');
+      logger.debug('Shutting down a worker of handshake-server');
       results.push(
         superagent
           .post(`${this.url}/bye`)

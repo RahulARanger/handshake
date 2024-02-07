@@ -34,7 +34,6 @@ import {
     radiantGreen,
     radiantRed,
     radiantYellow,
-    serif,
     toolTipFormats,
 } from './constants';
 import { LOCATORS } from 'handshake-utils';
@@ -66,7 +65,7 @@ export default function RenderPassedRate(properties: {
             appendToBody: true,
         },
         textStyle: {
-            fontFamily: serif.style.fontFamily,
+            // fontFamily: serif.style.fontFamily,
         },
         grid: { left: 0, right: 1 },
         legend: { show: false },
