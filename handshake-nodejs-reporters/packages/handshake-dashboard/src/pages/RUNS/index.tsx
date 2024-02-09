@@ -11,12 +11,12 @@ import { TEXT } from 'handshake-utils';
 export async function getStaticProps(): Promise<
     GetStaticPropsResult<{ runs?: TestRunRecord[] }>
 > {
-    const connection = await getConnection();
-    const exportConfig = await currentExportConfig(connection);
-
     if (process.env.isDynamic) {
         return { props: { runs: undefined } };
     }
+
+    const connection = await getConnection();
+    const exportConfig = await currentExportConfig(connection);
 
     const allRuns = await connection.all<TestRunRecord[]>(
         sqlFile('runs-page.sql'),

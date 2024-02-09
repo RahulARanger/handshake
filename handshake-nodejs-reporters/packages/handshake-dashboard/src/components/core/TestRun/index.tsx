@@ -1,4 +1,4 @@
-import { detailedPage, runPage } from 'src/components/scripts/helper';
+import { detailedPage, runPage } from 'src/components/links';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import { menuTabs } from 'src/types/ui-constants';

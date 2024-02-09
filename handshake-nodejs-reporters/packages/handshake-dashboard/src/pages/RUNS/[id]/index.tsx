@@ -25,6 +25,7 @@ import {
 import {
     parseDetailedTestRun,
     parseImageRecords,
+    parseTestConfig,
 } from 'src/components/parse-utils';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
@@ -35,7 +36,6 @@ export async function getStaticProps(prepareProperties: {
     };
 }): Promise<GetStaticPropsResult<OverviewPageProperties>> {
     const testID = prepareProperties.params.id;
-
     const connection = await getConnection();
 
     await connection.exec({
@@ -57,9 +57,19 @@ export async function getStaticProps(prepareProperties: {
         };
     }
 
-    const testRunConfig =
-        (await connection.get<TestRunConfig>('SELECT * FROM TEST_CONFIG;')) ??
-        false;
+    const testRunConfig = (await connection.get<TestRunConfig>(
+        'SELECT * FROM TEST_CONFIG;',
+    )) ?? {
+        platform: 'not-known',
+        avoidParentSuitesInCount: false,
+        bail: -1,
+        exitCode: -2,
+        fileRetries: -1,
+        maxInstances: -1,
+        frameworks: [],
+        framework: 'unknown',
+        test_id: testID,
+    };
 
     const recentSuites =
         (await connection.all<SuiteRecordDetails[]>(
@@ -123,7 +133,7 @@ export default function TestRunResults(
             aggResults: properties.aggResults,
             detailsOfTestRun: parseDetailedTestRun(properties.detailsOfTestRun),
             summaryForAllSessions: properties.summaryForAllSessions,
-            testRunConfig: properties.testRunConfig,
+            testRunConfig: parseTestConfig(properties.testRunConfig),
         };
     }, [properties]);
 

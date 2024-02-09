@@ -5,6 +5,7 @@ import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
 import {
+    RenderFrameworkUsed,
     RenderInfo,
     RenderSimpleKeyValue,
     RenderStatus,
@@ -30,6 +31,7 @@ import RenderProgress from 'src/components/utils/progress-rate';
 import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
 import { OverviewContext } from 'src/types/parsed-overview-records';
 import { LOCATORS } from 'handshake-utils';
+import Paragraph from 'antd/lib/typography/Paragraph';
 
 function TopSuites(properties: {
     suites: OverviewOfEntities[];
@@ -140,44 +142,37 @@ function ConfigSet(): ReactNode {
 
     return (
         <Space align="center" wrap size="large">
-            <RenderSimpleKeyValue
-                title="Platform"
-                value={testRunConfig.platform}
-            >
-                <RenderSystemType systemName={testRunConfig.platform} />
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="File Retries"
-                value={'Number of the spec files retried'}
-            >
-                <Text type="warning">
-                    <Counter end={testRunConfig.fileRetries} />
-                </Text>
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="ExitCode"
-                value={'exit code of test run'}
-            >
-                <Text
-                    type={testRunConfig.exitCode === 0 ? 'success' : 'danger'}
-                >
-                    {testRunConfig.exitCode}
-                </Text>
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="Max Instances"
-                value={
-                    'Number of parallel instances set for the test framework'
-                }
-            >
-                <Counter end={testRunConfig.maxInstances} />
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="Framework"
-                value={'exit code of test run'}
-            >
-                <Typography>{testRunConfig.framework}</Typography>
-            </RenderSimpleKeyValue>
+            <Paragraph>
+                <Space direction="vertical">
+                    <Space align="center">
+                        <Text>We are using Framework: </Text>
+                        <RenderFrameworkUsed
+                            frameworks={testRunConfig.frameworks}
+                        />
+                    </Space>
+                    <Space align="center">
+                        <Text>System Used: </Text>
+                        <RenderSystemType systemName={testRunConfig.platform} />
+                    </Space>
+                    {testRunConfig.fileRetries > 1 ? (
+                        <Text>{`it was configured to retry a spec file at-most ${testRunConfig.fileRetries} times until it passes.`}</Text>
+                    ) : (
+                        <></>
+                    )}
+
+                    {testRunConfig.exitCode == 0 ? (
+                        <Text>Test Cases were executed successfully.</Text>
+                    ) : (
+                        <Text>{`Observed an exit code: ${testRunConfig.exitCode}`}</Text>
+                    )}
+
+                    {testRunConfig.maxInstances > 1 ? (
+                        <Text>{`Parallel Runs was configured!, MaxInstances was set to ${testRunConfig.maxInstances}`}</Text>
+                    ) : (
+                        <></>
+                    )}
+                </Space>
+            </Paragraph>
         </Space>
     );
 }

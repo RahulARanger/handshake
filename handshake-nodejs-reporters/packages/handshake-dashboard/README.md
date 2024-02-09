@@ -62,3 +62,4 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 ## Note
 
 <a target="_blank" href="https://icons8.com/icon/gXoJoyTtYXFg/windows-10">Windows</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+<a href="https://www.flaticon.com/free-icons/linux" title="linux icons">Linux icons created by Freepik - Flaticon</a>

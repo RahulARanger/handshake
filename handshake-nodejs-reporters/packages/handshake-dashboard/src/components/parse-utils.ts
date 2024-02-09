@@ -1,4 +1,4 @@
-import { runPage } from 'src/components/scripts/helper';
+import { runPage } from 'src/components/links';
 import type TestRunRecord from 'src/types/test-run-records';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
@@ -18,7 +18,11 @@ import type {
     SuiteRecordDetails,
     TestRecordDetails,
 } from 'src/types/test-entity-related';
-import type { specNode } from 'src/types/test-run-records';
+import type {
+    TestRunConfig,
+    possibleFrameworks,
+    specNode,
+} from 'src/types/test-run-records';
 import Convert from 'ansi-to-html';
 import { attachmentPrefix } from 'src/types/ui-constants';
 
@@ -185,4 +189,13 @@ export function parseRetriedRecords(retriedRecords: RetriedRecord[]) {
             suite_id: record.suite_id,
         };
     return records;
+}
+
+export function parseTestConfig(config: TestRunConfig) {
+    return {
+        ...config,
+        frameworks: config.framework
+            .split(',')
+            .map((framework) => framework.trim() as possibleFrameworks),
+    };
 }

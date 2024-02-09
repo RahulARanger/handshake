@@ -16,6 +16,7 @@ import Card from 'antd/lib/card/Card';
 import dayjs, { type Dayjs } from 'dayjs';
 import Layout from 'antd/lib/layout/index';
 import Empty from 'antd/lib/empty/index';
+import Button from 'antd/lib/button/button';
 import Tooltip from 'antd/lib/tooltip/index';
 import Divider from 'antd/lib/divider/index';
 import Select from 'antd/lib/select/index';
@@ -25,14 +26,11 @@ import FilterOutlined from '@ant-design/icons/FilterOutlined';
 import Text from 'antd/lib/typography/Text';
 import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
-import Button from 'antd/lib/button/button';
 import type { RangePickerProps } from 'antd/lib/date-picker';
-import GithubOutlined from '@ant-design/icons/GithubOutlined';
 import Tag from 'antd/lib/tag/index';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import { RenderStatus } from 'src/components/utils/renderers';
+import { GithubRepoLink, RenderStatus } from 'src/components/utils/renderers';
 import type { DetailedTestRecord } from 'src/types/parsed-records';
-import { sourceUrl } from 'src/types/ui-constants';
 import { LOCATORS, TEXT } from 'handshake-utils';
 
 dayjs.extend(isBetween);
@@ -296,6 +294,19 @@ export default function GridOfRuns(properties: {
     if (properties.runs.length === 0) {
         return (
             <Layout style={{ height: '100%' }}>
+                <Layout.Header className={HeaderStyles.header} spellCheck>
+                    <Space
+                        style={{
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            marginRight: '20px',
+                        }}
+                        align="center"
+                    >
+                        <BreadCrumb items={crumbs(false)} />
+                        <GithubRepoLink />
+                    </Space>
+                </Layout.Header>
                 <Space
                     direction="horizontal"
                     style={{ height: '100%', justifyContent: 'center' }}
@@ -416,12 +427,7 @@ export default function GridOfRuns(properties: {
                             disabledDate={disabledDate}
                         />
                     </Space>
-                    <Button
-                        icon={<GithubOutlined style={{ fontSize: 20 }} />}
-                        href={sourceUrl}
-                        target="_blank"
-                        id={LOCATORS.RUNS.githubURL}
-                    />
+                    <GithubRepoLink />
                 </Space>
             </Layout.Header>
             {body}
