@@ -22,6 +22,11 @@ export default interface TestRunRecord {
     skippedSuites: number;
 }
 
+export interface TestRecord extends TestRunRecord {
+    framework: string;
+    frameworks: possibleFrameworks[];
+}
+
 export type specNode = {
     '<path>': string;
 } & { [key: string]: specNode };
@@ -40,6 +45,7 @@ export type possibleFrameworks =
     | 'jasmine'
     | 'unknown';
 
+export type logTypes = 'WARN' | 'INFO' | 'ERROR';
 export interface TestRunConfig {
     platform: string;
     framework: string;

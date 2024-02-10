@@ -144,6 +144,34 @@ export default function TestRunResults(
                 <meta name="keywords" content="Test Results, List of Runs" />
                 <meta name="author" content={TEXT.AUTHOR} />
                 <meta name="description" content={TEXT.OVERVIEW.description} />
+                <meta
+                    name="project"
+                    content={properties.detailsOfTestRun.projectName}
+                />
+                <meta
+                    name="passed-tests"
+                    content={properties.detailsOfTestRun.passed.toString()}
+                />
+                <meta
+                    name="failed-tests"
+                    content={properties.detailsOfTestRun.failed.toString()}
+                />
+                <meta
+                    name="skipped-tests"
+                    content={properties.detailsOfTestRun.skipped.toString()}
+                />
+                <meta
+                    name="passed-suites"
+                    content={parsedRecords.detailsOfTestRun.SuitesSummary[0].toString()}
+                />
+                <meta
+                    name="failed-suites"
+                    content={parsedRecords.detailsOfTestRun.SuitesSummary[1].toString()}
+                />
+                <meta
+                    name="skipped-suites"
+                    content={parsedRecords.detailsOfTestRun.SuitesSummary[2].toString()}
+                />
             </Head>
             <OverviewContext.Provider value={parsedRecords}>
                 <LayoutStructureForRunDetails activeTab={menuTabs.overviewTab}>

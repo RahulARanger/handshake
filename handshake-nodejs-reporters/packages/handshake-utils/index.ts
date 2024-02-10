@@ -43,6 +43,10 @@ export const TEXT = {
         greet: "In Summary",
         description: "This page would show the summary of the test run"
     },
+    DETAILED: {
+        greet: "In Detail",
+        description: "This page would show the test entities in detail."
+    },
 	AUTHOR: "RahulARanger<saihanumarahul66@gmail.com>",
 	dateFormatUsed: "ddd, MMM Do YYYY",
 	timeFormatUsed: "HH:mm:ss A",

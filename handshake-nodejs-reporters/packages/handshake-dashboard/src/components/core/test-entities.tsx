@@ -21,6 +21,7 @@ import { DetailedContext } from 'src/types/records-in-detailed';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';
+import Dotted from 'src/styles/dotted.module.css';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -117,12 +118,7 @@ export default function TestEntities(properties: {
                                 >
                                     <Text
                                         underline
-                                        style={{
-                                            color: 'rgba(255, 255, 255, 0.85)',
-                                            whiteSpace: 'pretty',
-                                            textAlign: 'left',
-                                            textDecorationThickness: 0.5,
-                                        }}
+                                        className={Dotted.suiteName}
                                     >
                                         {value}
                                     </Text>

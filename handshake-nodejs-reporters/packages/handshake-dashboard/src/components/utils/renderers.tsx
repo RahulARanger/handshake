@@ -267,6 +267,24 @@ export function RenderFrameworkUsed(properties: {
                 );
                 break;
             }
+            case 'cucumber': {
+                links.push(
+                    <Avatar
+                        src="https://user-images.githubusercontent.com/102477169/187096400-3b052fba-e2d7-45a7-b820-a09447a11d52.svg"
+                        size="small"
+                    />,
+                );
+                break;
+            }
+            case 'jasmine': {
+                links.push(
+                    <Avatar
+                        src="https://avatars.githubusercontent.com/u/4624349?s=48&v=4"
+                        size="small"
+                    />,
+                );
+                break;
+            }
         }
     }
 

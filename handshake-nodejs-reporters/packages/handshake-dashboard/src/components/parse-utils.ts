@@ -19,6 +19,7 @@ import type {
     TestRecordDetails,
 } from 'src/types/test-entity-related';
 import type {
+    TestRecord,
     TestRunConfig,
     possibleFrameworks,
     specNode,
@@ -29,7 +30,7 @@ import { attachmentPrefix } from 'src/types/ui-constants';
 dayjs.extend(duration);
 
 export function parseDetailedTestRun(
-    testRun: TestRunRecord,
+    testRun: TestRunRecord | TestRecord,
 ): DetailedTestRecord {
     const summary: {
         passed: number;
@@ -37,12 +38,18 @@ export function parseDetailedTestRun(
         count: number;
         skipped: number;
     } = JSON.parse(testRun.suiteSummary);
+
+    let frameworks: possibleFrameworks[] = [];
+    if ((testRun as TestRecord).frameworks)
+        frameworks = (testRun as TestRecord).frameworks;
+
     return {
         Started: [dayjs(testRun.started), dayjs()],
         Ended: [dayjs(testRun.ended), dayjs()],
         Title: testRun.projectName,
         Id: testRun.testID,
         Status: testRun.standing,
+        Frameworks: frameworks,
         Rate: [testRun.passed, testRun.failed, testRun.skipped],
         Duration: dayjs.duration({ milliseconds: testRun.duration }),
         Tests: testRun.tests,
@@ -191,7 +198,9 @@ export function parseRetriedRecords(retriedRecords: RetriedRecord[]) {
     return records;
 }
 
-export function parseTestConfig(config: TestRunConfig) {
+export function parseTestConfig<T extends TestRunConfig | TestRecord>(
+    config: T,
+): T {
     return {
         ...config,
         frameworks: config.framework

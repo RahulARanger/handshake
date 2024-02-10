@@ -48,3 +48,11 @@
 .drawer {
     border-radius: 15px;
 }
+
+.suiteName {
+    color: 'rgba(255, 255, 255, 0.85)';
+    white-space: pre-wrap !important;
+    white-space: -moz-pre-wrap;
+    text-align: 'left';
+    text-decoration-thickness: 0.5;
+}
