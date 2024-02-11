@@ -1,4 +1,5 @@
-from click import group, argument, Path as C_Path
+from click import group, argument, version_option, Path as C_Path
+from handshake import __version__
 from handshake.services.DBService.migrator import check_version, migration
 from handshake.services.SchedularService.center import start_service
 from handshake.services.SchedularService.lifecycle import start_loop
@@ -43,6 +44,7 @@ folder, a place where you could have the database or were planning to store the 
 {'{:*^69}'.format(" Glossary ")}
 """,
 )
+@version_option(__version__)
 def handle_cli():
     pass
 

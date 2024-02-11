@@ -8,6 +8,7 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     create_run,
 )
+from handshake import __version__
 from typing import Union
 from handshake.services.DBService.shared import set_test_id
 from click import argument, option, Path
@@ -47,7 +48,7 @@ def setup_app(
     @service_provider.main_process_start
     async def get_me_started(app, loop):
         service_provider.shared_ctx.ROOT = Array("c", str.encode(path))
-        await init_tortoise_orm()
+        await init_tortoise_orm(migrate=True)
         test_id = await create_run(projectname)
         service_provider.shared_ctx.TEST_ID = Array("c", str.encode(test_id))
         set_test_id()
@@ -57,7 +58,12 @@ def setup_app(
         await close_connection()
 
     _app, loader = prepare_loader()
-    _app.prepare(port=port, workers=min(2, workers), host="127.0.0.1")
+    _app.prepare(
+        port=port,
+        workers=min(2, workers),
+        host="127.0.0.1",
+        motd_display=dict(version=__version__),
+    )
     logger.debug("Serving at port: {}", port)
     Sanic.serve(primary=_app, app_loader=loader)
 
@@ -126,7 +132,12 @@ def display(static_path: Union[str, P_Path] = "TestReports", port: int = 8000):
 
     loader = AppLoader(factory=partial(feed_static_provider, static_path))
     _app = loader.load()
-    _app.prepare(host="127.0.0.1", port=port)
+    _app.prepare(
+        host="127.0.0.1",
+        port=port,
+        access_log=False,
+        motd_display=dict(version=__version__),
+    )
     Sanic.serve(primary=_app, app_loader=loader)
 
 

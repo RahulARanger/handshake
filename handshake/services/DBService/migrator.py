@@ -76,13 +76,17 @@ def migrate(connection, db_path=None) -> bool:
     return (version_stored + 1) < DB_VERSION
 
 
-def migration(path):
-    connection = connect(path)
+def migration(path: Path):
+    if not path.exists():
+        logger.info("Migration check is not required, as the db does not exist.")
+        return
 
+    connection = connect(path)
     try:
         while migrate(connection):
             ...
 
+        logger.info("Migration Completed!")
         connection.commit()
     except Exception as error:
         logger.error(f"Failed to execute migration script, due to {error}")

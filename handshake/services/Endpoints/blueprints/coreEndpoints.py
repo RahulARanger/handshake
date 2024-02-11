@@ -55,7 +55,8 @@ async def register_session(request: Request) -> HTTPResponse:
         logger.error("Failed to create a session due to exception: {}", str(error))
         return text(str(error), status=404)
     await attachInfo(
-        dict(payload=request.json, response=session_record.sessionID), "/registerSuite"
+        dict(payload=request.json, response=str(session_record.sessionID)),
+        "/registerSuite",
     )
     return text(str(session_record.sessionID), status=201)
 

@@ -17,9 +17,12 @@ def config_file(provided_db_path: Path):
     return provided_db_path.parent / "config.json"
 
 
-async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
+async def init_tortoise_orm(
+    force_db_path: Optional[Union[Path, str]] = None, migrate: bool = False
+):
     chosen = force_db_path if force_db_path else db_path()
-    migration(chosen)
+    if migrate:
+        migration(chosen)
 
     await Tortoise.init(
         db_url=r"{}".format(f"sqlite://{chosen}"),

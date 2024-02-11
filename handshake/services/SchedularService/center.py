@@ -50,7 +50,7 @@ async def pick_previous_tasks():
 async def init_jobs_connections(
     db_path: Path, _scheduler: AsyncIOScheduler, mapped: List[bool]
 ):
-    await init_tortoise_orm(db_path)
+    await init_tortoise_orm(db_path, True)
     await pick_previous_tasks()
     addDeleteJob(_scheduler, db_path, mapped)
     add_lookup_task(_scheduler)

@@ -51,9 +51,14 @@ async def deleteOldRuns(db_path: Path, punch_out: List[bool]):
 
     deleteTestRunsRelatedAttachments(db_path, runs)
 
-    record, _ = await ConfigBase.update_or_create(key=ConfigKeys.recentlyDeleted)
-    await record.update_from_dict(dict(value=str(recently_deleted)))
-    await record.save()
+    record = await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
+    if record:
+        await record.update_from_dict(dict(value=str(recently_deleted)))
+        await record.save()
+    else:
+        await ConfigBase.create(
+            key=ConfigKeys.recentlyDeleted, value=str(recently_deleted)
+        )
 
     logger.info("Delete job is completed.")
     return punch_out.pop()
