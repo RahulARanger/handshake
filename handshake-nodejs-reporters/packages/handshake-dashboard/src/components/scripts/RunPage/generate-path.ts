@@ -15,7 +15,10 @@ export default async function staticPaths(): Promise<GetStaticPathsResult> {
     await connection.close();
 
     return {
-        paths: paths.map((path) => ({ params: { id: path.testID } })),
+        paths: [
+            ...paths.map((path) => ({ params: { id: path.testID } })),
+            { params: { id: 'latest' } },
+        ],
         fallback: false,
     };
 }

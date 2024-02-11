@@ -22,6 +22,11 @@ export default interface TestRunRecord {
     skippedSuites: number;
 }
 
+export interface TestRecord extends TestRunRecord {
+    framework: string;
+    frameworks: possibleFrameworks[];
+}
+
 export type specNode = {
     '<path>': string;
 } & { [key: string]: specNode };
@@ -34,17 +39,21 @@ export interface SuiteSummary {
 }
 
 export type possibleFrameworks =
-    | 'WDIO-Mocha'
-    | 'WDIO-Cucumber'
-    | 'WDIO-Jasmine';
+    | 'webdriverio'
+    | 'mocha'
+    | 'cucumber'
+    | 'jasmine'
+    | 'unknown';
 
+export type logTypes = 'WARN' | 'INFO' | 'ERROR';
 export interface TestRunConfig {
     platform: string;
-    framework: possibleFrameworks;
+    framework: string;
     maxInstances: number;
     exitCode: number;
     fileRetries: number;
-    avoidParentSuitesInCount: number;
+    avoidParentSuitesInCount: boolean;
     bail: number;
     test_id: string;
+    frameworks: possibleFrameworks[];
 }

@@ -1,4 +1,4 @@
-import { detailedPage, runPage } from 'src/components/scripts/helper';
+import { detailedPage, runPage } from 'src/components/links';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { dateFormatUsed } from 'src/components/utils/Datetime/format';
 import { menuTabs } from 'src/types/ui-constants';
@@ -80,7 +80,12 @@ export default function LayoutStructureForRunDetails(properties: {
     ];
 
     return (
-        <Layout style={{ overflow: 'hidden', height: '99.3vh' }}>
+        <Layout
+            style={{
+                overflow: 'hidden',
+                height: '99.3vh',
+            }}
+        >
             <Layout.Header
                 className={`${HeaderStyles.header} header`}
                 style={{
@@ -118,7 +123,7 @@ export default function LayoutStructureForRunDetails(properties: {
                     breakpoint="lg"
                     collapsedWidth="0"
                     theme="light"
-                    className={HeaderStyles.sider}
+                    className={`${HeaderStyles.sider} smooth-box`}
                 >
                     <Menu
                         mode="inline"

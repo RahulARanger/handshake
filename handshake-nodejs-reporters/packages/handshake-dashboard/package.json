@@ -1,6 +1,6 @@
 {
     "name": "handshake-dashboard",
-    "version": "0.4.5",
+    "version": "0.4.6",
     "license": "MIT",
     "scripts": {
         "dev": "next dev",
@@ -19,9 +19,9 @@
         "@next/bundle-analyzer": "^14.1.0",
         "@tsconfig/node18": "^18.2.2",
         "@types/echarts": "^4.9.22",
-        "@types/node": "20.11.16",
+        "@types/node": "20.11.17",
         "@types/react": "^18.2.55",
-        "@types/react-dom": "18.2.18",
+        "@types/react-dom": "18.2.19",
         "ansi-to-html": "^0.7.2",
         "antd": "^5.14.0",
         "dayjs": "^1.11.10",
@@ -50,7 +50,7 @@
         "eslint-plugin-jsx-a11y": "^6.8.0",
         "eslint-plugin-react": "^7.33.2",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "eslint-plugin-unicorn": "^51.0.0",
+        "eslint-plugin-unicorn": "^51.0.1",
         "prettier": "^3.2.5",
         "ts-node": "^10.9.2"
     }

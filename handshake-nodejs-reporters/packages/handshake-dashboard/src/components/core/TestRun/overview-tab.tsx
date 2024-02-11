@@ -5,8 +5,8 @@ import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
 import {
+    RenderFrameworkUsed,
     RenderInfo,
-    RenderSimpleKeyValue,
     RenderStatus,
     RenderSystemType,
 } from 'src/components/utils/renderers';
@@ -19,7 +19,6 @@ import dayjs from 'dayjs';
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
 import Typography from 'antd/lib/typography/Typography';
-import Text from 'antd/lib/typography/Text';
 import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
 import Tabs from 'antd/lib/tabs/index';
@@ -50,7 +49,7 @@ function TopSuites(properties: {
                 flexShrink: 1,
                 maxWidth: '655px',
             }}
-            scroll={{ y: 181, x: 'max-content' }}
+            scroll={{ y: 200, x: 'max-content' }}
         >
             {properties.isTest ? (
                 <Table.Column
@@ -139,46 +138,62 @@ function ConfigSet(): ReactNode {
     const { testRunConfig } = context;
 
     return (
-        <Space align="center" wrap size="large">
-            <RenderSimpleKeyValue
-                title="Platform"
-                value={testRunConfig.platform}
-            >
-                <RenderSystemType systemName={testRunConfig.platform} />
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="File Retries"
-                value={'Number of the spec files retried'}
-            >
-                <Text type="warning">
-                    <Counter end={testRunConfig.fileRetries} />
-                </Text>
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="ExitCode"
-                value={'exit code of test run'}
-            >
-                <Text
-                    type={testRunConfig.exitCode === 0 ? 'success' : 'danger'}
-                >
-                    {testRunConfig.exitCode}
-                </Text>
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="Max Instances"
-                value={
-                    'Number of parallel instances set for the test framework'
-                }
-            >
-                <Counter end={testRunConfig.maxInstances} />
-            </RenderSimpleKeyValue>
-            <RenderSimpleKeyValue
-                title="Framework"
-                value={'exit code of test run'}
-            >
-                <Typography>{testRunConfig.framework}</Typography>
-            </RenderSimpleKeyValue>
-        </Space>
+        <Table
+            dataSource={[
+                {
+                    Note: 'Platform',
+                    Configured: (
+                        <RenderSystemType systemName={testRunConfig.platform} />
+                    ),
+                    Description: 'Executed in this platform',
+                },
+                {
+                    Note: 'Framework',
+                    Configured: (
+                        <RenderFrameworkUsed
+                            frameworks={testRunConfig.frameworks}
+                        />
+                    ),
+                    Description: 'Frameworks used.',
+                },
+                {
+                    Note: 'ExitCode',
+                    Configured: <Counter end={testRunConfig.exitCode} />,
+                    Description: 'Exit Code of Test Run.',
+                },
+                {
+                    Note: 'MaxInstances',
+                    Configured: <Counter end={testRunConfig.maxInstances} />,
+                    Description: 'Maximum number of parallel instances set.',
+                },
+            ]}
+            size="small"
+            bordered
+            pagination={false}
+            scroll={{ y: 200, x: 'max-content' }}
+        >
+            <Table.Column
+                dataIndex="Note"
+                title="Note"
+                width={60}
+                align="center"
+                fixed="left"
+            />
+
+            <Table.Column
+                dataIndex="Configured"
+                title="Configured"
+                align="center"
+                width={40}
+                render={(value: ReactNode) => value}
+            />
+            <Table.Column
+                dataIndex="Description"
+                align="right"
+                title="Description"
+                width={120}
+            />
+        </Table>
     );
 }
 export default function Overview(): ReactNode {
@@ -371,8 +386,8 @@ export default function Overview(): ReactNode {
                                 ),
                             },
                             {
-                                key: 'config',
-                                label: 'Config',
+                                key: 'note',
+                                label: 'Note',
                                 children: <ConfigSet />,
                             },
                         ]}

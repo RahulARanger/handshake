@@ -1,4 +1,4 @@
-import { runPage } from 'src/components/scripts/helper';
+import { runPage } from 'src/components/links';
 import type TestRunRecord from 'src/types/test-run-records';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
@@ -18,14 +18,19 @@ import type {
     SuiteRecordDetails,
     TestRecordDetails,
 } from 'src/types/test-entity-related';
-import type { specNode } from 'src/types/test-run-records';
+import type {
+    TestRecord,
+    TestRunConfig,
+    possibleFrameworks,
+    specNode,
+} from 'src/types/test-run-records';
 import Convert from 'ansi-to-html';
 import { attachmentPrefix } from 'src/types/ui-constants';
 
 dayjs.extend(duration);
 
 export function parseDetailedTestRun(
-    testRun: TestRunRecord,
+    testRun: TestRunRecord | TestRecord,
 ): DetailedTestRecord {
     const summary: {
         passed: number;
@@ -33,12 +38,18 @@ export function parseDetailedTestRun(
         count: number;
         skipped: number;
     } = JSON.parse(testRun.suiteSummary);
+
+    let frameworks: possibleFrameworks[] = [];
+    if ((testRun as TestRecord).frameworks)
+        frameworks = (testRun as TestRecord).frameworks;
+
     return {
         Started: [dayjs(testRun.started), dayjs()],
         Ended: [dayjs(testRun.ended), dayjs()],
         Title: testRun.projectName,
         Id: testRun.testID,
         Status: testRun.standing,
+        Frameworks: frameworks,
         Rate: [testRun.passed, testRun.failed, testRun.skipped],
         Duration: dayjs.duration({ milliseconds: testRun.duration }),
         Tests: testRun.tests,
@@ -80,6 +91,7 @@ export function parseSuites(
             Ended: [dayjs(suite.ended), testStartedAt],
             Status: suite.standing,
             Title: suite.title,
+            _UseFilterForTitle: suite.title.toLowerCase().trim(),
             Duration: dayjs.duration({ milliseconds: suite.duration }),
             Rate: [suite.passed, suite.failed, suite.skipped],
             Id: suite.suiteID,
@@ -128,6 +140,7 @@ export function parseTests(
             type: record.suiteType,
             isBroken: record.broken,
             numberOfErrors: record.numberOfErrors,
+            _UseFilterForTitle: record.title.toLowerCase().trim(),
             Started: [dayjs(record.started), dayjs(suiteStartedAt)],
             Ended: [dayjs(record.ended), dayjs(suiteStartedAt)],
             Duration: dayjs.duration(record.duration),
@@ -185,4 +198,15 @@ export function parseRetriedRecords(retriedRecords: RetriedRecord[]) {
             suite_id: record.suite_id,
         };
     return records;
+}
+
+export function parseTestConfig<T extends TestRunConfig | TestRecord>(
+    config: T,
+): T {
+    return {
+        ...config,
+        frameworks: config.framework
+            .split(',')
+            .map((framework) => framework.trim() as possibleFrameworks),
+    };
 }

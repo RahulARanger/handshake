@@ -26,6 +26,9 @@ import {
 import { menuTabs } from 'src/types/ui-constants';
 import { useRouter } from 'next/router';
 import TestEntities from 'src/components/core/test-entities';
+import Head from 'next/head';
+import { TEXT } from 'handshake-utils';
+import type DetailedPageParameters from 'src/types/redirection-parameters';
 
 export async function getStaticProps(prepareProperties: {
     params: {
@@ -111,29 +114,61 @@ export default function TestRunResults(
     }, [properties]);
     const router = useRouter();
     const [viewMode, setViewMode] = useState<string>(
-        menuTabs.testEntitiesTab.gridViewMode,
+        (router.query?.tab as string | undefined) ??
+            menuTabs.testEntitiesTab.gridViewMode,
     );
     const [highlight, setHightLight] = useState<string>('');
 
     useEffect(() => {
         if (!router.isReady) return;
-        const query = router.query as { tab: string };
-        setViewMode(query.tab);
+        const query = router.query as DetailedPageParameters;
+        const requestedTab = query.tab?.trim()?.toLowerCase() ?? '';
+        setViewMode(
+            [
+                menuTabs.testEntitiesTab.gridViewMode,
+                menuTabs.testEntitiesTab.treeViewMode,
+            ].includes(requestedTab)
+                ? requestedTab
+                : '',
+        );
     }, [setViewMode, router]);
 
     return (
-        <DetailedContext.Provider value={parsedRecords}>
-            <LayoutStructureForRunDetails
-                activeTab={viewMode}
-                changeDefault={setViewMode}
-                highlight={highlight}
-            >
-                <TestEntities
-                    defaultTab={viewMode}
-                    setHightLight={setHightLight}
+        <>
+            <Head>
+                <title>{`${TEXT.DETAILED.greet} - ${viewMode.charAt(0).toUpperCase() + viewMode.slice(1).toLowerCase()}`}</title>
+                <meta name="author" content={TEXT.AUTHOR} />
+                <meta name="description" content={TEXT.DETAILED.description} />
+                <meta
+                    name="project"
+                    content={properties.detailsOfTestRun.projectName}
                 />
-            </LayoutStructureForRunDetails>
-        </DetailedContext.Provider>
+                <meta
+                    name="passed-suites"
+                    content={parsedRecords.detailsOfTestRun.SuitesSummary[0].toString()}
+                />
+                <meta
+                    name="failed-suites"
+                    content={parsedRecords.detailsOfTestRun.SuitesSummary[1].toString()}
+                />
+                <meta
+                    name="skipped-suites"
+                    content={parsedRecords.detailsOfTestRun.SuitesSummary[2].toString()}
+                />
+            </Head>
+            <DetailedContext.Provider value={parsedRecords}>
+                <LayoutStructureForRunDetails
+                    activeTab={viewMode}
+                    changeDefault={setViewMode}
+                    highlight={highlight}
+                >
+                    <TestEntities
+                        defaultTab={viewMode}
+                        setHightLight={setHightLight}
+                    />
+                </LayoutStructureForRunDetails>
+            </DetailedContext.Provider>
+        </>
     );
 }
 
