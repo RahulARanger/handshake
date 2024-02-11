@@ -3,7 +3,8 @@ import type { statusOfEntity } from 'src/types/session-records';
 import type { possibleEntityNames } from 'src/types/session-records';
 import { RenderEntityType, RenderStatus } from '../utils/renderers';
 import RenderPassedRate from '../charts/stacked-bar-chart';
-import React, { useContext, type ReactNode, useState } from 'react';
+import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
+import React, { useContext, type ReactNode, useState, useRef } from 'react';
 import { type Dayjs } from 'dayjs';
 import Table from 'antd/lib/table/Table';
 import Button from 'antd/lib/button/button';
@@ -13,6 +14,7 @@ import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
 import { timeFormatUsed } from '../utils/Datetime/format';
 import Badge from 'antd/lib/badge/index';
+import type { InputRef } from 'antd/lib';
 import { Spin, Tabs } from 'antd/lib';
 import { RenderDuration } from '../utils/relative-time';
 import RelativeTo from '../utils/Datetime/relative-time';
@@ -22,6 +24,8 @@ import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';
 import Dotted from 'src/styles/dotted.module.css';
+import Search from 'antd/lib/input/Search';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -60,6 +64,10 @@ export default function TestEntities(properties: {
     const context = useContext(DetailedContext);
     const [toShowTestID, setTestID] = useState<string>();
     const [showEntity, setShowEntity] = useState<boolean>(false);
+    const [filterSuite, setFilterSuite] = useState<string>('');
+    const [showSuiteFilter, setShowSuiteFilter] = useState<boolean>(false);
+    const suiteSearchBar = useRef<InputRef>(null);
+    const found = useRef<string[]>([]);
 
     if (context == undefined) return <></>;
     const { suites, retriedRecords } = context;
@@ -73,6 +81,11 @@ export default function TestEntities(properties: {
         setTestID(testID);
         properties.setHightLight(suites[testID].Title);
         setShowEntity(true);
+    };
+
+    const helperToSearchSuite = (name: string): void => {
+        found.current.splice(0, found.current.length);
+        setFilterSuite(name);
     };
 
     let selectedTab = <></>;
@@ -105,6 +118,98 @@ export default function TestEntities(properties: {
                         width={200}
                         fixed="left"
                         filterSearch={true}
+                        sorter={(
+                            leftName: ParsedSuiteRecord,
+                            rightName: ParsedSuiteRecord,
+                        ) => leftName.Title.localeCompare(rightName.Title)}
+                        filterIcon={
+                            <Button
+                                type={showSuiteFilter ? 'primary' : 'text'}
+                                size="small"
+                                icon={<SearchOutlined />}
+                                onClick={() => {
+                                    setShowSuiteFilter(!showSuiteFilter);
+                                    if (!showSuiteFilter)
+                                        suiteSearchBar.current?.focus();
+                                }}
+                            />
+                        }
+                        onFilter={(value, record: ParsedSuiteRecord) => {
+                            if (found.current.includes(record.Id)) return true;
+
+                            const result =
+                                record._UseFilterForTitle.includes(filterSuite);
+                            if (result) found.current.push(record.Parent);
+                            return result;
+                        }}
+                        filterDropdownOpen={showSuiteFilter}
+                        filterDropdown={({
+                            setSelectedKeys,
+                            selectedKeys,
+                            confirm,
+                            clearFilters,
+                        }) => (
+                            <Space
+                                className="smooth-box"
+                                style={{
+                                    padding: '10px',
+                                    backdropFilter: 'blur(10px)',
+                                    borderRadius: '10px',
+                                    border: '.69px solid grey',
+                                }}
+                            >
+                                <Search
+                                    placeholder="Search Suites..."
+                                    value={selectedKeys[0]}
+                                    ref={suiteSearchBar}
+                                    allowClear
+                                    addonAfter={
+                                        <Button
+                                            type="text"
+                                            size="small"
+                                            onClick={() => {
+                                                if (clearFilters)
+                                                    clearFilters();
+                                                helperToSearchSuite('');
+                                                setShowSuiteFilter(false);
+                                            }}
+                                        >
+                                            Clear
+                                        </Button>
+                                    }
+                                    onKeyDown={(
+                                        event_: KeyboardEvent<HTMLInputElement>,
+                                    ) => {
+                                        if (event_.key === 'Escape')
+                                            setShowSuiteFilter(false);
+                                    }}
+                                    onChange={(
+                                        event_: ChangeEvent<HTMLInputElement>,
+                                    ) =>
+                                        setSelectedKeys(
+                                            event_.target.value
+                                                ? [event_.target.value]
+                                                : [],
+                                        )
+                                    }
+                                    onSearch={(
+                                        value,
+                                        event:
+                                            | KeyboardEvent<HTMLInputElement>
+                                            | ChangeEvent<HTMLInputElement>
+                                            | MouseEvent<HTMLElement>
+                                            | undefined,
+                                    ) => {
+                                        confirm();
+                                        if (event?.type === 'keydown')
+                                            setShowSuiteFilter(false);
+                                        helperToSearchSuite(
+                                            value?.trim()?.toLowerCase() ?? '',
+                                        );
+                                    }}
+                                />
+                            </Space>
+                        )}
                         render={(value: string, record: ParsedSuiteRecord) => (
                             <Space>
                                 <Button

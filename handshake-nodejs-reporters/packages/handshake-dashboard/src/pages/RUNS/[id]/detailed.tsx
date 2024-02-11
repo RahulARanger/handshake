@@ -28,6 +28,7 @@ import { useRouter } from 'next/router';
 import TestEntities from 'src/components/core/test-entities';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
+import type DetailedPageParameters from 'src/types/redirection-parameters';
 
 export async function getStaticProps(prepareProperties: {
     params: {
@@ -120,9 +121,16 @@ export default function TestRunResults(
 
     useEffect(() => {
         if (!router.isReady) return;
-        const query = router.query as { tab: 'grid' | 'tree' | '' };
-        if (query.tab === '') setViewMode('');
-        else setViewMode(query.tab === 'tree' ? 'tree' : 'grid');
+        const query = router.query as DetailedPageParameters;
+        const requestedTab = query.tab?.trim()?.toLowerCase() ?? '';
+        setViewMode(
+            [
+                menuTabs.testEntitiesTab.gridViewMode,
+                menuTabs.testEntitiesTab.treeViewMode,
+            ].includes(requestedTab)
+                ? requestedTab
+                : '',
+        );
     }, [setViewMode, router]);
 
     return (

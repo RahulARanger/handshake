@@ -42,6 +42,7 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     simplified: string;
     hooks: number;
     Tags: Tag[];
+    _UseFilterForTitle: string;
 }
 
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
@@ -50,6 +51,7 @@ export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
     error: ErrorRecord;
     Images: ImageRecord[];
     Assertions: Assertion[];
+    _UseFilterForTitle: string;
 }
 
 export type SuiteDetails = { '@order': string[] } & Record<
