@@ -1,6 +1,7 @@
 import { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Options, Services } from '@wdio/types';
+import { frameworksUsedString } from 'common-handshakes';
 import { ContactsForService } from './contacts';
 
 export default class HandshakeService
@@ -76,7 +77,7 @@ export default class HandshakeService
     await this.supporter.updateRunConfig({
       maxInstances: config.maxInstances ?? 1,
       platformName,
-      framework: config.framework ?? 'WebdriverIO',
+      framework: frameworksUsedString(['WebdriverIO', config.framework ?? '']),
       avoidParentSuitesInCount: this.options.testConfig.avoidParentSuitesInCount ?? false,
       fileRetries: config.specFileRetries ?? 0,
       bail: config.bail ?? 0,

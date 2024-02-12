@@ -221,10 +221,7 @@ export default function TestEntities(properties: {
                                         margin: '0px',
                                     }}
                                 >
-                                    <Text
-                                        underline
-                                        className={Dotted.suiteName}
-                                    >
+                                    <Text className={Dotted.suiteName}>
                                         {value}
                                     </Text>
                                 </Button>
@@ -325,9 +322,11 @@ export default function TestEntities(properties: {
                         dataIndex="File"
                         title="File"
                         width={100}
-                        render={(value) =>
-                            (value as string).replace(/^.*[/\\]/, '')
-                        }
+                        render={(value) => (
+                            <Text className={Dotted.suiteName}>
+                                {(value as string).replace(/^.*[/\\]/, '')}
+                            </Text>
+                        )}
                     />
                 </Table>
             );
