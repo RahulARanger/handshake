@@ -1,6 +1,6 @@
 {
     "name": "handshake-dashboard",
-    "version": "0.4.6",
+    "version": "0.4.7",
     "license": "MIT",
     "scripts": {
         "dev": "next dev",
@@ -29,7 +29,7 @@
         "echarts-for-react": "^3.0.2",
         "embla-carousel-autoplay": "^8.0.0-rc22",
         "embla-carousel-react": "^8.0.0-rc22",
-        "handshake-utils": "0.4.2",
+        "handshake-utils": "0.4.3",
         "next": "14.1.0",
         "react": "18.2.0",
         "react-countup": "^6.5.0",

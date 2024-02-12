@@ -1,5 +1,13 @@
 # handshake
 
+## 0.4.7
+
+### Patch Changes
+
+- 828dfbe: fix ui and support 0.3.0 handshake-server
+- Updated dependencies [828dfbe]
+  - handshake-utils@0.4.3
+
 ## 0.4.6
 
 ### Patch Changes
