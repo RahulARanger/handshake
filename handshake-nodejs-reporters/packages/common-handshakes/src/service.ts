@@ -49,7 +49,7 @@ export class ServiceDialPad extends DialPad {
     rootDir: string,
     workers?: number,
   ): ChildProcess {
-    this.workers = Math.max(workers ?? 0, 2);
+    this.workers = Math.max(workers ?? 1, 2);
     const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', String(this.workers)];
     logger.info(`Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`);
 
