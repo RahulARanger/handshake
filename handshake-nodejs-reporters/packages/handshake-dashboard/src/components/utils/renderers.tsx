@@ -248,7 +248,7 @@ export function RenderFrameworkUsed(properties: {
     const links: ReactNode[] = [];
 
     for (const framework of properties.frameworks) {
-        switch (framework) {
+        switch (framework.trim().toLowerCase()) {
             case 'webdriverio': {
                 links.push(
                     <Avatar
