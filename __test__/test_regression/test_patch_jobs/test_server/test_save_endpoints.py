@@ -1,3 +1,4 @@
+import datetime
 import json
 from typing import Coroutine, Any
 from pytest import mark
@@ -17,6 +18,22 @@ async def set_config(app: Sanic, session: Coroutine[Any, Any, SessionBase]):
     _session = await session
     app.config.TEST_ID = str((await _session.test).testID)
     return _session
+
+
+@mark.usefixtures("sample_test_session")
+class TestSaveEndpoints:
+    async def test_register_session(
+        self, client, app, sample_test_session, sample_test_run
+    ):
+        await set_config(app, sample_test_session)
+        payload = dict(
+            specs=["test.spec.js", "test2.spec.js"],
+            started=datetime.datetime.now().isoformat(),
+        )
+        request, response = await client.put("/save/registerSession", json=payload)
+        assert response.status == 201
+
+    # async def test_register_suite
 
 
 @mark.usefixtures("sample_test_session")

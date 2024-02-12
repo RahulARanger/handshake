@@ -18,17 +18,17 @@ async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> Fals
     return False
 
 
-async def pruneTasks(request_id: Optional[str] = ""):
-    if request_id:
+async def pruneTasks(task_id: Optional[str] = ""):
+    if task_id:
         logger.error("Deleting Few Tasks as per request")
     else:
-        logger.warning("Pruning some Tasks")
+        logger.warning("Pruning some Tasks, which are related to error test runs")
 
-    await TaskBase.filter(
+    to_prune = await TaskBase.filter(
         Q(
             test_id__in=await TestLogBase.filter(type=LogType.ERROR)
             .filter(
-                test_id__in=await TaskBase.all()
+                test_id__in=await TaskBase.filter(processed=False)
                 .only("test_id")
                 .distinct()
                 .values_list("test_id", flat=True)
@@ -37,5 +37,14 @@ async def pruneTasks(request_id: Optional[str] = ""):
             .distinct()
             .values_list("test_id", flat=True)
         )
-        & ~Q(ticketID=request_id)
-    ).delete()
+        & ~Q(ticketID=task_id)
+    )
+
+    for task in to_prune:
+        logger.error(
+            "Found an error in this task: {}. hence marking it as processed. Please report it as an issue.",
+            task.ticketID,
+        )
+        task.processed = True
+
+    await TaskBase.bulk_update(to_prune, ("processed",), 100)

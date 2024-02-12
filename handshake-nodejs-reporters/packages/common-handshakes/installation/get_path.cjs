@@ -1,6 +1,5 @@
 const { join, dirname } = require('node:path');
 const { platform } = require('node:os');
-const { exit } = require('node:process');
 const { existsSync, mkdirSync, readFileSync } = require('node:fs');
 
 function getPath() {
@@ -22,8 +21,7 @@ function getPath() {
       break;
     }
     default: {
-      console.warn(`yet to be supported for: ${platform()}`);
-      exit(0);
+      throw new Error(`yet to be supported for: ${platform()}`);
     }
   }
 

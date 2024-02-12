@@ -1,5 +1,5 @@
 .dotted {
-    --foreground: #1d1d1d;
+    --foreground: #2e2a2a;
     --background: #141414;
 
     --size: 1px;
@@ -47,4 +47,12 @@
 
 .drawer {
     border-radius: 15px;
+}
+
+.suiteName {
+    color: 'rgba(255, 255, 255, 0.85)';
+    white-space: pre-wrap !important;
+    white-space: -moz-pre-wrap;
+    text-align: 'left';
+    text-decoration-thickness: 0.5;
 }

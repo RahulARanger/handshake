@@ -1,5 +1,39 @@
 # handshake
 
+## 0.4.7
+
+### Patch Changes
+
+- 828dfbe: fix ui and support 0.3.0 handshake-server
+- Updated dependencies [828dfbe]
+  - handshake-utils@0.4.3
+
+## 0.4.6
+
+### Patch Changes
+
+- 2d007ce: fix affix components
+
+## 0.4.5
+
+### Patch Changes
+
+- remove font for the dashboard
+
+## 0.4.4
+
+### Patch Changes
+
+- fix: nextjs config
+
+## 0.4.3
+
+### Patch Changes
+
+- fixed
+- Updated dependencies
+  - handshake-utils@0.4.2
+
 ## 0.4.2
 
 ### Patch Changes

@@ -26,4 +26,4 @@ def set_test_id():
 
 
 def get_test_id() -> str:
-    return Sanic.get_app(APP_NAME).config.TEST_ID
+    return str(Sanic.get_app(APP_NAME).config.TEST_ID)

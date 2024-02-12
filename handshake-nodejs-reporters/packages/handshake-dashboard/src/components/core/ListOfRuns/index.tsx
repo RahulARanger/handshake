@@ -16,6 +16,7 @@ import Card from 'antd/lib/card/Card';
 import dayjs, { type Dayjs } from 'dayjs';
 import Layout from 'antd/lib/layout/index';
 import Empty from 'antd/lib/empty/index';
+import Button from 'antd/lib/button/button';
 import Tooltip from 'antd/lib/tooltip/index';
 import Divider from 'antd/lib/divider/index';
 import Select from 'antd/lib/select/index';
@@ -25,15 +26,18 @@ import FilterOutlined from '@ant-design/icons/FilterOutlined';
 import Text from 'antd/lib/typography/Text';
 import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
-import Button from 'antd/lib/button/button';
 import type { RangePickerProps } from 'antd/lib/date-picker';
-import GithubOutlined from '@ant-design/icons/GithubOutlined';
 import Tag from 'antd/lib/tag/index';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import { RenderStatus } from 'src/components/utils/renderers';
+import {
+    GithubRepoLink,
+    RenderFrameworkUsed,
+    RenderStatus,
+} from 'src/components/utils/renderers';
 import type { DetailedTestRecord } from 'src/types/parsed-records';
-import { sourceUrl } from 'src/types/ui-constants';
 import { LOCATORS, TEXT } from 'handshake-utils';
+import type { TestRecord } from 'src/types/test-run-records';
+import Ribbon from 'antd/lib/badge/Ribbon';
 
 dayjs.extend(isBetween);
 
@@ -42,82 +46,96 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
     const item = properties.run;
 
     return (
-        <List.Item
-            key={item.Link}
-            id={item.Id}
-            actions={[
-                <Space key={'space'}>
-                    <RenderPassedRate
-                        value={isTest ? item.Rate : item.SuitesSummary}
-                        key={'chart'}
-                        width={235}
-                        title={isTest ? 'Tests' : 'Suites'}
-                    />
-                    <Switch
-                        key={'switch'}
-                        defaultChecked
-                        size="small"
-                        checkedChildren={<>Tests</>}
-                        unCheckedChildren={<>Suites</>}
-                        onChange={(checked) => {
-                            showTest(checked);
-                        }}
-                        checked={isTest}
-                        className="switch"
-                    />
-                </Space>,
-            ]}
+        <Ribbon
+            text={
+                <Text style={{ fontSize: '.69rem' }} italic>
+                    {item.projectName}
+                </Text>
+            }
+            color="purple"
         >
-            <List.Item.Meta
-                title={
-                    <Space align="center">
-                        <RenderStatus value={item.Status} />
-                        <Link
-                            href={item.Link}
-                            id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
-                        >{`${item.Started[0].format(
-                            dateFormatUsed,
-                        )} - ${item.Title}`}</Link>
-                    </Space>
-                }
-                description={
-                    <Tooltip
-                        title={TEXT.RUNS.noteForTime}
-                        color="volcano"
-                        placement="bottomRight"
-                        arrow
-                        className="tooltip"
-                    >
-                        <Space align="start" size={0}>
-                            <Tag color="cyan" className="time-range">
-                                <RelativeTo
-                                    dateTime={item.Started[0]}
-                                    secondDateTime={item.Ended[0]}
-                                    autoPlay
+            <List.Item
+                key={item.Link}
+                id={item.Id}
+                actions={[
+                    <Space key={'space'}>
+                        <RenderPassedRate
+                            value={isTest ? item.Rate : item.SuitesSummary}
+                            key={'chart'}
+                            width={235}
+                            title={isTest ? 'Tests' : 'Suites'}
+                        />
+                        <Switch
+                            key={'switch'}
+                            defaultChecked
+                            size="small"
+                            checkedChildren={<>Tests</>}
+                            unCheckedChildren={<>Suites</>}
+                            onChange={(checked) => {
+                                showTest(checked);
+                            }}
+                            checked={isTest}
+                            className="switch"
+                        />
+                    </Space>,
+                ]}
+            >
+                <List.Item.Meta
+                    title={
+                        <div
+                            style={{ display: 'flex', flexDirection: 'column' }}
+                        >
+                            <Space align="start">
+                                <RenderFrameworkUsed
+                                    frameworks={item.Frameworks}
+                                />
+                                <RenderStatus value={item.Status} />
+                                <Link
+                                    href={item.Link}
+                                    id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
+                                >{`${item.Started[0].format(dateFormatUsed)}`}</Link>
+                            </Space>
+                        </div>
+                    }
+                    description={
+                        <Tooltip
+                            title={TEXT.RUNS.noteForTime}
+                            color="volcano"
+                            placement="bottomRight"
+                            arrow
+                            className="tooltip"
+                        >
+                            <Space align="start" size={0}>
+                                <Tag color="cyan" className="time-range">
+                                    <RelativeTo
+                                        dateTime={item.Started[0]}
+                                        secondDateTime={item.Ended[0]}
+                                        autoPlay
+                                        style={{
+                                            maxWidth: '170px',
+                                            textAlign: 'right',
+                                        }}
+                                    />
+                                </Tag>
+                                <Tag
+                                    color="volcano"
                                     style={{
-                                        maxWidth: '170px',
-                                        textAlign: 'right',
+                                        minWidth: '95px',
+                                        maxWidth: '95px',
                                     }}
-                                />
-                            </Tag>
-                            <Tag
-                                color="volcano"
-                                style={{
-                                    minWidth: '95px',
-                                    maxWidth: '95px',
-                                }}
-                                className="duration"
-                            >
-                                <RenderDuration
-                                    value={item.Duration}
-                                    autoPlay={true}
-                                />
-                            </Tag>
-                        </Space>
-                    </Tooltip>
-                }
-            />
-        </List.Item>
+                                    className="duration"
+                                >
+                                    <RenderDuration
+                                        value={item.Duration}
+                                        autoPlay={true}
+                                    />
+                                </Tag>
+                            </Space>
+                        </Tooltip>
+                    }
+                />
+            </List.Item>
+        </Ribbon>
     );
 }
 
@@ -184,7 +202,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
     );
 
     const forThisWeek = chronological.filter((run) =>
-        run.Started[0].isBetween(thisWeek, yesterday, 'date', '[]'),
+        run.Started[0].isBetween(thisWeek, yesterday, 'date', '[)'),
     );
 
     const forYesterday = chronological.filter((run) =>
@@ -286,7 +304,7 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
 }
 
 export default function GridOfRuns(properties: {
-    runs: TestRunRecord[];
+    runs: TestRecord[];
 }): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();
     const [dateRange, setDateRange] = useState<
@@ -296,6 +314,19 @@ export default function GridOfRuns(properties: {
     if (properties.runs.length === 0) {
         return (
             <Layout style={{ height: '100%' }}>
+                <Layout.Header className={HeaderStyles.header} spellCheck>
+                    <Space
+                        style={{
+                            justifyContent: 'space-between',
+                            width: '100%',
+                            marginRight: '20px',
+                        }}
+                        align="center"
+                    >
+                        <BreadCrumb items={crumbs(false)} />
+                        <GithubRepoLink />
+                    </Space>
+                </Layout.Header>
                 <Space
                     direction="horizontal"
                     style={{ height: '100%', justifyContent: 'center' }}
@@ -416,12 +447,7 @@ export default function GridOfRuns(properties: {
                             disabledDate={disabledDate}
                         />
                     </Space>
-                    <Button
-                        icon={<GithubOutlined style={{ fontSize: 20 }} />}
-                        href={sourceUrl}
-                        target="_blank"
-                        id={LOCATORS.RUNS.githubURL}
-                    />
+                    <GithubRepoLink />
                 </Space>
             </Layout.Header>
             {body}

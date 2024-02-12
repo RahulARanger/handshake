@@ -11,3 +11,7 @@ export function sanitizePaths(specs?: string[]): string[] {
 export function acceptableDateString(date: Date): string {
   return date.toISOString();
 }
+
+export function frameworksUsedString(frameworks: string[]): string {
+  return frameworks.join(',');
+}

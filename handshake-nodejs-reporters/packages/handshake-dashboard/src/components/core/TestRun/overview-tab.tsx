@@ -4,7 +4,12 @@ import Counter from 'src/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
-import { RenderInfo, RenderStatus } from 'src/components/utils/renderers';
+import {
+    RenderFrameworkUsed,
+    RenderInfo,
+    RenderStatus,
+    RenderSystemType,
+} from 'src/components/utils/renderers';
 import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
 import GalleryOfImages, {
     PlainImage,
@@ -44,7 +49,7 @@ function TopSuites(properties: {
                 flexShrink: 1,
                 maxWidth: '655px',
             }}
-            scroll={{ y: 181, x: 'max-content' }}
+            scroll={{ y: 200, x: 'max-content' }}
         >
             {properties.isTest ? (
                 <Table.Column
@@ -126,9 +131,74 @@ function PreviewForImages(): ReactNode {
     );
 }
 
+function ConfigSet(): ReactNode {
+    const context = useContext(OverviewContext);
+    if (context == undefined) return <></>;
+
+    const { testRunConfig } = context;
+
+    return (
+        <Table
+            dataSource={[
+                {
+                    Note: 'Platform',
+                    Configured: (
+                        <RenderSystemType systemName={testRunConfig.platform} />
+                    ),
+                    Description: 'Executed in this platform',
+                },
+                {
+                    Note: 'Framework',
+                    Configured: (
+                        <RenderFrameworkUsed
+                            frameworks={testRunConfig.frameworks}
+                        />
+                    ),
+                    Description: 'Frameworks used.',
+                },
+                {
+                    Note: 'ExitCode',
+                    Configured: <Counter end={testRunConfig.exitCode} />,
+                    Description: 'Exit Code of Test Run.',
+                },
+                {
+                    Note: 'MaxInstances',
+                    Configured: <Counter end={testRunConfig.maxInstances} />,
+                    Description: 'Maximum number of parallel instances set.',
+                },
+            ]}
+            size="small"
+            bordered
+            pagination={false}
+            scroll={{ y: 200, x: 'max-content' }}
+        >
+            <Table.Column
+                dataIndex="Note"
+                title="Note"
+                width={60}
+                align="center"
+                fixed="left"
+            />
+
+            <Table.Column
+                dataIndex="Configured"
+                title="Configured"
+                align="center"
+                width={40}
+                render={(value: ReactNode) => value}
+            />
+            <Table.Column
+                dataIndex="Description"
+                align="right"
+                title="Description"
+                width={120}
+            />
+        </Table>
+    );
+}
 export default function Overview(): ReactNode {
     const context = useContext(OverviewContext);
-    const [isTest, setTest] = useState<boolean>(true);
+    const [isTest, setTest] = useState<boolean>(false);
 
     if (context == undefined) return <></>;
 
@@ -150,16 +220,21 @@ export default function Overview(): ReactNode {
                 align="start"
                 style={{ width: '100%', justifyContent: 'stretch' }}
             >
-                <Space direction="vertical">
+                <Space direction="vertical" align="start">
                     <div style={{ width: '350px' }}>
+                        <ProgressPieChart
+                            rate={rate}
+                            isTestCases={isTest}
+                            broken={aggResults.brokenTests}
+                            noShadow
+                        />
                         <Affix
-                            offsetBottom={150}
                             style={{
                                 position: 'relative',
-                                top: '86px',
                                 left: '124px',
                                 width: '0px',
                                 height: '0px',
+                                bottom: '123px',
                             }}
                         >
                             <Select
@@ -178,16 +253,11 @@ export default function Overview(): ReactNode {
                                     },
                                 ]}
                                 value={isTest}
-                                onChange={(checked) => {
+                                onChange={(checked: boolean) => {
                                     setTest(checked);
                                 }}
                             />
                         </Affix>
-                        <ProgressPieChart
-                            rate={rate}
-                            isTestCases={isTest}
-                            broken={aggResults.brokenTests}
-                        />
                     </div>
                     <PreviewForImages />
                 </Space>
@@ -314,6 +384,11 @@ export default function Overview(): ReactNode {
                                         isTest={isTest}
                                     />
                                 ),
+                            },
+                            {
+                                key: 'note',
+                                label: 'Note',
+                                children: <ConfigSet />,
                             },
                         ]}
                     />

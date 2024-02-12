@@ -8,7 +8,7 @@ import type {
     SimpleSuiteDetails,
     Tag,
 } from './test-entity-related';
-import type { specNode } from './test-run-records';
+import type { possibleFrameworks, specNode } from './test-run-records';
 
 export default interface BasicDetails {
     Started: [Dayjs, Dayjs];
@@ -27,6 +27,7 @@ export interface DetailedTestRecord extends BasicDetails {
     Link: string;
     projectName: string;
     specStructure: specNode;
+    Frameworks: possibleFrameworks[];
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
@@ -41,6 +42,7 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     simplified: string;
     hooks: number;
     Tags: Tag[];
+    _UseFilterForTitle: string;
 }
 
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
@@ -49,6 +51,7 @@ export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
     error: ErrorRecord;
     Images: ImageRecord[];
     Assertions: Assertion[];
+    _UseFilterForTitle: string;
 }
 
 export type SuiteDetails = { '@order': string[] } & Record<

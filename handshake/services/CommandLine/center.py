@@ -1,95 +1,145 @@
-import json
-import pprint
-import typing
-
-from handshake.services.CommandLine.core import (
+from handshake.services.CommandLine._init import (
     handle_cli,
     general_but_optional_requirement,
 )
-from handshake.services.CommandLine._init import general_requirement
+from handshake.services.Endpoints.center import service_provider
 from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     close_connection,
-    set_default_config,
-    config_file,
+    create_run,
 )
-from click import option
-from pathlib import Path
-from typing import Dict
-from handshake.services.SchedularService.center import start_service
-from handshake.services.DBService.shared import db_path
-from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBase
-from handshake.services.SchedularService.lifecycle import start_loop
-from tortoise import run_async
-from tortoise.expressions import Q
+from handshake import __version__
+from typing import Union
+from handshake.services.DBService.shared import set_test_id
+from click import argument, option, Path
+from pathlib import Path as P_Path
+from multiprocessing.sharedctypes import Array
+from sanic.worker.loader import AppLoader
+from sanic import Sanic
+from typing import Tuple
+from functools import partial
+from loguru import logger
+from handshake.services.Endpoints.static_server import static_provider
 
 
-def dump_config(path: Path, to_dump: typing.List):
-    formatted_dump: typing.Dict[str, str] = dict(to_dump)
-    formatted_dump.pop(ConfigKeys.version)
-    if ConfigKeys.recentlyDeleted in formatted_dump:
-        formatted_dump.pop(ConfigKeys.recentlyDeleted)
-    config_file(path).write_text(json.dumps(formatted_dump, indent=4))
+def feed_app() -> Sanic:
+    return service_provider
+
+
+def feed_static_provider(export: str) -> Sanic:
+    static_provider.static(
+        "/", str(P_Path(export)), name="export", index=["index.html", "RUNS.html"]
+    )
+    return static_provider
+
+
+def prepare_loader() -> Tuple[Sanic, AppLoader]:
+    loader = AppLoader(factory=feed_app)
+    app = loader.load()
+    return app, loader
+
+
+def setup_app(
+    projectname: str,
+    path: str,
+    port: int = 6969,
+    workers: int = 2,
+):
+    @service_provider.main_process_start
+    async def get_me_started(app, loop):
+        service_provider.shared_ctx.ROOT = Array("c", str.encode(path))
+        await init_tortoise_orm(migrate=True)
+        test_id = await create_run(projectname)
+        service_provider.shared_ctx.TEST_ID = Array("c", str.encode(test_id))
+        set_test_id()
+
+    @service_provider.main_process_stop
+    async def close_things(app, loop):
+        await close_connection()
+
+    _app, loader = prepare_loader()
+    _app.prepare(
+        port=port,
+        workers=min(2, workers),
+        host="127.0.0.1",
+        motd_display=dict(version=__version__),
+    )
+    logger.debug("Serving at port: {}", port)
+    Sanic.serve(primary=_app, app_loader=loader)
 
 
 @handle_cli.command(
-    short_help="Processes the collected results",
+    short_help="Starts the server which would listen for your input",
     help="""
-Initiates a scheduler to standardize and enrich reports by patching suites and test runs with essential data often missing from various frameworks.
-\nThe scheduler's primary task is to calculate aggregated values, such as the total number of executed suites and tests in a test run, addressing gaps in reporting. Furthermore, 
-the scheduler identifies and compiles data crucial for dashboard visualization, particularly in the rollup 
-process. This involves consolidating errors from child tests to the suite level and aggregating the number of 
-tests from child suites to parent suites.
+Starts the Handshake server to listen for inputs at the specified port on localhost. This command initiates a test run,
+allowing the server to handle a single test run at a time. For multiple test runs, spawn the process separately on different
+ports.
 """,
 )
-@general_requirement
-def patch(collection_path):
-    if not Path(collection_path).is_dir():
-        raise NotADirectoryError(collection_path)
-    start_service(db_path(collection_path))
-    start_loop()
+@argument("PROJECT_NAME", nargs=1, required=True, type=str)
+@general_but_optional_requirement
+@option(
+    "-p",
+    "--port",
+    default=6969,
+    show_default=True,
+    help="Port for the service to connect to",
+    type=int,
+)
+@option(
+    "-w",
+    "--workers",
+    default=2,
+    show_default=True,
+    help="Number of workers to use",
+    type=int,
+)
+def run_app(
+    collection_path: str,
+    project_name: str,
+    port: int,
+    workers: int,
+):
+    if workers < 2:
+        logger.warning(
+            "we have set default of 2 workers, if it's less than that, server might miss results sent from the runner."
+        )
 
-
-async def setConfig(path: Path, feed: Dict[ConfigKeys, str], set_default: bool):
-    await init_tortoise_orm(path)
-
-    if set_default:
-        await set_default_config(path)
-    if feed:
-        to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
-        for to in to_change:
-            to.value = feed[to.key]
-            await ConfigBase.bulk_update(to_change, fields=["value"])
-
-    to_dump = await ConfigBase.all().values_list()
-    dump_config(path, to_dump)
-    print("Current dump;")
-    pprint.pprint(to_dump, indent=4)
-    await close_connection()
+    P_Path(collection_path).mkdir(exist_ok=True)
+    setup_app(project_name, collection_path, port, workers)
 
 
 @handle_cli.command(
-    short_help="Quick Config for test collection",
-    help="configures few values which is used while processing your reports., ignore the options if not required for "
-    "update",
+    help="serves the generated reports. simply serves the static files generated in your directory mentioned "
+    "in static_path",
+    short_help="serves generated report",
 )
-@general_but_optional_requirement
+@argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
 @option(
-    "--max_runs",
-    "-mr",
-    default=-1,
-    help="Max. Number of runs to keep. NOTE: should be >1",
+    "-p",
+    "--port",
+    default=8000,
+    show_default=True,
+    help="Port for the service to connect to",
+    type=int,
 )
-def config(collection_path, max_runs):
-    saved_db_path = db_path(collection_path)
+def display(static_path: Union[str, P_Path] = "TestReports", port: int = 8000):
+    if static_path:
+        static_path = P_Path(static_path)
 
-    set_default_first = not Path(collection_path).exists()
-    if set_default_first:
-        Path(collection_path).mkdir(exist_ok=True)
+        if not static_path.exists():
+            raise NotADirectoryError(f"{static_path} does not exist")
 
-    feed_from = config_file(saved_db_path)
-    feed = dict() if not feed_from.exists() else json.loads(feed_from.read_text())
-    if max_runs > 1:
-        feed[ConfigKeys.maxRuns] = max_runs
+    loader = AppLoader(factory=partial(feed_static_provider, static_path))
+    _app = loader.load()
+    _app.prepare(
+        host="127.0.0.1",
+        port=port,
+        access_log=False,
+        motd_display=dict(version=__version__),
+    )
+    Sanic.serve(primary=_app, app_loader=loader)
 
-    run_async(setConfig(saved_db_path, feed, set_default_first))
+
+if __name__ == "__main__":
+    setup_app("sample", "../../../TestResults")

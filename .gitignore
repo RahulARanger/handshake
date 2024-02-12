@@ -57,3 +57,4 @@ handshake-nodejs-reporters/Jest-Results
 handshake-nodejs-reporters/packages/handshake-dashboard/public/antd.min.css
 /handshake-nodejs-reporters/packages/handshake-dashboard/test-export.ps1
 
+handshake-nodejs-reporters/packages/handshake-dashboard/analyze/*

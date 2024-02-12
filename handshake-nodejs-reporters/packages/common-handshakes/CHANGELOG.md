@@ -1,5 +1,17 @@
 # common-handshakes
 
+## 0.4.7
+
+### Patch Changes
+
+- 828dfbe: fix ui and support 0.3.0 handshake-server
+
+## 0.4.3
+
+### Patch Changes
+
+- fixed
+
 ## 0.4.2
 
 ### Patch Changes

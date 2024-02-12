@@ -72,8 +72,8 @@ export function PlainImage(properties: {
             type="inner"
             size="small"
             hoverable
-            className={carouselStyles.slide}
-            style={{ margin: '6px' }}
+            className={`${carouselStyles.slide}`}
+            style={{ margin: '6px', backgroundColor: 'transparent' }}
         >
             {image}
             {desc}

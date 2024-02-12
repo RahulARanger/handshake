@@ -16,11 +16,12 @@ export interface OverallAggResults {
     imageCount: number;
     brokenTests: number;
 }
+
 export interface OverviewPageProperties {
     detailsOfTestRun: TestRunRecord;
     summaryForAllSessions: SessionSummary[];
     randomImages: ImageRecord[];
-    testRunConfig: TestRunConfig | false;
+    testRunConfig: TestRunConfig;
     recentSuites: SuiteRecordDetails[];
     recentTests: SuiteRecordDetails[];
     aggResults: OverallAggResults;

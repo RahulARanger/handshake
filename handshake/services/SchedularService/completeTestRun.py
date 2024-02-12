@@ -191,9 +191,9 @@ async def patchValues(test_run: RunBase):
             specStructure=simplify_file_paths(
                 [
                     path
-                    for paths in await filtered.all()
+                    for paths in await SuiteBase.filter(Q(session__test_id=test_id))
                     .distinct()
-                    .values_list("specs", flat=True)
+                    .values_list("file", flat=True)
                     for path in paths
                 ]
             ),

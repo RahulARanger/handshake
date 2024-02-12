@@ -7,15 +7,16 @@ import {
     filterTestsAndSuites,
 } from './extractors';
 import Button from 'antd/lib/button/button';
-import { Affix, Divider, Tag } from 'antd/lib';
+import { Divider, Tag, Tooltip } from 'antd/lib';
 import Text from 'antd/lib/typography/Text';
 import TestEntitiesBars from 'src/components/charts/test-bars';
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
 import { DetailedContext } from 'src/types/records-in-detailed';
 import Sider from 'antd/lib/layout/Sider';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
-
+import CardStyles from 'src/styles/card.module.css';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
+import CloseCircleOutlined from '@ant-design/icons/CloseCircleOutlined';
 
 import Paragraph from 'antd/lib/typography/Paragraph';
 
@@ -64,38 +65,20 @@ export default function DetailedTestEntityWindow(properties: {
                 <Header
                     style={{
                         width: '100%',
-                        height: '50px',
+                        height: '60px',
                         paddingTop: '4px',
                         // https://uigradients.com/#LoveCouple
                         background:
                             'linear-gradient(to right, #3a6186, #89253e)',
+                        padding: '0px',
+                        paddingLeft: '6px',
+                        paddingRight: '6px',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        justifyContent: 'center',
+                        alignItems: 'center',
                     }}
                 >
-                    <Affix
-                        offsetTop={10}
-                        style={{
-                            position: 'relative',
-                            border: '1px solid grey',
-                            top: '-12px',
-                            left: '-60px',
-                            width: '0px',
-                            height: '0px',
-                        }}
-                    >
-                        <Button
-                            style={{
-                                color: 'whitesmoke',
-                                backdropFilter: 'blur(12px)',
-                                fontWeight: 'bolder',
-                                backgroundColor: 'transparent',
-                                border: '1px solid transparent',
-                            }}
-                            onClick={properties.onClose}
-                            shape="round"
-                        >
-                            ⟵
-                        </Button>
-                    </Affix>
                     <TestEntitiesBars
                         entities={rawSource}
                         onClick={(testEntity) => {
@@ -105,14 +88,33 @@ export default function DetailedTestEntityWindow(properties: {
                                 ?.scrollIntoView({ behavior: 'smooth' });
                         }}
                     />
+                    <Tooltip title="Go back to previous screen">
+                        <Button
+                            style={{
+                                backdropFilter: 'blur(12px)',
+                                fontWeight: 'bolder',
+                                background: 'transparent',
+                                border: '1px solid transparent',
+                            }}
+                            className={'smooth-box'}
+                            icon={
+                                <CloseCircleOutlined
+                                    size={10}
+                                    style={{
+                                        color: 'white',
+                                        fontWeight: 'bolder',
+                                    }}
+                                />
+                            }
+                            onClick={properties.onClose}
+                        />
+                    </Tooltip>
                 </Header>
                 <Content
                     style={{
                         overflowY: 'auto',
-                        // inspired from https://uigradients.com/#RedOcean and https://uigradients.com/#Netflix
-                        background:
-                            'linear-gradient(to right,  #1f1c18, #141e30)',
                     }}
+                    className={CardStyles.card}
                 >
                     <Space
                         style={{ width: '100%', paddingTop: '6px' }}
@@ -173,14 +175,7 @@ export default function DetailedTestEntityWindow(properties: {
                         selected={selectedSuiteDetails}
                         setTestID={setTestID}
                     />
-                    <Affix
-                        style={{
-                            position: 'relative',
-                            right: '-.5%',
-                        }}
-                    >
-                        <Text italic>{selectedSuiteDetails.File}</Text>
-                    </Affix>
+                    <Text italic>{selectedSuiteDetails.File}</Text>
                     <Divider
                         type="horizontal"
                         style={{

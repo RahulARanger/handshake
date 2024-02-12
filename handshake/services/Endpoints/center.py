@@ -11,18 +11,10 @@ from sanic import Sanic
 async def before_start_of_day(app: Sanic, loop):
     set_test_id()
     await init_tortoise_orm()
-    logger.info("DB Connection is now online 🌍")
-
-
-@service_provider.after_server_stop
-async def close_scheduler(app: Sanic, loop):
-    logger.info("Closing the db connection 👋")
-    await close_connection()
 
 
 def close_app(*args):
     asyncio.run(close_connection())
-    logger.warning("Services are offline as requested.")
 
 
 @service_provider.main_process_ready

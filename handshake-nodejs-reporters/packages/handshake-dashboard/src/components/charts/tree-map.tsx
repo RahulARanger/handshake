@@ -116,7 +116,6 @@ function treeData(
             const suiteNode: treeNode = {
                 id: suiteID,
                 name: suite.Title,
-                // icon: <RenderStatus value={suite.Status} marginTop="6px" />,
                 children: [],
                 value: suite.totalRollupValue ?? 0,
                 color: [standingToColors[suite.Status]],

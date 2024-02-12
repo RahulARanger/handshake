@@ -1,4 +1,4 @@
-# helper script to place the python local build to make it accessible to node js reporters
+# helper script to place the python local build to make it accessible to node-js reporters
 
 from pathlib import Path
 from platform import system

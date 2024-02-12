@@ -5,6 +5,8 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing_extensions import TypedDict
 
+# send iso-format for the datetime string
+
 
 class CommonRegisterCols(BaseModel):
     started: datetime

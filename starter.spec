@@ -1,6 +1,14 @@
 # -*- mode: python ; coding: utf-8 -*-
 import pathlib
 import platform
+import tomllib
+
+root = pathlib.Path.cwd()
+version = tomllib.loads((root / "pyproject.toml").read_text())["tool"]["poetry"][
+    "version"
+]
+note_file = root / "handshake" / "__init__.py"
+note_file.write_text(f'__version__ = "{version}"\n')
 
 a = Analysis(
     [str(pathlib.Path("handshake") / "services" / "starter.py")],

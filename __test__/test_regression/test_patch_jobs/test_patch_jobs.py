@@ -5,8 +5,10 @@ from handshake.services.DBService.models import (
     RunBase,
     SessionBase,
     RetriedBase,
+    TaskBase,
 )
-from handshake.services.DBService.models.enums import Status, AttachmentType
+from subprocess import run, PIPE
+from handshake.services.DBService.models.enums import Status
 from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.completeTestRun import patchTestRun
 from handshake.services.SchedularService.register import (
@@ -29,7 +31,6 @@ class TestPatchSuiteJob:
 
         await register_patch_suite(parent_id, test_id)
         assert await patchTestSuite(parent_suite.suiteID, test_id)
-
         # if there are no test entities it won't make any change
         record = await RollupBase.filter(suite_id=parent_suite.suiteID).first()
         assert record.passed == record.failed == record.tests == record.skipped == 0
@@ -296,6 +297,43 @@ class TestPatchSuiteJob:
 
         return test
 
+    async def test_patch_command(
+        self, sample_test_run, sample_test_session, create_suite, create_tests, root_dir
+    ):
+        session = await sample_test_session
+        test_id = session.test_id
+        session_id = str(session.sessionID)
+
+        parent_suite = await create_suite(session_id)
+        parent_id = str(parent_suite.suiteID)
+
+        suite = await create_suite(session_id, "suite-1", parent_id)
+        suite_id = str(suite.suiteID)
+
+        await create_tests(session_id, suite_id)
+
+        child_task = await register_patch_suite(suite_id, test_id)
+        parent_task = await register_patch_suite(parent_id, test_id)
+
+        assert not child_task.processed
+        assert not parent_task.processed
+
+        result = run(f'handshake patch "{root_dir}"', shell=True)
+        assert result.returncode == 0
+
+        assert (await TaskBase.filter(ticketID=child_task.ticketID).first()).processed
+        assert (await TaskBase.filter(ticketID=parent_task.ticketID).first()).processed
+
+        # high level check to prove that it is processed successfully.
+        child_suite = await SuiteBase.filter(suiteID=suite_id).first()
+        assert child_suite.tests == 9
+
+        child_rollup_suite = await RollupBase.filter(suite_id=suite_id).first()
+        assert child_rollup_suite.tests == 9
+
+        parent_rollup_suite = await RollupBase.filter(suite_id=parent_id).first()
+        assert parent_rollup_suite.tests == 9
+
 
 @mark.usefixtures("sample_test_session")
 class TestPatchRunJob:
@@ -439,3 +477,48 @@ class TestPatchRunJob:
         assert suite_agg["count"] == suite_agg["failed"] == 4
 
         assert record.retried == 2
+
+    async def test_patch_command(
+        self,
+        sample_test_run,
+        sample_test_session,
+        create_session,
+        create_hierarchy,
+        create_suite,
+        create_tests,
+        root_dir,
+    ):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        second_session = await create_session(test.testID)
+
+        _, suites = await create_hierarchy(session_id, "", test.testID)
+        _, second_suites = await create_hierarchy(
+            second_session.sessionID, "", test.testID
+        )
+        task = await register_patch_test_run(test.testID)
+        assert not task.processed
+
+        for suite in suites + second_suites:
+            result = await patchTestSuite(suite, test.testID)
+            assert result is True, suite
+
+        await session.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
+        await second_session.update_from_dict(
+            dict(passed=9, failed=9, skipped=9, tests=27)
+        )
+        await session.save()
+        await second_session.save()
+
+        result = run(f'handshake patch "{root_dir}"', shell=True)
+        assert result.returncode == 0
+
+        test_record = await RunBase.filter(testID=test.testID).first()
+
+        assert test_record.tests == (2 * (3 * 3)) * 3
+        assert test_record.standing == Status.FAILED
+        assert test_record.suiteSummary["count"] == 3 + 3
+
+        assert (await TaskBase.filter(ticketID=task.ticketID).first()).processed

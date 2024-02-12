@@ -1,7 +1,11 @@
+import { Level } from 'log4js';
+
 export interface ReporterOptions {
   port: number;
   addScreenshots?:boolean;
   timeout?:number;
+  logLevel?:Level;
+
 }
 export interface HandshakeServiceOptions {
   port: number;
@@ -10,6 +14,7 @@ export interface HandshakeServiceOptions {
   collectionName: string;
   timeout?: number;
   workers?:number;
+  logLevel?:Level;
   export?: {
     out?: string;
     maxTestRuns: number;

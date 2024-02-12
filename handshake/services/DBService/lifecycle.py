@@ -3,11 +3,12 @@ from handshake.services.DBService.models.config_base import ConfigBase
 from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
 from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
 from typing import Optional, Union
-
+from loguru import logger
 
 models = ["handshake.services.DBService.models"]
 
@@ -16,8 +17,12 @@ def config_file(provided_db_path: Path):
     return provided_db_path.parent / "config.json"
 
 
-async def init_tortoise_orm(force_db_path: Optional[Union[Path, str]] = None):
+async def init_tortoise_orm(
+    force_db_path: Optional[Union[Path, str]] = None, migrate: bool = False
+):
     chosen = force_db_path if force_db_path else db_path()
+    if migrate:
+        migration(chosen)
 
     await Tortoise.init(
         db_url=r"{}".format(f"sqlite://{chosen}"),
@@ -57,3 +62,5 @@ async def set_default_config(path: Path):
 
 async def close_connection():
     await connections.close_all()
+    # waiting for the logs to be sent or saved
+    await logger.complete()

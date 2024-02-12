@@ -42,6 +42,14 @@ async def attachError(payload, url: str):
     )
 
 
+async def attachInfo(payload, url: str):
+    await attachLog(
+        payload,
+        LogType.INFO,
+        f"utilizing: {url}",
+    )
+
+
 async def attachWarn(payload, url: str):
     await attachLog(
         payload,
