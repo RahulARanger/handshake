@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.4.7
+
+### Patch Changes
+
+- 828dfbe: fix ui and support 0.3.0 handshake-server
+- Updated dependencies [828dfbe]
+  - common-handshakes@0.4.7
+
 ## 0.4.3
 
 ### Patch Changes

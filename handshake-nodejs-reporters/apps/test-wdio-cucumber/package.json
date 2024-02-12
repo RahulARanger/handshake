@@ -20,6 +20,6 @@
 	"dependencies": {
 		"@wdio/cli": "^8.31.1",
 		"@wdio/mocha-framework": "8.31.1",
-		"wdio-handshake-reporter": "0.4.3"
+		"wdio-handshake-reporter": "0.4.7"
 	}
 }
