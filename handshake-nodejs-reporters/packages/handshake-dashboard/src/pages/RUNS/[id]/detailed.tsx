@@ -15,7 +15,7 @@ import type {
 import { type SuiteRecordDetails } from 'src/types/test-entity-related';
 import type DetailedPageProperties from 'src/types/records-in-detailed';
 import type { ValuesInDetailedContext } from 'src/types/records-in-detailed';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from '@/types/records-in-detailed';
 import {
     parseDetailedTestRun,
     parseImageRecords,

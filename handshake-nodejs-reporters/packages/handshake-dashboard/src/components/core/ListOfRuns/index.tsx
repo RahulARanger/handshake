@@ -1,12 +1,12 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun } from 'src/components/parse-utils';
-import { RenderDuration } from 'src/components/utils/relative-time';
-import AreaChartForRuns from 'src/components/charts/collection-of-runs';
-import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
+import { parseDetailedTestRun } from '@/components/parse-utils';
+import { RenderDuration } from '@/components/utils/relative-time';
+import AreaChartForRuns from '@/components/charts/collection-of-runs';
+import RenderPassedRate from '@/components/charts/stacked-bar-chart';
 import crumbs from './test-items';
-import { dateFormatUsed } from 'src/components/utils/Datetime/format';
-import HeaderStyles from 'src/styles/header.module.css';
+import { dateFormatUsed } from '@/components/utils/Datetime/format';
+import HeaderStyles from '@/styles/header.module.css';
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -28,15 +28,15 @@ import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import Tag from 'antd/lib/tag/index';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import RelativeTo from '@/components/utils/Datetime/relative-time';
 import {
     GithubRepoLink,
     RenderFrameworkUsed,
     RenderStatus,
-} from 'src/components/utils/renderers';
-import type { DetailedTestRecord } from 'src/types/parsed-records';
+} from '@/components/utils/renderers';
+import type { DetailedTestRecord } from '@/types/parsed-records';
 import { LOCATORS, TEXT } from 'handshake-utils';
-import type { TestRecord } from 'src/types/test-run-records';
+import type { TestRecord } from '@/types/test-run-records';
 import Ribbon from 'antd/lib/badge/Ribbon';
 
 dayjs.extend(isBetween);

@@ -19,7 +19,7 @@ import { Spin, Tabs } from 'antd/lib';
 import { RenderDuration } from '../utils/relative-time';
 import RelativeTo from '../utils/Datetime/relative-time';
 import { StaticPercent } from '../utils/counter';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from '@/types/records-in-detailed';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';

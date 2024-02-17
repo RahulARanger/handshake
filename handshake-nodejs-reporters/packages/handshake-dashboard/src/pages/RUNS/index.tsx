@@ -1,13 +1,10 @@
-import getConnection from 'src/components/scripts/connection';
-import GridOfRuns from 'src/components/core/ListOfRuns';
+export { default } from '@/core/ListOfRuns/page';
+import getConnection from '@/scripts/connection';
 import { type GetStaticPropsResult } from 'next';
-import React, { type ReactNode } from 'react';
-import currentExportConfig from 'src/components/scripts/config';
-import sqlFile from 'src/components/scripts/RunPage/script';
-import Head from 'next/head';
-import { TEXT } from 'handshake-utils';
-import { parseTestConfig } from 'src/components/parse-utils';
-import type { TestRecord } from 'src/types/test-run-records';
+import currentExportConfig from '@/components/scripts/config';
+import sqlFile from '@/components/scripts/RunPage/script';
+import { parseTestConfig } from '@/components/parse-utils';
+import type { TestRecord } from '@/types/test-run-records';
 
 export async function getStaticProps(): Promise<
     GetStaticPropsResult<{ runs?: TestRecord[] }>
@@ -29,23 +26,4 @@ export async function getStaticProps(): Promise<
     return {
         props: { runs: allRuns.map((record) => parseTestConfig(record)) ?? [] },
     };
-}
-
-export default function AllTestRunsDisplayedHere(properties: {
-    runs: TestRecord[];
-}): ReactNode {
-    return (
-        <>
-            <Head>
-                <title>{TEXT.RUNS.greet}</title>
-                <meta name="author" content={TEXT.AUTHOR} />
-                <meta name="description" content={TEXT.RUNS.description} />
-                <meta
-                    name="test-runs"
-                    content={properties.runs.length.toString()}
-                />
-            </Head>
-            <GridOfRuns runs={properties.runs} />
-        </>
-    );
 }

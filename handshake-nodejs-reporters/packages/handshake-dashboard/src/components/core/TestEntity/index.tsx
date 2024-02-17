@@ -11,7 +11,7 @@ import { Divider, Tag, Tooltip } from 'antd/lib';
 import Text from 'antd/lib/typography/Text';
 import TestEntitiesBars from 'src/components/charts/test-bars';
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from '@/types/records-in-detailed';
 import Sider from 'antd/lib/layout/Sider';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
 import CardStyles from 'src/styles/card.module.css';

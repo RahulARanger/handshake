@@ -4,13 +4,13 @@ import CaretRightOutlined from '@ant-design/icons/CaretRightOutlined';
 import CaretLeftOutlined from '@ant-design/icons/CaretLeftOutlined';
 import Space from 'antd/lib/space';
 import Button from 'antd/lib/button/button';
-import RenderTestType from 'src/components/utils/test-status-dot';
+import RenderTestType from '@/components/utils/test-status-dot';
 import Text from 'antd/lib/typography/Text';
 import { Badge, Divider, Tooltip } from 'antd/lib';
 import { childBadge, parentBadge, retriedBadge } from './constants';
-import { StaticPercent } from 'src/components/utils/counter';
-import { RenderEntityType } from 'src/components/utils/renderers';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { StaticPercent } from '@/components/utils/counter';
+import { RenderEntityType } from '@/components/utils/renderers';
+import { DetailedContext } from '@/types/records-in-detailed';
 import type {
     ParsedSuiteRecord,
     ParsedTestRecord,
@@ -18,7 +18,7 @@ import type {
 import { extractNeighborSuite } from './extractors';
 import RelativeTo, {
     DurationText,
-} from 'src/components/utils/Datetime/relative-time';
+} from '@/components/utils/Datetime/relative-time';
 import type { Dayjs } from 'dayjs';
 
 export function NavigationButtons(properties: {

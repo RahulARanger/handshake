@@ -15,7 +15,7 @@ import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from 'src/styles/header.module.css';
 import Link from 'next/link';
 import StarFilled from '@ant-design/icons/StarFilled';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from '@/types/records-in-detailed';
 
 export default function LayoutStructureForRunDetails(properties: {
     children: ReactNode;

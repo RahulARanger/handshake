@@ -2,7 +2,14 @@
     "extends": "handshake-utils/tsconfig.ui.json",
     "compilerOptions": {
         "baseUrl": ".",
+        "paths": {
+            "@/scripts/*": ["./src/components/scripts/*"],
+            "@/components/*": ["./src/components/*"],
+            "@/core/*": ["./src/components/core/*"],
+            "@/styles/*": ["./src/styles/*"],
+            "@/types/*": ["./src/types/*"]
+        }
     },
     "include": ["./next-env.d.ts", "./src", "./next/types/**/*.ts"],
-    "exclude": ["./node_modules", "./results", "./next"],
+    "exclude": ["./node_modules", "./results", "./next"]
 }

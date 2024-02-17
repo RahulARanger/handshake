@@ -1,6 +1,6 @@
 import type { SuiteRecordDetails } from 'src/types/test-entity-related';
 import type { statusOfEntity } from 'src/types/session-records';
-import Counter from 'src/components/utils/counter';
+import Counter from '@/components/utils/counter';
 import RelativeTo from 'src/components/utils/Datetime/relative-time';
 import { RenderDuration } from 'src/components/utils/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';

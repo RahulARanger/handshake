@@ -1,15 +1,15 @@
-import Dotted from 'src/styles/dotted.module.css';
+import Dotted from '@/styles/dotted.module.css';
 import React, { useContext, type ReactNode, useState } from 'react';
 import Space from 'antd/lib/space';
 import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
-import Counter from 'src/components/utils/counter';
+import Counter from '@/components/utils/counter';
 import { Tooltip } from 'antd/lib';
-import TreeMapComponent from 'src/components/charts/tree-map';
-import type { StatusContext } from 'src/types/transfer-structure-context';
-import { RenderStatus } from 'src/components/utils/renderers';
-import RenderTestType from 'src/components/utils/test-status-dot';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import TreeMapComponent from '@/components/charts/tree-map';
+import type { StatusContext } from '@/types/transfer-structure-context';
+import { RenderStatus } from '@/components/utils/renderers';
+import RenderTestType from '@/components/utils/test-status-dot';
+import { DetailedContext } from '@/types/records-in-detailed';
 
 function MousedPart(properties: { info?: StatusContext }): ReactNode {
     if (properties?.info === undefined)

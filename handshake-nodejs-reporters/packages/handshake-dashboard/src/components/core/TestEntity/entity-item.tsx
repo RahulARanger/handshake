@@ -12,14 +12,14 @@ import type {
 import { useContext } from 'react';
 import Alert from 'antd/lib/alert/Alert';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from '@/types/records-in-detailed';
 import {
     GalleryOfImagesLeftToRight,
     PlainImage,
-} from 'src/components/utils/images-with-thumbnails';
+} from '@/components/utils/images-with-thumbnails';
 import type { Dayjs } from 'dayjs';
 import { DurationLayer } from './header';
-import Counter from 'src/components/utils/counter';
+import Counter from '@/components/utils/counter';
 
 export default function EntityItem(properties: {
     entity: ParsedSuiteRecord | ParsedTestRecord;
