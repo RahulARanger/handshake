@@ -2,7 +2,6 @@ from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from handshake.services.DBService.shared import set_test_id
 import asyncio
-from loguru import logger
 from signal import signal, SIGTERM, SIGINT
 from sanic import Sanic
 

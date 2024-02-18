@@ -20,6 +20,7 @@ async def helper_create_suite(
     is_test: bool = False,
     standing=Status.YET_TO_CALCULATE,
     retried=0,
+    file: str = "test-1.js",
 ):
     extras = {standing.lower(): 1} if is_test else {}
 
@@ -31,7 +32,7 @@ async def helper_create_suite(
         ended=started + datetime.timedelta(milliseconds=12),
         title=name,
         standing=standing,
-        file="test-1.js",
+        file=file,
         parent=parent,
         tests=1,
         retried=retried,
@@ -49,14 +50,22 @@ async def helper_create_all_types_of_tests(session_id: str, parent: str, retried
 
 
 async def helper_create_normal_suites(
-    session_id: str, parent_suite: str, test_id: str, retried=0
+    session_id: str,
+    parent_suite: str,
+    test_id: str,
+    retried=0,
+    suite_files=("test-1.js", "test-2.js", "test-3.js"),
 ):
     suites = []
     tests = []
 
     for index in range(3):
         suite = await helper_create_suite(
-            session_id, f"suite-parent-{index + 1}", parent_suite, retried=retried
+            session_id,
+            f"suite-parent-{index + 1}",
+            parent_suite,
+            retried=retried,
+            file=suite_files[index],
         )
         suites.append(suite.suiteID)
 
@@ -72,7 +81,7 @@ async def helper_create_normal_suites(
                 ended=started + datetime.timedelta(milliseconds=2),
                 title="suite-parent",
                 standing=Status.FAILED,
-                file="test-1.js",
+                file=suite_files[index],
                 parent=suites[-1],
                 errors=[{"message": f"{index}-{test}"}],
                 retried=retried,

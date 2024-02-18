@@ -44,3 +44,4 @@ class ConfigKeys(StrEnum):
     maxRuns = "MAX_RUNS"
     version = "VERSION"
     recentlyDeleted = "RECENTLY_DELETED"
+    reset_test_run = "RESET_FIX_TEST_RUN"

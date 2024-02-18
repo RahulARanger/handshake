@@ -44,7 +44,9 @@ def init_db(root_dir):
 async def get_connection(scripts, v=3):
     connection = connections.get("default")
 
-    # assuming we are at v6
+    # assuming we are at v7
+    if v < 7:
+        await connection.execute_script((scripts / "revert-v7.sql").read_text())
     if v < 6:
         await connection.execute_script((scripts / "revert-v6.sql").read_text())
     if v < 5:

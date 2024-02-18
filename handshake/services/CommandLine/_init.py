@@ -1,6 +1,17 @@
-from click import group, argument, version_option, Path as C_Path
+import datetime
+import pprint
+from sqlite3 import connect
+from click import (
+    group,
+    argument,
+    secho,
+    version_option,
+    pass_context,
+    Context,
+    Path as C_Path,
+)
 from handshake import __version__
-from handshake.services.DBService.migrator import check_version, migration
+from handshake.services.DBService.migrator import check_version, migration, DB_VERSION
 from handshake.services.SchedularService.center import start_service
 from handshake.services.SchedularService.lifecycle import start_loop
 from handshake.services.SchedularService.handleTestResults import (
@@ -44,7 +55,7 @@ folder, a place where you could have the database or were planning to store the 
 {'{:*^69}'.format(" Glossary ")}
 """,
 )
-@version_option(__version__)
+@version_option(f"{__version__}, DB: {DB_VERSION}")
 def handle_cli():
     pass
 
@@ -64,20 +75,19 @@ def db_version(collection_path):
 
 
 @general_requirement
-@handle_cli.command()
+@handle_cli.command(
+    short_help="Migrates the database to the latest version as per the handshake executable.",
+    help="it's a command to execute the required migration scripts, note; this command would be executed "
+    "automatically whenever we run patch or run-app command",
+)
 def migrate(collection_path: str):
     return migration(db_path(collection_path))
 
 
 @handle_cli.command(
     short_help="Processes the collected results",
-    help="""
-Initiates a scheduler to standardize and enrich reports by patching suites and test runs with essential data often missing from various frameworks.
-\nThe scheduler's primary task is to calculate aggregated values, such as the total number of executed suites and tests in a test run, addressing gaps in reporting. Furthermore, 
-the scheduler identifies and compiles data crucial for dashboard visualization, particularly in the rollup 
-process. This involves consolidating errors from child tests to the suite level and aggregating the number of 
-tests from child suites to parent suites.
-""",
+    help="runs an async scheduler, thanks to apscheduler, it would process your test results to patch some missing "
+    "values. which are essential while showcasing your test reports",
 )
 @option(
     "--log-file",
@@ -221,3 +231,70 @@ def config(collection_path, max_runs):
         feed[ConfigKeys.maxRuns] = max_runs
 
     run_async(setConfig(saved_db_path, feed, set_default_first))
+
+
+@handle_cli.group(
+    name="db",
+    short_help="Commands that will/(try to) fetch mostly asked info. from db",
+    help="you can query using db following the subcommands, which are created to provide mostly asked info. from db",
+)
+@version_option(DB_VERSION, prog_name="handshake-db")
+@general_requirement
+def db(collection_path: str):
+    if not Path(db_path(collection_path)).exists():
+        raise FileNotFoundError(
+            f"db path was not found in the collections: {collection_path}"
+        )
+
+
+@db.command(short_help="fetches the timestamp of the latest run")
+@option(
+    "-p",
+    "--allow-pending",
+    default=False,
+    show_default=True,
+    help="consider runs, whose status are pending",
+    type=bool,
+    is_flag=True,
+)
+@pass_context
+def latest_run(ctx: Context, allow_pending: bool):
+    db_file = db_path(Path(ctx.parent.params["collection_path"]))
+    pipe = connect(db_file)
+    result = pipe.execute(
+        "SELECT ENDED FROM RUNBASE WHERE ENDED <> '' ORDER BY STARTED LIMIT 1"
+        if not allow_pending
+        else "SELECT ENDED FROM RUNBASE ORDER BY STARTED LIMIT 1"
+    ).fetchone()
+
+    secho(
+        "No Test Runs were found"
+        if not result
+        else datetime.datetime.fromisoformat(result[0]).astimezone().strftime("%c %Z"),
+        fg="bright_yellow" if not result else "bright_magenta",
+    )
+
+    pipe.close()
+
+
+@db.command(
+    short_help="fetches the number of yet to patch task",
+    help="returns list of tasks of form: (ticket_id, task_type, dropped_date, is_picked, test_id)",
+)
+@pass_context
+def yet_to_process(ctx: Context):
+    db_file = db_path(Path(ctx.parent.params["collection_path"]))
+    pipe = connect(db_file)
+    result = pipe.execute(
+        "SELECT ticketID, type, STRFTIME('%d/%m/%Y, %H:%M', dropped, 'localtime'), picked, test_id FROM TASKBASE WHERE "
+        "PROCESSED = 0"
+    ).fetchall()
+
+    secho(
+        "No Pending Tasks"
+        if not result
+        else f"pending tasks:\n {pprint.pformat(result)}",
+        fg="bright_green" if not result else "bright_yellow",
+    )
+
+    pipe.close()

@@ -1,3 +1,4 @@
+import pathlib
 from pytest import mark
 from handshake.services.DBService.models import (
     SuiteBase,
@@ -7,7 +8,7 @@ from handshake.services.DBService.models import (
     RetriedBase,
     TaskBase,
 )
-from subprocess import run, PIPE
+from subprocess import run
 from handshake.services.DBService.models.enums import Status
 from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.completeTestRun import patchTestRun
@@ -368,11 +369,18 @@ class TestPatchRunJob:
         await attach_config(test.testID, avoidParentSuitesInCount=True)
 
         parent_suite = await create_suite(
-            session_id
+            session_id, file="inside-1/spec-1.js"
         )  # this should not be counted in summary
 
         _, suites = await create_hierarchy(
-            session_id, parent_suite.suiteID, test.testID
+            session_id,
+            parent_suite.suiteID,
+            test.testID,
+            suite_files=[
+                "spec-1.js",
+                "inside-1/spec-2.js",
+                "inside-1/inside-2/spec-2.js",
+            ],
         )
         await register_patch_test_run(test.testID)
 
@@ -388,6 +396,14 @@ class TestPatchRunJob:
         assert record.suiteSummary["passed"] == 0
         assert record.suiteSummary["failed"] == 3
         assert record.suiteSummary["skipped"] == 0
+        # {"<path>":"","test-mocha\\specs\\test.e2e.js":{"<path>":"test-mocha\\specs\\test.e2e.js"}}
+        assert pathlib.Path(record.specStructure["<path>"]) == pathlib.Path("")
+        assert "spec-1.js" in record.specStructure
+        assert "inside-1" in record.specStructure
+        assert pathlib.Path(record.specStructure["inside-1"]["<path>"]) == pathlib.Path(
+            "inside-1"
+        )
+        assert pathlib.Path(record.specStructure["inside-1"]["<path>"])
 
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session

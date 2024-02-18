@@ -13,7 +13,7 @@ class CommonRegisterCols(BaseModel):
 
 
 class RegisterSession(CommonRegisterCols):
-    specs: List[str]
+    ...
 
 
 class RegisterSuite(CommonRegisterCols):
@@ -62,12 +62,20 @@ class AssertionPayload(TypedDict):
     message: str
 
 
+# this is for all kinds of attachments
 class AddAttachmentForEntity(BaseModel):
     entityID: uuid.UUID
     type: AttachmentType
     description: Optional[str] = ""
     value: Union[AssertionPayload, str]
     color: Optional[str] = ""
+    title: Optional[str] = ""
+
+
+class WrittenAttachmentForEntity(BaseModel):
+    entityID: uuid.UUID
+    type: AttachmentType
+    description: Optional[str] = ""
     title: Optional[str] = ""
 
 

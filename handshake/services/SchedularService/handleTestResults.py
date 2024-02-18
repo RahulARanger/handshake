@@ -49,9 +49,13 @@ def dump_config(path: Path, to_dump: typing.List):
     formatted_dump: typing.Dict[str, str] = dict(to_dump)
 
     # not required
-    formatted_dump.pop(ConfigKeys.version)
-    if ConfigKeys.recentlyDeleted in formatted_dump:
-        formatted_dump.pop(ConfigKeys.recentlyDeleted)
+    for key in (
+        ConfigKeys.version,
+        ConfigKeys.reset_test_run,
+        ConfigKeys.recentlyDeleted,
+    ):
+        if key in formatted_dump:
+            formatted_dump.pop(key)
 
     # show only required
     config_file(path).write_text(json.dumps(formatted_dump, indent=4))

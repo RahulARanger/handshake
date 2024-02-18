@@ -30,9 +30,6 @@ class CommandReportFields(Model):
     retried = IntField(
         default=0, null=False, description="number of the retries performed"
     )
-    standing = CharEnumField(
-        Status, description="status of the test run", default=Status.PENDING
-    )
     suitesConfig = JSONField(description="Dict. of suites", default={})
 
     class Meta:
@@ -40,20 +37,22 @@ class CommandReportFields(Model):
 
 
 class CommonDetailedFields(CommandReportFields):
-    suitesConfig = JSONField(description="Dict. of suites", default={})
+    suitesConfig = JSONField(description="Dict. of suites", default={})  # not used yet.
 
     class Meta:
         abstract = True
 
 
 class EntityBaseSpecific:
-    errors = JSONField(description="Errors found", default=[], null=True)
+    standing = CharEnumField(
+        Status, description="status of the test run", default=Status.PENDING
+    )
 
     class Meta:
         abstract = True
 
 
-class RunBase(CommonDetailedFields):
+class RunBase(CommonDetailedFields, EntityBaseSpecific):
     table = "RunBase"
     testID = UUIDField(pk=True)
     sessions = ReverseRelation["SessionBase"]
@@ -89,11 +88,10 @@ class SessionBase(CommonDetailedFields):
     simplified = TextField(
         default="", description="browser name & version &/ platform name included"
     )
-    specs = JSONField(description="List of spec files", default=[])
     hooks = IntField(default=0, null=False, description="Number of hooks used")
 
 
-class SuiteBase(CommandReportFields, EntityBaseSpecific):
+class SuiteBase(EntityBaseSpecific, CommandReportFields):
     table = "SuiteBase"
     # https://tortoise.github.io/models.html#the-db-backing-field
     # so we require session_id instead of sessionID
@@ -117,6 +115,7 @@ class SuiteBase(CommandReportFields, EntityBaseSpecific):
     modified = DatetimeField(
         auto_now=True, description="Modified timestamp", null=False
     )
+    errors = JSONField(description="Errors found", default=[], null=True)
 
 
 class RollupBase(Model):
@@ -162,6 +161,7 @@ class TestLogBase(Model):
     feed = JSONField(
         description="If you want to share any feed here", null=True, default={}
     )
+    dropped = DatetimeField(auto_now=True, description="timestamp", null=False)
 
 
 RunBasePydanticModel = pydantic_model_creator(RunBase)
