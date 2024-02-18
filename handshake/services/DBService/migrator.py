@@ -1,3 +1,4 @@
+import typing
 from sqlite3 import connect
 from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.enums import ConfigKeys
@@ -42,8 +43,10 @@ def check_version(
 
 
 # returns True if it requires further migration
-def migrate(connection, db_path=None) -> bool:
-    if db_path:
+def migrate(
+    connection: Optional[Connection] = None, db_path: Optional[Path] = None
+) -> typing.Tuple[bool, bool]:  # further migration required, migration was done
+    if not connection:
         connection = connect(db_path)
 
     try:
@@ -53,17 +56,17 @@ def migrate(connection, db_path=None) -> bool:
 
         if not is_required:
             logger.info("Already migrated to required version")
-            return False
+            return False, False
 
         if not bump_if_required:
             logger.error(
                 "You have more recent version of database, v{}. but we can only support: v{}. "
-                "Hence requesting either to update your reporter",
+                "Hence requesting you to update your reporter, to support this version.",
                 # "use your backup database inside the collection_path.",
                 version_stored,
                 DB_VERSION,
             )
-            return False
+            return False, False
 
         script = Path(__file__).parent / "scripts" / f"bump-v{version_stored}.sql"
         logger.info("Executing {} to migrate from v{}", script.name, version_stored)
@@ -73,23 +76,47 @@ def migrate(connection, db_path=None) -> bool:
             connection.commit()
             connection.close()
 
-    return (version_stored + 1) < DB_VERSION
+    return (version_stored + 1) < DB_VERSION, version_stored < DB_VERSION
 
 
 def migration(path: Path):
+    migration_was_conducted = False
     if not path.exists():
         logger.info("Migration check is not required, as the db does not exist.")
         return
 
     connection = connect(path)
     try:
-        while migrate(connection):
-            ...
+        backup_file = "backup_results.db"
 
-        logger.info("Migration Completed!")
-        connection.commit()
+        while True:
+            first_time = not migration_was_conducted
+            further_required, migration_was_conducted = migrate(connection)
+            if migration_was_conducted and first_time:
+                backup_path = path.parent / backup_file
+                backup_path.unlink(missing_ok=True)
+                backup = connect(backup_path)
+                logger.info(
+                    "Before migration, Taking a backup and storing it in {}",
+                    backup_path,
+                )
+                connection.backup(backup)
+                backup.close()
+            if not migration_was_conducted:
+                migration_was_conducted = True
+                break
+
+        if migration_was_conducted:
+            (path.parent / backup_file).unlink(missing_ok=True)
+            connection.commit()
+            logger.info("Migrated to latest version!")
+
     except Exception as error:
         logger.error(f"Failed to execute migration script, due to {error}")
         return True
     finally:
         connection.close()
+
+
+if __name__ == "__main__":
+    migration(Path.cwd().parent.parent.parent / "TestResults" / "TeStReSuLtS.db")

@@ -81,6 +81,9 @@ jobs:
         - name: Build Generation
           run: pyinstaller starter.spec
 
+        - name: Build env file
+          run: python ./.github/scripts/save-env.py
+
         - name: Testing the build
           run: pytest __test__/test_sanity
 
@@ -117,7 +120,7 @@ jobs:
             body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
-            name: "Handshake 🤝 - ${{ steps.version.outputs.VERSION }}"
+            name: "Handshake 🫱🏻‍🫲🏾 - ${{ steps.version.outputs.VERSION }}"
             generate_release_notes: true
 
         - name: Post Release Post

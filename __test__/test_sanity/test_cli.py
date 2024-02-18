@@ -42,7 +42,7 @@ class TestMigration:
         assert result.returncode == 0
 
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 6
+        assert int(version.value) == 7
 
     async def test_migration_on_patch(
         self, dist_name, root_dir, dist, get_vth_connection, scripts
@@ -51,11 +51,8 @@ class TestMigration:
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
         assert int(version.value) == 3
 
-        result = run(
-            [dist / dist_name, "patch", root_dir.name],
-            cwd=root_dir.parent,
-        )
+        result = run([dist / dist_name, "patch", root_dir.name], cwd=root_dir.parent)
         assert result.returncode == 0
 
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 6
+        assert int(version.value) == 7

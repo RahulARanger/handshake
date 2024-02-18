@@ -18,7 +18,8 @@ a = Analysis(
         (
             "handshake/services/DBService/scripts/*.sql",
             "handshake/services/DBService/scripts",
-        )
+        ),
+        ("handshake/.env", "handshake"),
     ],
     hiddenimports=["tracerite", "html5tagger"],
     hookspath=[

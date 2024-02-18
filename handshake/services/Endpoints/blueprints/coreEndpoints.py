@@ -6,6 +6,7 @@ from handshake.services.DBService.models.types import (
     MarkSession,
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
+    WrittenAttachmentForEntity,
 )
 from handshake.services.Endpoints.blueprints.utils import (
     attachError,
@@ -21,6 +22,7 @@ from handshake.services.DBService.models.static_base import (
 from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import Status, SuiteType
+from handshake.services.DBService.models.static_base import StaticBase
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
@@ -28,6 +30,9 @@ from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_patch_suite
 from pydantic import ValidationError
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 service = Blueprint("DBService", url_prefix="/save")
@@ -200,3 +205,15 @@ async def update_run_config(request: Request) -> HTTPResponse:
     await attachInfo(dict(payload=request.json, response=get_test_id()), "/currentRun")
 
     return text("provided config was saved successfully.", status=200)
+
+
+@service.put("/registerAWrittenAttachments", error_format="json")
+async def saveImage(request: Request) -> HTTPResponse:
+    attachment = WrittenAttachmentForEntity.model_validate(request.json)
+    record = await StaticBase.create(
+        entity_id=attachment.entityID,
+        description=attachment.description,
+        type=attachment.type,
+    )
+    file_name = f"{record.attachmentID}.{record.type.lower()}"
+    return text(file_name, status=201)
