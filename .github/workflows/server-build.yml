@@ -82,6 +82,8 @@ jobs:
           run: pyinstaller starter.spec
 
         - name: Build env file
+          env:
+            ENV_FILE: ${{ secrets.PROD_ENV }}
           run: python ./.github/scripts/save-env.py
 
         - name: Testing the build
