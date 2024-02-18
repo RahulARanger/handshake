@@ -47,13 +47,9 @@ async def set_default_config(path: Path):
 
     for key, value in [
         (ConfigKeys.version, DB_VERSION),
+        (ConfigKeys.reset_test_run, ""),
         # below keys can be overridden by the config file
-        *[
-            (_, config_provided.get(_, __))
-            for _, __ in [
-                (ConfigKeys.maxRuns, "100"),
-            ]
-        ],
+        *[(_, config_provided.get(_, __)) for _, __ in [(ConfigKeys.maxRuns, "100")]],
     ]:
         record = await ConfigBase.filter(key=str(key)).first()
         if not record:

@@ -30,6 +30,15 @@ class TestMigrationScripts:
         assert int(sqlite3.sqlite_version_info[0]) >= 3
         assert int(sqlite3.sqlite_version_info[1]) >= 38
 
+    async def test_default_config(self, root_dir):
+        assert (root_dir / "config.json").exists()
+        for required in (
+            ConfigKeys.version,
+            ConfigKeys.maxRuns,
+            ConfigKeys.reset_test_run,
+        ):
+            assert ConfigBase.exists(key=required)
+
     async def test_bump_v3(
         self, get_vth_connection, scripts, sample_test_run, create_session, db_path
     ):
