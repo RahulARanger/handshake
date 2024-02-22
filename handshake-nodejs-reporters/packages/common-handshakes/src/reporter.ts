@@ -58,7 +58,7 @@ export class ReporterDialPad extends DialPad {
   }
 
   get writeAttachmentForEntity(): string {
-    return `${this.saveUrl}/registerAWrittenAttachments`;
+    return `${this.saveUrl}/registerAWrittenAttachment`;
   }
 
   async office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {

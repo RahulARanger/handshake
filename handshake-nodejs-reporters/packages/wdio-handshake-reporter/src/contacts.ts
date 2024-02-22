@@ -31,7 +31,6 @@ export default class ReporterContacts extends WDIOReporter {
 
     this.supporter = new ReporterDialPad(
       this.options.port,
-      this.resultsDir,
       this.options.timeout,
       this.options.logLevel,
     );
@@ -51,13 +50,6 @@ export default class ReporterContacts extends WDIOReporter {
     return this.supporter.idMapped[
       suites.find((suite) => this.supporter.idMapped[suite]) ?? ''
     ];
-  }
-
-  get resultsDir(): string {
-    return join(
-      this.options.root ?? process.cwd(),
-      this.options.collectionName ?? 'Test Results',
-    );
   }
 
   currentEntity(for_suite?: boolean): string {

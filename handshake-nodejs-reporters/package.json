@@ -1,5 +1,6 @@
 {
   "name": "handshake-reporters",
+  "version": "0.4.2",
   "packageManager": "npm@9.6.2",
   "type": "module",
   "workspaces": [
@@ -31,6 +32,6 @@
     "rimraf": "^5.0.5",
     "tsconfig": "7.0.0",
     "tsup": "^8.0.2",
-    "turbo": "^1.12.3"
+    "turbo": "^1.12.4"
   }
 }

@@ -2,8 +2,6 @@ import { Level } from 'log4js';
 
 export interface ReporterOptions {
   port: number;
-  root: string;
-  collectionName: string;
   addScreenshots?:boolean;
   timeout?:number;
   logLevel?:Level;

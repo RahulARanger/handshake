@@ -42,7 +42,7 @@ import Ribbon from 'antd/lib/badge/Ribbon';
 dayjs.extend(isBetween);
 
 function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
-    const [isTest, showTest] = useState(true);
+    const [isTest, showTest] = useState(false);
     const item = properties.run;
 
     return (
@@ -90,10 +90,13 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                                     frameworks={item.Frameworks}
                                 />
                                 <RenderStatus value={item.Status} />
-                                <Link
-                                    href={item.Link}
-                                    id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
-                                >{`${item.Started[0].format(dateFormatUsed)}`}</Link>
+                                <Tooltip title="Redirects to this test run page">
+                                    <Link
+                                        underline
+                                        href={item.Link}
+                                        id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
+                                    >{`${item.Started[0].format(dateFormatUsed)}`}</Link>
+                                </Tooltip>
                             </Space>
                         </div>
                     }
@@ -270,7 +273,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
 }
 
 function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
-    const [isTest, showTest] = useState(true);
+    const [isTest, showTest] = useState(false);
     const sortedOrder = [...properties.runs].reverse();
     const areaChart = (
         <Card

@@ -195,7 +195,7 @@ async def update_run_config(request: Request) -> HTTPResponse:
     return text("provided config was saved successfully.", status=200)
 
 
-@service.put("/registerAWrittenAttachments", error_format="json")
+@service.put("/registerAWrittenAttachment", error_format="json")
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = WrittenAttachmentForEntity.model_validate(request.json)
     record = await StaticBase.create(
@@ -204,5 +204,11 @@ async def saveImage(request: Request) -> HTTPResponse:
         type=attachment.type,
     )
     file_name = f"{record.attachmentID}.{record.type.lower()}"
+    await record.update_from_dict(
+        dict(
+            attachmentValue=dict(value=file_name, title=attachment.title),
+        )
+    )
+    await record.save()
     # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
     return text(str(attachment_folder(db_path()) / file_name), status=201)
