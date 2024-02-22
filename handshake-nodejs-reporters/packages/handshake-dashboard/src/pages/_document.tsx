@@ -13,6 +13,12 @@ const MyDocument = (): ReactNode => (
     <>
         <Html lang="en">
             <Head title={TEXT.applicationName} />
+            <script
+                type="text/javascript"
+                src="/clarity.js"
+                id={`clarity-${process.env.IS_TEST ? 'test' : 'prod'}`}
+                async
+            />
             <body>
                 <Main />
                 <NextScript />

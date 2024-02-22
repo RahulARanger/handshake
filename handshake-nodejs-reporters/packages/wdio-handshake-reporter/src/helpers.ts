@@ -19,6 +19,8 @@ export function attachReporter(
     'handshake',
     {
       port,
+      collectionName: options.collectionName,
+      root: options.root,
       addScreenshots: options.addScreenshots || false,
       timeout: options.timeout,
       logLevel: options.logLevel,

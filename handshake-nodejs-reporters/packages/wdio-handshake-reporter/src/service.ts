@@ -7,13 +7,6 @@ import { ContactsForService } from './contacts';
 export default class HandshakeService
   extends ContactsForService
   implements Services.ServiceInstance {
-  get resultsDir(): string {
-    return join(
-      this.options.root ?? process.cwd(),
-      this.options.collectionName ?? 'Test Results',
-    );
-  }
-
   // eslint-disable-next-line class-methods-use-this
   get venv(): string {
     return join('venv', 'Scripts', 'activate');
@@ -38,8 +31,8 @@ export default class HandshakeService
 
     this.logger.info(
       this.options.export?.out
-        ? `Results are generated 🤩, please feel free to run "graspit display ${this.options.export?.out}"`
-        : 'Results are patched 🤩. Now we are ready to export it.',
+        ? `Results are generated, please feel free to run "npx handshake display ${this.options.export?.out}" or simply host this folder ${this.options.export?.out}`
+        : `Results are patched, export it whenever you are ready with "npx handshake export ${this.resultsDir} --out PLACE_WHEREVER_YOU_NEED`,
     );
   }
 
@@ -47,7 +40,7 @@ export default class HandshakeService
   // capabilities: Capabilities.RemoteCapabilities
     : void {
     const { root: rootDir } = this.options;
-    this.logger.info('😇 Starting py-process.');
+    this.logger.info(`Starting handshake-server at port: ${this.options.port}`);
     const { resultsDir } = this;
 
     if (!existsSync(resultsDir)) {

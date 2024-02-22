@@ -37,6 +37,7 @@ from pathlib import Path
 from handshake.services.DBService.shared import db_path
 from handshake.services.DBService.models.config_base import ConfigKeys
 from tortoise import run_async
+from os import getenv
 
 
 @group(
@@ -97,8 +98,17 @@ def migrate(collection_path: str):
     default="",
     required=False,
 )
+@option(
+    "-r",
+    "--reset",
+    default=False,
+    show_default=True,
+    help="re-calculates the values for the test runs",
+    type=bool,
+    is_flag=True,
+)
 @general_requirement
-def patch(collection_path, log_file: str):
+def patch(collection_path, log_file: str, reset: bool = False):
     if log_file:
         logger.add(
             log_file if log_file.endswith(".log") else f"{log_file}.log",
@@ -108,7 +118,7 @@ def patch(collection_path, log_file: str):
 
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
-    start_service(db_path(collection_path))
+    start_service(db_path(collection_path), reset)
     start_loop()
 
 
@@ -179,7 +189,7 @@ def export(collection_path, max_runs, out, clarity):
 
     exported = call(
         f"npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, handshake)}"
-        f" DB_PATH={relpath(saved_db_path, handshake)} npm run export",
+        f" DB_PATH={relpath(saved_db_path, handshake)} CLARITY={getenv('CLARITY')} npm run export",
         cwd=handshake,
         shell=True,
     )

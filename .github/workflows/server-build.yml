@@ -136,10 +136,10 @@ jobs:
           with:
             commit-message: "Requesting to use the new build for the server: ${{ steps.version.outputs.VERSION }}"
             delete-branch: true
-            title: "Bump Server Build"
+            title: "Bump server build to ${{ steps.version.outputs.VERSION }}"
             labels: "Automated,Server-build"
             reviewers: "RahulARanger"
-            body: ":rocket: Bumped handshake-server version to `${{ steps.version.outputs.VERSION }}`.<br/>
+            body: "handshake-server is not at `v${{ steps.version.outputs.VERSION }}`.<br/>
 :magic_wand: Make sure to edit this [release](${{ steps.release.outputs.url }}) once done."
             base: "nodejs-reporters"
             assignees: "RahulARanger"

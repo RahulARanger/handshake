@@ -11,7 +11,6 @@ from handshake.services.DBService.models.types import (
 from handshake.services.Endpoints.blueprints.utils import (
     attachError,
     extractPayload,
-    attachInfo,
     attachWarn,
     extractPydanticErrors,
 )
@@ -31,6 +30,7 @@ from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_patch_suite
 from pydantic import ValidationError
 from dotenv import load_dotenv
+from handshake.services.DBService.lifecycle import attachment_folder, db_path
 
 load_dotenv()
 
@@ -59,10 +59,7 @@ async def register_session(request: Request) -> HTTPResponse:
     except Exception as error:
         logger.error("Failed to create a session due to exception: {}", str(error))
         return text(str(error), status=404)
-    await attachInfo(
-        dict(payload=request.json, response=str(session_record.sessionID)),
-        "/registerSuite",
-    )
+
     return text(str(session_record.sessionID), status=201)
 
 
@@ -71,9 +68,7 @@ async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
     suite_record = await SuiteBase.create(**suite.model_dump())
     await suite_record.save()
-    await attachInfo(
-        dict(payload=request.json, response=str(suite_record.suiteID)), "/registerSuite"
-    )
+
     return text(str(suite_record.suiteID), status=201)
 
 
@@ -101,9 +96,6 @@ async def updateSuite(request: Request) -> HTTPResponse:
 
     if suite_record.suiteType == SuiteType.SUITE:
         await register_patch_suite(suite_record.suiteID, get_test_id())
-    await attachInfo(
-        dict(payload=request.json, response=str(suite_record.suiteID)), "/updateSuite"
-    )
 
     return text(
         f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201
@@ -120,9 +112,6 @@ async def update_session(request: Request) -> HTTPResponse:
 
     await test_session.update_from_dict(session.model_dump())
     await test_session.save()
-    await attachInfo(
-        dict(payload=request.json, response=str(session.sessionID)), "/updateSession"
-    )
     return text(f"{session.sessionID} was updated", status=201)
 
 
@@ -202,7 +191,6 @@ async def update_run_config(request: Request) -> HTTPResponse:
         bail=run_config.bail,
     )
     await config.save()
-    await attachInfo(dict(payload=request.json, response=get_test_id()), "/currentRun")
 
     return text("provided config was saved successfully.", status=200)
 
@@ -216,4 +204,5 @@ async def saveImage(request: Request) -> HTTPResponse:
         type=attachment.type,
     )
     file_name = f"{record.attachmentID}.{record.type.lower()}"
-    return text(file_name, status=201)
+    # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
+    return text(str(attachment_folder(db_path()) / file_name), status=201)

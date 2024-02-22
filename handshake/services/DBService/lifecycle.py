@@ -7,14 +7,20 @@ from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
+from handshake import __version__
 from typing import Optional, Union
 from loguru import logger
+from handshake.services.SchedularService.constants import writtenAttachmentFolderName
 
 models = ["handshake.services.DBService.models"]
 
 
 def config_file(provided_db_path: Path):
     return provided_db_path.parent / "config.json"
+
+
+def attachment_folder(provided_db_path: Path):
+    return provided_db_path.parent / writtenAttachmentFolderName
 
 
 async def init_tortoise_orm(
@@ -37,7 +43,17 @@ async def create_run(projectName: str) -> str:
     return test_id
 
 
+READ_ONLY = (
+    ConfigKeys.version,
+    ConfigKeys.recentlyDeleted,
+    ConfigKeys.reset_test_run,
+    ConfigKeys.py_version,
+)
+ALLOW_WRITE = (ConfigKeys.maxRuns,)
+
+
 async def set_default_config(path: Path):
+    attachment_folder(path).mkdir(exist_ok=True)
     config_file_provided = config_file(path)
     config_provided = (
         json.loads(config_file_provided.read_text())
@@ -47,6 +63,7 @@ async def set_default_config(path: Path):
 
     for key, value in [
         (ConfigKeys.version, DB_VERSION),
+        (ConfigKeys.py_version, __version__),
         (ConfigKeys.reset_test_run, ""),
         # below keys can be overridden by the config file
         *[(_, config_provided.get(_, __)) for _, __ in [(ConfigKeys.maxRuns, "100")]],

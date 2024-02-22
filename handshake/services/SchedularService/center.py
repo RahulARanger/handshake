@@ -15,7 +15,7 @@ from apscheduler.events import EVENT_JOB_EXECUTED
 from pathlib import Path
 
 
-def start_service(db_path: Path) -> AsyncIOScheduler:
+def start_service(db_path: Path, reset: bool) -> AsyncIOScheduler:
     logger.info("Starting the scheduler service...")
     __scheduler = AsyncIOScheduler({"logger": logger})
 
@@ -25,7 +25,7 @@ def start_service(db_path: Path) -> AsyncIOScheduler:
     __scheduler.add_job(
         init_jobs_connections,
         id=JobType.INIT_CONNECTION_JOBS,
-        args=(db_path, __scheduler, mapped),
+        args=(db_path, __scheduler, mapped, reset),
         next_run_time=datetime.now(),
     )
     # safe function #1
@@ -38,15 +38,17 @@ def start_service(db_path: Path) -> AsyncIOScheduler:
     return __scheduler
 
 
-async def pick_previous_tasks():
+async def pick_previous_tasks(reset: bool = False):
     await pruneTasks()
     # since we are starting a-new we would just pick the ones which are picked previously
     prev_picked_tasks = await TaskBase.filter(processed=False, picked=True).all()
-    reset_test_run = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
+    reset_from_config = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
+
+    reset_test_run = reset or reset_from_config.value
 
     to_modify_test_runs = (
         await TaskBase.filter(type=JobType.MODIFY_TEST_RUN, processed=True).all()
-        if reset_test_run.value
+        if reset_test_run
         else []
     )
 
@@ -68,15 +70,15 @@ async def pick_previous_tasks():
     if runs:
         await RunBase.bulk_update(runs, ("standing",), 100)
 
-    if reset_test_run:
-        reset_test_run.value = ""
-        await reset_test_run.save()
+    if reset_from_config:
+        reset_from_config.value = ""
+        await reset_from_config.save()
 
 
 async def init_jobs_connections(
-    db_path: Path, _scheduler: AsyncIOScheduler, mapped: List[bool]
+    db_path: Path, _scheduler: AsyncIOScheduler, mapped: List[bool], reset: bool
 ):
     await init_tortoise_orm(db_path, True)
-    await pick_previous_tasks()
+    await pick_previous_tasks(reset)
     addDeleteJob(_scheduler, db_path, mapped)
     add_lookup_task(_scheduler)

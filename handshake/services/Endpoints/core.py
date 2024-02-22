@@ -1,5 +1,5 @@
 import os
-
+from handshake.services.DBService.lifecycle import DB_VERSION
 from handshake.services.Endpoints.internalEndpoints import one_liners
 from handshake.services.DBService.shared import APP_NAME
 from handshake.services.Endpoints.blueprints.coreEndpoints import service
@@ -16,7 +16,7 @@ if dns:
         dsn=os.getenv("SENTRY_SDK"),
         enable_tracing=True,
         max_breadcrumbs=10,
-        release=__version__,
+        release=f"{__version__} - {DB_VERSION}",
         server_name=APP_NAME,
     )
 

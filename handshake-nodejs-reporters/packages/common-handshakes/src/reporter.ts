@@ -2,6 +2,8 @@ import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
 import PQueue, { QueueAddOptions } from 'p-queue';
 import PriorityQueue from 'p-queue/dist/priority-queue';
+import { writeFile } from 'node:fs';
+import { join } from 'node:path';
 import DialPad from './dialPad';
 import {
   RegisterSession,
@@ -27,9 +29,13 @@ export class ReporterDialPad extends DialPad {
 
   requests: Attachment[] = [];
 
-  constructor(port: number, timeout?:number, logLevel?:Level) {
+  attachmentsDir;
+
+  constructor(port: number, resultsDir: string, timeout?:number, logLevel?:Level) {
     super(port);
     logger.level = logLevel ?? 'info';
+    this.attachmentsDir = join(resultsDir, 'Attachments');
+
     this.pipeQueue = new PQueue(
       { concurrency: 1, timeout: timeout ?? 180e3, throwOnTimeout: false },
     );
@@ -56,7 +62,7 @@ export class ReporterDialPad extends DialPad {
   }
 
   get writeAttachmentForEntity(): string {
-    return `${this.writeUrl}/addAttachmentForEntity`;
+    return `${this.saveUrl}/registerAWrittenAttachments`;
   }
 
   async office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
@@ -165,12 +171,17 @@ export class ReporterDialPad extends DialPad {
       logger.warn(`😕 Skipping!, we have not attached a ${forWhat} for unknown entity`);
       return false;
     }
+
+    const { value, ...sendPayload } = payload;
+
     await superagent
       .put(this.writeAttachmentForEntity)
-      .send(JSON.stringify(payload))
-      .on('response', (result) => {
+      .send(JSON.stringify(sendPayload))
+      .on('response', async (result) => {
         if (result.ok) {
-          logger.debug(`🔗 Attached a ${forWhat} for entity: ${payload.entityID} with ${result.text}`);
+          const expectedFilePath = result.text;
+          logger.debug(`Registered an attachment for ${payload.entityID} saving it here: ${result.text}`);
+          await writeFile(join(this.attachmentsDir, expectedFilePath), value as string, () => { logger.info(`saved successfully: ${result.text}`); });
         } else {
           logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
         }

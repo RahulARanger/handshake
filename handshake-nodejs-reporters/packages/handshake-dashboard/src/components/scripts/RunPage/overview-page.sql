@@ -38,8 +38,8 @@ INSERT INTO KEY_NUMBERS
 -- number of spec files    
 INSERT INTO KEY_NUMBERS 
 	SELECT 'files' as key,
-	COUNT(DISTINCT json_each.value) as value FROM sessionbase JOIN json_each(specs) ON 1=1
-  WHERE sessionID in CURRENT_SESSIONS; 
+	COUNT(DISTINCT file) as value FROM suitebase
+  WHERE session_id in CURRENT_SESSIONS; 
 
 -- number of sessions
 INSERT INTO KEY_NUMBERS 
