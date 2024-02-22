@@ -53,9 +53,7 @@ async def createExportTicket(
     maxTestRuns: int, path: Path, store: List[str], runs: List[str], clarity
 ):
     await init_tortoise_orm(path)
-    ticket = await ExportBase.create(
-        maxTestRuns=maxTestRuns, clarity="" if not clarity else getenv("CLARITY")
-    )
+    ticket = await ExportBase.create(maxTestRuns=maxTestRuns)
 
     runs.extend(
         await RunBase.all()

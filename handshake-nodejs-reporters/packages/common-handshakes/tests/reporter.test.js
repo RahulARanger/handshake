@@ -9,7 +9,7 @@ const {
 
 describe('Verifying the functionality of the handshake-reporter', () => {
   const service = new ServiceDialPad(6969, 'ERROR');
-  const reporter = new ReporterDialPad(6969, results, 12e3, 'ERROR');
+  const reporter = new ReporterDialPad(6969, 12e3, 'ERROR');
 
   beforeAll(async () => {
     resetDir();

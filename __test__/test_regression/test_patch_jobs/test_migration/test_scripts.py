@@ -134,11 +134,6 @@ class TestMigrationScripts:
             ).count()
             == 10
         )
-
-        assert (
-            await ExportBase.filter(clarity="").count() >= 0
-        ), "This line would have failed if clarity column was not added."
-
         generated = await AssertBase.all().values_list("id", flat=True)
         assert len(generated) == len(set(generated))
 

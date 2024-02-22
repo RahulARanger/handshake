@@ -1,4 +1,3 @@
-from pathlib import Path
 from tomllib import loads
 from handshake import __version__
 

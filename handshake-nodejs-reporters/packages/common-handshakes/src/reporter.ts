@@ -3,7 +3,6 @@ import superagent from 'superagent';
 import PQueue, { QueueAddOptions } from 'p-queue';
 import PriorityQueue from 'p-queue/dist/priority-queue';
 import { writeFile } from 'node:fs';
-import { join } from 'node:path';
 import DialPad from './dialPad';
 import {
   RegisterSession,
@@ -29,12 +28,9 @@ export class ReporterDialPad extends DialPad {
 
   requests: Attachment[] = [];
 
-  attachmentsDir;
-
-  constructor(port: number, resultsDir: string, timeout?:number, logLevel?:Level) {
+  constructor(port: number, timeout?:number, logLevel?:Level) {
     super(port);
     logger.level = logLevel ?? 'info';
-    this.attachmentsDir = join(resultsDir, 'Attachments');
 
     this.pipeQueue = new PQueue(
       { concurrency: 1, timeout: timeout ?? 180e3, throwOnTimeout: false },
@@ -181,7 +177,7 @@ export class ReporterDialPad extends DialPad {
         if (result.ok) {
           const expectedFilePath = result.text;
           logger.debug(`Registered an attachment for ${payload.entityID} saving it here: ${result.text}`);
-          await writeFile(join(this.attachmentsDir, expectedFilePath), value as string, () => { logger.info(`saved successfully: ${result.text}`); });
+          await writeFile(expectedFilePath, value as string, () => { logger.info(`saved successfully at: ${result.text}`); });
         } else {
           logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
         }
