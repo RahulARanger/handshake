@@ -26,8 +26,8 @@ class TestSaveEndpoints:
         assert response.status == 201
         path = Path(response.text)
         assert path
-        assert session.test_id in str(path)
-
+        assert str(session.test_id) in str(path)
+        assert str(path).endswith(path.name)
         saved = await StaticBase.filter(attachmentID=path.stem).first()
         assert saved.attachmentValue["value"] == path.name
         assert saved.attachmentValue["title"] == "sample"
