@@ -1,12 +1,12 @@
 import type { SuiteRecordDetails } from 'src/types/test-entity-related';
 import type { statusOfEntity } from 'src/types/session-records';
 import Counter from '@/components/utils/counter';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import { RenderDuration } from 'src/components/utils/relative-time';
+import RelativeTo, {
+    RenderDuration,
+} from 'src/components/utils/Datetime/relative-time';
 import ProgressPieChart from 'src/components/charts/status-pie-chart';
 import {
     RenderFrameworkUsed,
-    RenderInfo,
     RenderStatus,
     RenderSystemType,
 } from 'src/components/utils/renderers';
@@ -17,18 +17,20 @@ import GalleryOfImages, {
 import React, { useState, type ReactNode, useContext } from 'react';
 import dayjs from 'dayjs';
 import Space from 'antd/lib/space';
-import Card from 'antd/lib/card/Card';
 import Typography from 'antd/lib/typography/Typography';
 import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
 import Tabs from 'antd/lib/tabs/index';
-import { Affix, Tag } from 'antd/lib';
+import { Tag } from 'antd/lib';
 import { standingToColors } from 'src/components/charts/constants';
-import Dotted from 'src/styles/dotted.module.css';
 import RenderProgress from 'src/components/utils/progress-rate';
 import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
 import { OverviewContext } from 'src/types/parsed-overview-records';
+import TextShadow from '@/styles/text-shadow.module.css';
 import { LOCATORS } from 'handshake-utils';
+import CardStyles from 'src/styles/card.module.css';
+import Ribbon from 'antd/lib/badge/Ribbon';
+import Tree from 'antd/lib/tree/Tree';
 
 function TopSuites(properties: {
     suites: OverviewOfEntities[];
@@ -45,16 +47,12 @@ function TopSuites(properties: {
             size="small"
             bordered
             pagination={false}
-            style={{
-                flexShrink: 1,
-                maxWidth: '655px',
-            }}
-            scroll={{ y: 200, x: 'max-content' }}
+            style={{ backgroundColor: 'transparent' }}
+            scroll={{ x: 'max-content' }}
         >
             {properties.isTest ? (
                 <Table.Column
                     title="Status"
-                    width={60}
                     align="center"
                     dataIndex="standing"
                     render={(value: statusOfEntity) => (
@@ -65,14 +63,17 @@ function TopSuites(properties: {
             ) : (
                 <></>
             )}
-            <Table.Column title="Name" dataIndex="title" width={200} />
+            <Table.Column
+                title="Name"
+                dataIndex="title"
+                className={TextShadow.suiteName}
+            />
             {properties.isTest ? (
                 <></>
             ) : (
                 <Table.Column
                     title="Rate"
                     dataIndex="Passed"
-                    width={80}
                     render={(_: number, record: SuiteRecordDetails) => (
                         <RenderPassedRate
                             value={[
@@ -85,10 +86,32 @@ function TopSuites(properties: {
                     )}
                 />
             )}
+            {properties.isTest ? (
+                <></>
+            ) : (
+                <Table.Column
+                    title="Errors"
+                    dataIndex="numberOfErrors"
+                    align="center"
+                    render={(_: number) => <Counter end={_ ?? 0} />}
+                />
+            )}
+            <Table.Column
+                dataIndex="duration"
+                title="Duration"
+                align="center"
+                render={(value: number) => (
+                    <RenderDuration
+                        autoPlay
+                        duration={dayjs.duration({ milliseconds: value })}
+                    />
+                )}
+                responsive={['lg']}
+            />
             <Table.Column
                 dataIndex="started"
                 title="Range"
-                width={80}
+                align="center"
                 render={(value: string, record: SuiteRecordDetails) => (
                     <RelativeTo
                         dateTime={dayjs(value)}
@@ -97,7 +120,7 @@ function TopSuites(properties: {
                             maxWidth: '200px',
                         }}
                         secondDateTime={dayjs(record.ended)}
-                        autoPlay={false}
+                        autoPlay
                     />
                 )}
                 responsive={['lg']}
@@ -196,6 +219,7 @@ function ConfigSet(): ReactNode {
         </Table>
     );
 }
+
 export default function Overview(): ReactNode {
     const context = useContext(OverviewContext);
     const [isTest, setTest] = useState<boolean>(false);
@@ -215,185 +239,196 @@ export default function Overview(): ReactNode {
     const rate = isTest ? run.Rate : run.SuitesSummary;
 
     return (
-        <Card className={Dotted.dotted}>
+        <section className={CardStyles.boardCard}>
             <Space
-                align="start"
-                style={{ width: '100%', justifyContent: 'stretch' }}
+                direction="vertical"
+                className={`smooth-box`}
+                style={{ width: '100%', padding: '12px' }}
             >
-                <Space direction="vertical" align="start">
-                    <div style={{ width: '350px' }}>
-                        <ProgressPieChart
-                            rate={rate}
-                            isTestCases={isTest}
-                            broken={aggResults.brokenTests}
-                            noShadow
-                        />
-                        <Affix
-                            style={{
-                                position: 'relative',
-                                left: '124px',
-                                width: '0px',
-                                height: '0px',
-                                bottom: '123px',
-                            }}
-                        >
-                            <Select
-                                key={'switch'}
-                                style={{ zIndex: 2 }}
-                                variant="borderless"
-                                id={LOCATORS.OVERVIEW.testEntitySwitch}
-                                options={[
-                                    {
-                                        value: true,
-                                        label: `Test Cases`,
-                                    },
-                                    {
-                                        value: false,
-                                        label: `Test Suites`,
-                                    },
-                                ]}
-                                value={isTest}
-                                onChange={(checked: boolean) => {
-                                    setTest(checked);
-                                }}
-                            />
-                        </Affix>
-                    </div>
-                    <PreviewForImages />
-                </Space>
                 <Space
+                    align="start"
                     style={{
-                        flexDirection: 'column',
-                        rowGap: '12px',
-                        flexGrow: 1,
+                        width: '100%',
+                        height: '100%',
+                        justifyContent: 'stretch',
                     }}
-                    styles={{
-                        item: { width: '100%' },
-                    }}
+                    size={'large'}
                 >
-                    <Space
-                        style={{
-                            flexDirection: 'row',
-                            justifyContent: 'space-between',
-                            width: '100%',
-                        }}
-                        align="center"
-                    >
-                        <Counter
-                            cssClassName={LOCATORS.OVERVIEW.total}
-                            end={total}
-                            style={{
-                                fontSize: '2.5rem',
-                                textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
-                                whiteSpace: 'nowrap',
-                            }}
-                            maxDigits={run.Tests}
-                            suffix={isTest ? ' Tests' : ' Suites'}
-                        />
-                        <RenderProgress
-                            passed={rate[0]}
-                            failed={rate[1]}
-                            skipped={rate[2]}
-                            broken={isTest ? aggResults.brokenTests : undefined}
-                        />
-                    </Space>
-                    <Space style={{ flexWrap: 'wrap', gap: '10px' }}>
-                        {[
-                            {
-                                key: 'Status',
-                                value: (
-                                    <Space>
-                                        <RenderStatus value={run.Status} />
-                                        <Typography
-                                            style={{
-                                                color: standingToColors[
-                                                    run.Status
-                                                ],
-                                            }}
-                                        >
-                                            {run.Status.charAt(
-                                                0,
-                                            ).toUpperCase() +
-                                                run.Status.slice(
-                                                    1,
-                                                ).toLowerCase()}
-                                        </Typography>
-                                    </Space>
-                                ),
-                                color: standingToColors[run.Status],
-                            },
-                            {
-                                key: 'Duration',
-                                value: (
-                                    <RenderDuration
-                                        value={run.Duration}
-                                        autoPlay={true}
-                                    />
-                                ),
-                                color: 'blue',
-                            },
-                            {
-                                key: 'Range',
-                                value: (
-                                    <RelativeTo
-                                        dateTime={startedAt}
-                                        style={{
-                                            marginLeft: '30px',
-                                            maxWidth: '180px',
-                                        }}
-                                        secondDateTime={run.Ended[0]}
-                                        autoPlay={true}
-                                    />
-                                ),
-                                color: 'purple',
-                            },
-                        ].map((item) => (
-                            <RenderInfo
-                                key={item.key}
-                                itemKey={item.key}
-                                color={item.color}
-                                value={item.value}
-                            />
-                        ))}
-                    </Space>
-                    <Tabs
-                        tabBarExtraContent={
+                    <Ribbon
+                        text={
                             <Space>
-                                {aggResults.isRecent ? (
-                                    <Tag
-                                        color="blue"
-                                        id={LOCATORS.OVERVIEW.recentRunBadge}
-                                    >
-                                        Recent Run
-                                    </Tag>
-                                ) : (
-                                    <></>
-                                )}
-                                {/* <Tag color="red">Bailed</Tag> */}
+                                <RenderStatus value={run.Status} />
+                                <Typography
+                                    style={{
+                                        color: standingToColors[run.Status],
+                                    }}
+                                >
+                                    {run.Status.charAt(0).toUpperCase() +
+                                        run.Status.slice(1).toLowerCase()}
+                                </Typography>
                             </Space>
                         }
-                        items={[
-                            {
-                                key: 'recent',
-                                label: 'Recent',
-                                children: (
-                                    <TopSuites
-                                        suites={
-                                            isTest ? recentTests : recentSuites
-                                        }
-                                        isTest={isTest}
+                        color="#1A0014"
+                        style={{
+                            border: '1px solid #370224',
+                            paddingTop: '3px',
+                            paddingBottom: '3px',
+                        }}
+                    >
+                        <div style={{ width: '350px' }} className="smooth-box">
+                            <ProgressPieChart
+                                rate={rate}
+                                isTestCases={isTest}
+                                broken={aggResults.brokenTests}
+                                noShadow
+                                fullRound
+                            />
+                        </div>
+                    </Ribbon>
+                    <Space>
+                        <Space
+                            size="large"
+                            direction="vertical"
+                            style={{ height: '100%' }}
+                            styles={{
+                                item: { width: '100%' },
+                            }}
+                        >
+                            <Space
+                                style={{
+                                    flexDirection: 'row',
+                                    width: '100%',
+                                }}
+                                align="center"
+                                size="middle"
+                            >
+                                <article
+                                    style={{
+                                        backdropFilter: 'blur(20px)',
+                                    }}
+                                >
+                                    <Space
+                                        align="center"
+                                        className="smooth-box"
+                                        style={{
+                                            fontSize: '2.6rem',
+                                            textShadow:
+                                                'rgba(0,208,255,0.9) 0px 0px 10px',
+                                            whiteSpace: 'nowrap',
+                                            padding: '6px',
+                                            paddingLeft: '20px',
+                                            paddingRight: '12px',
+                                            borderRadius: '25px',
+                                        }}
+                                    >
+                                        <Counter
+                                            end={total}
+                                            maxDigits={run.Tests}
+                                        />
+                                        <Select
+                                            key={'switch'}
+                                            size="large"
+                                            variant="borderless"
+                                            id={
+                                                LOCATORS.OVERVIEW
+                                                    .testEntitySwitch
+                                            }
+                                            options={[
+                                                {
+                                                    value: true,
+                                                    label: `Test Cases`,
+                                                },
+                                                {
+                                                    value: false,
+                                                    label: `Test Suites`,
+                                                },
+                                            ]}
+                                            value={isTest}
+                                            onChange={(checked: boolean) => {
+                                                setTest(checked);
+                                            }}
+                                        />
+                                    </Space>
+                                </article>
+                                <Space
+                                    className="smooth-box"
+                                    align="end"
+                                    style={{
+                                        textShadow:
+                                            'rgba(0,208,255,0.9) 0px 0px 10px',
+
+                                        padding: '6px',
+                                        paddingLeft: '20px',
+                                        paddingRight: '12px',
+                                        borderRadius: '25px',
+                                        textAlign: 'right',
+                                    }}
+                                    direction="vertical"
+                                >
+                                    <RelativeTo
+                                        dateTime={startedAt}
+                                        secondDateTime={run.Ended[0]}
+                                        autoPlay={true}
+                                        width="170px"
+                                        prefix="It Started "
                                     />
-                                ),
-                            },
-                            {
-                                key: 'note',
-                                label: 'Note',
-                                children: <ConfigSet />,
-                            },
-                        ]}
-                    />
+                                    <RenderDuration
+                                        duration={run.Duration}
+                                        autoPlay={true}
+                                        width="150px"
+                                        prefix="Ran for "
+                                    />
+                                </Space>
+                                {/* <Tree treeData={[{ title: 'Hi' }]} /> */}
+                            </Space>
+
+                            <RenderProgress
+                                passed={rate[0]}
+                                failed={rate[1]}
+                                skipped={rate[2]}
+                                broken={
+                                    isTest ? aggResults.brokenTests : undefined
+                                }
+                            />
+                        </Space>
+                        <PreviewForImages />
+                    </Space>
                 </Space>
+                <Tabs
+                    tabBarExtraContent={
+                        <Space>
+                            {aggResults.isRecent ? (
+                                <Tag
+                                    color="blue"
+                                    id={LOCATORS.OVERVIEW.recentRunBadge}
+                                >
+                                    Recent Run
+                                </Tag>
+                            ) : (
+                                <></>
+                            )}
+                            {/* <Tag color="red">Bailed</Tag> */}
+                        </Space>
+                    }
+                    items={[
+                        {
+                            key: 'recent',
+                            label: `Recent ${isTest ? 'Tests' : 'Suites'}`,
+                            children: (
+                                <TopSuites
+                                    suites={isTest ? recentTests : recentSuites}
+                                    isTest={isTest}
+                                />
+                            ),
+                        },
+                        {
+                            key: 'note',
+                            label: 'Note',
+                            children: <ConfigSet />,
+                        },
+                    ]}
+                />
             </Space>
-        </Card>
+        </section>
     );
 }

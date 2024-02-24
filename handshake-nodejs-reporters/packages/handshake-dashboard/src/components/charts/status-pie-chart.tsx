@@ -18,15 +18,15 @@ import type {
 import { PieChart } from 'echarts/charts';
 import type { PieSeriesOption } from 'echarts/charts';
 import type { ComposeOption } from 'echarts/core';
-
 // Import the Canvas renderer
 // Note that including the CanvasRenderer or SVGRenderer is a required step
-import { SVGRenderer } from 'echarts/renderers';
+import { CanvasRenderer } from 'echarts/renderers';
 import {
     radiantGreen,
     radiantOrange,
     radiantRed,
     radiantYellow,
+    serif,
     toolTipFormats,
 } from './constants';
 import type { CallbackDataParams } from 'echarts/types/dist/shared';
@@ -46,7 +46,7 @@ type composed = ComposeOption<
 // Register the required components
 echarts.use([
     TitleComponent,
-    SVGRenderer,
+    CanvasRenderer,
     PieChart,
     GridComponent,
     TooltipComponent,
@@ -102,7 +102,7 @@ export default function ProgressPieChart(properties: {
         },
 
         textStyle: {
-            // fontFamily: serif.style.fontFamily,
+            fontFamily: serif.style.fontFamily,
         },
         series: [
             {
@@ -113,7 +113,7 @@ export default function ProgressPieChart(properties: {
                 type: 'pie',
                 bottom: -7,
                 left: -4,
-                radius: properties.fullRound ? ['2%', '70%'] : ['40%', '70%'],
+                radius: properties.fullRound ? ['1%', '70%'] : ['40%', '70%'],
                 avoidLabelOverlap: false,
                 itemStyle: {
                     borderRadius: 5,
@@ -136,6 +136,7 @@ export default function ProgressPieChart(properties: {
                 height: '220px',
                 borderRadius: '10px',
             }}
+            lazyUpdate={true}
             className={`${properties.rate[0]}-${properties.rate[1]}-${properties.rate[2]} ${LOCATORS.CHARTS.progress} ${properties.noShadow ? '' : CardStyles.card}`}
         />
     );

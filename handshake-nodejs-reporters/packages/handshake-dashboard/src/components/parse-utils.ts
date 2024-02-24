@@ -160,7 +160,9 @@ export function parseTests(
                 .filter((assertion) => assertion.entity_id === record.suiteID)
                 .map((assertion) => ({
                     ...assertion,
-                    message: ansiToHTML.toHtml(assertion.message),
+                    message: ansiToHTML.toHtml(
+                        assertion.message ?? '<i>No Message added.</i>',
+                    ),
                 })),
         };
     }

@@ -18,13 +18,14 @@ CREATE TEMP TABLE KEY_NUMBERS(
 
 -- stores the recent suites and tests {recent 6 in each}
 CREATE TEMP TABLE RECENT_ENTITIES AS 
-  select * from (
+  select json_array_length(errors) as numberOfErrors, * from (
       SELECT
         ROW_NUMBER() OVER (PARTITION BY suiteType ORDER BY started DESC) AS "rank",
       	*
     FROM suiteBase WHERE session_id in CURRENT_SESSIONS
   ) where rank <= 6;
   
+
 -- stores some info of random 15 images
 CREATE TEMP TABLE IMAGES AS 
 SELECT attachmentValue ->> '$.value' as path, attachmentValue ->> '$.title' as title from staticbase 

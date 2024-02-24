@@ -90,6 +90,6 @@ export interface Assertion {
     passed: boolean;
     wait: number;
     interval: number;
-    message: string;
+    message?: string;
     title: string;
 }

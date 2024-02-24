@@ -16,8 +16,7 @@ import { timeFormatUsed } from '../utils/Datetime/format';
 import Badge from 'antd/lib/badge/index';
 import type { InputRef } from 'antd/lib';
 import { Spin, Tabs } from 'antd/lib';
-import { RenderDuration } from '../utils/relative-time';
-import RelativeTo from '../utils/Datetime/relative-time';
+import RelativeTo, { RenderDuration } from '../utils/Datetime/relative-time';
 import { StaticPercent } from '../utils/counter';
 import { DetailedContext } from '@/types/records-in-detailed';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
@@ -296,7 +295,7 @@ export default function TestEntities(properties: {
                         width={100}
                         dataIndex="Duration"
                         render={(value: Duration) => (
-                            <RenderDuration value={value} maxWidth="120px" />
+                            <RenderDuration value={value} width="120px" />
                         )}
                     />
 

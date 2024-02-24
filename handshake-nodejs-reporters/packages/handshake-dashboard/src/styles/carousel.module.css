@@ -12,3 +12,16 @@
 .fullPageContainer {
     width: 99vw;
 }
+
+.container {
+    user-select: none;
+    cursor: grab;
+}
+
+.container:active {
+    cursor: grabbing;
+}
+
+.containerText {
+    font-weight: 350;
+}

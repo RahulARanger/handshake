@@ -120,6 +120,8 @@ export default function RenderPassedRate(properties: {
             }}
             className={`${properties.value[0]}-${properties.value[1]}-${properties.value[2]} ${LOCATORS.CHARTS.rate}`}
             opts={{ renderer: 'svg' }}
+            notMerge={true}
+            lazyUpdate={true}
         />
     );
 }

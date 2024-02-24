@@ -1,7 +1,6 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
 import { parseDetailedTestRun } from '@/components/parse-utils';
-import { RenderDuration } from '@/components/utils/relative-time';
 import AreaChartForRuns from '@/components/charts/collection-of-runs';
 import RenderPassedRate from '@/components/charts/stacked-bar-chart';
 import crumbs from './test-items';
@@ -28,7 +27,9 @@ import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import Tag from 'antd/lib/tag/index';
-import RelativeTo from '@/components/utils/Datetime/relative-time';
+import RelativeTo, {
+    RenderDuration,
+} from '@/components/utils/Datetime/relative-time';
 import {
     GithubRepoLink,
     RenderFrameworkUsed,
@@ -37,8 +38,8 @@ import {
 import type { DetailedTestRecord } from '@/types/parsed-records';
 import { LOCATORS, TEXT } from 'handshake-utils';
 import type { TestRecord } from '@/types/test-run-records';
+import CardStyles from 'src/styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
-
 dayjs.extend(isBetween);
 
 function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
@@ -52,6 +53,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                     {item.projectName}
                 </Text>
             }
+            style={{ backdropFilter: 'blur(12px)' }}
             color="purple"
         >
             <List.Item
@@ -92,7 +94,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                                 <RenderStatus value={item.Status} />
                                 <Tooltip title="Redirects to this test run page">
                                     <Link
-                                        underline
+                                        // underline
                                         href={item.Link}
                                         id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
                                     >{`${item.Started[0].format(dateFormatUsed)}`}</Link>
@@ -109,28 +111,35 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                             className="tooltip"
                         >
                             <Space align="start" size={0}>
-                                <Tag color="cyan" className="time-range">
+                                <Tag
+                                    color="yellow"
+                                    className="time-range"
+                                    style={{
+                                        padding: '1.5px',
+                                    }}
+                                >
                                     <RelativeTo
                                         dateTime={item.Started[0]}
                                         secondDateTime={item.Ended[0]}
                                         autoPlay
                                         style={{
-                                            maxWidth: '170px',
-                                            textAlign: 'right',
+                                            width: '170px',
                                         }}
                                     />
                                 </Tag>
                                 <Tag
-                                    color="volcano"
+                                    color="blue"
                                     style={{
-                                        minWidth: '95px',
-                                        maxWidth: '95px',
+                                        width: '100px',
+                                        padding: '1.5px',
                                     }}
                                     className="duration"
                                 >
                                     <RenderDuration
-                                        value={item.Duration}
-                                        autoPlay={true}
+                                        duration={item.Duration}
+                                        width="90px"
+                                        autoPlay
+                                        style={{ width: '100%' }}
                                     />
                                 </Tag>
                             </Space>
@@ -150,11 +159,13 @@ function RawList(properties: {
     const items = properties.dataSource?.slice(0, showMax);
     return (
         <List
-            bordered
             itemLayout="vertical"
             size="small"
             id={properties.id}
+            bordered
             dataSource={items}
+            rootClassName={'smooth-box'}
+            className={CardStyles.card}
             renderItem={(item) =>
                 item == undefined ? <></> : <RunCard run={item} />
             }

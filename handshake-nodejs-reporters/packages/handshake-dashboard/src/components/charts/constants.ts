@@ -1,6 +1,12 @@
+import { REM } from 'next/font/google';
 import * as echarts from 'echarts/core';
 import type { TooltipComponentOption } from 'echarts/components';
 
+export const serif = REM({
+    subsets: ['latin'],
+    weight: '300',
+    adjustFontFallback: true,
+});
 export const radiantGreen = new echarts.graphic.LinearGradient(0, 0, 0, 1, [
     { offset: 0, color: 'rgb(0, 102, 0)' }, // Lighter shade at the top
     { offset: 1, color: 'rgb(0, 153, 0)' }, // Darker shade at the bottom
@@ -36,7 +42,7 @@ export const standingToColors = {
     PASSED: 'green',
     FAILED: 'red',
     RETRIED: 'orangered',
-    PENDING: 'blue',
+    PENDING: 'grey',
     SKIPPED: 'yellow',
 };
 

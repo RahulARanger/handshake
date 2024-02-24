@@ -1,14 +1,7 @@
 import Text from 'antd/lib/typography/Text';
 import Tooltip from 'antd/lib/tooltip/index';
 import dayjs, { type Dayjs } from 'dayjs';
-import React, {
-    useState,
-    type CSSProperties,
-    type ReactNode,
-    useEffect,
-} from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
+import React, { useState, type CSSProperties, type ReactNode } from 'react';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
 import { type Duration } from 'dayjs/plugin/duration';
@@ -16,7 +9,9 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { timeFormatUsed } from './format';
 import carouselStyles from '@/styles/carousel.module.css';
 import Typography from 'antd/lib/typography/Typography';
+import TextShadow from '@/styles/text-shadow.module.css';
 import { LOCATORS } from 'handshake-utils';
+import Carousel from 'antd/lib/carousel/index';
 
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
@@ -29,125 +24,95 @@ export default function RelativeTo(properties: {
     format?: string;
     autoPlay?: boolean;
     style?: CSSProperties;
+    prefix?: string;
+    width?: string;
 }): ReactNode {
-    const [emblaReference, emblaApi] = useEmblaCarousel({ loop: true }, [
-        Autoplay({
-            stopOnInteraction: false,
-            active: properties.autoPlay ?? false,
-        }),
-    ]);
-    const [hover, setHover] = useState<boolean>(false);
     const formatter = (): string =>
         properties.wrt == undefined
             ? properties.dateTime.fromNow()
             : properties.dateTime.from(properties.wrt);
 
     const [formatted, setFormatted] = useState(formatter());
-    const [isClient, setIsClient] = useState(false);
 
-    useEffect(() => {
-        setIsClient(true);
-        if (!emblaApi) {
-            return;
-        }
-        emblaApi.on('pointerUp', () => setHover(false));
-        emblaApi.on('pointerDown', () => setHover(true));
-    }, [setHover, emblaApi]);
-
+    const humanizedText = (properties.prefix ?? '') + formatted;
     return (
-        <div
-            className={carouselStyles.embla}
-            ref={emblaReference}
+        <Carousel
+            autoplay={properties.autoPlay}
             style={{
-                maxWidth: '167px',
-                cursor: hover ? 'grabbing' : 'grab',
+                fontWeight: 150,
+                textAlign: 'center',
+                width: properties.width ?? '200px',
                 ...properties.style,
             }}
+            swipeToSlide
+            draggable
+            dots={false}
+            pauseOnHover
+            className={`${carouselStyles.container} ${TextShadow.shinyShadow}`}
         >
-            <div suppressHydrationWarning className={carouselStyles.container}>
-                <Text
-                    className={`${carouselStyles.slide} ${LOCATORS.DAYS.relativeToRange}`}
-                    style={properties.style}
-                    ellipsis={{ tooltip: true }}
+            <Text
+                className={`${LOCATORS.DAYS.relativeToRange}`}
+                style={properties.style}
+                ellipsis={{ tooltip: true }}
+            >
+                {`${properties.dateTime.format(
+                    properties.format ?? timeFormatUsed,
+                )} ${
+                    properties.secondDateTime == undefined
+                        ? ''
+                        : ` - ${properties.secondDateTime.format(
+                              properties.format ?? timeFormatUsed,
+                          )}`
+                }`}
+            </Text>
+            {properties.wrt == undefined ? (
+                <span
+                    onMouseEnter={() => {
+                        setFormatted(formatter());
+                    }}
                 >
-                    {`${properties.dateTime.format(
+                    {humanizedText}
+                </span>
+            ) : (
+                <Tooltip
+                    title={`Relative to ${properties.wrt.format(
                         properties.format ?? timeFormatUsed,
-                    )} ${
-                        properties.secondDateTime == undefined
-                            ? ''
-                            : ` - ${properties.secondDateTime.format(
-                                  properties.format ?? timeFormatUsed,
-                              )}`
-                    }`}
-                </Text>
-                {properties.wrt == undefined ? (
-                    <span
-                        className={carouselStyles.slide}
-                        onMouseEnter={() => {
-                            setFormatted(formatter());
-                        }}
-                    >
-                        {isClient ? formatted : ''}
-                    </span>
-                ) : (
-                    <Tooltip
-                        title={`Relative to ${properties.wrt.format(
-                            properties.format ?? timeFormatUsed,
-                        )}`}
-                        className={carouselStyles.slide}
-                    >
-                        {isClient ? formatted : ''}
-                    </Tooltip>
-                )}
-            </div>
-        </div>
+                    )}`}
+                >
+                    {humanizedText}
+                </Tooltip>
+            )}
+        </Carousel>
     );
 }
 
-export function HumanizeDuration(properties: {
+export function RenderDuration(properties: {
     duration?: Duration;
     style?: CSSProperties;
     autoPlay?: boolean;
-    maxWidth?: string;
+    width?: string;
+    prefix?: string;
 }): ReactNode {
-    const [emblaReference, emblaApi] = useEmblaCarousel({ loop: true }, [
-        Autoplay({
-            stopOnInteraction: false,
-            active: properties?.autoPlay ?? false,
-        }),
-    ]);
-    const [hover, setHover] = useState<boolean>(false);
-
-    useEffect(() => {
-        if (!emblaApi) {
-            return;
-        }
-        emblaApi.on('pointerUp', () => setHover(false));
-        emblaApi.on('pointerDown', () => setHover(true));
-    }, [setHover, emblaApi]);
-
+    const simple = properties?.duration?.humanize();
     return (
-        <div
-            className={carouselStyles.embla}
-            ref={emblaReference}
+        <Carousel
+            autoplay={properties.autoPlay}
             style={{
-                maxWidth: properties.maxWidth ?? '110px',
-                minWidth: '80px',
-                textAlign: 'right',
-                cursor: hover ? 'grabbing' : 'grab',
-                ...properties.style,
+                width: properties.width ?? '100px',
+                textAlign: 'center',
+                fontWeight: '150',
             }}
+            swipeToSlide
+            draggable
+            dots={false}
+            pauseOnHover
+            className={`${carouselStyles.container} ${TextShadow.shinyShadow}`}
         >
-            <div suppressHydrationWarning className={carouselStyles.container}>
-                <DurationText duration={properties.duration} />
-                <Typography
-                    suppressHydrationWarning
-                    className={`${carouselStyles.slide} humanized`}
-                >
-                    {properties?.duration?.humanize() ?? '--'}
-                </Typography>
-            </div>
-        </div>
+            <DurationText duration={properties.duration} />
+            <Typography suppressHydrationWarning className={'humanized'}>
+                {simple ? `${properties.prefix ?? ''}${simple}` : '--'}
+            </Typography>
+        </Carousel>
     );
 }
 
@@ -156,7 +121,7 @@ export function DurationText(properties: { duration?: Duration }): ReactNode {
     return (
         <Typography
             suppressHydrationWarning
-            className={`${carouselStyles.slide} ${LOCATORS.DAYS.duration}`}
+            className={`${LOCATORS.DAYS.duration}`}
         >
             {seconds === undefined
                 ? `--`

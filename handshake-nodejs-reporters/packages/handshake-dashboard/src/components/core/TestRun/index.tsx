@@ -12,8 +12,9 @@ import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
 import type { MenuProps } from 'antd/lib/menu/menu';
 import Menu from 'antd/lib/menu/menu';
-import HeaderStyles from 'src/styles/header.module.css';
+import HeaderStyles from '@/styles/header.module.css';
 import Link from 'next/link';
+import CardStyles from '@/styles/card.module.css';
 import StarFilled from '@ant-design/icons/StarFilled';
 import { DetailedContext } from '@/types/records-in-detailed';
 
@@ -87,7 +88,7 @@ export default function LayoutStructureForRunDetails(properties: {
             }}
         >
             <Layout.Header
-                className={`${HeaderStyles.header} header`}
+                className={`${HeaderStyles.header} header ${CardStyles.sider}`}
                 style={{
                     position: 'sticky',
                     top: 0,
@@ -110,7 +111,6 @@ export default function LayoutStructureForRunDetails(properties: {
                     dateTime={data.Ended[0]}
                     style={{
                         maxWidth: '130px',
-                        textAlign: 'right',
                         marginRight: '10px',
                     }}
                     format={dateFormatUsed}
@@ -120,15 +120,19 @@ export default function LayoutStructureForRunDetails(properties: {
 
             <Layout>
                 <Layout.Sider
+                    className={`${CardStyles.sider}`}
                     breakpoint="lg"
                     collapsedWidth="0"
                     theme="light"
-                    className={`${HeaderStyles.sider} smooth-box`}
                 >
                     <Menu
                         mode="inline"
                         items={items}
-                        style={{ borderRadius: '1rem' }}
+                        style={{
+                            borderRadius: '1rem',
+                            backgroundColor: 'transparent',
+                        }}
+                        className="smooth-box"
                         defaultOpenKeys={[menuTabs.testEntitiesTab.current]}
                         defaultSelectedKeys={[properties.activeTab]}
                         onClick={(event) =>
@@ -143,8 +147,8 @@ export default function LayoutStructureForRunDetails(properties: {
                         marginRight: '4px',
                         marginTop: '4px',
                         overflowY: 'auto',
-                        marginBottom: '3px',
-                        overflowX: 'hidden',
+                        marginBottom: '6px',
+                        paddingBottom: '15px',
                     }}
                 >
                     {properties.children}

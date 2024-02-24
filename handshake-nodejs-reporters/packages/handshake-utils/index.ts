@@ -49,7 +49,7 @@ export const TEXT = {
     },
 	AUTHOR: "RahulARanger<saihanumarahul66@gmail.com>",
 	dateFormatUsed: "ddd, MMM Do YYYY",
-	timeFormatUsed: "HH:mm:ss A",
+	timeFormatUsed: "hh:mm:ss A",
 	dateTimeFormatUsed: "ddd, MMM Do YYYY hh:mm A",
 	REPO: "https://github.com/RahulARanger/handshake",
 };
