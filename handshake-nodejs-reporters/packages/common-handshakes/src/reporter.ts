@@ -163,6 +163,12 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
+  /**
+   * note: we are assuming the value inside the payload -> value is of base64
+   * @param forWhat label for the attachment
+   * @param payload payload for your attachment
+   * @returns true if passed
+   */
   async saveAttachment(forWhat: string, payload: Attachment) {
     if (!payload.entityID) {
       logger.warn(`😕 Skipping!, we have not attached a ${forWhat} for unknown entity`);
@@ -177,7 +183,7 @@ export class ReporterDialPad extends DialPad {
       .on('response', async (result) => {
         if (result.ok) {
           const expectedFilePath = result.text;
-          console.warn(`Registered an attachment saving it here: ${result.text}`);
+          logger.debug(`Registered an attachment saving it here: ${result.text}`);
 
           const attachmentFolderForTestRun = dirname(expectedFilePath);
           if (!existsSync(attachmentFolderForTestRun)) {
@@ -185,7 +191,7 @@ export class ReporterDialPad extends DialPad {
             // we are supposed to ensure the folders for the test runs
           }
 
-          await writeFile(expectedFilePath, value as string, () => { logger.info(`saved successfully at: ${result.text}`); });
+          await writeFile(expectedFilePath, value as string, { encoding: 'base64' }, () => { logger.info(`saved successfully at: ${result.text}`); });
         } else {
           logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
         }

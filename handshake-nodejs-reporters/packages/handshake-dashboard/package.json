@@ -12,7 +12,8 @@
         "export": "cross-env NODE_ENV=production next build --no-lint",
         "test": "next lint",
         "e2e": "cd ../../ && npx handshake export ../TestResults --out ../TestReports",
-        "preview": "cd ../../ && npx handshake display ../TestReports"
+        "preview": "cd ../../ && npx handshake display ../TestReports",
+        "host-images": "cd ../../../TestResults && npx serve -p 4000"
     },
     "dependencies": {
         "@ant-design/icons": "^5.3.0",
