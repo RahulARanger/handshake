@@ -211,4 +211,6 @@ async def saveImage(request: Request) -> HTTPResponse:
     )
     await record.save()
     # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
-    return text(str(attachment_folder(db_path()) / file_name), status=201)
+    return text(
+        str(attachment_folder(db_path()) / get_test_id() / file_name), status=201
+    )

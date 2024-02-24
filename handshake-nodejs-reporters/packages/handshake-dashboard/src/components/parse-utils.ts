@@ -173,10 +173,14 @@ export function convertForWrittenAttachments(
     testID: string,
     attachmentID: string,
 ): string {
-    const note = process?.env?.IMAGE_PROXY_URL
-        ? [process.env.IMAGE_PROXY_URL]
-        : [];
-    return [...note, attachmentPrefix, testID, attachmentID].join('/');
+    const basics = [attachmentPrefix, testID, attachmentID];
+    if (process.env.IS_TEST) {
+        basics.reverse();
+        basics.push(process.env.IMAGE_PROXY_URL ?? '');
+        basics.reverse();
+    }
+
+    return basics.join('/');
 }
 
 export function parseImageRecords(

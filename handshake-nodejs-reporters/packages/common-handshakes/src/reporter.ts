@@ -2,7 +2,8 @@ import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
 import PQueue, { QueueAddOptions } from 'p-queue';
 import PriorityQueue from 'p-queue/dist/priority-queue';
-import { writeFile } from 'node:fs';
+import { existsSync, mkdirSync, writeFile } from 'node:fs';
+import { dirname } from 'node:path';
 import DialPad from './dialPad';
 import {
   RegisterSession,
@@ -176,7 +177,14 @@ export class ReporterDialPad extends DialPad {
       .on('response', async (result) => {
         if (result.ok) {
           const expectedFilePath = result.text;
-          logger.debug(`Registered an attachment for ${payload.entityID} saving it here: ${result.text}`);
+          console.warn(`Registered an attachment saving it here: ${result.text}`);
+
+          const attachmentFolderForTestRun = dirname(expectedFilePath);
+          if (!existsSync(attachmentFolderForTestRun)) {
+            mkdirSync(attachmentFolderForTestRun);
+            // we are supposed to ensure the folders for the test runs
+          }
+
           await writeFile(expectedFilePath, value as string, () => { logger.info(`saved successfully at: ${result.text}`); });
         } else {
           logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
