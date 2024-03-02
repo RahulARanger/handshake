@@ -10,44 +10,11 @@
 }
 
 .boardCard {
-    border: 2px solid #370224;
-    border-radius: 25px;
-    background-image: linear-gradient(
-        120deg,
-        hsl(270deg 100% 7%) 0%,
-        hsl(286deg 91% 7%) 10%,
-        hsl(302deg 82% 7%) 20%,
-        hsl(317deg 79% 9%) 30%,
-        hsl(328deg 76% 10%) 40%,
-        hsl(337deg 73% 12%) 50%,
-        hsl(346deg 67% 13%) 60%,
-        hsl(356deg 59% 14%) 70%,
-        hsl(8deg 63% 14%) 80%,
-        hsl(18deg 73% 14%) 90%,
-        hsl(26deg 82% 13%) 100%
-    );
-}
-
-.hero {
+    z-index: 100;
+    border: 1.5px solid #003d53;
     border-radius: 25px;
 
-    background-image: linear-gradient(
-        35deg,
-        hsl(305deg 100% 35%) 0%,
-        hsl(307deg 66% 44%) 0%,
-        hsl(310deg 54% 49%) 0%,
-        hsl(312deg 52% 54%) 1%,
-        hsl(314deg 54% 58%) 2%,
-        hsl(317deg 55% 62%) 3%,
-        hsl(320deg 57% 65%) 5%,
-        hsl(323deg 59% 69%) 7%,
-        hsl(327deg 62% 73%) 10%,
-        hsl(331deg 65% 76%) 15%,
-        hsl(336deg 70% 80%) 21%,
-        hsl(343deg 76% 83%) 30%,
-        hsl(350deg 85% 87%) 45%,
-        hsl(0deg 100% 90%) 98%
-    );
+    background-image: linear-gradient(25deg, #441900 0%, #023770c8 100%);
 }
 
 .sider {

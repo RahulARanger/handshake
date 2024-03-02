@@ -6,7 +6,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"test": "npm run test:mocha",
+		"test": "cross-env SANITY=true npm run test:mocha",
+		"test-export": "npm run test:mocha",
 		"test:mocha": "npx wdio run ./wdio.conf.js",
 		"test:mocha:sanity": "cross-env SANITY=true npx wdio run ./wdio.conf.js --exclude test-mocha/specs/package-version.e2e.js",
 		"sanity": "npm run test:mocha:sanity"

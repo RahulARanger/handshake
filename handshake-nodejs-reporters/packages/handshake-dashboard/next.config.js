@@ -13,7 +13,7 @@ module.exports = (phase, { defaultConfig }) => {
 
     // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
     trailingSlash: true,
-    transpilePackages: ['handshake-dashboard', 'echarts', 'zrender'],
+    transpilePackages: ['handshake-dashboard', 'echarts', 'zrender', '@uiw/react-markdown-preview'],
     env: {
       NEXT_PY_PORT: process.env.NEXT_PY_PORT ?? '6969'
     },

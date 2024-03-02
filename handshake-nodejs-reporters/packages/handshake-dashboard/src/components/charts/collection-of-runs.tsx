@@ -46,9 +46,11 @@ import {
     radiantGreen,
     radiantRed,
     radiantYellow,
+    serif,
     toolTipFormats,
 } from './constants';
 import { dateTimeFormatUsed } from '../utils/Datetime/format';
+import type { DetailedTestRecord } from '@/types/parsed-records';
 
 // Register the required components
 echarts.use([
@@ -190,92 +192,66 @@ export default function AreaChartsForRuns(properties: {
     return <ReactECharts option={options} />;
 }
 
-export function NumberOfTestsOverRuns(properties: {
-    runs: TestRunRecord[];
-    showTest: boolean;
-    showFailed: boolean;
-}): ReactNode {
-    const text = properties.showTest ? 'Tests' : 'Suites';
-
-    const counts = properties.runs.map((run) => {
-        if (!properties.showFailed)
-            return properties.showTest
-                ? run.tests
-                : JSON.parse(run.suiteSummary).count;
-        return properties.showTest
-            ? run.failed
-            : JSON.parse(run.suiteSummary).failed;
-    });
-
-    const options: composed = {
-        color: properties.showFailed ? 'brickred' : 'skyblue', // opposite of legend's data
-        title: {
-            text: properties.showFailed
-                ? `Failed ${text} over Test Runs`
-                : `Number of ${text} Over Test Runs`,
-        },
+export function TestEntitiesOverTime(properties: {
+    relatedRuns: DetailedTestRecord[];
+    showSuites?: boolean;
+}) {
+    const option: composed = {
         tooltip: {
-            trigger: 'axis',
+            trigger: 'item',
             axisPointer: {
                 type: 'cross',
             },
-            ...toolTipFormats,
         },
         textStyle: {
-            //  fontFamily: serif.style.fontFamily
-        },
-        legend: {
-            data: ['Passed', 'Failed', 'Skipped'],
-            align: 'right',
-            right: 40,
-            textStyle: { color: 'white' },
-            top: 3,
-        },
-        toolbox: {
-            feature: {
-                saveAsImage: {},
-            },
-        },
-        grid: {
-            left: '6%',
-            right: '4%',
-            bottom: '3%',
-            top: '20%',
-            containLabel: true,
+            fontFamily: serif.style.fontFamily,
         },
         xAxis: {
             type: 'category',
             boundaryGap: false,
-            data: properties.runs.map((run) =>
-                dayjs(run.started).format(dateTimeFormatUsed),
+            data: properties.relatedRuns.map((run) =>
+                run.Started[0].format(dateTimeFormatUsed),
             ),
+            show: false,
         },
-        yAxis: [
-            {
-                type: 'value',
-                splitLine: {
-                    show: false,
-                },
-            },
-        ],
+        label: {
+            show: false,
+        },
+        yAxis: {
+            type: 'value',
+            show: false,
+        },
+        grid: { top: '10%', width: '100%', left: '1%', height: '100%' },
+
         series: [
             {
-                name: text,
+                data: properties.relatedRuns.map((run) => ({
+                    value: properties.showSuites ? run.Suites : run.Tests,
+                })),
                 type: 'line',
                 smooth: true,
-                showSymbol: true,
-                emphasis: {
-                    focus: 'series',
+                showSymbol: false,
+                tooltip: {
+                    show: false,
                 },
-                data: counts,
                 areaStyle: {
                     opacity: 0.8,
-                    color: properties.showFailed ? radiantRed : radiantBlue,
+                    color: radiantBlue,
+                },
+                lineStyle: {
+                    width: 0,
                 },
             },
         ],
     };
     return (
-        <ReactECharts option={options} style={{ width: 800, height: 230 }} />
+        <ReactECharts
+            option={option}
+            style={{
+                width: '100%',
+                marginBottom: '0px',
+                height: '100px',
+            }}
+        />
     );
 }

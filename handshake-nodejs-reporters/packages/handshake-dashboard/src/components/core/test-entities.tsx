@@ -2,7 +2,7 @@ import { menuTabs } from 'src/types/ui-constants';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { possibleEntityNames } from 'src/types/session-records';
 import { RenderEntityType, RenderStatus } from '../utils/renderers';
-import RenderPassedRate from '../charts/stacked-bar-chart';
+import RenderPassedRate, { SwitchValues } from '../charts/stacked-bar-chart';
 import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 import React, { useContext, type ReactNode, useState, useRef } from 'react';
 import { type Dayjs } from 'dayjs';
@@ -24,7 +24,10 @@ import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';
 import Dotted from 'src/styles/dotted.module.css';
 import Search from 'antd/lib/input/Search';
+import TextShadow from '@/styles/text-shadow.module.css';
+import CardStyles from '@/styles/card.module.css';
 import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import { TestEntitiesOverTime } from '../charts/collection-of-runs';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -42,7 +45,19 @@ function extractSuiteTree(
     suites: SuiteDetails,
     parent?: string,
 ): undefined | ParsedSuiteRecord[] {
-    const result = suites['@order']
+    const result = [
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+        ...suites['@order'],
+    ]
         .filter(
             (suiteID) =>
                 suites[suiteID].Parent === (parent ?? '') &&
@@ -65,6 +80,8 @@ export default function TestEntities(properties: {
     const [showEntity, setShowEntity] = useState<boolean>(false);
     const [filterSuite, setFilterSuite] = useState<string>('');
     const [showSuiteFilter, setShowSuiteFilter] = useState<boolean>(false);
+    const [showRollup, setShowRollup] = useState<boolean>(true);
+
     const suiteSearchBar = useRef<InputRef>(null);
     const found = useRef<string[]>([]);
 
@@ -99,6 +116,8 @@ export default function TestEntities(properties: {
                     dataSource={extractSuiteTree(suites)}
                     size="small"
                     bordered
+                    className={CardStyles.boardCard}
+                    style={{ borderTopLeftRadius: 10 }}
                     scroll={{ x: 'max-content' }}
                 >
                     <Table.Column
@@ -149,12 +168,11 @@ export default function TestEntities(properties: {
                             clearFilters,
                         }) => (
                             <Space
-                                className="smooth-box"
+                                className={CardStyles.card}
                                 style={{
                                     padding: '10px',
                                     backdropFilter: 'blur(10px)',
                                     borderRadius: '10px',
-                                    border: '.69px solid grey',
                                 }}
                             >
                                 <Search
@@ -162,6 +180,12 @@ export default function TestEntities(properties: {
                                     value={selectedKeys[0]}
                                     ref={suiteSearchBar}
                                     allowClear
+                                    styles={{
+                                        affixWrapper: {
+                                            backgroundColor: 'transparent',
+                                        },
+                                    }}
+                                    className={TextShadow.insetShadow}
                                     addonAfter={
                                         <Button
                                             type="text"
@@ -229,7 +253,7 @@ export default function TestEntities(properties: {
                     />
                     <Table.Column
                         title="Progress"
-                        dataIndex="RollupValues"
+                        dataIndex={showRollup ? 'RollupValues' : 'Rate'}
                         width={60}
                         sorter={(
                             a: ParsedSuiteRecord,
@@ -237,6 +261,15 @@ export default function TestEntities(properties: {
                         ) => {
                             return a.RollupValues[0] - b.RollupValues[0];
                         }}
+                        filterSearch={true}
+                        filterIcon={
+                            <SwitchValues
+                                smallSize
+                                defaultIsRollup={showRollup}
+                                onChange={(isRollup) => setShowRollup(isRollup)}
+                            />
+                        }
+                        filterDropdown={() => <></>}
                         render={(
                             value: [number, number, number],
                             record: ParsedSuiteRecord,
@@ -293,9 +326,10 @@ export default function TestEntities(properties: {
                     <Table.Column
                         title="Duration"
                         width={100}
+                        align="center"
                         dataIndex="Duration"
                         render={(value: Duration) => (
-                            <RenderDuration value={value} width="120px" />
+                            <RenderDuration duration={value} width="120px" />
                         )}
                     />
 

@@ -40,6 +40,7 @@ import { LOCATORS, TEXT } from 'handshake-utils';
 import type { TestRecord } from '@/types/test-run-records';
 import CardStyles from 'src/styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
+import AboutModal from '../about';
 dayjs.extend(isBetween);
 
 function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
@@ -319,6 +320,7 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
 
 export default function GridOfRuns(properties: {
     runs: TestRecord[];
+    about?: string;
 }): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();
     const [dateRange, setDateRange] = useState<
@@ -461,7 +463,7 @@ export default function GridOfRuns(properties: {
                             disabledDate={disabledDate}
                         />
                     </Space>
-                    <GithubRepoLink />
+                    <AboutModal about={properties.about ?? ''} />
                 </Space>
             </Layout.Header>
             {body}

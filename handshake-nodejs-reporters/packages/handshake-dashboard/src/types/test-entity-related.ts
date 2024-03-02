@@ -42,6 +42,7 @@ export interface SuiteRecordDetails
     error: string;
     hooks: number;
     simplified: string;
+    numberOfAssertions?:number;
 }
 
 export interface TestRecordDetails extends RecurringFields {

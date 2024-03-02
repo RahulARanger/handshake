@@ -14,8 +14,6 @@ import type { MenuProps } from 'antd/lib/menu/menu';
 import Menu from 'antd/lib/menu/menu';
 import HeaderStyles from '@/styles/header.module.css';
 import Link from 'next/link';
-import CardStyles from '@/styles/card.module.css';
-import StarFilled from '@ant-design/icons/StarFilled';
 import { DetailedContext } from '@/types/records-in-detailed';
 
 export default function LayoutStructureForRunDetails(properties: {
@@ -36,62 +34,56 @@ export default function LayoutStructureForRunDetails(properties: {
             icon: <HomeOutlined />,
         },
         {
-            label: 'Detailed',
-            key: menuTabs.testEntitiesTab.current,
-            icon: <StarFilled />,
-            children: [
-                {
-                    label: (
-                        <Link
-                            id="Test Entities"
-                            href={detailedPage(
-                                data.Id,
-                                menuTabs.testEntitiesTab.gridViewMode,
-                            )}
-                        >
-                            Test Entities
-                        </Link>
-                    ),
-                    key: menuTabs.testEntitiesTab.gridViewMode,
-                    icon: <TableOutlined />,
-                },
-                {
-                    label: (
-                        <Link
-                            id="Tree"
-                            href={detailedPage(
-                                data.Id,
-                                menuTabs.testEntitiesTab.treeViewMode,
-                            )}
-                        >
-                            Tree Structure
-                        </Link>
-                    ),
-                    key: menuTabs.testEntitiesTab.treeViewMode,
-                    icon: <PartitionOutlined />,
-                },
+            label: (
+                <Link
+                    id="Test Entities"
+                    href={detailedPage(
+                        data.Id,
+                        menuTabs.testEntitiesTab.gridViewMode,
+                    )}
+                >
+                    Test Entities
+                </Link>
+            ),
+            key: menuTabs.testEntitiesTab.gridViewMode,
+            icon: <TableOutlined />,
+        },
+        {
+            label: (
+                <Link
+                    id="Tree"
+                    href={detailedPage(
+                        data.Id,
+                        menuTabs.testEntitiesTab.treeViewMode,
+                    )}
+                >
+                    Tree Structure
+                </Link>
+            ),
+            key: menuTabs.testEntitiesTab.treeViewMode,
+            icon: <PartitionOutlined />,
+        },
 
-                {
-                    label: 'Timeline',
-                    key: 'timeline-upcoming',
-                    disabled: true,
-                },
-            ],
+        {
+            label: 'Timeline',
+            key: 'timeline-upcoming',
+            disabled: true,
         },
     ];
 
     return (
         <Layout
             style={{
-                overflow: 'hidden',
                 height: '99.3vh',
+                overflow: 'auto',
             }}
         >
             <Layout.Header
-                className={`${HeaderStyles.header} header ${CardStyles.sider}`}
+                className={`${HeaderStyles.header}`}
                 style={{
                     position: 'sticky',
-                    top: 0,
+                    top: 6,
+                    zIndex: 10e2,
                 }}
             >
                 <BreadCrumb items={crumbsForRun(data.projectName)} />
@@ -105,8 +97,25 @@ export default function LayoutStructureForRunDetails(properties: {
                         {properties.highlight}
                     </Text>
                 ) : (
-                    <></>
+                    <Menu
+                        items={items}
+                        mode="horizontal"
+                        className="smooth-box"
+                        defaultOpenKeys={[menuTabs.testEntitiesTab.current]}
+                        defaultSelectedKeys={[properties.activeTab]}
+                        onClick={(event) =>
+                            properties.changeDefault &&
+                            properties.changeDefault(event.key)
+                        }
+                        style={{
+                            height: '30px',
+                            minWidth: 0,
+                            paddingTop: '3px',
+                            backgroundColor: 'transparent',
+                        }}
+                    />
                 )}
+
                 <RelativeTo
                     dateTime={data.Ended[0]}
                     style={{
@@ -117,30 +126,7 @@ export default function LayoutStructureForRunDetails(properties: {
                     autoPlay={true}
                 />
             </Layout.Header>
-
             <Layout>
-                <Layout.Sider
-                    className={`${CardStyles.sider}`}
-                    breakpoint="lg"
-                    collapsedWidth="0"
-                    theme="light"
-                >
-                    <Menu
-                        mode="inline"
-                        items={items}
-                        style={{
-                            borderRadius: '1rem',
-                            backgroundColor: 'transparent',
-                        }}
-                        className="smooth-box"
-                        defaultOpenKeys={[menuTabs.testEntitiesTab.current]}
-                        defaultSelectedKeys={[properties.activeTab]}
-                        onClick={(event) =>
-                            properties.changeDefault &&
-                            properties.changeDefault(event.key)
-                        }
-                    />
-                </Layout.Sider>
                 <Layout.Content
                     style={{
                         marginLeft: '9px',
@@ -149,6 +135,7 @@ export default function LayoutStructureForRunDetails(properties: {
                         overflowY: 'auto',
                         marginBottom: '6px',
                         paddingBottom: '15px',
+                        overflow: 'unset',
                     }}
                 >
                     {properties.children}

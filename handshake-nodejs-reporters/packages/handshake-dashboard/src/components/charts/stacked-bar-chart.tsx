@@ -48,6 +48,46 @@ echarts.use([
     TooltipComponent,
     DatasetComponent,
 ]);
+import Segemented from 'antd/lib/segmented/index';
+import Tooltip from 'antd/lib/tooltip/index';
+
+export function SwitchValues(properties: {
+    smallSize?: boolean;
+    defaultIsRollup?: boolean;
+    onChange: (isRollup: boolean) => void;
+}): ReactNode {
+    return (
+        <Segemented
+            type="text"
+            size={properties.smallSize ? 'small' : 'middle'}
+            defaultValue={properties.defaultIsRollup ? '1' : ''}
+            options={[
+                {
+                    label: (
+                        <Tooltip
+                            title={'Shows only the top-level suites or tests'}
+                            color={'purple'}
+                        >
+                            {properties.smallSize ? '🗃️' : 'indivi.'}
+                        </Tooltip>
+                    ),
+                    value: '',
+                },
+                {
+                    label: (
+                        <Tooltip title={'Shows all the tests'} color={'blue'}>
+                            {properties.smallSize ? '🧪' : 'all'}
+                        </Tooltip>
+                    ),
+                    value: '1',
+                },
+            ]}
+            onChange={(value) => {
+                properties.onChange(Boolean(value));
+            }}
+        />
+    );
+}
 
 export default function RenderPassedRate(properties: {
     value: [number, number, number];

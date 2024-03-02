@@ -5,9 +5,11 @@ import currentExportConfig from '@/components/scripts/config';
 import sqlFile from '@/components/scripts/RunPage/script';
 import { parseTestConfig } from '@/components/parse-utils';
 import type { TestRecord } from '@/types/test-run-records';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 
 export async function getStaticProps(): Promise<
-    GetStaticPropsResult<{ runs?: TestRecord[] }>
+    GetStaticPropsResult<{ runs?: TestRecord[]; about?: string }>
 > {
     if (process.env.isDynamic) {
         return { props: { runs: undefined } };
@@ -24,6 +26,9 @@ export async function getStaticProps(): Promise<
     await connection.close();
 
     return {
-        props: { runs: allRuns.map((record) => parseTestConfig(record)) ?? [] },
+        props: {
+            runs: allRuns.map((record) => parseTestConfig(record)) ?? [],
+            about: String(readFileSync(join(process.cwd(), 'src', 'about.md'))),
+        },
     };
 }

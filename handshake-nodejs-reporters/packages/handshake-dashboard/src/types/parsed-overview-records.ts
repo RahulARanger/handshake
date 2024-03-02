@@ -31,6 +31,7 @@ export interface ValuesInOverviewContext {
     recentSuites: OverviewOfEntities[];
     recentTests: OverviewOfEntities[];
     aggResults: OverallAggResults;
+    relatedRuns: DetailedTestRecord[];
 }
 
 export const OverviewContext = createContext<

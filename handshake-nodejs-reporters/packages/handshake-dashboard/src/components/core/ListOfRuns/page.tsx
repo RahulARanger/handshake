@@ -6,6 +6,7 @@ import type { TestRecord } from '@/types/test-run-records';
 
 export default function AllTestRunsDisplayedHere(properties: {
     runs: TestRecord[];
+    about?: string;
 }): ReactNode {
     return (
         <>
@@ -18,7 +19,7 @@ export default function AllTestRunsDisplayedHere(properties: {
                     content={properties.runs.length.toString()}
                 />
             </Head>
-            <GridOfRuns runs={properties.runs} />
+            <GridOfRuns runs={properties.runs} about={properties.about ?? ''} />
         </>
     );
 }

@@ -30,6 +30,7 @@ import TextShadow from '@/styles/text-shadow.module.css';
 import { LOCATORS } from 'handshake-utils';
 import CardStyles from '@/styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
+import { TestEntitiesOverTime } from '@/components/charts/collection-of-runs';
 
 function TopSuites(properties: {
     suites: OverviewOfEntities[];
@@ -65,7 +66,14 @@ function TopSuites(properties: {
             <Table.Column
                 title="Name"
                 dataIndex="title"
-                className={TextShadow.suiteName}
+                render={(_) => (
+                    <Typography
+                        className={TextShadow.suiteName}
+                        style={{ maxWidth: '350px' }}
+                    >
+                        {_}
+                    </Typography>
+                )}
             />
             {properties.isTest ? (
                 <></>
@@ -95,10 +103,21 @@ function TopSuites(properties: {
                     render={(_: number) => <Counter end={_ ?? 0} />}
                 />
             )}
+            {properties.isTest ? (
+                <Table.Column
+                    title="Assertions"
+                    dataIndex="numberOfAssertions"
+                    align="center"
+                    render={(_: number) => <Counter end={_ ?? 0} />}
+                />
+            ) : (
+                <></>
+            )}
             <Table.Column
                 dataIndex="duration"
                 title="Duration"
                 align="center"
+                width={100}
                 render={(value: number) => (
                     <RenderDuration
                         duration={dayjs.duration({ milliseconds: value })}
@@ -110,6 +129,7 @@ function TopSuites(properties: {
                 dataIndex="started"
                 title="Range"
                 align="center"
+                width={200}
                 render={(value: string, record: SuiteRecordDetails) => (
                     <RelativeTo
                         dateTime={dayjs(value)}
@@ -240,6 +260,7 @@ export default function Overview(): ReactNode {
         recentTests,
         recentSuites,
         aggResults,
+        relatedRuns,
     } = context;
 
     const startedAt = run.Started[0];
@@ -263,7 +284,9 @@ export default function Overview(): ReactNode {
             >
                 <Space
                     align="center"
+                    direction="vertical"
                     className="smooth-box"
+                    size={0}
                     style={{
                         fontSize: '2.6rem',
                         textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
@@ -273,28 +296,55 @@ export default function Overview(): ReactNode {
                         paddingRight: '12px',
                         borderRadius: '25px',
                     }}
+                    styles={{ item: { width: '100%' } }}
                 >
-                    <Counter end={total} maxDigits={run.Tests} />
-                    <Select
-                        key={'switch'}
-                        size="large"
-                        variant="borderless"
-                        id={LOCATORS.OVERVIEW.testEntitySwitch}
-                        options={[
-                            {
-                                value: true,
-                                label: `Test Cases`,
-                            },
-                            {
-                                value: false,
-                                label: `Test Suites`,
-                            },
+                    <Space style={{ zIndex: 3 }}>
+                        <Counter end={total} maxDigits={run.Tests} />
+                        <Select
+                            key={'switch'}
+                            size="large"
+                            variant="borderless"
+                            id={LOCATORS.OVERVIEW.testEntitySwitch}
+                            options={[
+                                {
+                                    value: true,
+                                    label: `Test Cases`,
+                                },
+                                {
+                                    value: false,
+                                    label: `Test Suites`,
+                                },
+                            ]}
+                            value={isTest}
+                            onChange={(checked: boolean) => {
+                                setTest(checked);
+                            }}
+                        />
+                    </Space>
+                    <TestEntitiesOverTime
+                        relatedRuns={[
+                            ...relatedRuns,
+                            ...relatedRuns,
+                            ...relatedRuns,
+                            ...relatedRuns,
                         ]}
-                        value={isTest}
-                        onChange={(checked: boolean) => {
-                            setTest(checked);
-                        }}
+                        showSuites={!isTest}
                     />
+                    <Space>
+                        <RelativeTo
+                            dateTime={startedAt}
+                            secondDateTime={run.Ended[0]}
+                            autoPlay={true}
+                            width="170px"
+                            prefix="It Started "
+                        />
+                        <RenderDuration
+                            duration={run.Duration}
+                            autoPlay={true}
+                            width="150px"
+                            prefix="Ran for "
+                        />
+                    </Space>
                 </Space>
             </article>
             <Space
@@ -310,21 +360,7 @@ export default function Overview(): ReactNode {
                     textAlign: 'right',
                 }}
                 direction="vertical"
-            >
-                <RelativeTo
-                    dateTime={startedAt}
-                    secondDateTime={run.Ended[0]}
-                    autoPlay={true}
-                    width="170px"
-                    prefix="It Started "
-                />
-                <RenderDuration
-                    duration={run.Duration}
-                    autoPlay={true}
-                    width="150px"
-                    prefix="Ran for "
-                />
-            </Space>
+            ></Space>
         </Space>
     );
 
@@ -378,6 +414,8 @@ export default function Overview(): ReactNode {
                     }}
                     size={'large'}
                 >
+                    {progress}
+
                     <Ribbon
                         text={
                             <Space>
@@ -409,8 +447,8 @@ export default function Overview(): ReactNode {
                             />
                         </div>
                     </Ribbon>
+
                     <Space>
-                        {progress}
                         <PreviewForImages />
                     </Space>
                 </Space>

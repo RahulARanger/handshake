@@ -17,14 +17,27 @@ CREATE TEMP TABLE KEY_NUMBERS(
 );
 
 -- stores the recent suites and tests {recent 6 in each}
-CREATE TEMP TABLE RECENT_ENTITIES AS 
-  select json_array_length(errors) as numberOfErrors, * from (
-      SELECT
-        ROW_NUMBER() OVER (PARTITION BY suiteType ORDER BY started DESC) AS "rank",
-      	*
-    FROM suiteBase WHERE session_id in CURRENT_SESSIONS
-  ) where rank <= 6;
-  
+CREATE TEMP TABLE RECENT_SUITES AS
+    select
+        json_array_length(errors) as numberOfErrors,
+        * from suitebase
+    WHERE session_id in CURRENT_SESSIONS and suiteType = 'SUITE'
+    order by started desc
+    limit 6;
+
+
+CREATE TEMP TABLE RECENT_TESTS AS
+select * from (
+                  select suitebase.*,
+                         count(assertbase.entity_id) as numberOfAssertions from suitebase
+                  join assertbase on suitebase.suiteID = assertbase.entity_id
+                  WHERE session_id in CURRENT_SESSIONS
+                    and suiteType = 'TEST'
+                  group by assertbase.entity_id
+              )
+order by started desc limit 6;
+
+
 
 -- stores some info of random 15 images
 CREATE TEMP TABLE IMAGES AS 
@@ -74,3 +87,10 @@ CREATE TEMP TABLE CURRENT_RUN AS
   suiteSummary -> '$.passed' as passedSuites,
    suiteSummary -> '$.skipped' as skippedSuites
   FROM runbase where testID in CURRENT_RUN_ID;
+
+
+CREATE TEMP TABLE RELATED_RUNS AS 
+  select * from runbase
+  where projectName in (
+    select projectName from runbase where testID in CURRENT_RUN_ID
+  );

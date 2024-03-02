@@ -3,7 +3,6 @@ import type TestRunRecord from '@/types/test-run-records';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-
 import type {
     DetailedTestRecord,
     ParsedRetriedRecords,

@@ -73,16 +73,20 @@ export async function getStaticProps(prepareProperties: {
 
     const recentSuites =
         (await connection.all<SuiteRecordDetails[]>(
-            "SELECT * FROM RECENT_ENTITIES WHERE suiteType = 'SUITE';",
+            'SELECT * FROM RECENT_SUITES',
         )) ?? [];
 
     const recentTests =
         (await connection.all<SuiteRecordDetails[]>(
-            "SELECT * FROM RECENT_ENTITIES WHERE suiteType = 'TEST';",
+            'SELECT * FROM RECENT_TESTS',
         )) ?? [];
 
     const randomImages = await connection.all<ImageRecord[]>(
         'SELECT * FROM IMAGES;',
+    );
+
+    const relatedRuns = await connection.all<TestRunRecord[]>(
+        'select * from RELATED_RUNS',
     );
 
     const aggResults: OverallAggResults = {
@@ -117,6 +121,7 @@ export async function getStaticProps(prepareProperties: {
             aggResults,
             recentTests,
             recentSuites,
+            relatedRuns,
             randomImages: parseImageRecords(randomImages, testID),
         },
     };
@@ -134,6 +139,9 @@ export default function TestRunResults(
             detailsOfTestRun: parseDetailedTestRun(properties.detailsOfTestRun),
             summaryForAllSessions: properties.summaryForAllSessions,
             testRunConfig: parseTestConfig(properties.testRunConfig),
+            relatedRuns: properties.relatedRuns.map((run) =>
+                parseDetailedTestRun(run),
+            ),
         };
     }, [properties]);
 
