@@ -10,6 +10,8 @@ import {
     TooltipComponent,
     DatasetComponent,
     LegendComponent,
+    GridComponent,
+    MarkLineComponent,
 } from 'echarts/components';
 
 import type {
@@ -27,15 +29,6 @@ import type { ComposeOption } from 'echarts/core';
 dayjs.extend(DayJSUtc);
 dayjs.extend(DayJSTimezone);
 
-type composed = ComposeOption<
-    | LineSeriesOption
-    | TitleComponentOption
-    | TooltipComponentOption
-    | ToolboxComponentOption
-    | AxisPointerComponentOption
-    | LegendComponentOption
->;
-
 // Features like Universal Transition and Label Layout
 
 // Import the Canvas renderer
@@ -44,6 +37,7 @@ import { SVGRenderer } from 'echarts/renderers';
 import {
     radiantBlue,
     radiantGreen,
+    radiantOrange,
     radiantRed,
     radiantYellow,
     serif,
@@ -51,6 +45,22 @@ import {
 } from './constants';
 import { dateTimeFormatUsed } from '../utils/Datetime/format';
 import type { DetailedTestRecord } from '@/types/parsed-records';
+import type {
+    GridComponentOption,
+    MarkLineComponentOption,
+} from 'echarts/lib/echarts';
+import type { MarkLineOption } from 'echarts/types/dist/shared';
+
+type composed = ComposeOption<
+    | LineSeriesOption
+    | TitleComponentOption
+    | GridComponentOption
+    | TooltipComponentOption
+    | ToolboxComponentOption
+    | AxisPointerComponentOption
+    | LegendComponentOption
+    | MarkLineComponentOption
+>;
 
 // Register the required components
 echarts.use([
@@ -58,8 +68,10 @@ echarts.use([
     SVGRenderer,
     LegendComponent,
     LineChart,
+    GridComponent,
     TooltipComponent,
     DatasetComponent,
+    MarkLineComponent,
 ]);
 
 export default function AreaChartsForRuns(properties: {
@@ -195,7 +207,11 @@ export default function AreaChartsForRuns(properties: {
 export function TestEntitiesOverTime(properties: {
     relatedRuns: DetailedTestRecord[];
     showSuites?: boolean;
+    currentRun: string;
 }) {
+    const index = properties.relatedRuns.findIndex(
+        (run) => run.Id === properties.currentRun,
+    );
     const option: composed = {
         tooltip: {
             trigger: 'item',
@@ -221,13 +237,46 @@ export function TestEntitiesOverTime(properties: {
             type: 'value',
             show: false,
         },
-        grid: { top: '10%', width: '100%', left: '1%', height: '100%' },
-
+        grid: {
+            width: '95%',
+            left: '2%',
+            right: '5%',
+            top: '0.5px',
+            height: '95%',
+        },
         series: [
             {
-                data: properties.relatedRuns.map((run) => ({
-                    value: properties.showSuites ? run.Suites : run.Tests,
-                })),
+                name: 'Related Test Runs',
+                id: 'related-test-runs',
+                data: properties.relatedRuns.map((run) =>
+                    properties.showSuites ? run.Suites : run.Tests,
+                ),
+                markLine: {
+                    symbol: 'pin',
+                    symbolSize: 30,
+                    label: {
+                        show: true,
+                        position: 'middle',
+                        offset: [0, index > 0 ? 0 : 2],
+                        formatter: 'Current Run',
+                        textBorderWidth: 2,
+                        color: 'whitesmoke',
+                        textBorderColor: 'black',
+                    },
+                    data: [
+                        {
+                            xAxis: index,
+                            name: 'Current Test Run',
+                            itemStyle: {
+                                color: radiantOrange,
+                            },
+                        },
+                    ],
+                    tooltip: {
+                        trigger: 'item',
+                        ...(toolTipFormats as MarkLineOption['tooltip']),
+                    },
+                },
                 type: 'line',
                 smooth: true,
                 showSymbol: false,
@@ -249,7 +298,7 @@ export function TestEntitiesOverTime(properties: {
             option={option}
             style={{
                 width: '100%',
-                marginBottom: '0px',
+                marginBottom: '10px',
                 height: '100px',
             }}
         />

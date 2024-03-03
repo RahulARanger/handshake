@@ -27,7 +27,6 @@ import Search from 'antd/lib/input/Search';
 import TextShadow from '@/styles/text-shadow.module.css';
 import CardStyles from '@/styles/card.module.css';
 import SearchOutlined from '@ant-design/icons/SearchOutlined';
-import { TestEntitiesOverTime } from '../charts/collection-of-runs';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);

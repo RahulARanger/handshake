@@ -286,17 +286,17 @@ export default function Overview(): ReactNode {
                     align="center"
                     direction="vertical"
                     className="smooth-box"
-                    size={0}
+                    size={[0, 0]}
                     style={{
                         fontSize: '2.6rem',
                         textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
                         whiteSpace: 'nowrap',
-                        padding: '6px',
-                        paddingLeft: '20px',
-                        paddingRight: '12px',
+                        padding: '15px',
                         borderRadius: '25px',
                     }}
-                    styles={{ item: { width: '100%' } }}
+                    styles={{
+                        item: { width: '100%' },
+                    }}
                 >
                     <Space style={{ zIndex: 3 }}>
                         <Counter end={total} maxDigits={run.Tests} />
@@ -322,29 +322,33 @@ export default function Overview(): ReactNode {
                         />
                     </Space>
                     <TestEntitiesOverTime
-                        relatedRuns={[
-                            ...relatedRuns,
-                            ...relatedRuns,
-                            ...relatedRuns,
-                            ...relatedRuns,
-                        ]}
+                        relatedRuns={relatedRuns}
                         showSuites={!isTest}
+                        currentRun={run.Id}
                     />
-                    <Space>
-                        <RelativeTo
-                            dateTime={startedAt}
-                            secondDateTime={run.Ended[0]}
-                            autoPlay={true}
-                            width="170px"
-                            prefix="It Started "
-                        />
-                        <RenderDuration
-                            duration={run.Duration}
-                            autoPlay={true}
-                            width="150px"
-                            prefix="Ran for "
-                        />
-                    </Space>
+                    <article
+                        style={{
+                            display: 'flex',
+                            justifyContent: 'flex-start',
+                            alignItems: 'center',
+                        }}
+                    >
+                        <Space align="start">
+                            <RelativeTo
+                                dateTime={startedAt}
+                                secondDateTime={run.Ended[0]}
+                                autoPlay={true}
+                                width="170px"
+                                prefix="It Started "
+                            />
+                            <RenderDuration
+                                duration={run.Duration}
+                                autoPlay={true}
+                                width="150px"
+                                prefix="Ran for "
+                            />
+                        </Space>
+                    </article>
                 </Space>
             </article>
             <Space

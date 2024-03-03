@@ -47,10 +47,15 @@ export const standingToColors = {
 };
 
 export const toolTipFormats: TooltipComponentOption = {
-    backgroundColor: 'rgb(10, 10, 10)',
-    borderColor: 'rgba(128,128,128,0.1)',
+    backgroundColor: 'rgba(255, 255, 255, .00001)', // Background color for the tooltip
+    borderColor: 'grey',
     borderWidth: 1,
     textStyle: {
         color: 'white',
     },
+    extraCssText:
+        'backdrop-filter: blur(12px);' +
+        'box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, ' + // Specified box shadow
+        'rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, ' +
+        'rgba(0, 0, 0, 0.2) 0px -3px 0px inset;',
 };
