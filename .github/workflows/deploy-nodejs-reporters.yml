@@ -30,7 +30,7 @@ jobs:
 
         - name: Setup Turbo Repo.
           working-directory: ./handshake-nodejs-reporters
-          run: npm install && npm run build && sudo npm run sanity
+          run: npm install && npm run build
 
         - name: conduct sanity tests
           working-directory: ./handshake-nodejs-reporters
