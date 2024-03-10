@@ -12,9 +12,7 @@ import type { possibleEntityNames } from '@/types/session-records';
 import Avatar from 'antd/lib/avatar/avatar';
 import GraphCardCss from '@/styles/GraphCard.module.css';
 import { Badge, Tooltip } from 'antd/lib';
-import Button from 'antd/lib/button/button';
-import GithubOutlined from '@ant-design/icons/GithubOutlined';
-import { showOnly, sourceUrl } from '@/types/ui-constants';
+import { showOnly } from '@/types/ui-constants';
 import type {
     ParsedSuiteRecord,
     ParsedTestRecord,
@@ -228,17 +226,6 @@ export function RenderTestItem(properties: {
                 </Tooltip>
             )}
         </Space>
-    );
-}
-
-export function GithubRepoLink() {
-    return (
-        <Button
-            icon={<GithubOutlined style={{ fontSize: 20 }} />}
-            href={sourceUrl}
-            target="_blank"
-            id={LOCATORS.RUNS.githubURL}
-        />
     );
 }
 

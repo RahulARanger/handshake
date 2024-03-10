@@ -53,8 +53,16 @@ export class RunsPageLocators {
 		return $(`#${LOCATORS.RUNS.dateRangeSelector}`);
 	}
 
-	get githubRepo() {
-		return $(`#${LOCATORS.RUNS.githubURL}`);
+	get aboutModal() {
+		return $(`#${LOCATORS.RUNS.about}`);
+	}
+
+	get handshakeHeader() {
+		return $("h1#handshake-");
+	}
+
+	get resourcesHeader() {
+		return $("h2#resources");
 	}
 
 	get testRunsCard() {

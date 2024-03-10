@@ -12,7 +12,7 @@ export const LOCATORS = {
         statusForTestEntity: "status",
         projectNameDropdown: 'project-name-dropdown',
         dateRangeSelector: 'dateRange-selector',
-        githubURL: 'github-repo',
+        about: 'about-handshake',
         testRunsCard: "test-runs-card",
         testRunsSwitch: 'switch-for-test-runs-plot'
 	},

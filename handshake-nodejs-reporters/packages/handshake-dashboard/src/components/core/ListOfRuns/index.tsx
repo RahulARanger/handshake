@@ -31,7 +31,6 @@ import RelativeTo, {
     RenderDuration,
 } from '@/components/utils/Datetime/relative-time';
 import {
-    GithubRepoLink,
     RenderFrameworkUsed,
     RenderStatus,
 } from '@/components/utils/renderers';
@@ -340,7 +339,7 @@ export default function GridOfRuns(properties: {
                         align="center"
                     >
                         <BreadCrumb items={crumbs(false)} />
-                        <GithubRepoLink />
+                        <AboutModal about={properties.about ?? ''} />
                     </Space>
                 </Layout.Header>
                 <Space

@@ -38,7 +38,7 @@ jobs:
 
         - name: generate test reports
           working-directory: ./handshake-nodejs-reporters
-          run: sudo npx handshake export ../TestResults --out ../TestReports
+          run: npm run export-sanity-results
 
         - name: verify test reports
           working-directory: ./handshake-nodejs-reporters

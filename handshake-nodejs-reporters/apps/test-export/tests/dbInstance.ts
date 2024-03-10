@@ -11,7 +11,10 @@ dayjs.extend(advancedFormat);
 
 async function getConnection() {
 	return await open({
-		filename: "../../../TestResults/TeStReSuLtS.db", // hard-coded for testing purposes
+		filename:
+			process.env.TYPE !== "SANITY"
+				? "../../../TestResults/TeStReSuLtS.db"
+				: "../../../SanityResults/TeStReSuLtS.db", // hard-coded for testing purposes
 		driver: sqlite3.Database,
 	});
 }
