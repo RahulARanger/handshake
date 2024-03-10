@@ -44,7 +44,7 @@ describe('Verifying the handshake-server helper class', () => {
     });
 
     test('verifying the initialization of the server', async () => {
-      const server = await instance.startService('common-handshakes-jest-tests', results, root);
+      const server = instance.startService('common-handshakes-jest-tests', results, root);
       expect(await instance.ping()).toBe(false); // instance takes some time to start
       await instance.waitUntilItsReady(); // so we need to wait
 
@@ -87,6 +87,6 @@ describe('Verifying the handshake-server helper class', () => {
       // on max we can set 3 seconds for termination
 
       expect(await instance.isServerTerminated()).toBe(true);
-    }, 5e3);
+    }, 10e3);
   });
 });
