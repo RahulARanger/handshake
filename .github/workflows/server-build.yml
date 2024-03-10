@@ -132,7 +132,7 @@ jobs:
           run: bash ./.github/scripts/release-server-tag.sh
 
         - name: Request dashboard-build to use the latest release
-          uses: peter-evans/create-pull-request@v5
+          uses: peter-evans/create-pull-request@v6
           with:
             commit-message: "Requesting to use the new build for the server: ${{ steps.version.outputs.VERSION }}"
             delete-branch: true

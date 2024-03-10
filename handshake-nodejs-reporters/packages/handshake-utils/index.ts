@@ -45,7 +45,7 @@ export const TEXT = {
     },
     DETAILED: {
         greet: "In Detail",
-        description: "This page would show the test entities in detail."
+        description: "This page would show the test entities of the test run in detail."
     },
 	AUTHOR: "RahulARanger<saihanumarahul66@gmail.com>",
 	dateFormatUsed: "ddd, MMM Do YYYY",

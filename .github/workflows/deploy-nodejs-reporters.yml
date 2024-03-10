@@ -28,18 +28,25 @@ jobs:
           with:
             node-version: 20.9.0
 
-        - name: Setup Turbo Repo and conduct sanity test
+        - name: Setup Turbo Repo.
           working-directory: ./handshake-nodejs-reporters
           run: npm install && npm run build && sudo npm run sanity
+
+        - name: conduct sanity tests
+          working-directory: ./handshake-nodejs-reporters
+          run: sudo npm run sanity
+
+        - name: generate test reports
+          working-directory: ./handshake-nodejs-reporters
+          run: sudo npx handshake export ../TestResults --out ../TestReports
+
+        - name: verify test reports
+          working-directory: ./handshake-nodejs-reporters
+          run: npm run verify-sanity
 
 #        - name: Download required packages for Dashboard
 #          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
 #          run: npm install
-
-#        - name: Exporting static results
-#          working-directory: ./handshake-nodejs-reporters
-#          run: |
-#            sudo npx handshake export ../TestResults --out ../TestReports
 
         - name: Create .npmrc file
           env:

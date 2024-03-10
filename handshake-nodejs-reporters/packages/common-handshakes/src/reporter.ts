@@ -75,7 +75,7 @@ export class ReporterDialPad extends DialPad {
         const { text, ok } = result;
         if (!ok) {
           logger.error(
-            `❌ Server failed to understand the request sent to ${contact} with payload; ${feed}. It attached a note: ${text}`,
+            `❌ Server failed to understand the request sent to ${contact} with payload: ${feed}.\nIt attached a note: ${text}`,
           );
           return;
         }
@@ -83,7 +83,7 @@ export class ReporterDialPad extends DialPad {
         logger.debug(`✅ Server accepted the request and attached a note: ${text}`);
         if (storeIn) {
           logger.debug(
-            `🫙 Storing received response key [${storeIn}] as ${text}`,
+            `Storing received response key [${storeIn}] as ${text}`,
           );
           this.idMapped[storeIn] = String(text);
         }
@@ -175,6 +175,8 @@ export class ReporterDialPad extends DialPad {
       return false;
     }
 
+    let pipeOutput: string | false = false;
+
     const { value, ...sendPayload } = payload;
 
     await superagent
@@ -190,8 +192,8 @@ export class ReporterDialPad extends DialPad {
             mkdirSync(attachmentFolderForTestRun);
             // we are supposed to ensure the folders for the test runs
           }
-
           await writeFile(expectedFilePath, value as string, { encoding: 'base64' }, () => { logger.info(`saved successfully at: ${result.text}`); });
+          pipeOutput = expectedFilePath;
         } else {
           logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
         }
@@ -199,7 +201,7 @@ export class ReporterDialPad extends DialPad {
         this.misFire += 1;
         logger.error(`❌ Failed to attach ${forWhat} for ${payload.entityID}, because of ${err}`);
       });
-    return true;
+    return pipeOutput;
   }
 
   async addDescription(

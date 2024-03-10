@@ -32,7 +32,7 @@ export class ServiceDialPad extends DialPad {
   executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
     const starter = isSync ? spawnSync : spawn;
 
-    logger.info(`🤝 with ${args} at ${this.exePath} from ${cwd} => ${args.join(' ')}`);
+    logger.info(`🫱🏻‍🫲🏾 with ${args} at ${this.exePath} from ${cwd} => ${args.join(' ')}`);
 
     return starter(
       this.exePath,
@@ -71,7 +71,7 @@ export class ServiceDialPad extends DialPad {
     });
 
     logger.info(
-      `Started handshake-server, running 🐰 at pid: ${pyProcess.pid}`,
+      `Started handshake-server, pid: ${pyProcess.pid}`,
     );
 
     // important for avoiding zombie py server
@@ -84,14 +84,15 @@ export class ServiceDialPad extends DialPad {
   }
 
   async ping(): Promise<boolean> {
-    logger.info('pinging py-server 👆...');
+    logger.info('pinging py-server...');
     const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
+    logger.info(`found response: ${resp?.statusCode ?? '404'}`);
     return resp?.statusCode === 200;
   }
 
   async waitUntilItsReady(force?:number): Promise<unknown> {
     const waitingForTheServer = new Error(
-      'Not able to connect with handshake-server within a minute 😢.',
+      '🔴 Not able to connect with handshake-server within a minute. Please try running this again, else report this as an issue.',
     );
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout;
@@ -109,10 +110,10 @@ export class ServiceDialPad extends DialPad {
 
         if (isOnline) {
           cleanup();
-          logger.info('Server is online! 😀');
+          logger.info('Server is online! 🟢');
           resolve({});
         } else {
-          logger.warn('😓 pinging server again...');
+          logger.warn('🟡 pinging server again...');
         }
       }, 3e3);
     });
@@ -135,7 +136,7 @@ export class ServiceDialPad extends DialPad {
           .post(`${this.url}/bye`)
           .retry(2)
           .catch(() => {
-            logger.info('→ Py Process was closed 😪');
+            logger.info('→ Py Process was closed');
           }),
       );
     }
@@ -181,7 +182,7 @@ export class ServiceDialPad extends DialPad {
     }
     const patchArgs = ['patch', resultsDir];
     if (outDir == null) {
-      logger.info(`Patching the results ⛑️, passing the command ${patchArgs}`);
+      logger.info(`Patching the results 🟠, passing the command ${patchArgs}`);
     }
 
     // for patching

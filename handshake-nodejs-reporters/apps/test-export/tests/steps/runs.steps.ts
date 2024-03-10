@@ -8,6 +8,10 @@ Given("User is in the runs page", async () => {
 	await runsPage.verifyPage();
 });
 
+Then("User would see the results for the {int} test runs", async (runs) => {
+	await expect(runsPage.runsRoute).toHaveText(`Runs (${runs})`);
+});
+
 Then("User must be able to see the latest Test run", async () => {
 	await runsPage.verifyLatestTestRun();
 });
@@ -28,11 +32,8 @@ Then(
 	}
 );
 
-Then("User can see the Application name and Total test runs", async () => {
+Then("User can see the Application name", async () => {
 	await expect(runsPage.applicationName).toHaveText(TEXT.applicationName);
-	await expect(runsPage.runsRoute).toHaveText(
-		`Runs (${await runsPage.totalRuns()})`
-	);
 });
 
 Then("User can see Filter components", async () => {
