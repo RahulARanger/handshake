@@ -21,7 +21,9 @@ CREATE TEMP TABLE RECENT_SUITES AS
     select
         json_array_length(errors) as numberOfErrors,
         * from suitebase
-    WHERE session_id in CURRENT_SESSIONS and suiteType = 'SUITE'
+    WHERE session_id in CURRENT_SESSIONS
+     and suiteType = 'SUITE'
+    --  and standing <> 'RETRIED'
     order by started desc
     limit 6;
 
@@ -65,8 +67,9 @@ INSERT INTO KEY_NUMBERS
 	select 'imageCount' as key, 
   count(*) from staticbase where type = 'PNG' and entity_id in CURRENT_SUITES;
 
+-- we collect tests which have failed
 create temp table LOOK_FOR_TESTS as
-	select suiteID from suitebase where suiteID in CURRENT_SUITES and suiteType = 'TEST' and standing in ('RETRIED', 'FAILED');
+	select suiteID from suitebase where suiteID in CURRENT_SUITES and suiteType = 'TEST' and standing = 'FAILED';
 
 
 -- Number of Broken Tests
@@ -93,4 +96,4 @@ CREATE TEMP TABLE RELATED_RUNS AS
   select * from runbase
   where projectName in (
     select projectName from runbase where testID in CURRENT_RUN_ID
-  );
+  ) and ended <> '';

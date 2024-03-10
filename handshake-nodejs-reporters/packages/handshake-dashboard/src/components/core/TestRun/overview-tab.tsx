@@ -157,7 +157,7 @@ function PreviewForImages(): ReactNode {
 
     return images.length > 0 ? (
         <Space direction="vertical" align="center">
-            <GalleryOfImages loop={true} width={'35vw'}>
+            <GalleryOfImages width={'35vw'}>
                 {images.map((image, index) => (
                     <PlainImage
                         url={image.path}
@@ -411,7 +411,7 @@ export default function Overview(): ReactNode {
                         }
                         color="#1A0014"
                         style={{
-                            border: '1px solid #370224',
+                            border: '1px solid #441900',
                             paddingTop: '3px',
                             paddingBottom: '3px',
                         }}

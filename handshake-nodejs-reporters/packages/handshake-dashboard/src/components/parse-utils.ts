@@ -173,12 +173,11 @@ export function convertForWrittenAttachments(
     attachmentID: string,
 ): string {
     const basics = [attachmentPrefix, testID, attachmentID];
-    if (process.env.IS_TEST) {
+    if (process.env.IMAGE_PROXY_URL && process.env.IS_TEST) {
         basics.reverse();
-        basics.push(process.env.IMAGE_PROXY_URL ?? '');
+        basics.push(process.env.IMAGE_PROXY_URL);
         basics.reverse();
     }
-
     return basics.join('/');
 }
 

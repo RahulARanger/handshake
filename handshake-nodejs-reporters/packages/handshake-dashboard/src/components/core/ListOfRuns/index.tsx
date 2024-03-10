@@ -217,7 +217,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
     );
 
     const forThisWeek = chronological.filter((run) =>
-        run.Started[0].isBetween(thisWeek, yesterday, 'date', '[)'),
+        run.Started[0].isBetween(thisWeek, today, 'date', '[)'),
     );
 
     const forYesterday = chronological.filter((run) =>
