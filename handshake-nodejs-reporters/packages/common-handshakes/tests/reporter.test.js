@@ -2,7 +2,6 @@ const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
 const { join, dirname } = require('path');
-const { existsSync } = require('fs');
 const { ReporterDialPad, ServiceDialPad, acceptableDateString } = require('../dist/index');
 const {
   resetDir, results, root, uuidRegex,
@@ -127,7 +126,8 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
       const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['test-0-1'], 'sample-description');
       const expectedTestID = dirname(testAttachment);
-      // expect(existsSync(testAttachment)).toBe(true); // commented because the file has not saved yet (async-write)
+      // expect(existsSync(testAttachment)).toBe(true);
+      // commented because the file has not saved yet (async-write)
       expect(dirname(dirname(testAttachment))).toBe(join(results, 'Attachments'));
       expect(reporter.misFire).toBe(0);
 

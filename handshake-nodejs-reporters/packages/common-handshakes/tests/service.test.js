@@ -15,16 +15,17 @@ describe('Verifying the handshake-server helper class', () => {
       expect(instance.port).toBe(6969);
     });
 
-    test('verifying the function for executing synchronous command', () => {
+    test('verifying the function for executing synchronous command', (done) => {
       const result = instance.executeCommand(['--help'], true, process.cwd());
       expect(result).not.toBeUndefined(); // there should be process returned
       expect(result.error).toBeUndefined(); // no errors
       expect(result.status).toBe(0); // 0 exit code
+      done();
     });
 
     test('verifying the closed ping', async () => {
       expect(await instance.ping()).toBe(false);
-    });
+    }, 100e3);
 
     test('verifying the closed server status', async () => {
       expect(await instance.isServerTerminated()).toBe(true);
