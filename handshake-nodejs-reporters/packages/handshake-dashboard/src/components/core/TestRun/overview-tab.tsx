@@ -69,7 +69,7 @@ function TopSuites(properties: {
                 render={(_) => (
                     <Typography
                         className={TextShadow.suiteName}
-                        style={{ maxWidth: '350px' }}
+                        style={{ maxWidth: '550px' }}
                     >
                         {_}
                     </Typography>
@@ -81,6 +81,7 @@ function TopSuites(properties: {
                 <Table.Column
                     title="Rate"
                     dataIndex="Passed"
+                    width={250}
                     render={(_: number, record: SuiteRecordDetails) => (
                         <RenderPassedRate
                             value={[
@@ -156,13 +157,12 @@ function PreviewForImages(): ReactNode {
 
     return images.length > 0 ? (
         <Space direction="vertical" align="center">
-            <GalleryOfImages loop={true} width={'440px'}>
+            <GalleryOfImages loop={true} width={'35vw'}>
                 {images.map((image, index) => (
                     <PlainImage
                         url={image.path}
                         key={index}
                         title={image.title}
-                        maxHeight={'350px'}
                         isPlain={true}
                     />
                 ))}
@@ -270,101 +270,76 @@ export default function Overview(): ReactNode {
 
     const progress = (
         <Space
-            size="large"
+            align="center"
             direction="vertical"
-            style={{ height: '100%' }}
+            className="smooth-box"
+            size={[0, 0]}
+            style={{
+                fontSize: '2.6rem',
+                textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
+                width: '28vw',
+                height: '100%',
+                whiteSpace: 'nowrap',
+                padding: '15px',
+                borderRadius: '25px',
+                backdropFilter: 'blur(20px)',
+                paddingTop: '6px',
+            }}
             styles={{
                 item: { width: '100%' },
             }}
         >
+            <Space style={{ zIndex: 3 }}>
+                <Counter end={total} maxDigits={run.Tests} />
+                <Select
+                    key={'switch'}
+                    size="large"
+                    variant="borderless"
+                    id={LOCATORS.OVERVIEW.testEntitySwitch}
+                    options={[
+                        {
+                            value: true,
+                            label: `Test Cases`,
+                        },
+                        {
+                            value: false,
+                            label: `Test Suites`,
+                        },
+                    ]}
+                    value={isTest}
+                    onChange={(checked: boolean) => {
+                        setTest(checked);
+                    }}
+                />
+            </Space>
+            <TestEntitiesOverTime
+                relatedRuns={relatedRuns}
+                showSuites={!isTest}
+                currentRun={run.Id}
+            />
             <article
                 style={{
-                    backdropFilter: 'blur(20px)',
+                    display: 'flex',
+                    justifyContent: 'flex-start',
+                    alignItems: 'center',
                 }}
             >
-                <Space
-                    align="center"
-                    direction="vertical"
-                    className="smooth-box"
-                    size={[0, 0]}
-                    style={{
-                        fontSize: '2.6rem',
-                        textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
-                        whiteSpace: 'nowrap',
-                        padding: '15px',
-                        borderRadius: '25px',
-                    }}
-                    styles={{
-                        item: { width: '100%' },
-                    }}
-                >
-                    <Space style={{ zIndex: 3 }}>
-                        <Counter end={total} maxDigits={run.Tests} />
-                        <Select
-                            key={'switch'}
-                            size="large"
-                            variant="borderless"
-                            id={LOCATORS.OVERVIEW.testEntitySwitch}
-                            options={[
-                                {
-                                    value: true,
-                                    label: `Test Cases`,
-                                },
-                                {
-                                    value: false,
-                                    label: `Test Suites`,
-                                },
-                            ]}
-                            value={isTest}
-                            onChange={(checked: boolean) => {
-                                setTest(checked);
-                            }}
-                        />
-                    </Space>
-                    <TestEntitiesOverTime
-                        relatedRuns={relatedRuns}
-                        showSuites={!isTest}
-                        currentRun={run.Id}
+                <Space align="start">
+                    <RelativeTo
+                        dateTime={startedAt}
+                        secondDateTime={run.Ended[0]}
+                        autoPlay={true}
+                        width="170px"
+                        prefix="It Started "
                     />
-                    <article
-                        style={{
-                            display: 'flex',
-                            justifyContent: 'flex-start',
-                            alignItems: 'center',
-                        }}
-                    >
-                        <Space align="start">
-                            <RelativeTo
-                                dateTime={startedAt}
-                                secondDateTime={run.Ended[0]}
-                                autoPlay={true}
-                                width="170px"
-                                prefix="It Started "
-                            />
-                            <RenderDuration
-                                duration={run.Duration}
-                                autoPlay={true}
-                                width="150px"
-                                prefix="Ran for "
-                            />
-                        </Space>
-                    </article>
+                    <RenderDuration
+                        duration={run.Duration}
+                        autoPlay={true}
+                        width="150px"
+                        prefix="Ran for "
+                    />
                 </Space>
             </article>
-            <Space
-                className="smooth-box"
-                align="end"
-                style={{
-                    textShadow: 'rgba(0,208,255,0.9) 0px 0px 10px',
-
-                    padding: '6px',
-                    paddingLeft: '20px',
-                    paddingRight: '12px',
-                    borderRadius: '25px',
-                    textAlign: 'right',
-                }}
-                direction="vertical"
-            ></Space>
         </Space>
     );
 
@@ -441,7 +416,7 @@ export default function Overview(): ReactNode {
                             paddingBottom: '3px',
                         }}
                     >
-                        <div style={{ width: '350px' }} className="smooth-box">
+                        <div style={{ width: '29vw' }} className="smooth-box">
                             <ProgressPieChart
                                 rate={rate}
                                 isTestCases={isTest}
@@ -452,9 +427,7 @@ export default function Overview(): ReactNode {
                         </div>
                     </Ribbon>
 
-                    <Space>
-                        <PreviewForImages />
-                    </Space>
+                    <PreviewForImages />
                 </Space>
                 {table}
             </Space>

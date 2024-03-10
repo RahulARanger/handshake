@@ -1,6 +1,6 @@
 .card {
     /* inspired from https://uigradients.com/#RedOcean and https://uigradients.com/#Netflix */
-    background: linear-gradient(to right, #1f1c18, #141e30);
+    background: linear-gradient(to right, #1f1c18, #141e30) !important;
     box-shadow:
         rgba(0, 0, 0, 0.4) 0px 2px 4px,
         rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
@@ -13,8 +13,11 @@
     z-index: 100;
     border: 1.5px solid #003d53;
     border-radius: 25px;
-
-    background-image: linear-gradient(25deg, #441900 0%, #023770c8 100%);
+    background-image: linear-gradient(
+        25deg,
+        #441900 0%,
+        #023770c8 100%
+    ) !important;
 }
 
 .sider {

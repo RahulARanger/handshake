@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import React, { type ReactNode } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts/core';
@@ -55,6 +56,7 @@ export function SwitchValues(properties: {
     smallSize?: boolean;
     defaultIsRollup?: boolean;
     onChange: (isRollup: boolean) => void;
+    style?: CSSProperties;
 }): ReactNode {
     return (
         <Segemented
@@ -68,7 +70,7 @@ export function SwitchValues(properties: {
                             title={'Shows only the top-level suites or tests'}
                             color={'purple'}
                         >
-                            {properties.smallSize ? '🗃️' : 'indivi.'}
+                            🗃️
                         </Tooltip>
                     ),
                     value: '',
@@ -76,7 +78,7 @@ export function SwitchValues(properties: {
                 {
                     label: (
                         <Tooltip title={'Shows all the tests'} color={'blue'}>
-                            {properties.smallSize ? '🧪' : 'all'}
+                            🧪
                         </Tooltip>
                     ),
                     value: '1',
@@ -85,13 +87,14 @@ export function SwitchValues(properties: {
             onChange={(value) => {
                 properties.onChange(Boolean(value));
             }}
+            style={properties.style}
         />
     );
 }
 
 export default function RenderPassedRate(properties: {
     value: [number, number, number];
-    width?: number;
+    width?: string | number;
     immutable?: boolean;
     title?: string;
 }): ReactNode {
@@ -154,7 +157,7 @@ export default function RenderPassedRate(properties: {
             option={options}
             style={{
                 height: '15px',
-                width: properties.width ?? 180,
+                width: properties.width ?? '100%',
                 marginTop: '3px',
                 padding: '0px',
             }}

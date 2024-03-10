@@ -32,7 +32,6 @@ import {
 import type { CallbackDataParams } from 'echarts/types/dist/shared';
 import type { TopLevelFormatterParams } from 'echarts/types/dist/shared';
 import { LOCATORS } from 'handshake-utils';
-import CardStyles from 'src/styles/card.module.css';
 
 type composed = ComposeOption<
     | PieSeriesOption
@@ -137,7 +136,7 @@ export default function ProgressPieChart(properties: {
                 borderRadius: '10px',
             }}
             lazyUpdate={true}
-            className={`${properties.rate[0]}-${properties.rate[1]}-${properties.rate[2]} ${LOCATORS.CHARTS.progress} ${properties.noShadow ? '' : CardStyles.card}`}
+            className={`${properties.rate[0]}-${properties.rate[1]}-${properties.rate[2]} ${LOCATORS.CHARTS.progress} ${properties.noShadow ? '' : 'smooth-box'}`}
         />
     );
 }

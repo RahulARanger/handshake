@@ -1,6 +1,5 @@
 import React, { type ReactNode } from 'react';
 import carouselStyles from '../../styles/carousel.module.css';
-import useEmblaCarousel from 'embla-carousel-react';
 import Image from 'antd/lib/image';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Text from 'antd/lib/typography/Text';
@@ -9,11 +8,13 @@ import Meta from 'antd/lib/card/Meta';
 import Tooltip from 'antd/lib/tooltip/index';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
 import { Carousel } from 'antd/lib';
+import CaretRightOutlined from '@ant-design/icons/CaretRightOutlined';
+import CaretLeftOutlined from '@ant-design/icons/CaretLeftOutlined';
 
 export function PlainImage(properties: {
     title: string;
     url: string;
-    maxHeight?: string;
+    height?: string;
     isPlain?: boolean;
     id?: string;
     desc?: string;
@@ -22,7 +23,7 @@ export function PlainImage(properties: {
         <Image
             height={'95%'}
             style={{
-                maxHeight: properties.maxHeight ?? '250px',
+                height: properties.height ?? '100%',
                 objectFit: 'cover',
                 objectPosition: 'top',
                 border: '1px solid grey',
@@ -83,62 +84,30 @@ export function PlainImage(properties: {
 }
 
 export default function GalleryOfImages(properties: {
-    loop?: boolean;
     children: ReactNode[];
     width?: string;
-    height?: string;
+    noLoop?: boolean;
     dragFree?: boolean;
+    pics?: number;
 }): ReactNode {
     return (
         <PreviewGroup>
             <Carousel
                 draggable
                 className={`${carouselStyles.container} smooth-box`}
-                style={{ width: properties.width, padding: '10px' }}
+                style={{
+                    padding: '10px',
+                    width: properties.width,
+                }}
+                infinite={!properties.noLoop}
                 autoplay
-                slidesToShow={1.75}
+                slidesToShow={properties.pics ?? 1.75}
+                arrows={true}
+                prevArrow={<CaretLeftOutlined />}
+                nextArrow={<CaretRightOutlined />}
             >
                 {properties.children}
             </Carousel>
         </PreviewGroup>
-    );
-}
-
-export function GalleryOfImagesLeftToRight(properties: {
-    loop?: boolean;
-    children: ReactNode[];
-    maxWidth?: string;
-    height?: string;
-}): ReactNode {
-    const [emblaReference] = useEmblaCarousel({
-        loop: properties.loop,
-        align: 'center',
-        dragFree: true,
-    });
-
-    return (
-        <div
-            className={carouselStyles.embla}
-            ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth, userSelect: 'none' }}
-        >
-            <div
-                className={carouselStyles.container}
-                style={{
-                    maxHeight: properties.height ?? '240px',
-                    userSelect: 'none',
-                }}
-            >
-                {properties.children.map((child, index) => (
-                    <div
-                        className={carouselStyles.slide}
-                        key={index}
-                        style={{ flex: '0 0 75%' }}
-                    >
-                        {child}
-                    </div>
-                ))}
-            </div>
-        </div>
     );
 }

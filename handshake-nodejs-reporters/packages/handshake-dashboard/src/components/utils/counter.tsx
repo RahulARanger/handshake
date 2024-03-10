@@ -4,6 +4,7 @@ import React, { Component, type ReactNode } from 'react';
 import CountUp from 'react-countup';
 import type { TooltipComponentOption } from 'echarts/components';
 import { Tooltip } from 'antd/lib';
+import Typography from 'antd/lib/typography/Typography';
 export default class Counter extends Component<
     {
         style?: CSSProperties;
@@ -68,20 +69,6 @@ export function StatisticNumber(properties: {
         </Tooltip>
     );
 }
-export const getColorCode = (value: number) => {
-    const colors = [
-        'red',
-        '#ffcdd3',
-        '#ffd180',
-        'orange',
-        '#ffecb3',
-        'yellow',
-        '#c8e6c9',
-        'green',
-    ];
-    const expected = Math.floor(value / (100 / colors.length));
-    return colors.at(expected >= colors.length ? -1 : expected);
-};
 
 export function StaticPercent(properties: { percent: number }): ReactNode {
     return (
@@ -89,10 +76,28 @@ export function StaticPercent(properties: { percent: number }): ReactNode {
             end={properties.percent}
             suffix={'%'}
             title="Number of Tests (rolled_up) / Total Number of tests"
-            style={{
-                color: getColorCode(properties.percent),
-            }}
         />
+    );
+}
+
+export function ShowContribution(properties: {
+    testsContributed: number;
+    totalTests: number;
+    percent: number;
+    prefix?: string;
+}): ReactNode {
+    return (
+        <Tooltip
+            title={`Contributed ${properties.testsContributed} out of ${properties.totalTests}`}
+            color="volcano"
+        >
+            <Typography>
+                {properties.prefix ?? ''}
+                <StaticPercent
+                    percent={Number(properties.percent.toFixed(2)) * 1e2}
+                />
+            </Typography>
+        </Tooltip>
     );
 }
 

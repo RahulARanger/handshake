@@ -120,17 +120,17 @@ body {
 .ant-carousel .slick-prev,
 .ant-carousel .slick-prev:hover,
 .ant-carousel .slick-prev:focus {
-    font-size: inherit;
-    left: 10px;
+    font-size: 1.5rem;
+    left: 5px;
     z-index: 2;
-    color: blueviolet;
+    color: var(--text);
 }
 
 .ant-carousel .slick-next,
 .ant-carousel .slick-next:hover,
 .ant-carousel .slick-next:focus {
-    font-size: inherit;
-    right: 10px;
+    font-size: 1.5rem;
+    right: 5px;
     z-index: 2;
-    color: blueviolet;
+    color: var(--text);
 }

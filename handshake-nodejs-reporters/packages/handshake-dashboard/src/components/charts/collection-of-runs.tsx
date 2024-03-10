@@ -275,6 +275,7 @@ export function TestEntitiesOverTime(properties: {
                     tooltip: {
                         trigger: 'item',
                         ...(toolTipFormats as MarkLineOption['tooltip']),
+                        formatter: `Current Test Run`,
                     },
                 },
                 type: 'line',

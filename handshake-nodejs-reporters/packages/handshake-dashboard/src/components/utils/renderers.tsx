@@ -298,3 +298,17 @@ export function RenderFrameworkUsed(properties: {
         <Group>{links}</Group>
     );
 }
+export function RenderFilePath(properties: {
+    relativePath: string;
+    italic?: boolean;
+}): ReactNode {
+    const filePath = properties.relativePath.replace(/^.*[/\\]/, '');
+
+    return (
+        <Tooltip title={filePath}>
+            <Text italic={properties.italic} className={Dotted.suiteName}>
+                {filePath}
+            </Text>
+        </Tooltip>
+    );
+}

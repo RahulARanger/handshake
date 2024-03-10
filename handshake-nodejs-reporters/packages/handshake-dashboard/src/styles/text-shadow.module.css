@@ -36,6 +36,6 @@
 .suiteName {
     color: rgba(255, 255, 255, 0.85);
     white-space: pre-wrap !important;
-    white-space: -moz-pre-wrap;
-    text-align: left;
+    white-space: -moz-pre-wrap !important;
+    text-align: left !important;
 }

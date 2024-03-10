@@ -41,7 +41,7 @@ export default function RelativeTo(properties: {
             style={{
                 fontWeight: 150,
                 textAlign: 'center',
-                width: properties.width ?? '200px',
+                width: properties.width ?? '165px',
                 ...properties.style,
             }}
             swipeToSlide
@@ -116,7 +116,11 @@ export function RenderDuration(properties: {
     );
 }
 
-export function DurationText(properties: { duration?: Duration }): ReactNode {
+export function DurationText(properties: {
+    duration?: Duration;
+    prefix?: string;
+    suffix?: string;
+}): ReactNode {
     const seconds = properties?.duration?.asSeconds();
     return (
         <Typography
@@ -125,9 +129,9 @@ export function DurationText(properties: { duration?: Duration }): ReactNode {
         >
             {seconds === undefined
                 ? `--`
-                : `${seconds < 0 ? seconds * 100 : seconds} ${
+                : `${properties.prefix ?? ''}${seconds < 0 ? seconds * 100 : seconds} ${
                       seconds < 0 ? 'm' : ''
-                  }s`}
+                  }s${properties.suffix ?? ''}`}
         </Typography>
     );
 }
