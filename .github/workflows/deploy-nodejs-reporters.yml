@@ -15,7 +15,7 @@ permissions:
 
 jobs:
     deploy-nodejs-reporters:
-      name: build & publish
+      name: build & publish nodejs-reporters
       runs-on: 'macos-latest'
       permissions: write-all
 
