@@ -42,7 +42,7 @@ jobs:
 
         - name: verify test reports
           working-directory: ./handshake-nodejs-reporters
-          run: npm run verify-sanity
+          run: sudo npm run verify-sanity
 
 #        - name: Download required packages for Dashboard
 #          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
