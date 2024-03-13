@@ -7,16 +7,10 @@ from sanic import Sanic
 
 
 @service_provider.before_server_start
-async def before_start_of_day(app: Sanic, loop):
+async def before_start_of_day(*args):
     set_test_id()
     await init_tortoise_orm()
 
-
-def close_app(*args):
-    asyncio.run(close_connection())
-
-
-@service_provider.main_process_ready
-def handle_signals(app, loop):
-    signal(SIGINT, close_app)
-    signal(SIGTERM, close_app)
+@service_provider.after_server_stop
+async def close_app(*args):
+    await close_connection()

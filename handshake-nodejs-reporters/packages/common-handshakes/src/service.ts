@@ -128,19 +128,13 @@ export class ServiceDialPad extends DialPad {
   }
 
   async terminateServer() {
-    const results = [];
-    for (let worker = 0; worker < this.workers; worker += 1) {
-      logger.debug('Shutting down a worker of handshake-server');
-      results.push(
-        superagent
+    logger.debug('Shutting down a worker of handshake-server');
+    await superagent
           .post(`${this.url}/bye`)
           .retry(2)
           .catch(() => {
             logger.info('→ Py Process was closed');
-          }),
-      );
-    }
-    await Promise.all(results);
+          })
 
     if (this.pyProcess?.pid) {
       try {

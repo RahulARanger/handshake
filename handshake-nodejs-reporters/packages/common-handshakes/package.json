@@ -27,7 +27,8 @@
 		"cross-env": "^7.0.3",
 		"log4js": "^6.9.1",
 		"p-queue": "^8.0.1",
-		"superagent": "^8.1.2"
+		"superagent": "^8.1.2",
+		"tsup": "^8.0.2"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.24.0",

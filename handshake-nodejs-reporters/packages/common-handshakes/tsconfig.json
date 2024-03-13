@@ -1,6 +1,7 @@
 {
 	"extends": "./node.json",
 	"compilerOptions": {
+		"types": [],
 		"rootDirs": ["./src", "./test"],
 	}
 }
