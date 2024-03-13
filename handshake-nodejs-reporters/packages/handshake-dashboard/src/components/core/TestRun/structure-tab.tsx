@@ -1,15 +1,17 @@
-import Dotted from 'src/styles/dotted.module.css';
-import React, { useContext, type ReactNode, useState } from 'react';
+import Dotted from '@/styles/dotted.module.css';
+import React, { useContext, type ReactNode, useState, useMemo } from 'react';
 import Space from 'antd/lib/space';
 import Text from 'antd/lib/typography/Text';
 import Card from 'antd/lib/card/Card';
-import Counter from 'src/components/utils/counter';
+import Counter from '@/components/utils/counter';
 import { Tooltip } from 'antd/lib';
-import TreeMapComponent from 'src/components/charts/tree-map';
-import type { StatusContext } from 'src/types/transfer-structure-context';
-import { RenderStatus } from 'src/components/utils/renderers';
-import RenderTestType from 'src/components/utils/test-status-dot';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import TreeMapComponent, { treeData } from '@/components/charts/tree-map';
+import type { StatusContext } from '@/types/transfer-structure-context';
+import { RenderStatus } from '@/components/utils/renderers';
+import RenderTestType from '@/components/utils/test-status-dot';
+import { DetailedContext } from '@/types/records-in-detailed';
+import type { specNode } from '@/types/test-run-records';
+import type { SuiteDetails } from '@/types/parsed-records';
 
 function MousedPart(properties: { info?: StatusContext }): ReactNode {
     if (properties?.info === undefined)
@@ -79,16 +81,27 @@ function SuiteStatus(properties: { info?: StatusContext }): ReactNode {
     );
 }
 
+// export function treeViewData(props: {})
+
 export default function ProjectStructure(properties: {
     setTestID: (testID: string) => void;
 }): ReactNode {
     const [hovered, setHovered] = useState<StatusContext>();
 
     const context = useContext(DetailedContext);
+
+    const treeMapData = useMemo(
+        () =>
+            treeData(
+                context?.detailsOfTestRun?.specStructure ??
+                    ({ '<path>': '' } as specNode),
+                context?.suites ?? ({} as SuiteDetails),
+            ),
+        [context?.detailsOfTestRun, context?.suites],
+    );
     if (context == undefined) return <></>;
 
-    const { suites, detailsOfTestRun } = context;
-    const structure = detailsOfTestRun.specStructure;
+    const { suites } = context;
 
     return (
         <Card
@@ -99,8 +112,8 @@ export default function ProjectStructure(properties: {
         >
             <TreeMapComponent
                 suites={suites}
-                node={structure}
                 setHovered={setHovered}
+                data={treeMapData}
                 onClick={properties.setTestID}
             />
         </Card>

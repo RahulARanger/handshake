@@ -1,9 +1,7 @@
 .embla {
     overflow: hidden;
 }
-.container {
-    display: flex;
-}
+
 .slide {
     flex: 0 0 100%;
     min-width: 0px;
@@ -11,4 +9,17 @@
 
 .fullPageContainer {
     width: 99vw;
+}
+
+.container {
+    user-select: none;
+    cursor: grab;
+}
+
+.container:active {
+    cursor: grabbing;
+}
+
+.containerText {
+    font-weight: 350;
 }

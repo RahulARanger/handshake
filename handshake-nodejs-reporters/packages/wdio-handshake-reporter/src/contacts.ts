@@ -2,6 +2,7 @@
 import WDIOReporter, { TestStats } from '@wdio/reporter';
 import log4js, { Logger } from 'log4js';
 import { ReporterDialPad, ServiceDialPad } from 'common-handshakes';
+import { join } from 'node:path';
 import type { ReporterOptions, HandshakeServiceOptions } from './types';
 
 // eslint-disable-next-line import/no-mutable-exports
@@ -72,6 +73,13 @@ export class ContactsForService {
       this.options.port,
       this.options.logLevel,
       this.options.exePath,
+    );
+  }
+
+  get resultsDir(): string {
+    return join(
+      this.options.root ?? process.cwd(),
+      this.options.collectionName ?? 'Test Results',
     );
   }
 }

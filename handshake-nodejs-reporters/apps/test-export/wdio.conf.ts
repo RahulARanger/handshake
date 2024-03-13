@@ -1,5 +1,4 @@
 import type { Options } from "@wdio/types";
-import "dotenv/config";
 
 export const config: Options.Testrunner = {
 	//

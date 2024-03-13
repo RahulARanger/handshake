@@ -45,7 +45,7 @@ echarts.use([
     DatasetComponent,
 ]);
 
-function treeData(
+export function treeData(
     node: specNode,
     suites: SuiteDetails,
 ): TreemapSeriesOption['data'] {
@@ -86,6 +86,7 @@ function treeData(
                 id: current + child,
                 name: child,
                 children: [],
+                color: [standingToColors['PASSED']],
             };
             childrenSpace.push(childNode);
             nodes.push({
@@ -143,10 +144,10 @@ function treeData(
     return structure?.at(0)?.children;
 }
 export default class TreeMapComponent extends Component<{
-    node: specNode;
     suites: SuiteDetails;
     onClick: (suiteID: string) => void;
     setHovered: (record?: StatusContext) => void;
+    data: TreemapSeriesOption['data'];
 }> {
     levelOptions: TreemapSeriesOption['levels'] = [
         {
@@ -234,7 +235,7 @@ export default class TreeMapComponent extends Component<{
                         },
                     },
                     levels: this.levelOptions,
-                    data: treeData(this.props.node, this.props.suites),
+                    data: this.props.data,
                     breadcrumb: {
                         bottom: -50,
                         left: 5,

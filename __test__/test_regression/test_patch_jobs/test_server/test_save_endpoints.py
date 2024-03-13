@@ -4,7 +4,6 @@ from typing import Coroutine, Any
 from pytest import mark
 from handshake.services.DBService.models import (
     RunBase,
-    SessionBase,
     AttachmentBase,
     AssertBase,
     TestConfigBase,
@@ -12,12 +11,7 @@ from handshake.services.DBService.models import (
 )
 from handshake.services.DBService.models.enums import LogType, AttachmentType
 from sanic import Sanic
-
-
-async def set_config(app: Sanic, session: Coroutine[Any, Any, SessionBase]):
-    _session = await session
-    app.config.TEST_ID = str((await _session.test).testID)
-    return _session
+from __test__.test_regression.test_patch_jobs.test_server.commons import set_config
 
 
 @mark.usefixtures("sample_test_session")

@@ -1,7 +1,5 @@
 import React, { type ReactNode } from 'react';
 import carouselStyles from '../../styles/carousel.module.css';
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
 import Image from 'antd/lib/image';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Text from 'antd/lib/typography/Text';
@@ -9,11 +7,14 @@ import Card from 'antd/lib/card/Card';
 import Meta from 'antd/lib/card/Meta';
 import Tooltip from 'antd/lib/tooltip/index';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
+import { Carousel } from 'antd/lib';
+import CaretRightOutlined from '@ant-design/icons/CaretRightOutlined';
+import CaretLeftOutlined from '@ant-design/icons/CaretLeftOutlined';
 
 export function PlainImage(properties: {
     title: string;
     url: string;
-    maxHeight?: string;
+    height?: string;
     isPlain?: boolean;
     id?: string;
     desc?: string;
@@ -22,10 +23,11 @@ export function PlainImage(properties: {
         <Image
             height={'95%'}
             style={{
-                maxHeight: properties.maxHeight ?? '250px',
+                height: properties.height ?? '100%',
                 objectFit: 'cover',
                 objectPosition: 'top',
                 border: '1px solid grey',
+                borderRadius: '10px',
             }}
             width={'95%'}
             alt={`Image Attached: ${properties.title}`}
@@ -82,83 +84,30 @@ export function PlainImage(properties: {
 }
 
 export default function GalleryOfImages(properties: {
-    loop?: boolean;
     children: ReactNode[];
-    maxWidth?: string;
-    height?: string;
+    width?: string;
+    noLoop?: boolean;
     dragFree?: boolean;
+    pics?: number;
 }): ReactNode {
-    const [emblaReference] = useEmblaCarousel(
-        {
-            loop: properties.loop,
-            align: 'center',
-            axis: 'y',
-            dragFree: properties.dragFree ?? true,
-        },
-        [Autoplay({ stopOnInteraction: true, active: properties.loop })],
-    );
-
     return (
-        <div
-            className={carouselStyles.embla}
-            ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth, userSelect: 'none' }}
-        >
-            <div
-                className={carouselStyles.container}
+        <PreviewGroup>
+            <Carousel
+                draggable
+                className={`${carouselStyles.container} smooth-box`}
                 style={{
-                    flexDirection: 'column',
-                    maxHeight: properties.height ?? '240px',
-                    userSelect: 'none',
+                    padding: '10px',
+                    width: properties.width,
                 }}
+                infinite={!properties.noLoop}
+                autoplay
+                slidesToShow={properties.pics ?? 1.75}
+                arrows={true}
+                prevArrow={<CaretLeftOutlined />}
+                nextArrow={<CaretRightOutlined />}
             >
-                <PreviewGroup>
-                    {properties.children.map((child, index) => (
-                        <div className={carouselStyles.slide} key={index}>
-                            {child}
-                        </div>
-                    ))}
-                </PreviewGroup>
-            </div>
-        </div>
-    );
-}
-
-export function GalleryOfImagesLeftToRight(properties: {
-    loop?: boolean;
-    children: ReactNode[];
-    maxWidth?: string;
-    height?: string;
-}): ReactNode {
-    const [emblaReference] = useEmblaCarousel({
-        loop: properties.loop,
-        align: 'center',
-        dragFree: true,
-    });
-
-    return (
-        <div
-            className={carouselStyles.embla}
-            ref={emblaReference}
-            style={{ maxWidth: properties.maxWidth, userSelect: 'none' }}
-        >
-            <div
-                className={carouselStyles.container}
-                style={{
-                    maxHeight: properties.height ?? '240px',
-                    userSelect: 'none',
-                }}
-            >
-                {properties.children.map((child, index) => (
-                    <div
-                        className={carouselStyles.slide}
-                        key={index}
-                        style={{ flex: '0 0 75%' }}
-                    >
-                        {child}
-                    </div>
-                ))}
-            </div>
-        </div>
+                {properties.children}
+            </Carousel>
+        </PreviewGroup>
     );
 }

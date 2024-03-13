@@ -78,6 +78,12 @@ jobs:
         - name: Regression Test
           run: pytest __test__/test_regression
 
+        - name: Build env file
+          env:
+            ENV_FILE: ${{ secrets.PROD_ENV }}
+          run:
+            python ./.github/scripts/save-env.py
+
         - name: Build Generation
           run: pyinstaller starter.spec
 
@@ -117,7 +123,7 @@ jobs:
             body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
             prerelease: true
             tag_name: ${{ steps.version.outputs.VERSION }}
-            name: "Handshake 🤝 - ${{ steps.version.outputs.VERSION }}"
+            name: "Handshake v${{ steps.version.outputs.VERSION }}"
             generate_release_notes: true
 
         - name: Post Release Post
@@ -126,14 +132,14 @@ jobs:
           run: bash ./.github/scripts/release-server-tag.sh
 
         - name: Request dashboard-build to use the latest release
-          uses: peter-evans/create-pull-request@v5
+          uses: peter-evans/create-pull-request@v6
           with:
             commit-message: "Requesting to use the new build for the server: ${{ steps.version.outputs.VERSION }}"
             delete-branch: true
-            title: "Bump Server Build"
+            title: "Bump server build to ${{ steps.version.outputs.VERSION }}"
             labels: "Automated,Server-build"
             reviewers: "RahulARanger"
-            body: ":rocket: Bumped handshake-server version to `${{ steps.version.outputs.VERSION }}`.<br/>
+            body: "handshake-server is not at `v${{ steps.version.outputs.VERSION }}`.<br/>
 :magic_wand: Make sure to edit this [release](${{ steps.release.outputs.url }}) once done."
             base: "nodejs-reporters"
             assignees: "RahulARanger"

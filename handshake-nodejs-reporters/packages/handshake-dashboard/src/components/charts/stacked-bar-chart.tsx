@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import React, { type ReactNode } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts/core';
@@ -48,10 +49,52 @@ echarts.use([
     TooltipComponent,
     DatasetComponent,
 ]);
+import Segemented from 'antd/lib/segmented/index';
+import Tooltip from 'antd/lib/tooltip/index';
+
+export function SwitchValues(properties: {
+    smallSize?: boolean;
+    defaultIsRollup?: boolean;
+    onChange: (isRollup: boolean) => void;
+    style?: CSSProperties;
+}): ReactNode {
+    return (
+        <Segemented
+            type="text"
+            size={properties.smallSize ? 'small' : 'middle'}
+            defaultValue={properties.defaultIsRollup ? '1' : ''}
+            options={[
+                {
+                    label: (
+                        <Tooltip
+                            title={'Shows only the top-level suites or tests'}
+                            color={'purple'}
+                        >
+                            🗃️
+                        </Tooltip>
+                    ),
+                    value: '',
+                },
+                {
+                    label: (
+                        <Tooltip title={'Shows all the tests'} color={'blue'}>
+                            🧪
+                        </Tooltip>
+                    ),
+                    value: '1',
+                },
+            ]}
+            onChange={(value) => {
+                properties.onChange(Boolean(value));
+            }}
+            style={properties.style}
+        />
+    );
+}
 
 export default function RenderPassedRate(properties: {
     value: [number, number, number];
-    width?: number;
+    width?: string | number;
     immutable?: boolean;
     title?: string;
 }): ReactNode {
@@ -114,12 +157,14 @@ export default function RenderPassedRate(properties: {
             option={options}
             style={{
                 height: '15px',
-                width: properties.width ?? 180,
+                width: properties.width ?? '100%',
                 marginTop: '3px',
                 padding: '0px',
             }}
             className={`${properties.value[0]}-${properties.value[1]}-${properties.value[2]} ${LOCATORS.CHARTS.rate}`}
             opts={{ renderer: 'svg' }}
+            notMerge={true}
+            lazyUpdate={true}
         />
     );
 }

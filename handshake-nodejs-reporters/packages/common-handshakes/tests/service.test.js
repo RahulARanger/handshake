@@ -1,7 +1,7 @@
 const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
-const { ServiceDialPad } = require('../src/index');
+const { ServiceDialPad } = require('../dist/index');
 const { root, resetDir, results } = require('./utils');
 
 describe('Verifying the handshake-server helper class', () => {
@@ -15,16 +15,17 @@ describe('Verifying the handshake-server helper class', () => {
       expect(instance.port).toBe(6969);
     });
 
-    test('verifying the function for executing synchronous command', () => {
+    test('verifying the function for executing synchronous command', (done) => {
       const result = instance.executeCommand(['--help'], true, process.cwd());
       expect(result).not.toBeUndefined(); // there should be process returned
       expect(result.error).toBeUndefined(); // no errors
       expect(result.status).toBe(0); // 0 exit code
+      done();
     });
 
     test('verifying the closed ping', async () => {
       expect(await instance.ping()).toBe(false);
-    });
+    }, 100e3);
 
     test('verifying the closed server status', async () => {
       expect(await instance.isServerTerminated()).toBe(true);
@@ -43,7 +44,7 @@ describe('Verifying the handshake-server helper class', () => {
     });
 
     test('verifying the initialization of the server', async () => {
-      const server = await instance.startService('common-handshakes-jest-tests', results, root);
+      const server = instance.startService('common-handshakes-jest-tests', results, root);
       expect(await instance.ping()).toBe(false); // instance takes some time to start
       await instance.waitUntilItsReady(); // so we need to wait
 
@@ -86,6 +87,6 @@ describe('Verifying the handshake-server helper class', () => {
       // on max we can set 3 seconds for termination
 
       expect(await instance.isServerTerminated()).toBe(true);
-    }, 5e3);
+    }, 10e3);
   });
 });

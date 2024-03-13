@@ -26,9 +26,6 @@ class ExportBase(Model):
         default=10,
         description="Number of test runs to export [recent ones are picked]",
     )
-    clarity = CharField(
-        max_length=30, description="Clarity code, empty if disabled", null=True
-    )
 
 
 class TestConfigBase(Model):

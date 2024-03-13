@@ -10,6 +10,7 @@ dist/*
 results
 test-results/*
 TestResults/*
+SanityResults/*
 TestReports/*
 
 jest-init-tests
@@ -31,7 +32,9 @@ yarn-error.log*
 
 # local env files
 .env*.development
-*.env   
+*.env
+.env*
+!.env.vault
 venv/*
 
 # vercel

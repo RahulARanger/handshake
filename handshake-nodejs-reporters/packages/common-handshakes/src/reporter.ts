@@ -2,10 +2,16 @@ import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
 import PQueue, { QueueAddOptions } from 'p-queue';
 import PriorityQueue from 'p-queue/dist/priority-queue';
+import { existsSync, mkdirSync, writeFile } from 'node:fs';
+import { dirname } from 'node:path';
 import DialPad from './dialPad';
 import {
   RegisterSession,
-  MarkTestEntity, MarkTestSession, RegisterTestEntity, Assertion, Attachment,
+  MarkTestEntity,
+  MarkTestSession,
+  RegisterTestEntity,
+  Assertion,
+  Attachment,
 } from './payload';
 import { acceptableDateString } from './helpers';
 
@@ -27,12 +33,15 @@ export class ReporterDialPad extends DialPad {
 
   requests: Attachment[] = [];
 
-  constructor(port: number, timeout?:number, logLevel?:Level) {
+  constructor(port: number, timeout?: number, logLevel?: Level) {
     super(port);
     logger.level = logLevel ?? 'info';
-    this.pipeQueue = new PQueue(
-      { concurrency: 1, timeout: timeout ?? 180e3, throwOnTimeout: false },
-    );
+
+    this.pipeQueue = new PQueue({
+      concurrency: 1,
+      timeout: timeout ?? 180e3,
+      throwOnTimeout: false,
+    });
   }
 
   get registerSession(): string {
@@ -56,31 +65,39 @@ export class ReporterDialPad extends DialPad {
   }
 
   get writeAttachmentForEntity(): string {
-    return `${this.writeUrl}/addAttachmentForEntity`;
+    return `${this.saveUrl}/registerAWrittenAttachment`;
   }
 
-  async office(contact: string, payload?:object, callThisInside?: () => object, storeIn?: string) {
-    const feed = JSON.stringify((callThisInside === undefined ? payload : callThisInside()) ?? {});
-    logger.debug(
-      `Transferred payload: ${feed} to ${contact}.`,
+  async office(
+    contact: string,
+    payload?: object,
+    callThisInside?: () => object,
+    storeIn?: string,
+  ) {
+    const feed = JSON.stringify(
+      (callThisInside === undefined ? payload : callThisInside()) ?? {},
     );
+    logger.debug(`Transferred payload: ${feed} to ${contact}.`);
 
-    await superagent.put(contact)
+    await superagent
+      .put(contact)
       .send(feed)
       .retry(2)
       .on('response', (result) => {
         const { text, ok } = result;
         if (!ok) {
           logger.error(
-            `❌ Server failed to understand the request sent to ${contact} with payload; ${feed}. It attached a note: ${text}`,
+            `❌ Server failed to understand the request sent to ${contact} with payload: ${feed}.\nIt attached a note: ${text}`,
           );
           return;
         }
 
-        logger.debug(`✅ Server accepted the request and attached a note: ${text}`);
+        logger.debug(
+          `✅ Server accepted the request and attached a note: ${text}`,
+        );
         if (storeIn) {
           logger.debug(
-            `🫙 Storing received response key [${storeIn}] as ${text}`,
+            `Storing received response key [${storeIn}] as ${text}`,
           );
           this.idMapped[storeIn] = String(text);
         }
@@ -93,14 +110,13 @@ export class ReporterDialPad extends DialPad {
 
   async registerOrUpdateSomething(
     contact: string,
-    payload?:object,
+    payload?: object,
     storeIn?: string,
     callThisInside?: () => object,
   ) {
-    const job = await this.pipeQueue
-      .add(
-        () => this.office(contact, payload, callThisInside, storeIn),
-      );
+    const job = await this.pipeQueue.add(
+      () => this.office(contact, payload, callThisInside, storeIn),
+    );
 
     if (this.pipeQueue.size) logger.info(`Queue size in office 🏢: ${this.pipeQueue.size}`);
     return job;
@@ -111,14 +127,18 @@ export class ReporterDialPad extends DialPad {
       ...sessionPayload,
       started: acceptableDateString(sessionPayload.started),
     };
-    return this.registerOrUpdateSomething(this.registerSession, modifiedPayload, 'session');
+    return this.registerOrUpdateSomething(
+      this.registerSession,
+      modifiedPayload,
+      'session',
+    );
   }
 
   /**
-   *
-   * @param entityID some place where we can store the test id received from the server
-   * @param payload payload for registering the suite / test
-   */
+*
+* @param entityID some place where we can store the test id received from the server
+* @param payload payload for registering the suite / test
+*/
   requestRegisterTestEntity(
     entityID: string,
     payload: () => RegisterTestEntity,
@@ -140,7 +160,7 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
-  markTestSession(payload: (() => MarkTestSession)) {
+  markTestSession(payload: () => MarkTestSession) {
     this.registerOrUpdateSomething(
       this.addAttachmentsForEntities,
       undefined,
@@ -160,53 +180,88 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
+  /**
+ * note: we are assuming the value inside the payload -> value is of base64
+ * @param forWhat label for the attachment
+ * @param payload payload for your attachment
+ * @returns true if passed
+ */
   async saveAttachment(forWhat: string, payload: Attachment) {
     if (!payload.entityID) {
-      logger.warn(`😕 Skipping!, we have not attached a ${forWhat} for unknown entity`);
+      logger.warn(
+        `😕 Skipping!, we have not attached a ${forWhat} for unknown entity`,
+      );
       return false;
     }
+
+    let pipeOutput: string | false = false;
+
+    const { value, ...sendPayload } = payload;
+
     await superagent
       .put(this.writeAttachmentForEntity)
-      .send(JSON.stringify(payload))
-      .on('response', (result) => {
+      .send(JSON.stringify(sendPayload))
+      .on('response', async (result) => {
         if (result.ok) {
-          logger.debug(`🔗 Attached a ${forWhat} for entity: ${payload.entityID} with ${result.text}`);
+          const expectedFilePath = result.text;
+          logger.debug(
+            `Registered an attachment saving it here: ${result.text}`,
+          );
+
+          const attachmentFolderForTestRun = dirname(expectedFilePath);
+          if (!existsSync(attachmentFolderForTestRun)) {
+            mkdirSync(attachmentFolderForTestRun);
+            // we are supposed to ensure the folders for the test runs
+          }
+          await writeFile(
+            expectedFilePath,
+            value as string,
+            { encoding: 'base64' },
+            () => {
+              logger.info(
+                `saved successfully at: ${result.text}`,
+              );
+            },
+          );
+          pipeOutput = expectedFilePath;
         } else {
-          logger.error(`💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`);
+          logger.error(
+            `💔 Failed to attach ${forWhat} for ${payload.entityID}, because of ${result?.text}`,
+          );
         }
-      }).catch((err) => {
+      })
+      .catch((err) => {
         this.misFire += 1;
-        logger.error(`❌ Failed to attach ${forWhat} for ${payload.entityID}, because of ${err}`);
+        logger.error(
+          `❌ Failed to attach ${forWhat} for ${payload.entityID}, because of ${err}`,
+        );
       });
-    return true;
+    return pipeOutput;
   }
 
-  async addDescription(
-    content: string,
-    entity_id: string,
-  ) {
+  async addDescription(content: string, entity_id: string) {
     this.requests.push({
-      entityID: entity_id, type: 'DESC', value: content,
+      entityID: entity_id,
+      type: 'DESC',
+      value: content,
     });
   }
 
-  async addLink(
-    url: string,
-    title: string,
-    entity_id: string,
-  ) {
+  async addLink(url: string, title: string, entity_id: string) {
     this.requests.push({
-      entityID: entity_id, type: 'LINK', value: url, title,
+      entityID: entity_id,
+      type: 'LINK',
+      value: url,
+      title,
     });
   }
 
-  async addAssertion(
-    title: string,
-    assertion: Assertion,
-    entity_id: string,
-  ) {
+  async addAssertion(title: string, assertion: Assertion, entity_id: string) {
     this.requests.push({
-      entityID: entity_id, type: 'ASSERT', value: assertion, title,
+      entityID: entity_id,
+      type: 'ASSERT',
+      value: assertion,
+      title,
     });
   }
 
@@ -214,13 +269,14 @@ export class ReporterDialPad extends DialPad {
     title: string,
     content: string, // can be base64 encoded string
     entity_id: string,
-    description?:string,
+    description?: string,
   ) {
-    return this.saveAttachment(
-      'screenshot',
-      {
-        entityID: entity_id, type: 'PNG', value: content, title, description,
-      },
-    );
+    return this.saveAttachment('screenshot', {
+      entityID: entity_id,
+      type: 'PNG',
+      value: content,
+      title,
+      description,
+    });
   }
 }

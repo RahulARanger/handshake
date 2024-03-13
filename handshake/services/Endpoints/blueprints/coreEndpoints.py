@@ -6,11 +6,11 @@ from handshake.services.DBService.models.types import (
     MarkSession,
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
+    WrittenAttachmentForEntity,
 )
 from handshake.services.Endpoints.blueprints.utils import (
     attachError,
     extractPayload,
-    attachInfo,
     attachWarn,
     extractPydanticErrors,
 )
@@ -21,6 +21,7 @@ from handshake.services.DBService.models.static_base import (
 from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import Status, SuiteType
+from handshake.services.DBService.models.static_base import StaticBase
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
@@ -28,6 +29,10 @@ from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_patch_suite
 from pydantic import ValidationError
+from dotenv import load_dotenv
+from handshake.services.DBService.lifecycle import attachment_folder, db_path
+
+load_dotenv()
 
 
 service = Blueprint("DBService", url_prefix="/save")
@@ -54,10 +59,7 @@ async def register_session(request: Request) -> HTTPResponse:
     except Exception as error:
         logger.error("Failed to create a session due to exception: {}", str(error))
         return text(str(error), status=404)
-    await attachInfo(
-        dict(payload=request.json, response=str(session_record.sessionID)),
-        "/registerSuite",
-    )
+
     return text(str(session_record.sessionID), status=201)
 
 
@@ -66,9 +68,7 @@ async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
     suite_record = await SuiteBase.create(**suite.model_dump())
     await suite_record.save()
-    await attachInfo(
-        dict(payload=request.json, response=str(suite_record.suiteID)), "/registerSuite"
-    )
+
     return text(str(suite_record.suiteID), status=201)
 
 
@@ -96,9 +96,6 @@ async def updateSuite(request: Request) -> HTTPResponse:
 
     if suite_record.suiteType == SuiteType.SUITE:
         await register_patch_suite(suite_record.suiteID, get_test_id())
-    await attachInfo(
-        dict(payload=request.json, response=str(suite_record.suiteID)), "/updateSuite"
-    )
 
     return text(
         f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201
@@ -115,9 +112,6 @@ async def update_session(request: Request) -> HTTPResponse:
 
     await test_session.update_from_dict(session.model_dump())
     await test_session.save()
-    await attachInfo(
-        dict(payload=request.json, response=str(session.sessionID)), "/updateSession"
-    )
     return text(f"{session.sessionID} was updated", status=201)
 
 
@@ -197,6 +191,26 @@ async def update_run_config(request: Request) -> HTTPResponse:
         bail=run_config.bail,
     )
     await config.save()
-    await attachInfo(dict(payload=request.json, response=get_test_id()), "/currentRun")
 
     return text("provided config was saved successfully.", status=200)
+
+
+@service.put("/registerAWrittenAttachment", error_format="json")
+async def saveImage(request: Request) -> HTTPResponse:
+    attachment = WrittenAttachmentForEntity.model_validate(request.json)
+    record = await StaticBase.create(
+        entity_id=attachment.entityID,
+        description=attachment.description,
+        type=attachment.type,
+    )
+    file_name = f"{record.attachmentID}.{record.type.lower()}"
+    await record.update_from_dict(
+        dict(
+            attachmentValue=dict(value=file_name, title=attachment.title),
+        )
+    )
+    await record.save()
+    # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
+    return text(
+        str(attachment_folder(db_path()) / get_test_id() / file_name), status=201
+    )

@@ -1,7 +1,6 @@
 export interface RegisterSession {
   retried: number;
   started: Date;
-  specs: string[];
 }
 
 export type SuiteType = 'SUITE' | 'TEST';
@@ -39,7 +38,6 @@ export interface MarkTestSession {
   entityName: string;
   entityVersion: string;
   simplified: string;
-  standing: Standing;
 }
 
 export interface UpdateTestRunConfig {

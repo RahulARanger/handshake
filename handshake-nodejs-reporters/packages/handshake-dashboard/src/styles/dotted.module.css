@@ -50,7 +50,7 @@
 }
 
 .suiteName {
-    color: 'rgba(255, 255, 255, 0.85)';
+    color: 'rgba(255, 255, 255, 0.85)' !important;
     white-space: pre-wrap !important;
     white-space: -moz-pre-wrap;
     text-align: 'left';

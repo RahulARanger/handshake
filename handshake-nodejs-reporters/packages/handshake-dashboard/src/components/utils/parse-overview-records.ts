@@ -16,5 +16,7 @@ export function parseEntitiesForOverview(
         failed: record.failed,
         skipped: record.skipped,
         standing: record.standing,
+        numberOfErrors: record.numberOfErrors,
+        numberOfAssertions: record.numberOfAssertions ?? 0
     }));
 }

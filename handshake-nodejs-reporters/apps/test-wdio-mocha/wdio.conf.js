@@ -42,7 +42,7 @@ const metaConfig = {
 
 const root = dirname(dirname(dirname(process.cwd())))
 export const config = attachReporter(metaConfig, {
-    collectionName: "TestResults",
+    collectionName: process.env.SANITY ? "SanityResults" : "TestResults",
     port: 6969,
     timeout: 360e3,
     root,

@@ -1,9 +1,12 @@
 import { menuTabs } from 'src/types/ui-constants';
 import type { statusOfEntity } from 'src/types/session-records';
 import type { possibleEntityNames } from 'src/types/session-records';
-import { RenderEntityType, RenderStatus } from '../utils/renderers';
-import RenderPassedRate from '../charts/stacked-bar-chart';
-import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
+import {
+    RenderEntityType,
+    RenderFilePath,
+    RenderStatus,
+} from '../utils/renderers';
+import RenderPassedRate, { SwitchValues } from '../charts/stacked-bar-chart';
 import React, { useContext, type ReactNode, useState, useRef } from 'react';
 import { type Dayjs } from 'dayjs';
 import Table from 'antd/lib/table/Table';
@@ -13,19 +16,21 @@ import type { Duration } from 'dayjs/plugin/duration';
 import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
 import { timeFormatUsed } from '../utils/Datetime/format';
-import Badge from 'antd/lib/badge/index';
-import type { InputRef } from 'antd/lib';
-import { Spin, Tabs } from 'antd/lib';
-import { RenderDuration } from '../utils/relative-time';
-import RelativeTo from '../utils/Datetime/relative-time';
-import { StaticPercent } from '../utils/counter';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import type { InputRef } from 'antd/lib/input';
+import Spin from 'antd/lib/spin';
+import Tabs from 'antd/lib/tabs';
+import RelativeTo, { RenderDuration } from '../utils/Datetime/relative-time';
+import Counter, { ShowContribution } from '../utils/counter';
+import { DetailedContext } from '@/types/records-in-detailed';
+import Highlighter from 'react-highlight-words';
 import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';
 import Dotted from 'src/styles/dotted.module.css';
-import Search from 'antd/lib/input/Search';
+import CardStyles from '@/styles/card.module.css';
+import ExportOutlined from '@ant-design/icons/ExportOutlined';
 import SearchOutlined from '@ant-design/icons/SearchOutlined';
+import SearchEntities from '../utils/search-bar';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);
@@ -66,11 +71,13 @@ export default function TestEntities(properties: {
     const [showEntity, setShowEntity] = useState<boolean>(false);
     const [filterSuite, setFilterSuite] = useState<string>('');
     const [showSuiteFilter, setShowSuiteFilter] = useState<boolean>(false);
+    const [showRollup, setShowRollup] = useState<boolean>(true);
+
     const suiteSearchBar = useRef<InputRef>(null);
     const found = useRef<string[]>([]);
 
     if (context == undefined) return <></>;
-    const { suites, retriedRecords } = context;
+    const { suites, retriedRecords, detailsOfTestRun } = context;
 
     const onClose = (): void => {
         setShowEntity(false);
@@ -100,7 +107,10 @@ export default function TestEntities(properties: {
                     dataSource={extractSuiteTree(suites)}
                     size="small"
                     bordered
+                    className={CardStyles.boardCard}
+                    style={{ borderTopLeftRadius: 10 }}
                     scroll={{ x: 'max-content' }}
+                    rootClassName="smooth-box"
                 >
                     <Table.Column
                         title="Status"
@@ -115,7 +125,7 @@ export default function TestEntities(properties: {
                     <Table.Column
                         title="Name"
                         dataIndex="Title"
-                        width={200}
+                        width={250}
                         fixed="left"
                         filterSearch={true}
                         sorter={(
@@ -150,87 +160,71 @@ export default function TestEntities(properties: {
                             clearFilters,
                         }) => (
                             <Space
-                                className="smooth-box"
+                                className={CardStyles.card}
                                 style={{
                                     padding: '10px',
                                     backdropFilter: 'blur(10px)',
                                     borderRadius: '10px',
-                                    border: '.69px solid grey',
                                 }}
                             >
-                                <Search
+                                <SearchEntities
                                     placeholder="Search Suites..."
-                                    value={selectedKeys[0]}
-                                    ref={suiteSearchBar}
-                                    allowClear
-                                    addonAfter={
-                                        <Button
-                                            type="text"
-                                            size="small"
-                                            onClick={() => {
-                                                if (clearFilters)
-                                                    clearFilters();
-                                                helperToSearchSuite('');
-                                                setShowSuiteFilter(false);
-                                            }}
-                                        >
-                                            Clear
-                                        </Button>
-                                    }
-                                    onKeyDown={(
-                                        event_: KeyboardEvent<HTMLInputElement>,
-                                    ) => {
-                                        if (event_.key === 'Escape')
-                                            setShowSuiteFilter(false);
+                                    value={selectedKeys[0] as string}
+                                    onClear={() => {
+                                        if (clearFilters) clearFilters();
+                                        helperToSearchSuite('');
+                                        setShowSuiteFilter(false);
                                     }}
-                                    onChange={(
-                                        event_: ChangeEvent<HTMLInputElement>,
-                                    ) =>
-                                        setSelectedKeys(
-                                            event_.target.value
-                                                ? [event_.target.value]
-                                                : [],
-                                        )
+                                    reference={suiteSearchBar}
+                                    onChange={(value: string) =>
+                                        setSelectedKeys(value ? [value] : [])
                                     }
+                                    onEscape={() => {
+                                        setShowSuiteFilter(false);
+                                    }}
                                     onSearch={(
-                                        value,
-                                        event:
-                                            | KeyboardEvent<HTMLInputElement>
-                                            | ChangeEvent<HTMLInputElement>
-                                            | MouseEvent<HTMLElement>
-                                            | undefined,
+                                        value: string,
+                                        hide: boolean,
                                     ) => {
                                         confirm();
-                                        if (event?.type === 'keydown')
-                                            setShowSuiteFilter(false);
-                                        helperToSearchSuite(
-                                            value?.trim()?.toLowerCase() ?? '',
-                                        );
+                                        if (hide) setShowSuiteFilter(false);
+                                        helperToSearchSuite(value);
                                     }}
                                 />
                             </Space>
                         )}
                         render={(value: string, record: ParsedSuiteRecord) => (
-                            <Space>
+                            <Space
+                                align="start"
+                                style={{ width: '100%', cursor: 'pointer' }}
+                                onClick={() => helperToSetTestID(record.Id)}
+                            >
                                 <Button
                                     type="link"
-                                    onClick={() => helperToSetTestID(record.Id)}
                                     style={{
                                         textAlign: 'left',
                                         padding: '2px',
                                         margin: '0px',
+                                        color: 'white',
                                     }}
                                 >
-                                    <Text className={Dotted.suiteName}>
-                                        {value}
-                                    </Text>
+                                    <Highlighter
+                                        className={Dotted.suiteName}
+                                        searchWords={[filterSuite]}
+                                        textToHighlight={value}
+                                    />
                                 </Button>
+                                <ExportOutlined
+                                    style={{
+                                        fontSize: 10,
+                                    }}
+                                />
                             </Space>
                         )}
                     />
                     <Table.Column
                         title="Progress"
-                        dataIndex="RollupValues"
+                        dataIndex={showRollup ? 'RollupValues' : 'Rate'}
                         width={60}
                         sorter={(
                             a: ParsedSuiteRecord,
@@ -238,25 +232,21 @@ export default function TestEntities(properties: {
                         ) => {
                             return a.RollupValues[0] - b.RollupValues[0];
                         }}
-                        render={(
-                            value: [number, number, number],
-                            record: ParsedSuiteRecord,
-                        ) => (
-                            <Badge
-                                count={
-                                    (retriedRecords[record.Id]?.length ?? 1) - 1
-                                }
-                                showZero={false}
-                                size="small"
-                                status="warning"
-                                title="Retried"
-                            >
-                                <RenderPassedRate
-                                    value={value}
-                                    width={160}
-                                    immutable={true}
-                                />
-                            </Badge>
+                        filterSearch={true}
+                        filterIcon={
+                            <SwitchValues
+                                smallSize
+                                defaultIsRollup={showRollup}
+                                onChange={(isRollup) => setShowRollup(isRollup)}
+                            />
+                        }
+                        filterDropdown={() => <></>}
+                        render={(value: [number, number, number]) => (
+                            <RenderPassedRate
+                                value={value}
+                                width={180}
+                                immutable={true}
+                            />
                         )}
                     />
 
@@ -278,25 +268,72 @@ export default function TestEntities(properties: {
                             />
                         )}
                     />
-
                     <Table.Column
-                        dataIndex="Contribution"
-                        title="Contribution"
+                        dataIndex="Tests"
+                        title="Tests"
                         width={50}
                         align="center"
                         render={(_) => (
-                            <StaticPercent
-                                percent={Number(_.toFixed(2)) * 1e2}
+                            <Counter
+                                end={_}
+                                title="Number of tests inside this suite"
+                            />
+                        )}
+                    />
+                    <Table.Column
+                        dataIndex="numberOfErrors"
+                        title="Errors"
+                        width={50}
+                        align="center"
+                        render={(_) => (
+                            <Counter
+                                end={_}
+                                style={{
+                                    color: _ ? 'red' : 'white',
+                                    fontWeight: _ ? 'bold' : 'normal',
+                                }}
+                            />
+                        )}
+                    />
+
+                    <Table.Column
+                        dataIndex="numberOfErrors"
+                        title="Retries"
+                        width={50}
+                        align="center"
+                        render={(_, record: ParsedSuiteRecord) => (
+                            <Counter
+                                end={
+                                    (retriedRecords[record.Id]?.length ?? 1) - 1
+                                }
+                                style={{
+                                    color: _ ? 'orangered' : 'white',
+                                    fontWeight: _ ? 'bold' : 'normal',
+                                }}
+                            />
+                        )}
+                    />
+                    <Table.Column
+                        dataIndex="Contribution"
+                        title="Contributed"
+                        width={50}
+                        align="center"
+                        render={(_, record: ParsedSuiteRecord) => (
+                            <ShowContribution
+                                percent={_}
+                                totalTests={detailsOfTestRun.Tests}
+                                testsContributed={record.totalRollupValue}
                             />
                         )}
                     />
 
                     <Table.Column
                         title="Duration"
-                        width={100}
+                        width={80}
+                        align="center"
                         dataIndex="Duration"
                         render={(value: Duration) => (
-                            <RenderDuration value={value} maxWidth="120px" />
+                            <RenderDuration duration={value} width="120px" />
                         )}
                     />
 
@@ -323,9 +360,7 @@ export default function TestEntities(properties: {
                         title="File"
                         width={100}
                         render={(value) => (
-                            <Text className={Dotted.suiteName}>
-                                {(value as string).replace(/^.*[/\\]/, '')}
-                            </Text>
+                            <RenderFilePath relativePath={value} />
                         )}
                     />
                 </Table>

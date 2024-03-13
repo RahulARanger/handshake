@@ -1,12 +1,11 @@
 import type TestRunRecord from 'src/types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun } from 'src/components/parse-utils';
-import { RenderDuration } from 'src/components/utils/relative-time';
-import AreaChartForRuns from 'src/components/charts/collection-of-runs';
-import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
+import { parseDetailedTestRun } from '@/components/parse-utils';
+import AreaChartForRuns from '@/components/charts/collection-of-runs';
+import RenderPassedRate from '@/components/charts/stacked-bar-chart';
 import crumbs from './test-items';
-import { dateFormatUsed } from 'src/components/utils/Datetime/format';
-import HeaderStyles from 'src/styles/header.module.css';
+import { dateFormatUsed } from '@/components/utils/Datetime/format';
+import HeaderStyles from '@/styles/header.module.css';
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -28,21 +27,23 @@ import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import Tag from 'antd/lib/tag/index';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
+import RelativeTo, {
+    RenderDuration,
+} from '@/components/utils/Datetime/relative-time';
 import {
-    GithubRepoLink,
     RenderFrameworkUsed,
     RenderStatus,
-} from 'src/components/utils/renderers';
-import type { DetailedTestRecord } from 'src/types/parsed-records';
+} from '@/components/utils/renderers';
+import type { DetailedTestRecord } from '@/types/parsed-records';
 import { LOCATORS, TEXT } from 'handshake-utils';
-import type { TestRecord } from 'src/types/test-run-records';
+import type { TestRecord } from '@/types/test-run-records';
+import CardStyles from 'src/styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
-
+import AboutModal from '../about';
 dayjs.extend(isBetween);
 
 function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
-    const [isTest, showTest] = useState(true);
+    const [isTest, showTest] = useState(false);
     const item = properties.run;
 
     return (
@@ -52,6 +53,7 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                     {item.projectName}
                 </Text>
             }
+            style={{ backdropFilter: 'blur(12px)' }}
             color="purple"
         >
             <List.Item
@@ -90,10 +92,13 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                                     frameworks={item.Frameworks}
                                 />
                                 <RenderStatus value={item.Status} />
-                                <Link
-                                    href={item.Link}
-                                    id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
-                                >{`${item.Started[0].format(dateFormatUsed)}`}</Link>
+                                <Tooltip title="Redirects to this test run page">
+                                    <Link
+                                        // underline
+                                        href={item.Link}
+                                        id={`${LOCATORS.RUNS.testRunName}${item.Id}`}
+                                    >{`${item.Started[0].format(dateFormatUsed)}`}</Link>
+                                </Tooltip>
                             </Space>
                         </div>
                     }
@@ -106,28 +111,35 @@ function RunCard(properties: { run: DetailedTestRecord }): ReactNode {
                             className="tooltip"
                         >
                             <Space align="start" size={0}>
-                                <Tag color="cyan" className="time-range">
+                                <Tag
+                                    color="yellow"
+                                    className="time-range"
+                                    style={{
+                                        padding: '1.5px',
+                                    }}
+                                >
                                     <RelativeTo
                                         dateTime={item.Started[0]}
                                         secondDateTime={item.Ended[0]}
                                         autoPlay
                                         style={{
-                                            maxWidth: '170px',
-                                            textAlign: 'right',
+                                            width: '170px',
                                         }}
                                     />
                                 </Tag>
                                 <Tag
-                                    color="volcano"
+                                    color="blue"
                                     style={{
-                                        minWidth: '95px',
-                                        maxWidth: '95px',
+                                        width: '100px',
+                                        padding: '1.5px',
                                     }}
                                     className="duration"
                                 >
                                     <RenderDuration
-                                        value={item.Duration}
-                                        autoPlay={true}
+                                        duration={item.Duration}
+                                        width="90px"
+                                        autoPlay
+                                        style={{ width: '100%' }}
                                     />
                                 </Tag>
                             </Space>
@@ -147,11 +159,13 @@ function RawList(properties: {
     const items = properties.dataSource?.slice(0, showMax);
     return (
         <List
-            bordered
             itemLayout="vertical"
             size="small"
             id={properties.id}
+            bordered
             dataSource={items}
+            rootClassName={'smooth-box'}
+            className={CardStyles.card}
             renderItem={(item) =>
                 item == undefined ? <></> : <RunCard run={item} />
             }
@@ -202,7 +216,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
     );
 
     const forThisWeek = chronological.filter((run) =>
-        run.Started[0].isBetween(thisWeek, yesterday, 'date', '[)'),
+        run.Started[0].isBetween(thisWeek, today, 'date', '[)'),
     );
 
     const forYesterday = chronological.filter((run) =>
@@ -270,7 +284,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
 }
 
 function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
-    const [isTest, showTest] = useState(true);
+    const [isTest, showTest] = useState(false);
     const sortedOrder = [...properties.runs].reverse();
     const areaChart = (
         <Card
@@ -305,6 +319,7 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
 
 export default function GridOfRuns(properties: {
     runs: TestRecord[];
+    about?: string;
 }): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();
     const [dateRange, setDateRange] = useState<
@@ -324,7 +339,7 @@ export default function GridOfRuns(properties: {
                         align="center"
                     >
                         <BreadCrumb items={crumbs(false)} />
-                        <GithubRepoLink />
+                        <AboutModal about={properties.about ?? ''} />
                     </Space>
                 </Layout.Header>
                 <Space
@@ -447,7 +462,7 @@ export default function GridOfRuns(properties: {
                             disabledDate={disabledDate}
                         />
                     </Space>
-                    <GithubRepoLink />
+                    <AboutModal about={properties.about ?? ''} />
                 </Space>
             </Layout.Header>
             {body}

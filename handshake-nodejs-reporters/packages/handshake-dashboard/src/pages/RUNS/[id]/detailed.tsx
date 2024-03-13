@@ -15,7 +15,7 @@ import type {
 import { type SuiteRecordDetails } from 'src/types/test-entity-related';
 import type DetailedPageProperties from 'src/types/records-in-detailed';
 import type { ValuesInDetailedContext } from 'src/types/records-in-detailed';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from '@/types/records-in-detailed';
 import {
     parseDetailedTestRun,
     parseImageRecords,
@@ -80,7 +80,7 @@ export async function getStaticProps(prepareProperties: {
             suites,
             tests,
             assertions,
-            images,
+            images: parseImageRecords(images, detailsOfTestRun.testID),
             retriedRecords,
         },
     };
@@ -96,17 +96,13 @@ export default function TestRunResults(
             testRun.Started[0],
             testRun.Tests,
         );
-        const images = parseImageRecords(
-            properties.images,
-            properties.detailsOfTestRun.testID,
-        );
         return {
             detailsOfTestRun: testRun,
             suites,
             tests: parseTests(
                 properties.tests,
                 suites,
-                images,
+                properties.images,
                 properties.assertions,
             ),
             retriedRecords: parseRetriedRecords(properties.retriedRecords),

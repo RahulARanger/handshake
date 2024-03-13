@@ -44,3 +44,7 @@ class ConfigKeys(StrEnum):
     maxRuns = "MAX_RUNS"
     version = "VERSION"
     recentlyDeleted = "RECENTLY_DELETED"
+    reset_test_run = "RESET_FIX_TEST_RUN"
+    py_version = "PY_VERSION"
+    last_patch = "LAST_PATCH"
+    last_migration = "LAST_MIGRATION"

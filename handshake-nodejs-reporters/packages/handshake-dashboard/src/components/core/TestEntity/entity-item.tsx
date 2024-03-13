@@ -12,14 +12,13 @@ import type {
 import { useContext } from 'react';
 import Alert from 'antd/lib/alert/Alert';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import { DetailedContext } from 'src/types/records-in-detailed';
-import {
-    GalleryOfImagesLeftToRight,
+import { DetailedContext } from '@/types/records-in-detailed';
+import GalleryOfImages, {
     PlainImage,
 } from 'src/components/utils/images-with-thumbnails';
 import type { Dayjs } from 'dayjs';
 import { DurationLayer } from './header';
-import Counter from 'src/components/utils/counter';
+import Counter from '@/components/utils/counter';
 
 export default function EntityItem(properties: {
     entity: ParsedSuiteRecord | ParsedTestRecord;
@@ -58,16 +57,17 @@ export default function EntityItem(properties: {
                 </Tooltip>
             ),
             children: (
-                <GalleryOfImagesLeftToRight>
+                <GalleryOfImages pics={2} dragFree noLoop>
                     {forTestEntity.Images.map((image) => (
                         <PlainImage
                             url={image.path}
                             title={image.title}
                             key={image.entity_id}
                             desc={image.description}
+                            height={'250px'}
                         />
                     ))}
-                </GalleryOfImagesLeftToRight>
+                </GalleryOfImages>
             ),
         });
 
@@ -252,7 +252,7 @@ function GroupedAssertions(properties: {
                             message={
                                 <div
                                     dangerouslySetInnerHTML={{
-                                        __html: assertion.message,
+                                        __html: assertion.message ?? '',
                                     }}
                                 />
                             }

@@ -17,14 +17,30 @@ CREATE TEMP TABLE KEY_NUMBERS(
 );
 
 -- stores the recent suites and tests {recent 6 in each}
-CREATE TEMP TABLE RECENT_ENTITIES AS 
-  select * from (
-      SELECT
-        ROW_NUMBER() OVER (PARTITION BY suiteType ORDER BY started DESC) AS "rank",
-      	*
-    FROM suiteBase WHERE session_id in CURRENT_SESSIONS
-  ) where rank <= 6;
-  
+CREATE TEMP TABLE RECENT_SUITES AS
+    select
+        json_array_length(errors) as numberOfErrors,
+        * from suitebase
+    WHERE session_id in CURRENT_SESSIONS
+     and suiteType = 'SUITE'
+    --  and standing <> 'RETRIED'
+    order by started desc
+    limit 6;
+
+
+CREATE TEMP TABLE RECENT_TESTS AS
+select * from (
+                  select suitebase.*,
+                         count(assertbase.entity_id) as numberOfAssertions from suitebase
+                  join assertbase on suitebase.suiteID = assertbase.entity_id
+                  WHERE session_id in CURRENT_SESSIONS
+                    and suiteType = 'TEST'
+                  group by assertbase.entity_id
+              )
+order by started desc limit 6;
+
+
+
 -- stores some info of random 15 images
 CREATE TEMP TABLE IMAGES AS 
 SELECT attachmentValue ->> '$.value' as path, attachmentValue ->> '$.title' as title from staticbase 
@@ -38,8 +54,8 @@ INSERT INTO KEY_NUMBERS
 -- number of spec files    
 INSERT INTO KEY_NUMBERS 
 	SELECT 'files' as key,
-	COUNT(DISTINCT json_each.value) as value FROM sessionbase JOIN json_each(specs) ON 1=1
-  WHERE sessionID in CURRENT_SESSIONS; 
+	COUNT(DISTINCT file) as value FROM suitebase
+  WHERE session_id in CURRENT_SESSIONS; 
 
 -- number of sessions
 INSERT INTO KEY_NUMBERS 
@@ -51,8 +67,9 @@ INSERT INTO KEY_NUMBERS
 	select 'imageCount' as key, 
   count(*) from staticbase where type = 'PNG' and entity_id in CURRENT_SUITES;
 
+-- we collect tests which have failed
 create temp table LOOK_FOR_TESTS as
-	select suiteID from suitebase where suiteID in CURRENT_SUITES and suiteType = 'TEST' and standing in ('RETRIED', 'FAILED');
+	select suiteID from suitebase where suiteID in CURRENT_SUITES and suiteType = 'TEST' and standing = 'FAILED';
 
 
 -- Number of Broken Tests
@@ -73,3 +90,10 @@ CREATE TEMP TABLE CURRENT_RUN AS
   suiteSummary -> '$.passed' as passedSuites,
    suiteSummary -> '$.skipped' as skippedSuites
   FROM runbase where testID in CURRENT_RUN_ID;
+
+
+CREATE TEMP TABLE RELATED_RUNS AS 
+  select * from runbase
+  where projectName in (
+    select projectName from runbase where testID in CURRENT_RUN_ID
+  ) and ended <> '';

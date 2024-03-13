@@ -1,8 +1,44 @@
 .card {
     /* inspired from https://uigradients.com/#RedOcean and https://uigradients.com/#Netflix */
-    background: linear-gradient(to right, #1f1c18, #141e30);
+    background: linear-gradient(to right, #1f1c18, #141e30) !important;
     box-shadow:
         rgba(0, 0, 0, 0.4) 0px 2px 4px,
         rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
         rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
+    animation: 1s -0.3s 1 paused opacify;
+    backdrop-filter: blur(1.5rem);
+}
+
+.boardCard {
+    z-index: 100;
+    border: 1.5px solid #003d53;
+    border-radius: 25px;
+    background-image: linear-gradient(
+        25deg,
+        #441900 0%,
+        #023770c8 100%
+    ) !important;
+}
+
+.sider {
+    background-image: linear-gradient(
+        120deg,
+        hsl(270deg 100% 7%) 0%,
+        hsl(286deg 91% 7%) 10%,
+        hsl(302deg 82% 7%) 20%,
+        hsl(317deg 79% 9%) 30%,
+        hsl(328deg 76% 10%) 40%,
+        hsl(337deg 73% 12%) 50%,
+        hsl(346deg 67% 13%) 60%,
+        hsl(356deg 59% 14%) 70%,
+        hsl(8deg 63% 14%) 80%,
+        hsl(18deg 73% 14%) 90%,
+        hsl(26deg 82% 13%) 100%
+    ) !important;
+    border: 1px solid rgba(256, 256, 256, 0.03);
+    margin-top: 3px !important;
+    margin-bottom: 6px !important;
+    margin-left: 5px !important;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
 }
