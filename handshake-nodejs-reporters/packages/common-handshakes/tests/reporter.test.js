@@ -13,14 +13,14 @@ describe('Verifying the functionality of the handshake-reporter', () => {
 
   beforeAll(async () => {
     resetDir();
-    await service.startService('jest-report-tests', results, root);
+    service.startService('jest-report-tests', results, root);
     await service.waitUntilItsReady();
     expect(await service.ping()).toBe(true);
   }, 20e3);
 
   afterAll(async () => {
-    await service.terminateServer();
-  });
+    return service.terminateServer();
+  }, 30e3);
 
   test('Verifying the config set', () => {
     expect(reporter.port).toBe(6969);
