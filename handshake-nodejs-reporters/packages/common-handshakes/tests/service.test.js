@@ -1,7 +1,7 @@
 const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
-const { ServiceDialPad } = require('../src/index');
+const { ServiceDialPad } = require('../dist/index');
 const { root, resetDir, results } = require('./utils');
 
 describe('Verifying the handshake-server helper class', () => {

@@ -60,7 +60,7 @@ def setup_app(
     _app, loader = prepare_loader()
     _app.prepare(
         port=port,
-        workers=min(2, workers),
+        workers=max(2, workers),
         host="127.0.0.1",
         motd_display=dict(version=__version__),
     )
