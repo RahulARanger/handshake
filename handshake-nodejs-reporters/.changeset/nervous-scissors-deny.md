@@ -5,4 +5,4 @@
 "handshake-utils": minor
 ---
 
-feat: support handshake-server 0.3.1 and remodeled dashboard
+feat: support handshake-server 0.3.2 and remodeled dashboard
