@@ -1,8 +1,8 @@
-import GridOfRuns from '@/core/ListOfRuns';
+import GridOfRuns from 'components/core/ListOfRuns';
 import React, { type ReactNode } from 'react';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
-import type { TestRecord } from '@/types/test-run-records';
+import type { TestRecord } from 'types/test-run-records';
 
 export default function AllTestRunsDisplayedHere(properties: {
     runs: TestRecord[];

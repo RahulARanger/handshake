@@ -1,5 +1,5 @@
 import React, { type ReactNode } from 'react';
-import carouselStyles from '../../styles/carousel.module.css';
+import carouselStyles from 'styles/carousel.module.css';
 import Image from 'antd/lib/image';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Text from 'antd/lib/typography/Text';

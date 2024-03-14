@@ -1,6 +1,6 @@
 import type { AlertProps } from 'antd/lib/alert/Alert';
 import Alert from 'antd/lib/alert/Alert';
-import type { logTypes } from 'src/types/test-run-records';
+import type { logTypes } from 'types/test-run-records';
 import type { ReactNode } from 'react';
 import React from 'react';
 

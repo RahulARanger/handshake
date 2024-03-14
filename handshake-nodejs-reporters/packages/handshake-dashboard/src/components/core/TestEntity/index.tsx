@@ -8,18 +8,18 @@ import {
 } from './extractors';
 import Button from 'antd/lib/button/button';
 import { Divider, Select, Tag, Tooltip } from 'antd/lib';
-import TestEntitiesBars from 'src/components/charts/test-bars';
+import TestEntitiesBars from 'components/charts/test-bars';
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
-import { DetailedContext } from '@/types/records-in-detailed';
+import { DetailedContext } from 'types/records-in-detailed';
 import Sider from 'antd/lib/layout/Sider';
-import ProgressPieChart from 'src/components/charts/status-pie-chart';
-import CardStyles from 'src/styles/card.module.css';
+import ProgressPieChart from 'components/charts/status-pie-chart';
+import CardStyles from 'styles/card.module.css';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
 import CloseCircleOutlined from '@ant-design/icons/CloseCircleOutlined';
 import Paragraph from 'antd/lib/typography/Paragraph';
-import { SwitchValues } from '@/components/charts/stacked-bar-chart';
-import type { ParsedSuiteRecord } from '@/types/parsed-records';
-import { RenderFilePath } from '@/components/utils/renderers';
+import { SwitchValues } from 'components/charts/stacked-bar-chart';
+import type { ParsedSuiteRecord } from 'types/parsed-records';
+import { RenderFilePath } from 'components/renderers';
 
 function RollupPieChart(properties: { suite: ParsedSuiteRecord }) {
     const [showRollup, setShowRollup] = useState<boolean>(false);

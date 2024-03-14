@@ -1,11 +1,11 @@
-import type TestRunRecord from 'src/types/test-run-records';
+import type TestRunRecord from 'types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
-import { parseDetailedTestRun } from '@/components/parse-utils';
-import AreaChartForRuns from '@/components/charts/collection-of-runs';
-import RenderPassedRate from '@/components/charts/stacked-bar-chart';
+import { parseDetailedTestRun } from 'components/parse-utils';
+import AreaChartForRuns from 'components/charts/collection-of-runs';
+import RenderPassedRate from 'components/charts/stacked-bar-chart';
 import crumbs from './test-items';
-import { dateFormatUsed } from '@/components/utils/Datetime/format';
-import HeaderStyles from '@/styles/header.module.css';
+import { dateFormatUsed } from 'components/datetime/format';
+import HeaderStyles from 'styles/header.module.css';
 import Switch from 'antd/lib/switch';
 import List from 'antd/lib/list';
 import Space from 'antd/lib/space';
@@ -27,17 +27,12 @@ import Link from 'antd/lib/typography/Link';
 import isBetween from 'dayjs/plugin/isBetween';
 import type { RangePickerProps } from 'antd/lib/date-picker';
 import Tag from 'antd/lib/tag/index';
-import RelativeTo, {
-    RenderDuration,
-} from '@/components/utils/Datetime/relative-time';
-import {
-    RenderFrameworkUsed,
-    RenderStatus,
-} from '@/components/utils/renderers';
-import type { DetailedTestRecord } from '@/types/parsed-records';
+import RelativeTo, { RenderDuration } from 'components/datetime/relative-time';
+import { RenderFrameworkUsed, RenderStatus } from 'components/renderers';
+import type { DetailedTestRecord } from 'types/parsed-records';
 import { LOCATORS, TEXT } from 'handshake-utils';
-import type { TestRecord } from '@/types/test-run-records';
-import CardStyles from 'src/styles/card.module.css';
+import type { TestRecord } from 'types/test-run-records';
+import CardStyles from 'styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
 import AboutModal from '../about';
 dayjs.extend(isBetween);

@@ -1,25 +1,22 @@
 import type { CSSProperties } from 'react';
 import React, { type ReactNode } from 'react';
-import type { statusOfEntity } from '@/types/session-records';
+import type { statusOfEntity } from 'types/session-records';
 import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
-import Dotted from '@/styles/dotted.module.css';
+import Dotted from 'styles/dotted.module.css';
 import Text from 'antd/lib/typography/Text';
 import LoadingOutlined from '@ant-design/icons/LoadingOutlined';
 import Space from 'antd/lib/space';
 import Card from 'antd/lib/card/Card';
 import Tag from 'antd/lib/tag/index';
-import type { possibleEntityNames } from '@/types/session-records';
+import type { possibleEntityNames } from 'types/session-records';
 import Avatar from 'antd/lib/avatar/avatar';
-import GraphCardCss from '@/styles/GraphCard.module.css';
+import GraphCardCss from 'styles/GraphCard.module.css';
 import { Badge, Tooltip } from 'antd/lib';
-import { showOnly } from '@/types/ui-constants';
-import type {
-    ParsedSuiteRecord,
-    ParsedTestRecord,
-} from 'src/types/parsed-records';
-import { testStatusText } from '@/core/TestEntity/extractors';
+import { showOnly } from 'types/ui-constants';
+import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
+import { testStatusText } from 'components/core/TestEntity/extractors';
 import { LOCATORS } from 'handshake-utils';
-import type { possibleFrameworks } from 'src/types/test-run-records';
+import type { possibleFrameworks } from 'types/test-run-records';
 import { Group } from 'antd/lib/avatar';
 
 export function RenderStatus(properties: {

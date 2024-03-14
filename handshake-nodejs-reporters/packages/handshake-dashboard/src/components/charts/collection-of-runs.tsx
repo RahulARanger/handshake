@@ -1,4 +1,4 @@
-import type TestRunRecord from 'src/types/test-run-records';
+import type TestRunRecord from 'types/test-run-records';
 import React, { type ReactNode } from 'react';
 import dayjs from 'dayjs';
 import DayJSUtc from 'dayjs/plugin/utc';
@@ -43,8 +43,8 @@ import {
     serif,
     toolTipFormats,
 } from './constants';
-import { dateTimeFormatUsed } from '../utils/Datetime/format';
-import type { DetailedTestRecord } from '@/types/parsed-records';
+import { dateTimeFormatUsed } from '../datetime/format';
+import type { DetailedTestRecord } from 'types/parsed-records';
 import type {
     GridComponentOption,
     MarkLineComponentOption,
