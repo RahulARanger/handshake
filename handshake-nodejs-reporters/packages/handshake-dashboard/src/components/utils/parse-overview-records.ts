@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
-import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
-import type { SuiteRecordDetails } from 'src/types/test-entity-related';
+import type { OverviewOfEntities } from 'types/parsed-overview-records';
+import type { SuiteRecordDetails } from 'types/test-entity-related';
 
 export function parseEntitiesForOverview(
     records: SuiteRecordDetails[],
@@ -17,6 +17,6 @@ export function parseEntitiesForOverview(
         skipped: record.skipped,
         standing: record.standing,
         numberOfErrors: record.numberOfErrors,
-        numberOfAssertions: record.numberOfAssertions ?? 0
+        numberOfAssertions: record.numberOfAssertions ?? 0,
     }));
 }

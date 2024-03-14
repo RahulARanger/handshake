@@ -1,5 +1,5 @@
-import { runPage } from '@/components/links';
-import type TestRunRecord from '@/types/test-run-records';
+import { runPage } from 'components/links';
+import type TestRunRecord from 'types/test-run-records';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -8,7 +8,7 @@ import type {
     ParsedRetriedRecords,
     SuiteDetails,
     TestDetails,
-} from '@/types/parsed-records';
+} from 'types/parsed-records';
 import type {
     Assertion,
     ErrorRecord,
@@ -16,15 +16,15 @@ import type {
     RetriedRecord,
     SuiteRecordDetails,
     TestRecordDetails,
-} from '@/types/test-entity-related';
+} from 'types/test-entity-related';
 import type {
     TestRecord,
     TestRunConfig,
     possibleFrameworks,
     specNode,
-} from '@/types/test-run-records';
+} from 'types/test-run-records';
 import Convert from 'ansi-to-html';
-import { attachmentPrefix } from '@/types/ui-constants';
+import { attachmentPrefix } from 'types/ui-constants';
 
 dayjs.extend(duration);
 

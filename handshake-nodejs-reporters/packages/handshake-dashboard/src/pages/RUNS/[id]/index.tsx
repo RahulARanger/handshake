@@ -1,32 +1,32 @@
-import getConnection from 'src/components/scripts/connection';
-import LayoutStructureForRunDetails from 'src/components/core/TestRun';
+import getConnection from 'scripts/connection';
+import LayoutStructureForRunDetails from 'components/core/TestRun';
 import React, { useMemo } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import { menuTabs } from 'src/types/ui-constants';
-import Overview from 'src/components/core/TestRun/overview-tab';
-import sqlFile from 'src/components/scripts/RunPage/script';
-import type TestRunRecord from 'src/types/test-run-records';
-import type { TestRunConfig } from 'src/types/test-run-records';
+import { menuTabs } from 'types/ui-constants';
+import Overview from 'components/core/TestRun/overview-tab';
+import sqlFile from 'scripts/run-page/script';
+import type TestRunRecord from 'types/test-run-records';
+import type { TestRunConfig } from 'types/test-run-records';
 import type {
     ImageRecord,
     SuiteRecordDetails,
-} from 'src/types/test-entity-related';
-import { parseEntitiesForOverview } from 'src/components/utils/parse-overview-records';
+} from 'types/test-entity-related';
+import { parseEntitiesForOverview } from 'components/utils/parse-overview-records';
 import type {
     OverallAggResults,
     OverviewPageProperties,
     SessionSummary,
-} from 'src/types/records-in-overview';
+} from 'types/records-in-overview';
 import {
     OverviewContext,
     type ValuesInOverviewContext,
-} from 'src/types/parsed-overview-records';
+} from 'types/parsed-overview-records';
 import {
     parseDetailedTestRun,
     parseImageRecords,
     parseTestConfig,
-} from 'src/components/parse-utils';
+} from 'components/parse-utils';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
 
@@ -190,4 +190,4 @@ export default function TestRunResults(
     );
 }
 
-export { default as getStaticPaths } from 'src/components/scripts/RunPage/generate-path';
+export { default as getStaticPaths } from 'scripts/run-page/generate-path';

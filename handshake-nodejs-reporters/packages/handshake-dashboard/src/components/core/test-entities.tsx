@@ -1,11 +1,11 @@
-import { menuTabs } from 'src/types/ui-constants';
-import type { statusOfEntity } from 'src/types/session-records';
-import type { possibleEntityNames } from 'src/types/session-records';
+import { menuTabs } from 'types/ui-constants';
+import type { statusOfEntity } from 'types/session-records';
+import type { possibleEntityNames } from 'types/session-records';
 import {
     RenderEntityType,
     RenderFilePath,
     RenderStatus,
-} from '../utils/renderers';
+} from 'components/renderers';
 import RenderPassedRate, { SwitchValues } from '../charts/stacked-bar-chart';
 import React, { useContext, type ReactNode, useState, useRef } from 'react';
 import { type Dayjs } from 'dayjs';
@@ -15,22 +15,22 @@ import Space from 'antd/lib/space/index';
 import type { Duration } from 'dayjs/plugin/duration';
 import Typography from 'antd/lib/typography/Typography';
 import Text from 'antd/lib/typography/Text';
-import { timeFormatUsed } from '../utils/Datetime/format';
+import { timeFormatUsed } from '../datetime/format';
 import type { InputRef } from 'antd/lib/input';
 import Spin from 'antd/lib/spin';
 import Tabs from 'antd/lib/tabs';
-import RelativeTo, { RenderDuration } from '../utils/Datetime/relative-time';
-import Counter, { ShowContribution } from '../utils/counter';
-import { DetailedContext } from '@/types/records-in-detailed';
+import RelativeTo, { RenderDuration } from 'components/datetime/relative-time';
+import Counter, { ShowContribution } from 'components/charts/counter';
+import { DetailedContext } from 'types/records-in-detailed';
 import Highlighter from 'react-highlight-words';
-import type { ParsedSuiteRecord, SuiteDetails } from 'src/types/parsed-records';
+import type { ParsedSuiteRecord, SuiteDetails } from 'types/parsed-records';
 import ProjectStructure from './TestRun/structure-tab';
 import DetailedTestEntity from './TestEntity';
-import Dotted from 'src/styles/dotted.module.css';
-import CardStyles from '@/styles/card.module.css';
+import Dotted from 'styles/dotted.module.css';
+import CardStyles from 'styles/card.module.css';
 import ExportOutlined from '@ant-design/icons/ExportOutlined';
 import SearchOutlined from '@ant-design/icons/SearchOutlined';
-import SearchEntities from '../utils/search-bar';
+import SearchEntities from 'components/search-bar';
 
 export function TestRunStarted(): ReactNode {
     const context = useContext(DetailedContext);

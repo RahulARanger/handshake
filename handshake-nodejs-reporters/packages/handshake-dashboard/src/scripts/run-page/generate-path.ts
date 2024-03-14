@@ -1,5 +1,5 @@
-import getConnection from 'src/components/scripts/connection';
-import currentExportConfig from 'src/components/scripts/config';
+import getConnection from 'scripts/connection';
+import currentExportConfig from 'scripts/config';
 import { type GetStaticPathsResult } from 'next';
 import sqlFile from './script';
 

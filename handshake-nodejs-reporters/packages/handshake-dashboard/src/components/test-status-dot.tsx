@@ -1,7 +1,7 @@
 import type { BadgeProps } from 'antd/lib/badge/index';
 import Badge from 'antd/lib/badge/index';
 import React, { type ReactNode } from 'react';
-import type { suiteType } from 'src/types/test-entity-related';
+import type { suiteType } from 'types/test-entity-related';
 
 export default function RenderTestType(properties: {
     value: suiteType;

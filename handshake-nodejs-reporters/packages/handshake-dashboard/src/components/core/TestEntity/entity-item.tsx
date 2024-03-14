@@ -1,24 +1,19 @@
-import type { Assertion, ErrorRecord } from 'src/types/test-entity-related';
+import type { Assertion, ErrorRecord } from 'types/test-entity-related';
 import React from 'react';
 import Space from 'antd/lib/space';
 import Paragraph from 'antd/lib/typography/Paragraph';
 import Text from 'antd/lib/typography/Text';
 import type { CollapseProps } from 'antd/lib';
 import { Collapse, Tag, Tooltip } from 'antd/lib';
-import type {
-    ParsedSuiteRecord,
-    ParsedTestRecord,
-} from 'src/types/parsed-records';
+import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
 import { useContext } from 'react';
 import Alert from 'antd/lib/alert/Alert';
 import Breadcrumb from 'antd/lib/breadcrumb/Breadcrumb';
-import { DetailedContext } from '@/types/records-in-detailed';
-import GalleryOfImages, {
-    PlainImage,
-} from 'src/components/utils/images-with-thumbnails';
+import { DetailedContext } from 'types/records-in-detailed';
+import GalleryOfImages, { PlainImage } from 'components/images-with-thumbnails';
 import type { Dayjs } from 'dayjs';
 import { DurationLayer } from './header';
-import Counter from '@/components/utils/counter';
+import Counter from 'components/charts/counter';
 
 export default function EntityItem(properties: {
     entity: ParsedSuiteRecord | ParsedTestRecord;
