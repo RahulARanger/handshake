@@ -1,5 +1,11 @@
 # handshake
 
+## 0.5.1
+
+### Patch Changes
+
+- bb38cb3: revert: module alias path and feat: use the relative paths from the src
+
 ## 0.5.0
 
 ### Minor Changes
