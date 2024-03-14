@@ -9,6 +9,7 @@
 		"test": "echo \"Error: no test specified\" && exit 1",
 		"wdio": "wdio run ./wdio.conf.ts",
 		"export": "cd ../../ && npx handshake export ../TestResults --out ../TestReports",
+		"run-sanity": "cd ../../ && npm run sanity",
 		"verify-sanity": "npx cross-env TYPE=SANITY wdio run ./wdio.conf.ts --cucumberOpts.tagExpression=\"@sanity\"",
 		"dev-sanity": "npx cross-env PORT=8000 wdio run ./wdio.conf.ts --cucumberOpts.tagExpression=\"@sanity\""
 	},
