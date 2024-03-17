@@ -10,15 +10,9 @@
             <list>
               <requestState>
                 <option name="id" value="41897564-fd19-428a-9521-894c9e096a59" />
-                <option name="method" value="PUT" />
-                <option name="name" value="Start" />
-                <option name="url" value="http://127.0.0.1:6969/add" />
-              </requestState>
-              <requestState>
-                <option name="id" value="9dc94877-e0b3-4c5d-8722-70448b53be7f" />
                 <option name="method" value="POST" />
-                <option name="name" value="Start 1" />
-                <option name="url" value="http://127.0.0.1:6969/bye" />
+                <option name="name" value="Start" />
+                <option name="url" value="http://127.0.0.1:6978/bye" />
               </requestState>
             </list>
           </option>
