@@ -5,7 +5,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
 import sqlFile from 'scripts/run-page/script';
-import type TestRunRecord from 'types/test-run-records';
+import type OnlyTestRunRecord from 'types/test-run-records';
 import type {
     TestRecordDetails,
     ImageRecord,
@@ -43,7 +43,7 @@ export async function getStaticProps(prepareProperties: {
         sql: sqlFile('detailed-page.sql').replace('?', testID),
     });
 
-    const detailsOfTestRun = await connection.get<TestRunRecord>(
+    const detailsOfTestRun = await connection.get<OnlyTestRunRecord>(
         'SELECT * from CURRENT_RUN;',
     );
 

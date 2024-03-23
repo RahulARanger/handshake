@@ -9,11 +9,13 @@ import Document, {
 import Script from 'next/script';
 import type { ReactNode } from 'react';
 import React from 'react';
+import { ColorSchemeScript } from '@mantine/core';
 
 const MyDocument = (): ReactNode => (
     <>
         <Html lang="en">
             <Head title={TEXT.applicationName}>
+                <ColorSchemeScript defaultColorScheme="auto" />
                 <Script
                     id={`clarity-${process.env.IS_TEST ? 'test' : 'prod'}`}
                     strategy="afterInteractive"

@@ -1,5 +1,5 @@
 import { runPage } from 'components/links';
-import type TestRunRecord from 'types/test-run-records';
+import type OnlyTestRunRecord from 'types/test-run-records';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
@@ -18,7 +18,7 @@ import type {
     TestRecordDetails,
 } from 'types/test-entity-related';
 import type {
-    TestRecord,
+    TestRunRecord,
     TestRunConfig,
     possibleFrameworks,
     specNode,
@@ -29,7 +29,7 @@ import { attachmentPrefix } from 'types/ui-constants';
 dayjs.extend(duration);
 
 export function parseDetailedTestRun(
-    testRun: TestRunRecord | TestRecord,
+    testRun: OnlyTestRunRecord | TestRunRecord,
 ): DetailedTestRecord {
     const summary: {
         passed: number;
@@ -39,12 +39,12 @@ export function parseDetailedTestRun(
     } = JSON.parse(testRun.suiteSummary);
 
     let frameworks: possibleFrameworks[] = [];
-    if ((testRun as TestRecord).frameworks)
-        frameworks = (testRun as TestRecord).frameworks;
+    if ((testRun as TestRunRecord).frameworks)
+        frameworks = (testRun as TestRunRecord).frameworks;
 
     return {
-        Started: [dayjs(testRun.started), dayjs()],
-        Ended: [dayjs(testRun.ended), dayjs()],
+        Started: dayjs(testRun.started),
+        Ended: dayjs(testRun.ended),
         Title: testRun.projectName,
         Id: testRun.testID,
         Status: testRun.standing,
@@ -86,8 +86,9 @@ export function parseSuites(
         );
 
         parsedRecords[suite.suiteID] = {
-            Started: [dayjs(suite.started), testStartedAt],
-            Ended: [dayjs(suite.ended), testStartedAt],
+            Started: dayjs(suite.started),
+            Ended: dayjs(suite.ended),
+            testStartedAt,
             Status: suite.standing,
             Title: suite.title,
             _UseFilterForTitle: suite.title.toLowerCase().trim(),
@@ -129,7 +130,7 @@ export function parseTests(
     const ansiToHTML = new Convert();
 
     for (const record of records) {
-        const suiteStartedAt = suites[record.parent].Started[0];
+        const suiteStartedAt = suites[record.parent].Started;
 
         const error = parseError(ansiToHTML, JSON.parse(record?.error ?? '{}'));
 
@@ -204,7 +205,7 @@ export function parseRetriedRecords(retriedRecords: RetriedRecord[]) {
     return records;
 }
 
-export function parseTestConfig<T extends TestRunConfig | TestRecord>(
+export function parseTestConfig<T extends TestRunConfig | TestRunRecord>(
     config: T,
 ): T {
     return {

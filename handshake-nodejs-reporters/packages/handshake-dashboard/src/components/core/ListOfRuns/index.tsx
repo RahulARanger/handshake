@@ -1,4 +1,4 @@
-import type TestRunRecord from 'types/test-run-records';
+import type OnlyTestRunRecord from 'types/test-run-records';
 import React, { useState, type ReactNode } from 'react';
 import { parseDetailedTestRun } from 'components/parse-utils';
 import AreaChartForRuns from 'components/charts/collection-of-runs';
@@ -31,7 +31,7 @@ import RelativeTo, { RenderDuration } from 'components/datetime/relative-time';
 import { RenderFrameworkUsed, RenderStatus } from 'components/renderers';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import { LOCATORS, TEXT } from 'handshake-utils';
-import type { TestRecord } from 'types/test-run-records';
+import type { TestRunRecord } from 'types/test-run-records';
 import CardStyles from 'styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
 import AboutModal from '../about';
@@ -184,7 +184,7 @@ function RawList(properties: {
     );
 }
 
-function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
+function ListOfRuns(properties: { runs: OnlyTestRunRecord[] }): ReactNode {
     const details = properties.runs.map((element) =>
         parseDetailedTestRun(element),
     );
@@ -278,7 +278,7 @@ function ListOfRuns(properties: { runs: TestRunRecord[] }): ReactNode {
     );
 }
 
-function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
+function ListOfCharts(properties: { runs: OnlyTestRunRecord[] }): ReactNode {
     const [isTest, showTest] = useState(false);
     const sortedOrder = [...properties.runs].reverse();
     const areaChart = (
@@ -313,7 +313,7 @@ function ListOfCharts(properties: { runs: TestRunRecord[] }): ReactNode {
 }
 
 export default function GridOfRuns(properties: {
-    runs: TestRecord[];
+    runs: TestRunRecord[];
     about?: string;
 }): ReactNode {
     const [selectedProjectName, filterProjectName] = useState<string>();

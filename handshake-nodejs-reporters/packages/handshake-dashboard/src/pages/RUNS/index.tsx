@@ -4,12 +4,12 @@ import { type GetStaticPropsResult } from 'next';
 import currentExportConfig from 'scripts/config';
 import sqlFile from 'scripts/run-page/script';
 import { parseTestConfig } from 'components/parse-utils';
-import type { TestRecord } from 'types/test-run-records';
+import type { TestRunRecord } from 'types/test-run-records';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export async function getStaticProps(): Promise<
-    GetStaticPropsResult<{ runs?: TestRecord[]; about?: string }>
+    GetStaticPropsResult<{ runs?: TestRunRecord[]; about?: string }>
 > {
     if (process.env.isDynamic) {
         return { props: { runs: undefined } };
@@ -18,7 +18,7 @@ export async function getStaticProps(): Promise<
     const connection = await getConnection();
     const exportConfig = await currentExportConfig(connection);
 
-    const allRuns = await connection.all<TestRecord[]>(
+    const allRuns = await connection.all<TestRunRecord[]>(
         sqlFile('runs-page.sql'),
         Number(exportConfig?.maxTestRuns ?? -1),
     );

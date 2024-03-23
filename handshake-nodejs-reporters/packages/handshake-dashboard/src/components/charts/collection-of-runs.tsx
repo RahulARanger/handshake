@@ -1,4 +1,4 @@
-import type TestRunRecord from 'types/test-run-records';
+import type OnlyTestRunRecord from 'types/test-run-records';
 import React, { type ReactNode } from 'react';
 import dayjs from 'dayjs';
 import DayJSUtc from 'dayjs/plugin/utc';
@@ -75,7 +75,7 @@ echarts.use([
 ]);
 
 export default function AreaChartsForRuns(properties: {
-    runs: TestRunRecord[];
+    runs: OnlyTestRunRecord[];
     showTest: boolean;
 }): ReactNode {
     const text = properties.showTest ? 'Tests' : 'Suites';
