@@ -21,16 +21,15 @@ export default function TestRunCard(properties: {
                     <Anchor href={properties.run.Link} size="sm">
                         {properties.run.Started.format(dateFormatUsed)}
                     </Anchor>
-                    <Badge
-                        size="sm"
-                        variant="gradient"
-                        gradient={{ from: 'blue', to: 'violet', deg: 187 }}
-                    >
-                        {properties.run.projectName}
+                    <Badge size="xs" variant="light" color="pink.9">
+                        {properties.run.projectName.slice(0, 30) +
+                            (properties.run.projectName.length > 30
+                                ? '...'
+                                : '')}
                     </Badge>
                     <FrameworksUsed
                         frameworks={properties.run.Frameworks}
-                        size="sm"
+                        size="xs"
                     />
                 </Group>
             </Card.Section>

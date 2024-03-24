@@ -1,10 +1,41 @@
-import { parseDetailedTestRun } from 'components/parse-utils';
 import dayjs from 'dayjs';
 import transformTestRunRecord from 'extractors/transform-run-record';
 
+export const onlySkipped = transformTestRunRecord({
+    started: dayjs().subtract(10, 'seconds').toISOString(),
+    ended: dayjs().subtract(1, 'seconds').toISOString(),
+    framework: 'webdriverio,jasmine',
+    passed: 0,
+    failed: 0,
+    skipped: 20,
+    platform: 'linux',
+    avoidParentSuitesInCount: false,
+    exitCode: 0,
+    fileRetries: 0,
+    maxInstances: 1,
+    bail: 3,
+    suiteSummary: JSON.stringify({
+        count: 1,
+        failed: 0,
+        skipped: 1,
+        passed: 0,
+    }),
+    duration: 1 * 1e3,
+    projectName: 'smoke-run',
+    testID: 'smoke-run-3',
+    tests: 20,
+    standing: 'SKIPPED',
+    tags: [],
+    specStructure: JSON.stringify({
+        '<path>': '',
+        'features\\login.feature': { '<path>': 'features\\login.feature' },
+    }),
+    retried: 0,
+});
+
 export const allPassed = transformTestRunRecord({
-    started: dayjs().subtract(2, 'hours').toISOString(),
-    ended: dayjs().subtract(1, 'hours').toISOString(),
+    started: dayjs().subtract(3, 'days').subtract(2, 'hours').toISOString(),
+    ended: dayjs().subtract(3, 'days').subtract(1, 'hours').toISOString(),
     framework: 'webdriverio,cucumber',
     passed: 10,
     failed: 0,
@@ -35,8 +66,8 @@ export const allPassed = transformTestRunRecord({
 });
 
 export const mixed = transformTestRunRecord({
-    started: dayjs().subtract(32, 'minutes').toISOString(),
-    ended: dayjs().subtract(10, 'minutes').toISOString(),
+    started: dayjs().subtract(3, 'weeks').subtract(20, 'minutes').toISOString(),
+    ended: dayjs().subtract(3, 'weeks').subtract(10, 'minutes').toISOString(),
     framework: 'webdriverio,mocha',
     passed: 100,
     failed: 30,
@@ -54,41 +85,10 @@ export const mixed = transformTestRunRecord({
         passed: 2,
     }),
     duration: 60 * 1e3,
-    projectName: 'sanity-run',
-    testID: 'sanity-run-2',
+    projectName: 'regression-run',
+    testID: 'regression-run-2',
     tests: 150,
     standing: 'FAILED',
-    tags: [],
-    specStructure: JSON.stringify({
-        '<path>': '',
-        'features\\login.feature': { '<path>': 'features\\login.feature' },
-    }),
-    retried: 0,
-});
-export const onlySkipped = transformTestRunRecord({
-    started: dayjs().subtract(10, 'seconds').toISOString(),
-    ended: dayjs().subtract(1, 'seconds').toISOString(),
-    framework: 'webdriverio,jasmine',
-    passed: 0,
-    failed: 0,
-    skipped: 20,
-    platform: 'linux',
-    avoidParentSuitesInCount: false,
-    exitCode: 0,
-    fileRetries: 0,
-    maxInstances: 1,
-    bail: 3,
-    suiteSummary: JSON.stringify({
-        count: 1,
-        failed: 0,
-        skipped: 1,
-        passed: 0,
-    }),
-    duration: 1 * 1e3,
-    projectName: 'sanity-run',
-    testID: 'sanity-run-3',
-    tests: 20,
-    standing: 'SKIPPED',
     tags: [],
     specStructure: JSON.stringify({
         '<path>': '',

@@ -1,9 +1,11 @@
 import React from 'react';
+import type { SwitchProps } from '@mantine/core';
 import { Switch, rem } from '@mantine/core';
 
 interface SwitchTestCasesProperties {
     isDefaultTestCases: boolean;
-    onChange: (isTestCase: boolean) => void;
+    onChange?: (isTestCase: boolean) => void;
+    size?: SwitchProps['size'];
 }
 
 export default function SwitchTestCases(properties: SwitchTestCasesProperties) {
@@ -17,8 +19,9 @@ export default function SwitchTestCases(properties: SwitchTestCasesProperties) {
             offLabel={'Suites'}
             defaultChecked={properties.isDefaultTestCases}
             onChange={(event) =>
-                properties.onChange(event.currentTarget.checked)
+                properties.onChange!(event.currentTarget.checked)
             }
+            size={properties.size}
         />
     );
 }

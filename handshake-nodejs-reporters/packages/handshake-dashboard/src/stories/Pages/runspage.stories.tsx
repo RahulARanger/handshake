@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { RunsPageContent } from 'components/about-test-runs/test-run-content';
 import { allPassed, mixed, onlySkipped } from 'stories/TestData/test-runs';
 
+const resp = await fetch('./about.md');
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
     title: 'Pages/RunsPage',
@@ -14,6 +15,7 @@ const meta = {
     tags: ['autodocs'],
     // More on argTypes: https://storybook.js.org/docs/api/argtypes
     // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
+    args: { about: await resp.text() },
 } satisfies Meta<typeof RunsPageContent>;
 
 export default meta;
@@ -34,7 +36,17 @@ export const MultipleRuns: Story = {
 
 export const ScrollableRuns: Story = {
     args: {
-        runs: [allPassed, mixed, onlySkipped, allPassed, mixed],
+        runs: [
+            allPassed,
+            allPassed,
+            allPassed,
+            mixed,
+            mixed,
+            mixed,
+            onlySkipped,
+            onlySkipped,
+            onlySkipped,
+        ],
     },
 };
 

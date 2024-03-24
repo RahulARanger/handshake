@@ -4,7 +4,7 @@ import { allPassed, mixed, onlySkipped } from 'stories/TestData/test-runs';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
-    title: 'AboutTestRun/ListOfTestRuns/Combined',
+    title: 'AboutTestRun/ListOfTestRuns/Timeline',
     component: ListOfRuns,
     parameters: {
         // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
@@ -38,5 +38,24 @@ export const ScrollableRuns: Story = {
     args: {
         runs: [allPassed, mixed, onlySkipped, allPassed, mixed],
         mah: '75vh',
+    },
+};
+
+export const PaginatedRuns: Story = {
+    args: {
+        runs: [
+            allPassed,
+            mixed,
+            onlySkipped,
+            allPassed,
+            mixed,
+            allPassed,
+            mixed,
+            onlySkipped,
+            allPassed,
+            mixed,
+        ],
+        mah: '75vh',
+        pageSize: 3,
     },
 };
