@@ -1,9 +1,8 @@
-export { default } from 'components/core/ListOfRuns/page';
+export { default } from 'components/about-test-runs/page';
 import getConnection from 'scripts/connection';
 import { type GetStaticPropsResult } from 'next';
 import currentExportConfig from 'scripts/config';
 import sqlFile from 'scripts/run-page/script';
-import { parseTestConfig } from 'components/parse-utils';
 import type { TestRunRecord } from 'types/test-run-records';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -27,8 +26,10 @@ export async function getStaticProps(): Promise<
 
     return {
         props: {
-            runs: allRuns.map((record) => parseTestConfig(record)) ?? [],
-            about: String(readFileSync(join(process.cwd(), 'src', 'about.md'))),
+            runs: allRuns,
+            about: String(
+                readFileSync(join(process.cwd(), 'public', 'about.md')),
+            ),
         },
     };
 }

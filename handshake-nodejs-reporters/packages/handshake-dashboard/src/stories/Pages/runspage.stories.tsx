@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { RunsPageContent } from 'components/about-test-runs/test-run-content';
+import { RunsPageContent } from 'components/about-test-runs/test-run-page-layout';
 import { allPassed, mixed, onlySkipped } from 'stories/TestData/test-runs';
 
-const resp = await fetch('./about.md');
+const resp = await fetch('/about.md');
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
     title: 'Pages/RunsPage',
@@ -34,6 +34,7 @@ export const MultipleRuns: Story = {
     },
 };
 
+// filter fails (for the timeline as expected) since we have duplicate keys
 export const ScrollableRuns: Story = {
     args: {
         runs: [

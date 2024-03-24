@@ -25,7 +25,7 @@ export default function TestRunsChartArea(properties: {
         showPercentStack: boolean;
     }>({ showTests: false, showPercentStack: false });
     return (
-        <ScrollAreaAutosize h={properties.h} pb={'lg'}>
+        <ScrollAreaAutosize h={properties.h} p="sm" pb={'lg'}>
             <Stack pr="xs">
                 <Card p="lg" radius="lg" shadow="lg" withBorder>
                     <Card.Section withBorder>
@@ -88,8 +88,6 @@ export default function TestRunsChartArea(properties: {
                             durations={properties.runs.map((run) =>
                                 run.Duration.asSeconds(),
                             )}
-                            // w={'60vw'}
-                            // percentStack={switchOption.showPercentStack}
                         />
                     </Card.Section>
                 </Card>

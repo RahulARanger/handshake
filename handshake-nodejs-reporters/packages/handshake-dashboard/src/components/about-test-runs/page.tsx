@@ -1,8 +1,9 @@
-import GridOfRuns from 'components/core/ListOfRuns';
 import React, { type ReactNode } from 'react';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
 import type { TestRunRecord } from 'types/test-run-records';
+import { RunsPageContent } from './test-run-page-layout';
+import transformTestRunRecord from 'extractors/transform-run-record';
 
 export default function AllTestRunsDisplayedHere(properties: {
     runs: TestRunRecord[];
@@ -19,7 +20,12 @@ export default function AllTestRunsDisplayedHere(properties: {
                     content={properties.runs.length.toString()}
                 />
             </Head>
-            <GridOfRuns runs={properties.runs} about={properties.about ?? ''} />
+            <RunsPageContent
+                runs={properties.runs.map((record) =>
+                    transformTestRunRecord(record),
+                )}
+                about={properties.about ?? ''}
+            />
         </>
     );
 }

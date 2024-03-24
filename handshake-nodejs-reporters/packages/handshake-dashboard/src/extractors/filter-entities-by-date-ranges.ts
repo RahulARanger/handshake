@@ -1,5 +1,5 @@
 import type { Dayjs } from 'dayjs';
-import type { optionForDateRange } from '../components/about-test-runs/filters';
+import type { optionForDateRange } from '../components/about-test-runs/filter-test-runs';
 import dayjs from 'dayjs';
 
 export default function filterEntities(
@@ -9,6 +9,10 @@ export default function filterEntities(
     let any = false;
     for (const filter of dateRange) {
         const today = dayjs();
+        const thisWeek = today.startOf('week');
+        const thisMonth = today.startOf('month');
+        const thisYear = today.startOf('year');
+
         switch (filter) {
             case 'Today': {
                 any = entity.Started.isSame(today, 'date');
@@ -19,47 +23,39 @@ export default function filterEntities(
                 break;
             }
             case 'This Week': {
-                any = entity.Started.isBetween(
-                    today.startOf('week'),
-                    today,
-                    'date',
-                    '[)',
-                );
+                any = entity.Started.isBetween(thisWeek, today, 'date', '[)');
                 break;
             }
             case 'Last Week': {
                 any = entity.Started.isBetween(
-                    today.startOf('week').subtract(1, 'day').startOf('week'),
-                    today,
+                    thisWeek.subtract(1, 'day').startOf('week'),
+                    thisWeek,
                     'date',
                     '[)',
                 );
                 break;
             }
             case 'This Month': {
-                any = entity.Started.isBetween(
-                    today.startOf('month'),
-                    today,
-                    'date',
-                    '[)',
-                );
+                any = entity.Started.isBetween(thisMonth, today, 'date', '[)');
                 break;
             }
             case 'Last Month': {
                 any = entity.Started.isBetween(
-                    today.startOf('month').subtract(1, 'day').startOf('month'),
-                    today,
+                    thisMonth.subtract(1, 'day').startOf('month'),
+                    thisMonth,
                     'date',
                     '[)',
                 );
                 break;
             }
             case 'This Year': {
-                any = entity.Started.isBetween(
-                    today.startOf('year'),
-                    today,
+                any = entity.Started.isBetween(thisYear, today, 'date', '[)');
+                break;
+            }
+            case 'Oldest': {
+                any = entity.Started.isBefore(
+                    thisYear.subtract(1, 'day'),
                     'date',
-                    '[)',
                 );
                 break;
             }

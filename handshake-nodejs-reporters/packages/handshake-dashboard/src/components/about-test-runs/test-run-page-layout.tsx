@@ -1,13 +1,13 @@
 import type { ReactNode } from 'react';
 import React, { useMemo, useState } from 'react';
-import { AppShell, Center, Stack, Text } from '@mantine/core';
+import { Affix, AppShell, Center, Stack, Text } from '@mantine/core';
 import { ListOfRuns } from 'components/about-test-run/run-cards';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import { TestRunsPageHeader } from 'components/about-test-runs/test-runs-header';
 import ApplicationName from './application-name';
 import dayjs from 'dayjs';
 import filterEntities from '../../extractors/filter-entities-by-date-ranges';
-import type { optionForDateRange } from './filters';
+import type { optionForDateRange } from './filter-test-runs';
 import TestRunsChartArea from './test-runs-chart-area';
 
 export function RunsPageContent(properties: {
@@ -85,18 +85,18 @@ export function RunsPageContent(properties: {
                                 'calc(100vh - var(--app-shell-header-height, 0px))'
                             }
                             chartWidth={
-                                'calc(95vw - var(--app-shell-navbar-width, 0px))'
+                                'calc(93vw - var(--app-shell-navbar-width, 0px))'
                             }
                             runs={filteredRuns}
                         />
                     </AppShell.Main>
                 </>
             ) : (
-                <Center>
+                <Affix position={{ top: '40%', left: '40%' }} zIndex={-1}>
                     <Text size="sm">
-                        No runs were found based on the filters used.
+                        No Test Runs were found based on the filters used.
                     </Text>
-                </Center>
+                </Affix>
             )}
         </AppShell>
     );

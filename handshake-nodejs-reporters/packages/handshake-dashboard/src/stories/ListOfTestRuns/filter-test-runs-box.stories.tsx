@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
-import FilterBox from 'components/about-test-runs/filters';
+import FilterBox from 'components/about-test-runs/filter-test-runs';
 import dayjs from 'dayjs';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export

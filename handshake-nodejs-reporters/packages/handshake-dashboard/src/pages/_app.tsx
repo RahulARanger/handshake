@@ -10,7 +10,11 @@ const theme = createTheme({
 });
 
 export const OurApp = ({ Component }: { Component: ReactNode }): ReactNode => {
-    return <MantineProvider theme={theme}>{Component}</MantineProvider>;
+    return (
+        <MantineProvider defaultColorScheme="dark" theme={theme}>
+            {Component}
+        </MantineProvider>
+    );
 };
 
 const App = ({ Component, pageProps }: AppProps): ReactNode => {
