@@ -25,7 +25,7 @@ export default function TestRunsChartArea(properties: {
         showPercentStack: boolean;
     }>({ showTests: false, showPercentStack: false });
     return (
-        <ScrollAreaAutosize h={properties.h} p="sm" pb={'lg'}>
+        <ScrollAreaAutosize h={properties.h} px="sm" pb={'lg'}>
             <Stack pr="xs">
                 <Card p="lg" radius="lg" shadow="lg" withBorder>
                     <Card.Section withBorder>

@@ -3,11 +3,11 @@ import { Card, Group, Badge, Anchor } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import SwitchTestCases from 'components/test-case-switch';
-import PassedRate from './passed-rate';
+import PassedRate from '../about-test-run/passed-rate';
 import { dateFormatUsed } from 'components/datetime/format';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
-import { FrameworksUsed } from './framework-icons';
+import { FrameworksUsed } from '../about-test-run/framework-icons';
 
 export default function TestRunCard(properties: {
     run: DetailedTestRecord;

@@ -3,10 +3,10 @@ import type { ScrollAreaAutosizeProps } from '@mantine/core';
 import { Button, ScrollAreaAutosize, Timeline } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
-import TestRunCard from 'components/about-test-run/run-card';
+import TestRunCard from 'components/about-test-runs/run-card';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
-import TestStatusIcon from './test-status';
+import TestStatusIcon from '../about-test-run/test-status';
 
 dayjs.extend(advancedFormat);
 

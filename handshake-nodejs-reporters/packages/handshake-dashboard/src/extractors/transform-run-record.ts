@@ -7,6 +7,9 @@ import type {
     SuiteSummary,
     TestRunRecord,
 } from 'types/test-run-records';
+import duration from 'dayjs/plugin/duration';
+
+dayjs.extend(duration);
 
 export default function transformTestRunRecord(
     testRunRecord: TestRunRecord,

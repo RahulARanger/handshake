@@ -17,23 +17,27 @@ type Story = StoryObj<typeof meta>;
 export const Mixed: Story = {
     args: {
         rate: [100, 20, 20],
+        text: 'Tests',
     },
 };
 
 export const OnlyFailed: Story = {
     args: {
         rate: [0, 0, 100],
+        text: 'Suites',
     },
 };
 
 export const OnlyPassed: Story = {
     args: {
         rate: [100, 0, 0],
+        text: 'Tests',
     },
 };
 
 export const OnlySkipped: Story = {
     args: {
         rate: [0, 100, 0],
+        text: 'Tests',
     },
 };

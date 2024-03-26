@@ -6,17 +6,21 @@ interface SwitchTestCasesProperties {
     isDefaultTestCases: boolean;
     onChange?: (isTestCase: boolean) => void;
     size?: SwitchProps['size'];
+    prefix?: string;
+    trackWidth?: number;
 }
 
 export default function SwitchTestCases(properties: SwitchTestCasesProperties) {
+    const prefix = properties.prefix ?? '';
+
     return (
         <Switch
             styles={{
-                track: { width: rem(58) },
+                track: { width: rem(properties.trackWidth ?? 58) },
                 trackLabel: { fontSize: rem(9.6), paddingInline: rem(10) },
             }}
-            onLabel={'Tests'}
-            offLabel={'Suites'}
+            onLabel={prefix + 'Tests'}
+            offLabel={prefix + 'Suites'}
             defaultChecked={properties.isDefaultTestCases}
             onChange={(event) =>
                 properties.onChange!(event.currentTarget.checked)

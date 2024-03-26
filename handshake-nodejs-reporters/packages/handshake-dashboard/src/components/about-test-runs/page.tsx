@@ -2,7 +2,7 @@ import React, { type ReactNode } from 'react';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
 import type { TestRunRecord } from 'types/test-run-records';
-import { RunsPageContent } from './test-run-page-layout';
+import { RunsPageContent } from './test-runs-page-layout';
 import transformTestRunRecord from 'extractors/transform-run-record';
 
 export default function AllTestRunsDisplayedHere(properties: {

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import React, { useMemo, useState } from 'react';
 import { Affix, AppShell, Center, Stack, Text } from '@mantine/core';
-import { ListOfRuns } from 'components/about-test-run/run-cards';
+import { ListOfRuns } from 'components/about-test-runs/run-cards';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import { TestRunsPageHeader } from 'components/about-test-runs/test-runs-header';
 import ApplicationName from './application-name';

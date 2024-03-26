@@ -3,10 +3,12 @@ import type { AppProps } from 'next/app';
 import 'styles/globals.css';
 import '@mantine/core/styles.css';
 import '@mantine/charts/styles.css';
+import '@mantine/carousel/styles.css';
 import { createTheme, MantineProvider } from '@mantine/core';
 
 const theme = createTheme({
     primaryColor: 'orange',
+    primaryShade: { dark: 9 },
 });
 
 export const OurApp = ({ Component }: { Component: ReactNode }): ReactNode => {

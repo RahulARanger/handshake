@@ -27,3 +27,11 @@ export const Primary: Story = {
         isDefaultTestCases: true,
     },
 };
+
+export const WithPrefix: Story = {
+    args: {
+        isDefaultTestCases: true,
+        prefix: 'x-',
+        trackWidth: 70,
+    },
+};

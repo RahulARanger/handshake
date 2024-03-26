@@ -35,6 +35,7 @@
         "dayjs": "^1.11.10",
         "echarts": "^5.5.0",
         "echarts-for-react": "^3.0.2",
+        "embla-carousel-autoplay": "^7.1.0",
         "embla-carousel-react": "^8.0.0",
         "handshake-utils": "0.5.0",
         "next": "14.1.4",

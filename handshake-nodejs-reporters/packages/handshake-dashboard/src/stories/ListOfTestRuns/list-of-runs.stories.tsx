@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { ListOfRuns } from 'components/about-test-run/run-cards';
+import { ListOfRuns } from 'components/about-test-runs/run-cards';
 import { allPassed, mixed, onlySkipped } from 'stories/TestData/test-runs';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
