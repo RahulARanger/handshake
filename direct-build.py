@@ -15,7 +15,7 @@ if "win" in system().lower():
 commons = (
     Path(__file__).parent
     / "handshake-nodejs-reporters"
-    / "packages"
+    / "node_modules"
     / "common-handshakes"
     / "bin"
 )

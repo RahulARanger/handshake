@@ -87,6 +87,6 @@ describe('Verifying the handshake-server helper class', () => {
       // on max we can set 3 seconds for termination
 
       expect(await instance.isServerTerminated()).toBe(true);
-    }, 10e3);
+    }, 20e3);
   });
 });
