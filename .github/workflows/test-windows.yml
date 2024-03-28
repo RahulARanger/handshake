@@ -18,7 +18,7 @@ jobs:
 
       strategy:
         matrix:
-          os: [ 'macos-latest', 'macos-12', 'macos-11']
+          os: [ 'macos-latest', 'macos-12', 'macos-11', 'macos-14']
 
       name: cross-version-test-for-mac
       permissions: write-all
