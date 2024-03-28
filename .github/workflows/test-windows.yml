@@ -13,14 +13,14 @@ permissions:
     contents: write
 
 jobs:
-    cross-version-test-for-windows:
+    cross-version-test-for-mac:
       runs-on: ${{ matrix.os }}
 
       strategy:
         matrix:
           os: [ 'macos-latest', 'macos-12', 'macos-11']
 
-      name: cross-version-test-for-windows
+      name: cross-version-test-for-mac
       permissions: write-all
 
       steps:
@@ -34,16 +34,16 @@ jobs:
 
         - name: Setup Turbo Repo.
           working-directory: ./handshake-nodejs-reporters
-          run: npm install && npm run build
+          run: sudo npm install && npm run build
 
         - name: conduct sanity tests
           working-directory: ./handshake-nodejs-reporters
-          run: npm run sanity
+          run: sudo npm run sanity
 
         - name: generate test reports
           working-directory: ./handshake-nodejs-reporters
-          run: npm run export-sanity-results
+          run: sudo npm run export-sanity-results
 
         - name: verify test reports
           working-directory: ./handshake-nodejs-reporters
-          run: npm run verify-sanity
+          run: sudo npm run verify-sanity
