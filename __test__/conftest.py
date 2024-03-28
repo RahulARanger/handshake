@@ -5,7 +5,10 @@ from pytest import fixture, mark
 from pathlib import Path
 from handshake.services.DBService.shared import db_path as shared_db_path
 from tortoise.connection import connections
-from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from handshake.services.DBService.models import RunBase, SessionBase
+from datetime import datetime, timedelta, UTC
+from handshake.services.Endpoints.core import service_provider
 
 pytestmark = mark.asyncio
 
@@ -71,3 +74,36 @@ def scripts():
         / "DBService"
         / "scripts"
     )
+
+
+@fixture(autouse=True)
+async def clean_close(db_path, init_db):
+    if not db_path.exists():
+        init_db()
+
+    await init_tortoise_orm(db_path)
+    yield
+
+    # deleting sample test runs
+    await RunBase.filter(projectName=testNames).all().delete()
+    await close_connection()
+
+
+@fixture()
+async def sample_test_run():
+    return await RunBase.create(projectName=testNames, started=datetime.now(UTC))
+
+
+@fixture()
+async def sample_test_session(sample_test_run: RunBase):
+    started = datetime.now(UTC)
+    return await SessionBase.create(
+        started=started,
+        test_id=(await sample_test_run).testID,
+        ended=started + timedelta(milliseconds=24),
+    )
+
+
+@fixture()
+def app():
+    return service_provider

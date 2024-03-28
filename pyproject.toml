@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "handshake"
-version = "0.3.2"
+name = "handshakes"
+version = "0.4.0"
 description = "A service that's keen to process your test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
@@ -9,9 +9,11 @@ packages = [{include = "handshake"}]
 maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
 ]
+exclude=[ 'handshake/.env', 'handshake/prod.env', 'handshake/test.env' ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Database :: Front-Ends",
     "Intended Audience :: Developers",
     "Operating System :: OS Independent"
@@ -28,6 +30,7 @@ loguru = "^0.7.2"
 httpx = "^0.26.0"
 python-dotenv = "^1.0.1"
 sentry-sdk = {extras = ["sanic"], version = "^1.40.4"}
+setuptools = "^69.2.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
@@ -35,7 +38,7 @@ pytest-asyncio = "^0.21.1"
 sanic-testing = "^23.6.0"
 psutil = "^5.9.5"
 black = "^23.9.1"
-pyinstaller = "^6.1.0"
+virtualenv = "^20.25.1"
 
 [tool.poetry.extras]
 excel-export = ["openpyxl"]
@@ -45,5 +48,19 @@ excel-export = ["openpyxl"]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
+[project.urls]
+"Homepage" = "https://github.com/RahulARanger/handshake"
+"Bug Reports" = "https://github.com/RahulARanger/handshake/issues"
+"Source" = "https://github.com/RahulARanger/handshake"
+
+
 [tool.poetry.scripts]
 handshake = "handshake.services.CommandLine.center:handle_cli"
+
+
+[tool.pytest.ini_options]
+markers = [
+    "sanity: must work test cases, we run this to test the installation process"
+]
+asyncio_mode = "auto"
+addopts = "--strict-markers"

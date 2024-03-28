@@ -4,7 +4,7 @@ import time
 from pytest import fixture
 from pathlib import Path
 
-from __test__.test_regression.conftest import testNames
+from __test__.conftest import testNames
 from handshake.services.DBService.shared import db_path as shared_db_path
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from handshake.services.DBService.models import RunBase

@@ -13,9 +13,16 @@ from handshake.services.SchedularService.register import (
 )
 
 
+@mark.sanity
 @mark.usefixtures()
 class TestPickTasks:
     async def test_picked_previous_tasks(self, sample_test_session, create_suite):
+        """
+        tests if the patch command picks the tasks that are pending and not yet picked
+        :param sample_test_session: test session
+        :param create_suite: helper to create a test suite
+        :return:
+        """
         session = await sample_test_session
         suite = await create_suite(session.sessionID)
         test = await session.test
@@ -33,9 +40,18 @@ class TestPickTasks:
         assert not (updated_task.picked or updated_task.processed)
 
     async def test_reset_test_run(self, sample_test_session, create_suite, root_dir):
+        """
+        we might have to sometimes add a migration script to reset all test runs
+        when requested, it would make all the tasks which were completed to be rescheduled for the
+        next patch.
+        :param sample_test_session: test session
+        :param create_suite: helper to create a suite
+        :param root_dir: root directory
+        :return:
+        """
         session = await sample_test_session
         test = await session.test
-        task = await register_patch_test_run(test.testID)
+        await register_patch_test_run(test.testID)
         await patchTestRun(test.testID, test.testID)
         note = (await TaskBase.filter(ticketID=test.testID).first()).dropped
 

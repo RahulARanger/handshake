@@ -2,7 +2,7 @@ from pytest import mark
 from handshake.services.DBService.models import (
     StaticBase,
 )
-from __test__.test_regression.test_patch_jobs.test_server.commons import set_config
+from __test__.test_patch_jobs.test_server.commons import set_config
 from pathlib import Path
 
 

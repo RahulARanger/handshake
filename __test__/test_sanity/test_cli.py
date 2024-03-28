@@ -3,7 +3,7 @@ from handshake.services.DBService.models import ConfigBase
 from handshake.services.DBService.models.enums import ConfigKeys
 from subprocess import run
 from pytest import mark
-from __test__.test_regression.test_utils import TestSetConfigCommand
+from __test__.test_utils import TestSetConfigCommand
 
 
 @mark.usefixtures("clean_close")

@@ -129,7 +129,7 @@ async def helper_create_assertion(entity_id: str, title: str, passed: bool):
 
 async def helper_create_session(test_id: str, entityName="sample"):
     await sleep(0.0025)
-    started = datetime.datetime.utcnow()
+    started = datetime.datetime.now(datetime.UTC)
     return await SessionBase.create(
         started=started,
         entityName=entityName,

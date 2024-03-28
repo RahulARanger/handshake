@@ -6,7 +6,10 @@ dist/*
 **/.turbo/*
 **/dist/*
 *.pyc
+
 # testing
+.nox
+
 results
 test-results/*
 TestResults/*

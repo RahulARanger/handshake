@@ -10,6 +10,11 @@
       <excludeFolder url="file://$MODULE_DIR$/wdio-py-service/node_modules" />
       <excludeFolder url="file://$MODULE_DIR$/TestResults" />
       <excludeFolder url="file://$MODULE_DIR$/dist" />
+      <excludeFolder url="file://$MODULE_DIR$/.nox" />
+      <excludeFolder url="file://$MODULE_DIR$/SanityResults" />
+      <excludeFolder url="file://$MODULE_DIR$/TestReports" />
+      <excludeFolder url="file://$MODULE_DIR$/build" />
+      <excludeFolder url="file://$MODULE_DIR$/handshake-nodejs-reporters" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (Handshake)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
