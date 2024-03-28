@@ -1,10 +1,10 @@
-export { default } from '@/core/ListOfRuns/page';
-import getConnection from '@/scripts/connection';
+export { default } from 'components/core/ListOfRuns/page';
+import getConnection from 'scripts/connection';
 import { type GetStaticPropsResult } from 'next';
-import currentExportConfig from '@/components/scripts/config';
-import sqlFile from '@/components/scripts/RunPage/script';
-import { parseTestConfig } from '@/components/parse-utils';
-import type { TestRecord } from '@/types/test-run-records';
+import currentExportConfig from 'scripts/config';
+import sqlFile from 'scripts/run-page/script';
+import { parseTestConfig } from 'components/parse-utils';
+import type { TestRecord } from 'types/test-run-records';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 

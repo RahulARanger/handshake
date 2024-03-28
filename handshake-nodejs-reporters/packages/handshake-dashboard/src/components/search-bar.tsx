@@ -3,7 +3,7 @@ import Button from 'antd/lib/button/button';
 import type { ReactNode, Ref } from 'react';
 import React from 'react';
 import type { InputRef } from 'antd/lib';
-import TextShadow from '@/styles/text-shadow.module.css';
+import TextShadow from 'styles/text-shadow.module.css';
 import type { ChangeEvent, KeyboardEvent, MouseEvent } from 'react';
 
 export default function SearchEntities(properties: {

@@ -1,4 +1,4 @@
-import type { specNode } from 'src/types/test-run-records';
+import type { specNode } from 'types/test-run-records';
 import React, { Component, type ReactNode } from 'react';
 import ReactECharts from 'echarts-for-react';
 import * as echarts from 'echarts/core';
@@ -24,8 +24,8 @@ import type { ComposeOption } from 'echarts/core';
 import { SVGRenderer } from 'echarts/renderers';
 import { standingToColors, toolTipFormats } from './constants';
 import type { TreemapSeriesOption } from 'echarts/lib/echarts';
-import type { StatusContext } from 'src/types/transfer-structure-context';
-import type { SuiteDetails } from 'src/types/parsed-records';
+import type { StatusContext } from 'types/transfer-structure-context';
+import type { SuiteDetails } from 'types/parsed-records';
 
 type composed = ComposeOption<
     | TreemapSeriesOption

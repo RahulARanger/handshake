@@ -1,6 +1,6 @@
 {
 	"name": "wdio-handshake-reporter",
-	"version": "0.4.7",
+	"version": "0.5.0",
 	"types": "./dist/index.d.ts",
 	"exports": {
 		"default": "./dist/index.js",
@@ -20,11 +20,11 @@
 		"@wdio/types": "^8.32.4",
 		"log4js": "^6.9.1",
 		"superagent": "^8.1.2",
-		"common-handshakes": "0.4.7"
+		"common-handshakes": "0.5.0"
 	},
 	"devDependencies": {
 		"@types/async-lock": "^1.4.2",
 		"@types/superagent": "^8.1.4",
-		"@types/node": "^20.11.25"
+		"@types/node": "^20.11.27"
 	}
 }

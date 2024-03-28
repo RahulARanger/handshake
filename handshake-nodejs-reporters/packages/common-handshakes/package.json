@@ -1,6 +1,6 @@
 {
 	"name": "common-handshakes",
-	"version": "0.4.7",
+	"version": "0.5.0",
 	"private": false,
 	"type": "module",
 	"license": "MIT",
@@ -39,7 +39,7 @@
 		"@types/async-lock": "^1.4.2",
 		"@types/jest": "^29.5.12",
 		"@types/mocha": "^10.0.6",
-		"@types/node": "^20.11.25",
+		"@types/node": "^20.11.27",
 		"@types/superagent": "^8.1.4",
 		"@types/supertest": "^6.0.2",
 		"babel-jest": "^29.7.0",

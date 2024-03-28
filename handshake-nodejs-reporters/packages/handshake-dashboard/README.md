@@ -10,7 +10,7 @@ Exporting Next-JS app was bit confusing for me at first, have spent a lot of tim
 
 -   when the command line has this particular directory as its root then it should be able to use the command `npm run export`
 -   after running the export command, it should avoid linting next-js as it would be taken care before deploying the changes.
--   First it generates the `antd.min.css` in the `src/styles` directory. the above file is not distributed. `scripts/genAntdCSS.ts` generates the file
+-   First it generates the `antd.min.css` in the `styles` directory. the above file is not distributed. `scripts/genAntdCSS.ts` generates the file
 -   and then it would generate the html files inside the requested output directory through `next build` command.
 
 ### Changes made

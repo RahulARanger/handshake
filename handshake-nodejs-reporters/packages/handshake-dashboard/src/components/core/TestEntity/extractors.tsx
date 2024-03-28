@@ -5,15 +5,15 @@ import type { TextProps } from 'antd/lib/typography/Text';
 import Button from 'antd/lib/button/button';
 import type { Dayjs } from 'dayjs';
 import React from 'react';
-import { RenderTestItem } from '@/components/utils/renderers';
-import type { statusOfEntity } from '@/types/session-records';
+import { RenderTestItem } from 'components/renderers';
+import type { statusOfEntity } from 'types/session-records';
 import EntityItem from './entity-item';
 import type {
     ParsedSuiteRecord,
     ParsedTestRecord,
     SuiteDetails,
     TestDetails,
-} from '@/types/parsed-records';
+} from 'types/parsed-records';
 
 export function extractNeighborSuite(
     suites: SuiteDetails,

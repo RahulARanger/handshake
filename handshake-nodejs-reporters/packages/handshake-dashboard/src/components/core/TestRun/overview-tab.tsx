@@ -1,19 +1,15 @@
-import type { SuiteRecordDetails } from 'src/types/test-entity-related';
-import type { statusOfEntity } from 'src/types/session-records';
-import Counter from '@/components/utils/counter';
-import RelativeTo, {
-    RenderDuration,
-} from 'src/components/utils/Datetime/relative-time';
-import ProgressPieChart from 'src/components/charts/status-pie-chart';
+import type { SuiteRecordDetails } from 'types/test-entity-related';
+import type { statusOfEntity } from 'types/session-records';
+import Counter from 'components/charts/counter';
+import RelativeTo, { RenderDuration } from 'components/datetime/relative-time';
+import ProgressPieChart from 'components/charts/status-pie-chart';
 import {
     RenderFrameworkUsed,
     RenderStatus,
     RenderSystemType,
-} from 'src/components/utils/renderers';
-import RenderPassedRate from 'src/components/charts/stacked-bar-chart';
-import GalleryOfImages, {
-    PlainImage,
-} from 'src/components/utils/images-with-thumbnails';
+} from 'components/renderers';
+import RenderPassedRate from 'components/charts/stacked-bar-chart';
+import GalleryOfImages, { PlainImage } from 'components/images-with-thumbnails';
 import React, { useState, type ReactNode, useContext } from 'react';
 import dayjs from 'dayjs';
 import Space from 'antd/lib/space';
@@ -23,14 +19,14 @@ import Table from 'antd/lib/table/Table';
 import Select from 'antd/lib/select/index';
 import Tabs from 'antd/lib/tabs/index';
 import { Empty, Tag } from 'antd/lib';
-import { standingToColors } from 'src/components/charts/constants';
-import type { OverviewOfEntities } from 'src/types/parsed-overview-records';
-import { OverviewContext } from 'src/types/parsed-overview-records';
-import TextShadow from '@/styles/text-shadow.module.css';
+import { standingToColors } from 'components/charts/constants';
+import type { OverviewOfEntities } from 'types/parsed-overview-records';
+import { OverviewContext } from 'types/parsed-overview-records';
+import TextShadow from 'styles/text-shadow.module.css';
 import { LOCATORS } from 'handshake-utils';
-import CardStyles from '@/styles/card.module.css';
+import CardStyles from 'styles/card.module.css';
 import Ribbon from 'antd/lib/badge/Ribbon';
-import { TestEntitiesOverTime } from '@/components/charts/collection-of-runs';
+import { TestEntitiesOverTime } from 'components/charts/collection-of-runs';
 
 function TopSuites(properties: {
     suites: OverviewOfEntities[];

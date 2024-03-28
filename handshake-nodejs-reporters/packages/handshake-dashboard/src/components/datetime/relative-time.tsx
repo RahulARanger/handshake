@@ -7,9 +7,9 @@ import duration from 'dayjs/plugin/duration';
 import { type Duration } from 'dayjs/plugin/duration';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import { timeFormatUsed } from './format';
-import carouselStyles from '@/styles/carousel.module.css';
+import carouselStyles from 'styles/carousel.module.css';
 import Typography from 'antd/lib/typography/Typography';
-import TextShadow from '@/styles/text-shadow.module.css';
+import TextShadow from 'styles/text-shadow.module.css';
 import { LOCATORS } from 'handshake-utils';
 import Carousel from 'antd/lib/carousel/index';
 

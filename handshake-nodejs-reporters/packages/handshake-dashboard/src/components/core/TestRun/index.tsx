@@ -1,7 +1,7 @@
-import { detailedPage, runPage } from 'src/components/links';
-import RelativeTo from 'src/components/utils/Datetime/relative-time';
-import { dateFormatUsed } from 'src/components/utils/Datetime/format';
-import { menuTabs } from 'src/types/ui-constants';
+import { detailedPage, runPage } from 'components/links';
+import RelativeTo from 'components/datetime/relative-time';
+import { dateFormatUsed } from 'components/datetime/format';
+import { menuTabs } from 'types/ui-constants';
 import React, { useContext, type ReactNode } from 'react';
 import Layout from 'antd/lib/layout/index';
 import Text from 'antd/lib/typography/Text';
@@ -12,9 +12,9 @@ import TableOutlined from '@ant-design/icons/TableOutlined';
 import PartitionOutlined from '@ant-design/icons/PartitionOutlined';
 import type { MenuProps } from 'antd/lib/menu/menu';
 import Menu from 'antd/lib/menu/menu';
-import HeaderStyles from '@/styles/header.module.css';
+import HeaderStyles from 'styles/header.module.css';
 import Link from 'next/link';
-import { DetailedContext } from '@/types/records-in-detailed';
+import { DetailedContext } from 'types/records-in-detailed';
 
 export default function LayoutStructureForRunDetails(properties: {
     children: ReactNode;

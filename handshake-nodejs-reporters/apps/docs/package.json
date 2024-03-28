@@ -30,7 +30,7 @@
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"typescript": "^5.3.3",
-		"handshake-utils": "0.4.3",
-		"handshake-dashboard": "0.4.7"
+		"handshake-utils": "0.5.0",
+		"handshake-dashboard": "0.5.1"
 	}
 }

@@ -1,13 +1,7 @@
 import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
-import {
-  spawn, spawnSync,
-} from 'node:child_process';
-import {
-  setTimeout,
-  setInterval,
-  clearTimeout,
-} from 'node:timers';
+import { spawn, spawnSync } from 'node:child_process';
+import { setTimeout, setInterval, clearTimeout } from 'node:timers';
 import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
@@ -20,7 +14,7 @@ export class ServiceDialPad extends DialPad {
 
   workers: number = 2;
 
-  constructor(port: number, logLevel?:Level, exePath?:string) {
+  constructor(port: number, logLevel?: Level, exePath?: string) {
     super(port, exePath);
     logger.level = logLevel ?? 'info';
   }
@@ -29,18 +23,25 @@ export class ServiceDialPad extends DialPad {
     return `${this.saveUrl}/currentRun`;
   }
 
-  executeCommand(args: string[], isSync: boolean, cwd: string, timeout?:number) {
+  executeCommand(
+    args: string[],
+    isSync: boolean,
+    cwd: string,
+    timeout?: number,
+  ) {
     const starter = isSync ? spawnSync : spawn;
 
-    logger.info(`🫱🏻‍🫲🏾 with ${args} at ${this.exePath} from ${cwd} => ${args.join(' ')}`);
-
-    return starter(
-      this.exePath,
-      args,
-      {
-        timeout, shell: false, cwd, stdio: 'inherit', detached: false,
-      },
+    logger.info(
+      `🫱🏻‍🫲🏾 with ${args} at ${this.exePath} from ${cwd} => ${args.join(' ')}`,
     );
+
+    return starter(this.exePath, args, {
+      timeout,
+      shell: false,
+      cwd,
+      stdio: 'inherit',
+      detached: false,
+    });
   }
 
   startService(
@@ -50,10 +51,24 @@ export class ServiceDialPad extends DialPad {
     workers?: number,
   ): ChildProcess {
     this.workers = Math.max(workers ?? 1, 2);
-    const args = ['run-app', projectName, resultsDir, '-p', this.port.toString(), '-w', String(this.workers)];
-    logger.info(`Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`);
+    const args = [
+      'run-app',
+      projectName,
+      resultsDir,
+      '-p',
+      this.port.toString(),
+      '-w',
+      String(this.workers),
+    ];
+    logger.info(
+      `Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`,
+    );
 
-    const pyProcess = this.executeCommand(args, false, rootDir) as ChildProcess;
+    const pyProcess = this.executeCommand(
+      args,
+      false,
+      rootDir,
+    ) as ChildProcess;
     this.pyProcess = pyProcess;
     pyProcess.stdout?.on('data', (chunk) => logger.info(chunk.toString()));
     pyProcess.stderr?.on('data', (chunk) => logger.error(chunk.toString()));
@@ -70,9 +85,7 @@ export class ServiceDialPad extends DialPad {
       }
     });
 
-    logger.info(
-      `Started handshake-server, pid: ${pyProcess.pid}`,
-    );
+    logger.info(`Started handshake-server, pid: ${pyProcess.pid}`);
 
     // important for avoiding zombie py server
     process.on('exit', async () => {
@@ -85,19 +98,24 @@ export class ServiceDialPad extends DialPad {
 
   async ping(): Promise<boolean> {
     logger.info('pinging py-server...');
-    const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
+    const resp = await superagent
+      .get(`${this.url}/`)
+      .catch(() => logger.warn('ping failed'));
     logger.info(`found response: ${resp?.statusCode ?? '404'}`);
     return resp?.statusCode === 200;
   }
 
-  async waitUntilItsReady(force?:number): Promise<unknown> {
+  async waitUntilItsReady(force?: number): Promise<unknown> {
     const waitingForTheServer = new Error(
       '🔴 Not able to connect with handshake-server within a minute. Please try running this again, else report this as an issue.',
     );
     return new Promise((resolve, reject) => {
       let timer: NodeJS.Timeout;
       let bomb: NodeJS.Timeout;
-      const cleanup = () => { clearTimeout(bomb); clearInterval(timer); };
+      const cleanup = () => {
+        clearTimeout(bomb);
+        clearInterval(timer);
+      };
 
       bomb = setTimeout(async () => {
         cleanup();
@@ -121,7 +139,9 @@ export class ServiceDialPad extends DialPad {
 
   async isServerTerminated(): Promise<boolean> {
     if (this.pyProcess?.killed) return true;
-    const resp = await superagent.get(`${this.url}/`).catch(() => logger.warn('ping failed'));
+    const resp = await superagent
+      .get(`${this.url}/`)
+      .catch(() => logger.warn('ping failed'));
     const wasTerminated = resp?.statusCode !== 200;
     if (!wasTerminated) logger.warn('→ Had to 🗡️ the handshake-server.');
     return wasTerminated;
@@ -155,9 +175,7 @@ export class ServiceDialPad extends DialPad {
       .catch((err) => logger.error(`⚠️ Failed to update the config: ${err}`));
 
     if (resp) {
-      logger.info(
-        `Updated config ⚙️ for the test run: ${resp.text}`,
-      );
+      logger.info(`Updated config ⚙️ for the test run: ${resp.text}`);
     }
     return resp;
   }
@@ -168,23 +186,41 @@ export class ServiceDialPad extends DialPad {
     outDir?: string,
     maxTestRuns?: number,
     skipPatch?: boolean,
-    timeout?:number,
+    timeout?: number,
   ): false | Error | undefined {
     if (skipPatch) {
-      logger.warn('Test Results are not patched, as per request. Make sure to patch it up later.');
+      logger.warn(
+        'Test Results are not patched, as per request. Make sure to patch it up later.',
+      );
       return false;
     }
     const patchArgs = ['patch', resultsDir];
     if (outDir == null) {
-      logger.info(`Patching the results 🟠, passing the command ${patchArgs}`);
+      logger.info(
+        `Patching the results 🟠, passing the command ${patchArgs}`,
+      );
     }
 
     // for patching
-    let result = this.executeCommand(patchArgs, true, rootDir, timeout) as SpawnSyncReturns<Buffer>;
+    let result = this.executeCommand(
+      patchArgs,
+      true,
+      rootDir,
+      timeout,
+    ) as SpawnSyncReturns<Buffer>;
 
     if (outDir != null && result.error == null) {
-      const exportArgs = ['export', resultsDir, '--out', outDir, '-mr', (maxTestRuns ?? 100).toString()];
-      logger.info(`Generating Report 📃, passing the command: ${exportArgs}`);
+      const exportArgs = [
+        'export',
+        resultsDir,
+        '--out',
+        outDir,
+        '-mr',
+        (maxTestRuns ?? 100).toString(),
+      ];
+      logger.info(
+        `Generating Report 📃, passing the command: ${exportArgs}`,
+      );
 
       result = this.executeCommand(
         exportArgs,
@@ -201,10 +237,9 @@ export class ServiceDialPad extends DialPad {
     await superagent
       .put(`${this.url}/done`)
       .retry(3)
-      .then(
-        async (data) => {
-          logger.info(`Marked Test Run: ${data.text} for patching.`);
-        },
-      ).catch((err) => logger.error(`⚠️ Failed to mark test run completion: ${err}`));
+      .then(async (data) => {
+        logger.info(`Marked Test Run: ${data.text} for patching.`);
+      })
+      .catch((err) => logger.error(`⚠️ Failed to mark test run completion: ${err}`));
   }
 }
