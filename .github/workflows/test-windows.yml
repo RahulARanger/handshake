@@ -38,12 +38,12 @@ jobs:
 
         - name: conduct sanity tests
           working-directory: ./handshake-nodejs-reporters
-          run: sudo npm run sanity
+          run: npm run sanity
 
         - name: generate test reports
           working-directory: ./handshake-nodejs-reporters
-          run: sudo npm run export-sanity-results
+          run: npm run export-sanity-results
 
         - name: verify test reports
           working-directory: ./handshake-nodejs-reporters
-          run: sudo npm run verify-sanity
+          run: npm run verify-sanity
