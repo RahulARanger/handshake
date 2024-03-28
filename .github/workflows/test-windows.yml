@@ -18,7 +18,7 @@ jobs:
 
       strategy:
         matrix:
-          os: [ 'macos-14']
+          os: [ 'macos-14-arm64']
 
       name: cross-version-test-for-mac
       permissions: write-all
