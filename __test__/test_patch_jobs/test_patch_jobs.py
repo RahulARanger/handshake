@@ -298,7 +298,6 @@ class TestPatchSuiteJob:
 
         return test
 
-    @mark.sanity
     async def test_patch_command(
         self, sample_test_run, sample_test_session, create_suite, create_tests, root_dir
     ):
@@ -495,7 +494,6 @@ class TestPatchRunJob:
 
         assert record.retried == 2
 
-    @mark.sanity
     async def test_patch_command(
         self,
         sample_test_run,

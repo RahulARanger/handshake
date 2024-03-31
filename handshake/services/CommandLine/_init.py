@@ -123,6 +123,13 @@ def patch(collection_path, log_file: str, reset: bool = False):
 
 
 @handle_cli.command(
+    help="returns the version of the handshake", short_help="example: 1.0.0"
+)
+def v():
+    secho(__version__)
+
+
+@handle_cli.command(
     help="Helper command which would assume you have nodejs installed and with the help of Next.js's SSG [Static Site "
     "Generation] we would generate reports from processed results."
     " Note: make sure to run this command from the directory where we can access the required npm scope",

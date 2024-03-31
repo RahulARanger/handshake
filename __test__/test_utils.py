@@ -1,4 +1,3 @@
-import pathlib
 from handshake.services.SchedularService.completeTestRun import (
     simplify_file_paths,
     fetch_key_from_status,
@@ -7,7 +6,7 @@ from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBa
 from handshake.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
-from shutil import rmtree
+from shutil import rmtree, which
 from subprocess import run
 from pytest import mark
 

@@ -1,21 +1,14 @@
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 export default class DialPad {
   port: number;
 
   exePath: string;
 
   static get defaultExe() {
-    const currentDir = typeof __dirname !== 'undefined'
-      ? __dirname
-      : dirname(fileURLToPath(import.meta.url));
-
-    return join(dirname(currentDir), 'bin', 'handshake');
+    return 'handshake';
   }
 
-  constructor(port: number, exePath?:string) {
-    this.port = port; this.exePath = exePath ?? DialPad.defaultExe;
+  constructor(port: number) {
+    this.port = port; this.exePath = DialPad.defaultExe;
   }
 
   get url(): string {

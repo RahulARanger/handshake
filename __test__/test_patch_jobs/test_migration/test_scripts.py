@@ -26,12 +26,10 @@ async def assertEntityNameType(connection, expected):
 
 
 class TestMigrationScripts:
-    @mark.sanity
     async def test_sqlite_version(self):
         assert int(sqlite3.sqlite_version_info[0]) >= 3
         assert int(sqlite3.sqlite_version_info[1]) >= 38
 
-    @mark.sanity
     async def test_default_config(self, root_dir):
         assert (root_dir / "config.json").exists()
         for required in (
@@ -194,13 +192,11 @@ class TestMigrationScripts:
         logs = await TestLogBase.all().values("dropped")
         assert len(logs) >= 0
 
-    @mark.sanity
     async def test_version_command(self, root_dir):
         result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)
         assert result.returncode == 0
         assert "Currently at: v7." in result.stderr.decode()
 
-    @mark.sanity
     async def test_migration_command(self, get_vth_connection, root_dir, scripts):
         await get_vth_connection(scripts, 3)
         result = run(f'handshake migrate "{root_dir}"', shell=True, stderr=PIPE)

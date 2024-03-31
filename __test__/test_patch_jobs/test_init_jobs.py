@@ -13,7 +13,6 @@ from handshake.services.SchedularService.register import (
 )
 
 
-@mark.sanity
 @mark.usefixtures()
 class TestPickTasks:
     async def test_picked_previous_tasks(self, sample_test_session, create_suite):

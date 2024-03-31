@@ -22,18 +22,27 @@ async def open_server(root_dir):
 
     global session
     session = Session()
+    _session = Session()
 
     retries = Retry(total=15, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
-    session.mount("http://", HTTPAdapter(max_retries=retries))
+    _session.mount("http://", HTTPAdapter(max_retries=retries))
+    response = _session.get("http://127.0.0.1:6978/")
+    assert response.text == "1"
+    _session.close()
+
     yield
 
     # deleting sample test runs
-    await RunBase.filter(projectName="test-life-cycle").all().delete()
-
-    response = post("http://127.0.0.1:6978/bye")
-    assert response.text == "1"
+    try:
+        await RunBase.filter(projectName="test-life-cycle").all().delete()
+        response = post("http://127.0.0.1:6978/bye")
+        assert response.text == "1"
+    except KeyboardInterrupt:
+        result.kill()
+        assert False, "Force terminated"
 
     assert result.wait() == 0
+    session.close()
 
 
 def savePts(suffix: str) -> str:
