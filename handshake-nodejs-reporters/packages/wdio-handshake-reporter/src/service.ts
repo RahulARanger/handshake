@@ -1,4 +1,3 @@
-import { join } from 'node:path';
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Options, Services } from '@wdio/types';
 import { frameworksUsedString } from 'common-handshakes';
@@ -7,13 +6,8 @@ import { ContactsForService } from './contacts';
 export default class HandshakeService
   extends ContactsForService
   implements Services.ServiceInstance {
-  // eslint-disable-next-line class-methods-use-this
-  get venv(): string {
-    return join('venv', 'Scripts', 'activate');
-  }
-
   async flagToPyThatsItsDone() {
-    // closing graspit server for now.
+    // closing handshake server for now.
     await this.supporter.terminateServer();
 
     const hasError = this.supporter.generateReport(
@@ -25,14 +19,14 @@ export default class HandshakeService
       this.options.timeout,
     );
     if (hasError) {
-      this.logger.error(`Failed to patch results, because of ${hasError.message}`);
+      this.logger.error({ for: 'failed to patch', reason: hasError.message });
       return;
     }
 
     this.logger.info(
       this.options.export?.out
-        ? `Results are generated, please feel free to run "npx handshake display ${this.options.export?.out}" or simply host this folder ${this.options.export?.out}`
-        : `Results are patched, export it whenever you are ready with "npx handshake export ${this.resultsDir} --out PLACE_WHEREVER_YOU_NEED`,
+        ? { furtherAction: `npx handshake display ${this.options.export?.out} or simply host this folder ${this.options.export?.out}` }
+        : { furtherAction: `npx handshake patch ${this.options.root} --out [OUT_DIR_FOR_REPORT]`, why: 'skipped to generate reports as requested' },
     );
   }
 
@@ -40,7 +34,6 @@ export default class HandshakeService
   // capabilities: Capabilities.RemoteCapabilities
     : void {
     const { root: rootDir } = this.options;
-    this.logger.info(`Starting handshake-server at port: ${this.options.port}`);
     const { resultsDir } = this;
 
     if (!existsSync(resultsDir)) {

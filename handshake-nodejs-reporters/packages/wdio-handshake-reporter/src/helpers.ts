@@ -20,23 +20,24 @@ export function attachReporter(
     {
       port,
       addScreenshots: options.addScreenshots || false,
-      timeout: options.timeout,
-      logLevel: options.logLevel,
+      timeout: Math.max(options.timeout ?? config.reporterSyncTimeout ?? 60e3, 60e3),
+      logLevel: options.logLevel ?? config.logLevel ?? 'info',
     },
   ]);
 
   toModify.services.push([
     HandshakeService, {
       port,
-      exePath: options.exePath,
-      timeout: options.timeout,
+      timeout: Math.max(options.timeout ?? config.connectionRetryTimeout ?? 120e3, 120e3),
       root: options.root,
       workers: options.workers,
-      collectionName: options.collectionName,
-      logLevel: options.logLevel,
+      resultsFolderName: options.resultsFolderName,
+      logLevel: options.logLevel ?? config.logLevel ?? 'info',
       export: options.export,
       testConfig: {
-        ...options.testConfig, avoidParentSuitesInCount: options.testConfig.avoidParentSuitesInCount ?? config.framework === 'cucumber',
+        ...options.testConfig,
+        avoidParentSuitesInCount:
+          options.testConfig?.avoidParentSuitesInCount ?? config.framework === 'cucumber',
       },
     },
   ]);
@@ -56,11 +57,11 @@ export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boo
 
 export function skipIfRequired() {
   if (currentReporter == null || currentReporter?.skipTestRun) {
-    currentReporter?.logger.info('🚫 Skipping the test as marked');
+    currentReporter?.logger.info({ note: 'skipping', what: 'test', why: 'as requested' });
     return true;
   }
   if (currentReporter.currentTestID == null) {
-    currentReporter?.logger.warn('🤕 Didn\'t find the current test id');
+    currentReporter?.logger.error({ why: 'no-test-id-found', so: 'skipping' });
     return true;
   }
   return false;
