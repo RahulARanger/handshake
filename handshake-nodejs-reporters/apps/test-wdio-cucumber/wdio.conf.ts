@@ -347,7 +347,7 @@ const options: Options.Testrunner = {
 const root = dirname(dirname(dirname(process.cwd())));
 
 export const config = attachReporter(options, {
-	collectionName: process.env.SANITY ? "SanityResults" : "TestResults",
+	resultsFolderName: process.env.SANITY ? "SanityResults" : "TestResults",
 	port: 6969,
 	timeout: 360e3,
 	root,

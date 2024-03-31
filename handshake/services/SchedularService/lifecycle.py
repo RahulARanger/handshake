@@ -27,13 +27,17 @@ async def say_bye_if_required(scheduler: AsyncIOScheduler, mapped: List[bool]):
     if len(mapped) > 0 or pending_tasks > 0:
         return
 
+    current_running_loop = get_event_loop()
     scheduler.remove_all_jobs()
     # we can't shut down scheduler because you are now inside one of the core job
+
+    if current_running_loop.is_closed():
+        return
 
     # closing db connection
     await close_connection()
 
-    current_running_loop = get_event_loop()
+    # closing event loop
     current_running_loop.stop()
 
 
