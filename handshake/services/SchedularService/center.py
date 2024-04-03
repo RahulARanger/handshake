@@ -3,7 +3,6 @@ from handshake.services.SchedularService.handlePending import add_lookup_task
 from handshake.services.DBService.lifecycle import init_tortoise_orm
 from handshake.services.SchedularService.lifecycle import verify_pending_jobs
 from handshake.services.SchedularService.pruneTasks import pruneTasks
-from handshake.services.SchedularService.deleteRuns import addDeleteJob
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from datetime import datetime

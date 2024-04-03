@@ -49,7 +49,7 @@ READ_ONLY = (
     ConfigKeys.reset_test_run,
     ConfigKeys.py_version,
 )
-ALLOW_WRITE = (ConfigKeys.maxRuns,)
+ALLOW_WRITE = (ConfigKeys.maxRunsPerProject,)
 
 
 async def set_default_config(path: Path):
@@ -66,7 +66,10 @@ async def set_default_config(path: Path):
         (ConfigKeys.py_version, __version__),
         (ConfigKeys.reset_test_run, ""),
         # below keys can be overridden by the config file
-        *[(_, config_provided.get(_, __)) for _, __ in [(ConfigKeys.maxRuns, "100")]],
+        *[
+            (_, config_provided.get(_, __))
+            for _, __ in [(ConfigKeys.maxRunsPerProject, "100")]
+        ],
     ]:
         record = await ConfigBase.filter(key=str(key)).first()
         if not record:

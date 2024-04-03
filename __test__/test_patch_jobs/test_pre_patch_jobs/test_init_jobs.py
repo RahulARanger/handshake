@@ -4,7 +4,7 @@ from handshake.services.DBService.models import (
     TaskBase,
 )
 from handshake.services.DBService.models.enums import ConfigKeys
-from handshake.services.SchedularService.center import pick_previous_tasks
+from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.completeTestRun import patchTestRun
 from subprocess import run
 from handshake.services.SchedularService.register import (
@@ -15,7 +15,9 @@ from handshake.services.SchedularService.register import (
 
 @mark.usefixtures()
 class TestPickTasks:
-    async def test_picked_previous_tasks(self, sample_test_session, create_suite):
+    async def test_picked_previous_tasks(
+        self, db_path, sample_test_session, create_suite
+    ):
         """
         tests if the patch command picks the tasks that are pending and not yet picked
         :param sample_test_session: test session
@@ -33,7 +35,7 @@ class TestPickTasks:
         # now assume the scheduler stopped
 
         # so in the next run it should plan to pick this
-        await pick_previous_tasks()
+        await Scheduler(db_path.parent).init_jobs()
 
         updated_task = await TaskBase.filter(ticketID=task.ticketID).first()
         assert not (updated_task.picked or updated_task.processed)

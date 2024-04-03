@@ -12,8 +12,7 @@ from click import (
 )
 from handshake import __version__
 from handshake.services.DBService.migrator import check_version, migration, DB_VERSION
-from handshake.services.SchedularService.center import start_service
-from handshake.services.SchedularService.lifecycle import start_loop
+from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.handleTestResults import (
     moveTestRunsRelatedAttachment,
     setConfig,
@@ -29,15 +28,14 @@ from subprocess import call, check_output
 from loguru import logger
 from concurrent.futures import ThreadPoolExecutor
 import json
-from handshake.services.DBService.lifecycle import (
-    config_file,
-)
+from handshake.services.DBService.lifecycle import config_file, close_connection
 from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
 from handshake.services.DBService.models.config_base import ConfigKeys
 from tortoise import run_async
 from os import getenv
+from asyncio import run
 
 
 @group(
@@ -118,8 +116,13 @@ def patch(collection_path, log_file: str, reset: bool = False):
 
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
-    start_service(db_path(collection_path), reset)
-    start_loop()
+    # start_service(db_path(collection_path), reset)
+
+    scheduler = Scheduler(collection_path, None, reset)
+    try:
+        run(scheduler.start())
+    except (KeyboardInterrupt, SystemExit):
+        run(close_connection())
 
 
 @handle_cli.command(
@@ -245,7 +248,7 @@ def config(collection_path, max_runs):
     feed_from = config_file(saved_db_path)
     feed = dict() if not feed_from.exists() else json.loads(feed_from.read_text())
     if max_runs > 1:
-        feed[ConfigKeys.maxRuns] = max_runs
+        feed[ConfigKeys.maxRunsPerProject] = max_runs
 
     run_async(setConfig(saved_db_path, feed, set_default_first))
 

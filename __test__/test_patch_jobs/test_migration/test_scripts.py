@@ -34,7 +34,7 @@ class TestMigrationScripts:
         assert (root_dir / "config.json").exists()
         for required in (
             ConfigKeys.version,
-            ConfigKeys.maxRuns,
+            ConfigKeys.maxRunsPerProject,
             ConfigKeys.reset_test_run,
         ):
             assert ConfigBase.exists(key=required)

@@ -8,7 +8,6 @@ from handshake.services.DBService.models.config_base import ExportBase
 from handshake.services.DBService.models.result_base import RunBase
 from pathlib import Path
 from typing import List
-from os import getenv
 
 
 async def register_patch_suite(suiteID: str, testID: str) -> TaskBase:

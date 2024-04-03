@@ -41,7 +41,7 @@ class PrunedRecords(StrEnum):
 
 
 class ConfigKeys(StrEnum):
-    maxRuns = "MAX_RUNS"
+    maxRunsPerProject = "MAX_RUNS_PER_PROJECT"
     version = "VERSION"
     recentlyDeleted = "RECENTLY_DELETED"
     reset_test_run = "RESET_FIX_TEST_RUN"

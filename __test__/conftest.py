@@ -1,14 +1,15 @@
 import platform
 import subprocess
-
+from typing import Optional
 from pytest import fixture, mark
 from pathlib import Path
 from handshake.services.DBService.shared import db_path as shared_db_path
 from tortoise.connection import connections
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
-from handshake.services.DBService.models import RunBase, SessionBase
+from handshake.services.DBService.models import RunBase, SessionBase, ConfigBase
 from datetime import datetime, timedelta, UTC
 from handshake.services.Endpoints.core import service_provider
+from handshake.services.DBService.models.enums import ConfigKeys
 
 pytestmark = mark.asyncio
 
@@ -85,21 +86,38 @@ async def clean_close(db_path, init_db):
     yield
 
     # deleting sample test runs
-    await RunBase.filter(projectName=testNames).all().delete()
+    await RunBase.filter(projectName__icontains=testNames).all().delete()
     await close_connection()
 
 
-@fixture()
-async def sample_test_run():
-    return await RunBase.create(projectName=testNames, started=datetime.now(UTC))
+async def sample_test_run(postfix: Optional[str] = ""):
+    return await RunBase.create(
+        projectName=testNames + postfix, started=datetime.now(UTC)
+    )
+
+
+async def attach_db_config(maxRunsPerProject=2):
+    record, _ = await ConfigBase.update_or_create(key=ConfigKeys.maxRunsPerProject)
+    record.value = maxRunsPerProject
+    await record.save()
 
 
 @fixture()
-async def sample_test_session(sample_test_run: RunBase):
+def helper_create_test_run():
+    return sample_test_run
+
+
+@fixture()
+def helper_set_db_config():
+    return attach_db_config
+
+
+@fixture()
+async def sample_test_session(helper_create_test_run: RunBase):
     started = datetime.now(UTC)
     return await SessionBase.create(
         started=started,
-        test_id=(await sample_test_run).testID,
+        test_id=(await helper_create_test_run()).testID,
         ended=started + timedelta(milliseconds=24),
     )
 

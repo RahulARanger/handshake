@@ -120,5 +120,7 @@ class TestSetConfigCommand:
                 cwd=root_dir,
             )
         assert result.returncode == 0
-        config_record = await ConfigBase.filter(key=ConfigKeys.maxRuns).first()
+        config_record = await ConfigBase.filter(
+            key=ConfigKeys.maxRunsPerProject
+        ).first()
         assert int(config_record.value) == max_runs

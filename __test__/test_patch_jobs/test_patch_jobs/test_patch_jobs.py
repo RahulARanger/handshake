@@ -34,6 +34,7 @@ class TestPatchSuiteJob:
         assert await patchTestSuite(parent_suite.suiteID, test_id)
         # if there are no test entities it won't make any change
         record = await RollupBase.filter(suite_id=parent_suite.suiteID).first()
+        assert record, "Rollup record must have been created"
         assert record.passed == record.failed == record.tests == record.skipped == 0
         await record.delete()
 
@@ -47,9 +48,7 @@ class TestPatchSuiteJob:
             == 0
         ), "Patching any empty suite has 0s with passed as status"
 
-    async def test_rollup_values(
-        self, sample_test_run, sample_test_session, create_suite, create_tests
-    ):
+    async def test_rollup_values(self, sample_test_session, create_suite, create_tests):
         session = await sample_test_session
         test_id = session.test_id
         session_id = str(session.sessionID)
@@ -139,7 +138,8 @@ class TestPatchSuiteJob:
     async def test_dependency_of_suites(self, sample_test_session, create_suite):
         # we would have suite - 1 and suite - 2
         # suite - 2 is child of the suite - 1
-        # suite - 2 is under processing but suite - 1 will now be processed so, in that case
+        # suite - 2 is under processing but suite - 1 will now be processed so, in that case parent suite
+        # will not be processed until the child suite is processed
 
         session = await sample_test_session
         session_id = session.sessionID
@@ -157,10 +157,11 @@ class TestPatchSuiteJob:
         await child_suite.save()
 
         # if returned false, Task will not be deleted
-        assert not await patchTestSuite(parent_suite.suiteID, session.test)
+        test_id = (await session.test).testID
+        assert not await patchTestSuite(parent_suite.suiteID, test_id)
 
-        assert await patchTestSuite(child_suite.suiteID, session.test)
-        assert await patchTestSuite(parent_suite.suiteID, session.test)
+        assert await patchTestSuite(child_suite.suiteID, test_id)
+        assert await patchTestSuite(parent_suite.suiteID, test_id)
 
     async def test_retried_suite_match(
         self, sample_test_session, create_suite, create_tests, attach_config
@@ -299,7 +300,7 @@ class TestPatchSuiteJob:
         return test
 
     async def test_patch_command(
-        self, sample_test_run, sample_test_session, create_suite, create_tests, root_dir
+        self, sample_test_session, create_suite, create_tests, root_dir
     ):
         session = await sample_test_session
         test_id = session.test_id
