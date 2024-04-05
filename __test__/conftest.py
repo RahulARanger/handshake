@@ -114,7 +114,7 @@ def helper_set_db_config():
 
 @fixture()
 async def sample_test_session(helper_create_test_run):
-    return test_session((await helper_create_test_run()).testID)
+    return await test_session((await helper_create_test_run()).testID)
 
 
 async def test_session(test_id: str):
