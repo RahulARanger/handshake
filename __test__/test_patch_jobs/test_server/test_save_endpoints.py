@@ -16,9 +16,7 @@ from __test__.test_patch_jobs.test_server.commons import set_config
 
 @mark.usefixtures("sample_test_session")
 class TestSaveEndpoints:
-    async def test_register_session(
-        self, client, app, sample_test_session, sample_test_run
-    ):
+    async def test_register_session(self, client, app, sample_test_session):
         await set_config(app, sample_test_session)
         payload = dict(
             specs=["test.spec.js", "test2.spec.js"],
@@ -32,9 +30,7 @@ class TestSaveEndpoints:
 
 @mark.usefixtures("sample_test_session")
 class TestAttachmentEndpoints:
-    async def test_empty_attachments(
-        self, client, app, sample_test_session, sample_test_run
-    ):
+    async def test_empty_attachments(self, client, app, sample_test_session):
         await set_config(app, sample_test_session)
         payload = []
         request, response = await client.put(
@@ -204,13 +200,12 @@ class TestAttachmentEndpoints:
 @mark.usefixtures("sample_test_session")
 class TestSaveEndPoints:
     @staticmethod
-    async def set_test_run(app: Sanic, test_run: Coroutine[Any, Any, RunBase]):
-        test = await test_run
-        app.config.TEST_ID = test.testID
-        return test
+    async def set_test_run(app: Sanic, test_run: RunBase):
+        app.config.TEST_ID = test_run.testID
+        return test_run
 
-    async def test_we_have_pydantic_in_place(self, client, sample_test_run, app):
-        await self.set_test_run(app, sample_test_run)
+    async def test_we_have_pydantic_in_place(self, client, helper_create_test_run, app):
+        await self.set_test_run(app, (await helper_create_test_run()))
 
         payload = dict(simplified="sample")
         request, response = await client.put("/save/updateSession", json=payload)
@@ -240,8 +235,8 @@ class TestSaveEndPoints:
             assert missing["msg"] == "Field required"
             assert missing["input"] == payload
 
-    async def test_set_config_api(self, client, sample_test_run, app):
-        test = await self.set_test_run(app, sample_test_run)
+    async def test_set_config_api(self, client, helper_create_test_run, app):
+        test = await self.set_test_run(app, (await helper_create_test_run()))
 
         payload = dict(
             maxInstances=1,

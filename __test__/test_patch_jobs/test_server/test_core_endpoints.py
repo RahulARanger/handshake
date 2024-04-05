@@ -9,7 +9,7 @@ from pathlib import Path
 @mark.usefixtures("sample_test_session")
 class TestSaveEndpoints:
     async def test_register_written_attachment(
-        self, client, app, sample_test_session, sample_test_run, create_suite, db_path
+        self, client, app, sample_test_session, create_suite, db_path
     ):
         session = await set_config(app, sample_test_session, db_path)
         suite = await create_suite(session.sessionID)

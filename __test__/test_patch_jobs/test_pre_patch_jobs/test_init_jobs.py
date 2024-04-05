@@ -1,8 +1,5 @@
 from pytest import mark
-from handshake.services.DBService.models import (
-    ConfigBase,
-    TaskBase,
-)
+from handshake.services.DBService.models import ConfigBase, TaskBase, RunBase
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.completeTestRun import patchTestRun
@@ -40,7 +37,9 @@ class TestPickTasks:
         updated_task = await TaskBase.filter(ticketID=task.ticketID).first()
         assert not (updated_task.picked or updated_task.processed)
 
-    async def test_reset_test_run(self, sample_test_session, create_suite, root_dir):
+    async def test_reset_test_run(
+        self, sample_test_session, create_suite, root_dir, db_path
+    ):
         """
         we might have to sometimes add a migration script to reset all test runs
         when requested, it would make all the tasks which were completed to be rescheduled for the
@@ -51,21 +50,47 @@ class TestPickTasks:
         :return:
         """
         session = await sample_test_session
-        test = await session.test
-        await register_patch_test_run(test.testID)
-        await patchTestRun(test.testID, test.testID)
-        note = (await TaskBase.filter(ticketID=test.testID).first()).dropped
+        test: RunBase = await session.test
+        task = await register_patch_test_run(test.testID)
+        task.picked = True
+        await task.save()
 
-        # assumption that in migration we turned this on
+        await patchTestRun(test.testID)
+        task = await TaskBase.filter(ticketID=test.testID).first()
+        # it is now processed
+        assert task.processed
+        # note: we do not change the status of picked once it gets processed
+        assert task.picked
+
+        note = task.dropped
+
+        # assumption that in migration we turned 'reset_test_run' on
         record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
         record.value = True
         await record.save()
 
         result = run(f'handshake patch "{root_dir}"', shell=True)
         assert result.returncode == 0
+
+        # first thing it would do it would make the flag: reset_test_run as false
+        record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
+        assert not record.value
+
+        # next: the task associated with it will now be marked processed and picked
+        ticket = await TaskBase.filter(ticketID=test.testID).first()
+        updated = ticket.dropped
+
+        # notice its timestamp changes (last modified on)
+        assert ticket.dropped != note, "dropped timestamp is updated"
+        assert ticket.processed and ticket.picked
+
+        # we can reset manually through -r as well
+
+        result = run(f'handshake patch "{root_dir}" -r', shell=True)
+        assert result.returncode == 0
         record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
         assert not record.value
 
         ticket = await TaskBase.filter(ticketID=test.testID).first()
-        assert ticket.dropped != note, "dropped timestamp is updated"
+        assert ticket.dropped != updated, "dropped timestamp is updated"
         assert ticket.processed and ticket.picked

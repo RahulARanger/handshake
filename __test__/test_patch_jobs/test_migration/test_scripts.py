@@ -8,7 +8,6 @@ from handshake.services.DBService.models import (
     TestLogBase,
     TaskBase,
 )
-from pytest import mark
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.migrator import migrate
 from subprocess import run, PIPE
@@ -40,12 +39,17 @@ class TestMigrationScripts:
             assert ConfigBase.exists(key=required)
 
     async def test_bump_v3(
-        self, get_vth_connection, scripts, sample_test_run, create_session, db_path
+        self,
+        get_vth_connection,
+        scripts,
+        helper_create_test_run,
+        create_session,
+        db_path,
     ):
         await get_vth_connection(scripts, 3)
 
         connection = tortoise.connections.get("default")
-        test_run = await sample_test_run
+        test_run = await helper_create_test_run()
 
         version = await ConfigBase.filter(key=ConfigKeys.version).first()
         assert int(version.value) == 3

@@ -378,6 +378,44 @@ class TestPatchSuiteScheduler:
         assert error_log.feed["job"] == JobType.MODIFY_SUITE
         assert "as the child suite was not registered" in error_log.message
 
+    async def test_multiple_incomplete_suite(self, sample_test_session, create_suite):
+        session = await sample_test_session
+
+        parent_suite = await create_suite(session.sessionID)
+        await create_suite(session.sessionID, parent=parent_suite.suiteID)
+        await register_patch_suite(parent_suite.suiteID, session.test_id)
+
+        parent_suite_2 = await create_suite(session.sessionID)
+        await create_suite(session.sessionID, parent=parent_suite_2.suiteID)
+        await register_patch_suite(parent_suite_2.suiteID, session.test_id)
+
+        await patch_jobs()
+
+        # there is a child suite present but not registered
+        # it might happen because the test run was interrupted in between
+
+        # expected result, the processing of the parent suite will be skipped
+        # AND marks the test run as failed as its child suite was not registered.
+
+        records = await TestLogBase.filter(
+            test_id=session.test_id, type=LogType.ERROR
+        ).all()
+        assert len(records) == 2
+
+        # coz we don't know which suite would be patched first, as they are independent,
+        # so we find the index through condition
+        order = records[1].feed["parent_suite"] == str(parent_suite.suiteID)
+
+        error_log = records[int(order)]
+        assert error_log.feed["parent_suite"] == str(parent_suite.suiteID)
+        assert error_log.feed["job"] == JobType.MODIFY_SUITE
+        assert "as the child suite was not registered" in error_log.message
+
+        error_log = records[int(not order)]
+        assert error_log.feed["parent_suite"] == str(parent_suite_2.suiteID)
+        assert error_log.feed["job"] == JobType.MODIFY_SUITE
+        assert "as the child suite was not registered" in error_log.message
+
     async def test_patch_command(
         self, sample_test_session, create_suite, create_tests, root_dir
     ):

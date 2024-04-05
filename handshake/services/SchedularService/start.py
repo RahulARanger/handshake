@@ -134,18 +134,19 @@ class Scheduler:
                 task.processed = False
 
             if to_pick:
-                logger.debug("Picking {} old tasks", len(to_pick))
                 await TaskBase.bulk_update(to_pick, ("picked", "processed"), 100)
+                logger.debug("Done!, Marked {} old tasks for processing", len(to_pick))
 
         async def reset_completed_runs():
             runs = []
             for ticket in to_modify_test_runs:
-                test = await ticket.test
+                test: RunBase = await ticket.test
+                logger.debug("Reset for test run: {}", test.testID)
                 test.standing = "PENDING"
                 runs.append(test)
 
             if runs:
-                logger.info("Resetting {} test runs", len(runs))
+                logger.info("Reset done for {} test runs!", len(runs))
                 await RunBase.bulk_update(runs, ("standing",), 100)
 
             if reset_from_config:
