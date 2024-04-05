@@ -1,5 +1,5 @@
 import type { ImageRecord, SuiteRecordDetails } from './test-entity-related';
-import type TestRunRecord from './test-run-records';
+import type OnlyTestRunRecord from './test-run-records';
 import type { TestRunConfig } from './test-run-records';
 
 export interface SessionSummary {
@@ -18,11 +18,11 @@ export interface OverallAggResults {
 }
 
 export interface OverviewPageProperties {
-    detailsOfTestRun: TestRunRecord;
+    detailsOfTestRun: OnlyTestRunRecord;
     summaryForAllSessions: SessionSummary[];
     randomImages: ImageRecord[];
     testRunConfig: TestRunConfig;
-    relatedRuns: TestRunRecord[];
+    relatedRuns: OnlyTestRunRecord[];
     recentSuites: SuiteRecordDetails[];
     recentTests: SuiteRecordDetails[];
     aggResults: OverallAggResults;

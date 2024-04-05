@@ -12,11 +12,11 @@ import type {
     SuiteRecordDetails,
     TestRecordDetails,
 } from './test-entity-related';
-import type TestRunRecord from './test-run-records';
+import type OnlyTestRunRecord from './test-run-records';
 import { OverviewContext } from './parsed-overview-records';
 
 export default interface DetailedPageProperties {
-    detailsOfTestRun: TestRunRecord;
+    detailsOfTestRun: OnlyTestRunRecord;
     tests: TestRecordDetails[];
     suites: SuiteRecordDetails[];
     assertions: AssertionRecord[];

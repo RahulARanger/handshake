@@ -11,8 +11,8 @@ import type {
 import type { possibleFrameworks, specNode } from './test-run-records';
 
 export default interface BasicDetails {
-    Started: [Dayjs, Dayjs];
-    Ended: [Dayjs, Dayjs];
+    Started: Dayjs;
+    Ended: Dayjs;
     Status: statusOfEntity;
     Title: string;
     Duration: Duration;
@@ -33,6 +33,7 @@ export interface DetailedTestRecord extends BasicDetails {
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     errors: ErrorRecord[];
     error: ErrorRecord;
+    testStartedAt: Dayjs;
     RollupValues: [number, number, number];
     totalRollupValue: number;
     Contribution: number;

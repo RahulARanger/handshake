@@ -6,7 +6,7 @@ import { type ReactNode } from 'react';
 import { menuTabs } from 'types/ui-constants';
 import Overview from 'components/core/TestRun/overview-tab';
 import sqlFile from 'scripts/run-page/script';
-import type TestRunRecord from 'types/test-run-records';
+import type OnlyTestRunRecord from 'types/test-run-records';
 import type { TestRunConfig } from 'types/test-run-records';
 import type {
     ImageRecord,
@@ -41,7 +41,7 @@ export async function getStaticProps(prepareProperties: {
     await connection.exec({
         sql: sqlFile('overview-page.sql').replace('?', testID),
     });
-    const detailsOfTestRun = await connection.get<TestRunRecord>(
+    const detailsOfTestRun = await connection.get<OnlyTestRunRecord>(
         'SELECT * FROM CURRENT_RUN',
     );
     const summaryForAllSessions = await connection.all<SessionSummary[]>(
@@ -85,7 +85,7 @@ export async function getStaticProps(prepareProperties: {
         'SELECT * FROM IMAGES;',
     );
 
-    const relatedRuns = await connection.all<TestRunRecord[]>(
+    const relatedRuns = await connection.all<OnlyTestRunRecord[]>(
         'select * from RELATED_RUNS',
     );
 

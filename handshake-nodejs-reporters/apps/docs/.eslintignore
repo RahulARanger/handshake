@@ -1,7 +1,0 @@
-dist
-node_modules
-.next
-.turbo
-public
-next.config.js
-next-env.d.ts

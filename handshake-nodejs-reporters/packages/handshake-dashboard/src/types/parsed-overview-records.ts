@@ -3,7 +3,6 @@ import type { Duration } from 'dayjs/plugin/duration';
 import type { ImageRecord, suiteType } from './test-entity-related';
 import type { DetailedTestRecord } from './parsed-records';
 import type { OverallAggResults, SessionSummary } from './records-in-overview';
-import type { TestRunConfig } from './test-run-records';
 import { createContext } from 'react';
 import type { statusOfEntity } from './session-records';
 
@@ -27,7 +26,6 @@ export interface ValuesInOverviewContext {
     detailsOfTestRun: DetailedTestRecord;
     summaryForAllSessions: SessionSummary[];
     randomImages: ImageRecord[];
-    testRunConfig: TestRunConfig;
     recentSuites: OverviewOfEntities[];
     recentTests: OverviewOfEntities[];
     aggResults: OverallAggResults;
