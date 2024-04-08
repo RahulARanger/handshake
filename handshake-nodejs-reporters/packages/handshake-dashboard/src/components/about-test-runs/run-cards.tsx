@@ -23,7 +23,10 @@ export function ListOfRuns(properties: {
     }, [currentPage, properties.runs, properties.pageSize]);
 
     return (
-        <ScrollAreaAutosize mah={properties.mah}>
+        <ScrollAreaAutosize
+            mah={properties.mah}
+            style={{ overflowX: 'hidden' }}
+        >
             <Timeline color="gray.8" active={properties.runs.length - 1}>
                 {slicesRuns.map((run) => (
                     <Timeline.Item

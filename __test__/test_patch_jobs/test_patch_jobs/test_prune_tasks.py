@@ -1,9 +1,5 @@
 from pytest import mark
 from handshake.services.DBService.models import (
-    SuiteBase,
-    RollupBase,
-    SessionBase,
-    RetriedBase,
     RunBase,
     TaskBase,
     TestLogBase,

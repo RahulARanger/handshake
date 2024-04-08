@@ -64,5 +64,5 @@ handshake-nodejs-reporters/packages/handshake-dashboard/public/antd.min.css
 handshake-nodejs-reporters/packages/handshake-dashboard/analyze/*
 
 BackUpTestReports
-*/backup/*!/handshake/dashboard/
+handshake/dashboard/
 handshake/dashboard.zip

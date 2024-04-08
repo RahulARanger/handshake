@@ -1,7 +1,6 @@
 import { Carousel } from '@mantine/carousel';
 import type { TextProps } from '@mantine/core';
 import { rem, Text } from '@mantine/core';
-import { dateFormatUsed } from 'components/datetime/format';
 import type { Dayjs } from 'dayjs';
 import type { ReactNode } from 'react';
 import React from 'react';
@@ -10,6 +9,7 @@ import dayjs from 'dayjs';
 import { useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
+import { dateFormatUsed } from './format';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);

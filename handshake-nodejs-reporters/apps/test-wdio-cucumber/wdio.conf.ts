@@ -1,5 +1,5 @@
 import type { Options } from "@wdio/types";
-import { join, dirname } from "path";
+import { dirname } from "path";
 import { attachReporter } from "wdio-handshake-reporter";
 
 const options: Options.Testrunner = {

@@ -3,7 +3,6 @@ import React from 'react';
 import { AppShell, Group } from '@mantine/core';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import Header from './header';
-import OverviewCard from './test-status-ring';
 
 export function RunPageContent(properties: {
     run: DetailedTestRecord;

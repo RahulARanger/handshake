@@ -15,17 +15,24 @@ export function HumanizedDuration(properties: {
     prefix?: string;
     size?: TextProps['size'];
 }): ReactNode {
-    const inMinutes = Number(properties.duration.asMinutes().toFixed(2));
-    const inSeconds = Number(properties.duration.asSeconds().toFixed(2));
-
     return (
         <Tooltip
             color="purple"
-            label={inMinutes > 1 ? `${inMinutes} min` : `${inSeconds} s`}
+            label={durationText(properties.duration.asSeconds())}
         >
             <Text size={properties.size ?? 'sm'}>
                 {`${properties.prefix ?? ''}${properties.duration.humanize(!properties.prefix)}`}
             </Text>
         </Tooltip>
     );
+}
+
+export function durationText(seconds: number): string {
+    if (seconds >= 3600) {
+        return `${Number(Number(seconds / 3600).toFixed(2))}hr`;
+    }
+
+    return seconds > 60
+        ? `${Number(Number(seconds / 60).toFixed(2))}min`
+        : `${seconds}s`;
 }

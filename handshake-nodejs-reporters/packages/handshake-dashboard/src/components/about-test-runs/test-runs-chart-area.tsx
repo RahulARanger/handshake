@@ -7,6 +7,7 @@ import {
     ScrollAreaAutosize,
     Switch,
     Text,
+    Skeleton,
 } from '@mantine/core';
 import type { ReactNode } from 'react';
 import React, { useState } from 'react';
@@ -19,13 +20,15 @@ export default function TestRunsChartArea(properties: {
     runs: DetailedTestRecord[];
     h: ScrollAreaAutosizeProps['h'];
     chartWidth?: string;
+    toLoad?: boolean;
 }): ReactNode {
     const [switchOption, setSwitchOption] = useState<{
         showTests: boolean;
         showPercentStack: boolean;
     }>({ showTests: false, showPercentStack: false });
+    const toLoad = Boolean(properties.toLoad);
     return (
-        <ScrollAreaAutosize h={properties.h} px="sm" pb={'lg'}>
+        <ScrollAreaAutosize h={properties.h} px="xs" py="xs">
             <Stack pr="xs">
                 <Card p="lg" radius="lg" shadow="lg" withBorder>
                     <Card.Section withBorder>
@@ -65,16 +68,20 @@ export default function TestRunsChartArea(properties: {
                         </Group>
                     </Card.Section>
                     <Card.Section p="sm">
-                        <AreaChartForTestRuns
-                            Rates={properties.runs.map((run) => ({
-                                rate: switchOption.showTests
-                                    ? run.Rate
-                                    : run.SuitesSummary,
-                                date: run.Started,
-                            }))}
-                            w={properties.chartWidth ?? '60vw'}
-                            percentStack={switchOption.showPercentStack}
-                        />
+                        {toLoad ? (
+                            <Skeleton w={'100%'} h={300} animate />
+                        ) : (
+                            <AreaChartForTestRuns
+                                Rates={properties.runs.map((run) => ({
+                                    rate: switchOption.showTests
+                                        ? run.Rate
+                                        : run.SuitesSummary,
+                                    date: run.Started,
+                                }))}
+                                w={properties.chartWidth ?? '60vw'}
+                                percentStack={switchOption.showPercentStack}
+                            />
+                        )}
                     </Card.Section>
                 </Card>
                 <Card withBorder shadow="lg" radius="lg" p="lg">
@@ -84,11 +91,15 @@ export default function TestRunsChartArea(properties: {
                         </Group>
                     </Card.Section>
                     <Card.Section p="sm">
-                        <AreaWithTestRunDuration
-                            durations={properties.runs.map((run) =>
-                                run.Duration.asSeconds(),
-                            )}
-                        />
+                        {toLoad ? (
+                            <Skeleton w={'100%'} h={150} animate />
+                        ) : (
+                            <AreaWithTestRunDuration
+                                durations={properties.runs.map((run) =>
+                                    run.Duration.asSeconds(),
+                                )}
+                            />
+                        )}
                     </Card.Section>
                 </Card>
             </Stack>

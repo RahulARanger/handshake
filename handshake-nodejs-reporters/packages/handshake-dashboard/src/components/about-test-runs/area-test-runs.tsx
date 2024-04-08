@@ -20,6 +20,8 @@ export default function AreaChartForTestRuns(properties: {
             h={350}
             w={properties.w ?? 600}
             type={properties.percentStack ? 'percent' : 'default'}
+            dotProps={{ r: 2, strokeWidth: 1 }}
+            strokeWidth={1}
             legendProps={{ verticalAlign: 'bottom', height: 50 }}
             data={properties.Rates.map(
                 (

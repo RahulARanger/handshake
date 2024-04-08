@@ -29,15 +29,6 @@
     background-color: transparent;
 }
 
-div#__next,
-main,
-html,
-body {
-    max-width: 100vw;
-    height: 100%;
-    overflow: hidden;
-}
-
 ::-webkit-scrollbar {
     width: 6px; /* Width of the scrollbar track */
 }

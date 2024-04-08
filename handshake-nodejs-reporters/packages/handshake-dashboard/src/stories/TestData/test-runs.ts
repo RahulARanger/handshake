@@ -1,98 +1,151 @@
 import dayjs from 'dayjs';
 import transformTestRunRecord from 'extractors/transform-run-record';
+import { Chance } from 'chance';
+import type { statusOfEntity } from 'types/session-records';
 
-export const onlySkipped = transformTestRunRecord({
-    started: dayjs().subtract(10, 'seconds').toISOString(),
-    ended: dayjs().subtract(1, 'seconds').toISOString(),
-    framework: 'webdriverio,jasmine',
+interface Feeder {
+    started?: dayjs.Dayjs;
+    ended?: dayjs.Dayjs;
+    framework?: string;
+    passed?: number;
+    failed?: number;
+    skipped?: number;
+    tests?: number;
+    avoidParentSuitesInCount?: boolean;
+    fileRetries?: number;
+    maxInstances?: number;
+    suites?: number;
+    passedSuites?: number;
+    failedSuites?: number;
+    skippedSuites?: number;
+}
+
+export function getStatus(
+    passed: number,
+    failed: number,
+    skipped: number,
+): statusOfEntity {
+    if (failed) return 'FAILED';
+    return passed === 0 && skipped !== 0 ? 'SKIPPED' : 'PASSED';
+}
+
+export function generateTestRun(feed: Feeder) {
+    const generator = Chance();
+
+    const tests = feed.tests ?? generator.integer({ min: 3, max: 100 });
+    const passed = feed.passed ?? generator.integer({ min: 0, max: tests });
+    const failed =
+        feed.failed ?? generator.integer({ min: 0, max: tests - passed });
+
+    const skipped = tests - (passed + failed);
+
+    const fileRetries =
+        feed.fileRetries ?? generator.integer({ min: 0, max: 2 });
+
+    const maxInstances =
+        feed.maxInstances ?? generator.integer({ min: 0, max: 2 });
+
+    const bail = generator.integer({ min: 0, max: 3 });
+
+    const suites = feed.suites ?? generator.integer({ min: 1, max: tests });
+    const passedSuites = generator.integer({ min: 0, max: suites });
+    const failedSuites = generator.integer({
+        min: 0,
+        max: suites - passedSuites,
+    });
+    const skippedSuites = suites - (passedSuites + failedSuites);
+
+    const platform = generator.pickone([
+        'windows',
+        'macos',
+        'win32',
+        'mac13',
+        'ubuntu',
+    ]);
+
+    // eslint-disable-next-line unicorn/no-new-array
+    const tags = new Array(generator.integer({ min: 0, max: 4 }))
+        .map(() => (generator.bool() ? generator.hashtag() : false))
+        .filter((index) => index !== false) as string[];
+
+    const back = generator.integer({ min: 0, max: 3 });
+    const backBy = generator.pickone([
+        'week',
+        'days',
+        'months',
+    ]) as dayjs.ManipulateType;
+
+    const durationFor = generator.pickone([
+        'minutes',
+        'seconds',
+        'hours',
+    ]) as dayjs.ManipulateType;
+
+    const started = (
+        feed.started ??
+        dayjs()
+            .subtract(back, backBy)
+            .subtract(generator.integer({ min: 10, max: 20 }), durationFor)
+    ).toISOString();
+    const ended = (
+        feed.ended ??
+        dayjs()
+            .subtract(back, backBy)
+            .subtract(generator.integer({ min: 5, max: 9 }), durationFor)
+    ).toISOString();
+
+    return transformTestRunRecord({
+        started,
+        ended,
+        framework: feed.framework ?? 'webdriverio,mocha',
+        passed,
+        failed,
+        skipped,
+        platform,
+        avoidParentSuitesInCount: feed.avoidParentSuitesInCount || false,
+        exitCode: Number(failed),
+        fileRetries,
+        maxInstances,
+        bail,
+        suiteSummary: JSON.stringify({
+            count: suites,
+            failed: failedSuites,
+            skipped: skippedSuites,
+            passed: passedSuites,
+        }),
+        duration: dayjs(ended).diff(dayjs(started)),
+        projectName: generator.company(),
+        testID: generator.unique(generator.state, 1)[0],
+        tests,
+        standing: getStatus(passed, failed, skipped),
+        tags,
+        specStructure: JSON.stringify({
+            '<path>': '',
+            'features\\login.feature': { '<path>': 'features\\login.feature' },
+        }),
+        retried: generator.integer({ min: 0, max: 1 }),
+    });
+}
+
+export const onlySkipped = generateTestRun({
+    tests: 3,
+    skipped: 3,
     passed: 0,
     failed: 0,
-    skipped: 20,
-    platform: 'linux',
-    avoidParentSuitesInCount: false,
-    exitCode: 0,
-    fileRetries: 0,
-    maxInstances: 1,
-    bail: 3,
-    suiteSummary: JSON.stringify({
-        count: 1,
-        failed: 0,
-        skipped: 1,
-        passed: 0,
-    }),
-    duration: 1 * 1e3,
-    projectName: 'smoke-run',
-    testID: 'smoke-run-3',
-    tests: 20,
-    standing: 'SKIPPED',
-    tags: [],
-    specStructure: JSON.stringify({
-        '<path>': '',
-        'features\\login.feature': { '<path>': 'features\\login.feature' },
-    }),
-    retried: 0,
+    suites: 3,
+    passedSuites: 0,
+    failedSuites: 0,
+    skippedSuites: 3,
 });
-
-export const allPassed = transformTestRunRecord({
-    started: dayjs().subtract(3, 'days').subtract(2, 'hours').toISOString(),
-    ended: dayjs().subtract(3, 'days').subtract(1, 'hours').toISOString(),
-    framework: 'webdriverio,cucumber',
+export const allPassed = generateTestRun({
+    tests: 10,
+    skipped: 0,
     passed: 10,
     failed: 0,
-    skipped: 0,
-    platform: 'windows',
-    avoidParentSuitesInCount: true,
-    exitCode: 0,
-    fileRetries: 0,
-    maxInstances: 1,
-    bail: 3,
-    suiteSummary: JSON.stringify({
-        count: 3,
-        failed: 0,
-        skipped: 0,
-        passed: 3,
-    }),
-    duration: 60 * 60 * 1e3,
-    projectName: 'sanity-run',
-    testID: 'sanity-run-1',
-    tests: 10,
-    standing: 'PASSED',
-    tags: [],
-    specStructure: JSON.stringify({
-        '<path>': '',
-        'features\\login.feature': { '<path>': 'features\\login.feature' },
-    }),
-    retried: 0,
+    suites: 3,
+    passedSuites: 3,
+    failedSuites: 0,
+    skippedSuites: 0,
 });
 
-export const mixed = transformTestRunRecord({
-    started: dayjs().subtract(3, 'weeks').subtract(20, 'minutes').toISOString(),
-    ended: dayjs().subtract(3, 'weeks').subtract(10, 'minutes').toISOString(),
-    framework: 'webdriverio,mocha',
-    passed: 100,
-    failed: 30,
-    skipped: 20,
-    platform: 'linux',
-    avoidParentSuitesInCount: false,
-    exitCode: 0,
-    fileRetries: 0,
-    maxInstances: 1,
-    bail: 3,
-    suiteSummary: JSON.stringify({
-        count: 10,
-        failed: 7,
-        skipped: 1,
-        passed: 2,
-    }),
-    duration: 60 * 1e3,
-    projectName: 'regression-run',
-    testID: 'regression-run-2',
-    tests: 150,
-    standing: 'FAILED',
-    tags: [],
-    specStructure: JSON.stringify({
-        '<path>': '',
-        'features\\login.feature': { '<path>': 'features\\login.feature' },
-    }),
-    retried: 0,
-});
+export const mixed = generateTestRun({});

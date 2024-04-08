@@ -17,15 +17,14 @@ module.exports = (phase, { defaultConfig }) => {
 
     // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
     trailingSlash: true,
-    transpilePackages: ['handshake-dashboard', 'echarts', 'zrender', '@uiw/react-markdown-preview'],
+    transpilePackages: ['@mantine/core', '@uiw/react-markdown-preview'],
     env: {
-      NEXT_PY_PORT: process.env.NEXT_PY_PORT ?? '6969'
+      IS_DEV: is_dev ? 'yes' : ''
     },
     images: {
       unoptimized: true
     },
-    distDir: process.env.EXPORT_DIR ?? "dist",
-    typescript: { ignoreBuildErrors: !is_dev }
+    distDir: is_dev ? 'dist' : '../../../handshake/dashboard',
   }
 
   return withBundleAnalyzer ? withBundleAnalyzer(nextConfig) : nextConfig;

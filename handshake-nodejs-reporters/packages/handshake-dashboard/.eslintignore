@@ -5,3 +5,4 @@ node_modules
 public
 next.config.js
 next-env.d.ts
+*.stories.tsx

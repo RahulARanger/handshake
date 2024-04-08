@@ -4,10 +4,10 @@ import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import SwitchTestCases from 'components/test-case-switch';
 import PassedRate from '../about-test-run/passed-rate';
-import { dateFormatUsed } from 'components/datetime/format';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
 import { FrameworksUsed } from '../about-test-run/framework-icons';
+import { dateFormatUsed } from 'components/timings/format';
 
 export default function TestRunCard(properties: {
     run: DetailedTestRecord;
@@ -17,7 +17,7 @@ export default function TestRunCard(properties: {
     return (
         <Card shadow="lg" withBorder radius="md" pt="xs">
             <Card.Section inheritPadding pb={2} pt={0}>
-                <Group justify="space-between" mt="md" mb="xs">
+                <Group justify="space-between" mt="md" mb="xs" wrap="nowrap">
                     <Anchor href={properties.run.Link} size="sm">
                         {properties.run.Started.format(dateFormatUsed)}
                     </Anchor>
@@ -27,15 +27,12 @@ export default function TestRunCard(properties: {
                                 ? '...'
                                 : '')}
                     </Badge>
-                    <FrameworksUsed
-                        frameworks={properties.run.Frameworks}
-                        size="xs"
-                    />
                 </Group>
             </Card.Section>
             <Card.Section p="sm" pt={0}>
-                <Group>
+                <Group justify="space-between" wrap="nowrap">
                     <PassedRate
+                        width={220}
                         text={isTests ? ' Tests' : 'Suites'}
                         rate={
                             isTests
@@ -50,7 +47,7 @@ export default function TestRunCard(properties: {
                 </Group>
             </Card.Section>
             <Card.Section px="sm" pb="sm">
-                <Group justify="flex-start">
+                <Group justify="space-between" wrap="nowrap">
                     <Badge
                         size="xs"
                         variant="light"
@@ -77,6 +74,10 @@ export default function TestRunCard(properties: {
                             size="xs"
                         />
                     </Badge>
+                    <FrameworksUsed
+                        frameworks={properties.run.Frameworks}
+                        size="xs"
+                    />
                 </Group>
             </Card.Section>
         </Card>

@@ -14,6 +14,12 @@
             "url": "http://localhost:3000"
         },
         {
+            "name": "Storybook: debug client-side",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:6006"
+        },
+        {
             "name": "Next.js: debug full stack",
             "type": "node-terminal",
             "request": "launch",

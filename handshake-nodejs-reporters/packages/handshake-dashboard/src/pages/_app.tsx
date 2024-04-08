@@ -11,16 +11,18 @@ const theme = createTheme({
     primaryShade: { dark: 9 },
 });
 
-export const OurApp = ({ Component }: { Component: ReactNode }): ReactNode => {
+export function OurApp(properties: { Component: ReactNode }): ReactNode {
     return (
         <MantineProvider defaultColorScheme="dark" theme={theme}>
-            {Component}
+            {properties.Component}
         </MantineProvider>
     );
-};
+}
 
-const App = ({ Component, pageProps }: AppProps): ReactNode => {
-    return <OurApp Component={<Component {...pageProps} />} />;
-};
-
-export default App;
+export default function App(properties: AppProps): ReactNode {
+    return (
+        <OurApp
+            Component={<properties.Component {...properties.pageProps} />}
+        />
+    );
+}

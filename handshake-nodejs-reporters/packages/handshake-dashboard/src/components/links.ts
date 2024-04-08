@@ -5,3 +5,7 @@ export function runPage(testID: string) {
 export function detailedPage(testID: string, tab: string) {
     return `/RUNS/${testID}/detailed?tab=${tab}`;
 }
+
+export function jsonFeedForRunsPage() {
+    return process.env.IS_DEV ? '/api/Import/runs.json' : '/Import/runs.json';
+}

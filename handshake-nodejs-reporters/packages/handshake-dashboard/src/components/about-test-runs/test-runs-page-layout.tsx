@@ -1,19 +1,42 @@
 import type { ReactNode } from 'react';
 import React, { useMemo, useState } from 'react';
-import { Affix, AppShell, Center, Stack, Text } from '@mantine/core';
+import {
+    Affix,
+    AppShell,
+    Notification,
+    Skeleton,
+    Stack,
+    Text,
+} from '@mantine/core';
 import { ListOfRuns } from 'components/about-test-runs/run-cards';
-import type { DetailedTestRecord } from 'types/parsed-records';
 import { TestRunsPageHeader } from 'components/about-test-runs/test-runs-header';
 import ApplicationName from './application-name';
 import dayjs from 'dayjs';
 import filterEntities from '../../extractors/filter-entities-by-date-ranges';
 import type { optionForDateRange } from './filter-test-runs';
 import TestRunsChartArea from './test-runs-chart-area';
+import useSWRImmutable from 'swr/immutable';
+import { jsonFeedForRunsPage } from 'components/links';
+import { IconX } from '@tabler/icons-react';
+import type { TestRunRecord } from 'types/test-run-records';
+import transformTestRunRecord from 'extractors/transform-run-record';
 
 export function RunsPageContent(properties: {
-    runs: DetailedTestRecord[];
-    about: string;
+    forceLoading?: boolean;
 }): ReactNode {
+    const {
+        data: rawRuns,
+        isLoading,
+        error,
+    } = useSWRImmutable<TestRunRecord[]>(jsonFeedForRunsPage(), () =>
+        fetch(jsonFeedForRunsPage()).then(async (response) => response.json()),
+    );
+
+    const data = useMemo(
+        () => (rawRuns ?? []).map((record) => transformTestRunRecord(record)),
+        [rawRuns],
+    );
+
     const [filters, setFilters] = useState<{
         projectName: string | null | undefined;
         dateRanges: optionForDateRange[] | null | undefined;
@@ -23,23 +46,27 @@ export function RunsPageContent(properties: {
     });
 
     const projectNames = useMemo(
-        () => properties.runs.map((run) => run.projectName),
-        [properties.runs],
+        () => data.map((run) => run.projectName),
+        [data],
     );
-    if (properties.runs.length === 0) {
+
+    const toLoad =
+        isLoading || error !== undefined || properties.forceLoading === true;
+
+    if (!toLoad && data.length === 0) {
         return (
-            <Center>
+            <Affix position={{ top: '40%', left: '40%' }}>
                 <Stack align="center">
                     <Text c="gray" size="sm">
                         No Test Runs found. Please execute your tests.
                     </Text>
                     <ApplicationName showLink />
                 </Stack>
-            </Center>
+            </Affix>
         );
     }
 
-    const filteredRuns = properties.runs.filter((run) => {
+    const filteredRuns = data.filter((run) => {
         const projectFilter =
             !filters.projectName || run.projectName === filters.projectName;
         if (!filters.dateRanges || filters.dateRanges.length === 0)
@@ -47,11 +74,12 @@ export function RunsPageContent(properties: {
 
         return projectFilter && filterEntities(run, filters.dateRanges);
     });
+
     return (
         <AppShell
             header={{ height: 50 }}
             navbar={{
-                width: 360,
+                width: 376,
                 breakpoint: 'sm',
             }}
             aside={{
@@ -62,23 +90,31 @@ export function RunsPageContent(properties: {
         >
             <AppShell.Header p="xs">
                 <TestRunsPageHeader
-                    totalRuns={filteredRuns.length}
-                    about={properties.about}
+                    totalRuns={filteredRuns?.length ?? 0}
                     allTestProjects={projectNames}
-                    recentRunDate={properties.runs[0]?.Started ?? dayjs()}
+                    recentRunDate={data?.at(0)?.Started ?? dayjs()}
                     onDateRangeChange={(_) =>
                         setFilters({ ...filters, dateRanges: _ })
                     }
                     onProjectFilterChange={(_) =>
                         setFilters({ ...filters, projectName: _ })
                     }
+                    toLoad={toLoad}
                 />
             </AppShell.Header>
-            {filteredRuns.length > 0 ? (
-                <>
-                    <AppShell.Navbar p="xs">
+
+            {toLoad || filteredRuns.length > 0 ? (
+                <AppShell.Navbar p="xs">
+                    <Skeleton animate={toLoad} visible={toLoad} mih={'100%'}>
                         <ListOfRuns runs={filteredRuns} mah={'100%'} />
-                    </AppShell.Navbar>
+                    </Skeleton>
+                </AppShell.Navbar>
+            ) : (
+                <></>
+            )}
+
+            {toLoad || filteredRuns.length > 0 ? (
+                <>
                     <AppShell.Main>
                         <TestRunsChartArea
                             h={
@@ -88,8 +124,25 @@ export function RunsPageContent(properties: {
                                 'calc(93vw - var(--app-shell-navbar-width, 0px))'
                             }
                             runs={filteredRuns}
+                            toLoad={toLoad}
                         />
                     </AppShell.Main>
+                    {error ? (
+                        <Affix position={{ bottom: '2%', left: '30%' }}>
+                            <Notification
+                                icon={<IconX />}
+                                color="red"
+                                title="Failed to get Test Runs"
+                                mt="md"
+                                withBorder
+                                withCloseButton={false}
+                            >
+                                {`Failed to get the Test Runs, ${error}, Please refresh the page once.`}
+                            </Notification>
+                        </Affix>
+                    ) : (
+                        <></>
+                    )}
                 </>
             ) : (
                 <Affix position={{ top: '40%', left: '40%' }} zIndex={-1}>

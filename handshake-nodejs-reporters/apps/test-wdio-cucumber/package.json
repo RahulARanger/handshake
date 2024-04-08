@@ -4,7 +4,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"wdio": "npx wdio run ./wdio.conf.ts",
+		"test": "npx wdio run ./wdio.conf.ts",
 		"sanity": "cross-env SANITY=true npm run wdio"
 	},
 	"author": "",
