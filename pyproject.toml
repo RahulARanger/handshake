@@ -9,7 +9,7 @@ packages = [{include = "handshake"}]
 maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
 ]
-exclude=[ 'handshake/.env', 'handshake/prod.env', 'handshake/test.env' ]
+exclude=[ 'handshake/.env', 'handshake/prod.env', 'handshake/test.env', 'handshake/dashboard' ]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3.11",

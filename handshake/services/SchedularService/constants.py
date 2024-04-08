@@ -12,3 +12,9 @@ class JobType(StrEnum):
 
 
 writtenAttachmentFolderName = "Attachments"
+exportAttachmentFolderName = "Import"
+
+EXPORT_RUNS_PAGE_VERSION = "1"
+EXPORT_RUNS_PAGE_FILE_NAME = "runs.json"
+
+DASHBOARD_ZIP_FILE = "dashboard.zip"

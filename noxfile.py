@@ -2,6 +2,8 @@ import nox
 import pathlib
 import tomllib
 from json import dumps
+from pathlib import Path
+from shutil import make_archive, move
 
 
 @nox.session
@@ -45,3 +47,16 @@ def test(session):
     session.install("poetry")
     session.run("poetry", "install")
     session.run("pytest", "__test__")
+
+
+# nox -s zip_results
+@nox.session
+def zip_results(session):
+    dashboard = pathlib.Path(__file__).parent / "handshake" / "dashboard"
+    assert (
+        dashboard.exists()
+    ), "Dashboard are not generated yet., Please generate it with npm run export in the dashboard package."
+
+    move(
+        make_archive("dashboard", "zip", dashboard, dashboard.parent), dashboard.parent
+    )

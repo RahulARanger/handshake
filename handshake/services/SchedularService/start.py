@@ -1,26 +1,29 @@
-from asyncio import run, TaskGroup, gather, to_thread
+import json
+from asyncio import gather, to_thread, TaskGroup
 from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     db_path,
     close_connection,
 )
-from typing import Optional, Union
-from uuid import UUID
+from shutil import copytree
+from zipfile import ZipFile
+from pathlib import Path
+from typing import Optional
 from loguru import logger
 from tortoise.expressions import Q
 from handshake.services.DBService.models.result_base import (
-    SuiteBase,
     RunBase,
-    TestLogBase,
-    LogType,
 )
+from handshake.services.SchedularService.handleTestResults import saveRunsQuery
+from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
     ConfigBase,
-    TestConfigBase,
     ConfigKeys,
 )
 from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
+    exportAttachmentFolderName,
+    DASHBOARD_ZIP_FILE,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
@@ -29,6 +32,8 @@ from handshake.services.SchedularService.handlePending import patch_jobs
 
 
 class Scheduler:
+    RUNS_PAGE_VERSION = 1
+
     def __init__(
         self,
         root_dir: str,
@@ -36,15 +41,18 @@ class Scheduler:
         manual_reset: Optional[bool] = False,
     ):
         self.export = out_dir is None
-        self.export_dir = out_dir
+        self.export_dir = Path(out_dir) if out_dir else None
         self.db_path = db_path(root_dir)
         self.reset = manual_reset
+        self.connection: Optional[BaseDBAsyncClient] = None
 
     async def start(self):
         await init_tortoise_orm(self.db_path, True)
+        self.connection = connections.get("default")
         await self.rotate_test_runs()
         await self.init_jobs()
         await patch_jobs()
+        await self.export_jobs()
 
         await close_connection()
 
@@ -155,3 +163,74 @@ class Scheduler:
 
         await gather(pick_old_tasks(), reset_completed_runs())
         logger.debug("Pre-Patch Jobs have been initiated")
+
+    async def export_jobs(self):
+        skip = (
+            (
+                await ConfigBase.filter(key=ConfigKeys.export_runs_page)
+                .only("value")
+                .first()
+            ).value
+            or False
+        ) == self.RUNS_PAGE_VERSION
+
+        logger.info("Exporting results to json.")
+
+        async with TaskGroup() as exporter:
+            if not skip:
+                exporter.create_task(self.export_runs_page())
+
+        logger.info("Done!")
+
+        if not self.export_dir:
+            logger.debug("Skipping export, as the output directory was not provided.")
+            return
+
+        logger.debug("Exporting Test Results...")
+        await to_thread(self.export_files)
+
+    async def export_runs_page(self):
+        logger.debug("Exporting Runs Page...")
+        await to_thread(
+            saveRunsQuery,
+            self.db_path,
+            json.dumps(
+                [
+                    dict(row)
+                    for row in (
+                        await self.connection.execute_query(
+                            """
+select rb.*, cb.framework from RUNBASE rb
+left join testconfigbase cb on rb.testID = cb.test_id 
+WHERE rb.ended <> '' order by rb.started;
+"""
+                        )
+                    )[-1]
+                ]
+            ),
+        )
+        logger.info("Exported Runs Page!")
+
+    def export_files(self):
+        if self.export_dir.exists():
+            logger.debug("removing previous results")
+            self.export_dir.rmdir()
+
+        self.export_dir.mkdir(exist_ok=False)
+
+        logger.info("copying json files")
+
+        copytree(
+            self.db_path.parent / exportAttachmentFolderName,
+            self.export_dir / exportAttachmentFolderName,
+        )
+        logger.debug("Done!")
+
+        logger.info("Copying html files")
+
+        with ZipFile(
+            Path(__file__).parent.parent.parent / DASHBOARD_ZIP_FILE, "r"
+        ) as zip_file:
+            zip_file.extractall(self.export_dir)
+
+        logger.info("Done!")

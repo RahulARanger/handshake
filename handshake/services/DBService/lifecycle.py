@@ -7,10 +7,12 @@ from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
-from handshake import __version__
 from typing import Optional, Union
 from loguru import logger
-from handshake.services.SchedularService.constants import writtenAttachmentFolderName
+from handshake.services.SchedularService.constants import (
+    writtenAttachmentFolderName,
+    EXPORT_RUNS_PAGE_VERSION,
+)
 
 models = ["handshake.services.DBService.models"]
 
@@ -47,9 +49,11 @@ READ_ONLY = (
     ConfigKeys.version,
     ConfigKeys.recentlyDeleted,
     ConfigKeys.reset_test_run,
-    ConfigKeys.py_version,
+    ConfigKeys.export_runs_page,
 )
-ALLOW_WRITE = (ConfigKeys.maxRunsPerProject,)
+ALLOW_WRITE = {
+    ConfigKeys.maxRunsPerProject,
+}
 
 
 async def set_default_config(path: Path):
@@ -63,17 +67,33 @@ async def set_default_config(path: Path):
 
     for key, value in [
         (ConfigKeys.version, DB_VERSION),
-        (ConfigKeys.py_version, __version__),
         (ConfigKeys.reset_test_run, ""),
+        (ConfigKeys.export_runs_page, EXPORT_RUNS_PAGE_VERSION),
+        (ConfigKeys.maxRunsPerProject, "100")
         # below keys can be overridden by the config file
-        *[
-            (_, config_provided.get(_, __))
-            for _, __ in [(ConfigKeys.maxRunsPerProject, "100")]
-        ],
     ]:
         record = await ConfigBase.filter(key=str(key)).first()
         if not record:
+            logger.debug(
+                "{} was not found in our table, registering it with value: {}",
+                key,
+                value,
+            )
             await ConfigBase.create(key=key, value=value)
+        else:
+            if (
+                record.key in ALLOW_WRITE
+                and config_provided.get(record.key, value) != record.value
+            ):
+                logger.debug(
+                    "Found a key: {} already existing in configbase with value: {},"
+                    " but received a request to change it to {}",
+                    record.key,
+                    value,
+                    config_provided.get(record.key, value),
+                )
+                record.value = config_provided.get(record.key, value)
+                await record.save()
 
 
 async def close_connection():
