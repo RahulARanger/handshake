@@ -12,8 +12,9 @@ from handshake.services.SchedularService.register import skip_test_run
 
 async def patch_jobs():
     while True:
-        if await TaskBase.filter(type=JobType.PRUNE_TASKS).exists():
-            await pruneTasks()
+        prune_task = await TaskBase.filter(type=JobType.PRUNE_TASKS).first()
+        if prune_task:
+            await pruneTasks(prune_task.ticketID)
 
         async with TaskGroup() as patcher:
             # list of tasks which were not picked and processed and are specific to MODIFY_SUITE

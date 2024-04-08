@@ -39,6 +39,7 @@ async def pruneTasks(task_id: Optional[str] = ""):
         )
     )
 
+    pruned = []
     for task in to_prune:
         logger.error(
             "Found an error in this task: {}. hence marking it as processed."
@@ -46,8 +47,17 @@ async def pruneTasks(task_id: Optional[str] = ""):
             task.ticketID,
         )
         task.processed = True
+        task.picked = True
+        pruned.append(task)
 
-    await TaskBase.bulk_update(to_prune, ("processed",), 100)
+    await TaskBase.bulk_update(
+        pruned,
+        (
+            "picked",
+            "processed",
+        ),
+        100,
+    )
 
     if not to_prune:
         logger.debug("No Tasks were pruned.")
