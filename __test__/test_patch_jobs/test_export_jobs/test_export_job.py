@@ -5,6 +5,7 @@ from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.constants import (
     exportAttachmentFolderName,
     EXPORT_RUNS_PAGE_FILE_NAME,
+    EXPORT_RUN_PAGE_FILE_NAME,
 )
 from handshake.services.SchedularService.register import (
     register_patch_test_run,
@@ -33,6 +34,10 @@ class TestExportWithNoPatch:
             root_dir / exportAttachmentFolderName / EXPORT_RUNS_PAGE_FILE_NAME
         ).read_text() == "[]"
 
+        assert not (
+            root_dir / exportAttachmentFolderName / str(test_run.testID)
+        ).exists()
+
 
 class TestWithSomeData:
     async def test_with_a_single_run(
@@ -48,6 +53,25 @@ class TestWithSomeData:
         ).read_text()
         assert feed != "[]"
 
+        test_run_feed = json.loads(
+            (
+                root_dir
+                / exportAttachmentFolderName
+                / str(test_run.testID)
+                / EXPORT_RUN_PAGE_FILE_NAME
+            ).read_text()
+        )
+        assert test_run_feed != "[]"
+
+        assert (root_dir / exportAttachmentFolderName / str(test_run.testID)).exists()
+
+        assert (
+            root_dir
+            / exportAttachmentFolderName
+            / str(test_run.testID)
+            / EXPORT_RUN_PAGE_FILE_NAME
+        ).exists()
+
         runs = json.loads(feed)
         assert len(runs) == 1
         first_run = runs[0]
@@ -57,6 +81,14 @@ class TestWithSomeData:
         after_patch = await RunBase.filter(testID=test_run.testID).first()
         assert first_run["standing"] == after_patch.standing
         assert first_run["framework"] == "pytest"
+
+        assert test_run_feed["projectName"] == test_run.projectName
+        assert test_run_feed["standing"] == after_patch.standing
+        assert test_run_feed["framework"] == "pytest"
+        assert "maxInstances" in test_run_feed
+        assert "fileRetries" in test_run_feed
+        assert "bail" in test_run_feed
+        assert "avoidParentSuitesInCount" in test_run_feed
 
 
 class TestPatchExportCommand:
@@ -77,5 +109,13 @@ class TestPatchExportCommand:
 
         feed = (
             report_dir / exportAttachmentFolderName / EXPORT_RUNS_PAGE_FILE_NAME
+        ).read_text()
+        assert feed != "[]"
+
+        feed = (
+            report_dir
+            / exportAttachmentFolderName
+            / str(test_run.testID)
+            / EXPORT_RUN_PAGE_FILE_NAME
         ).read_text()
         assert feed != "[]"

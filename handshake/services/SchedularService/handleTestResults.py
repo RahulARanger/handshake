@@ -7,6 +7,7 @@ import typing
 from handshake.services.SchedularService.constants import (
     exportAttachmentFolderName,
     EXPORT_RUNS_PAGE_FILE_NAME,
+    EXPORT_RUN_PAGE_FILE_NAME,
 )
 
 from handshake.services.DBService.lifecycle import (
@@ -80,4 +81,15 @@ def saveRunsQuery(db_path: Path, queryRequest: str):
     export_folder.mkdir(exist_ok=True)
 
     with export_folder / EXPORT_RUNS_PAGE_FILE_NAME as pointer:
+        pointer.write_text(queryRequest)
+
+
+def saveRunQuery(db_path: Path, testID: str, queryRequest: str):
+    export_folder = Path(db_path.parent / exportAttachmentFolderName)
+    export_folder.mkdir(exist_ok=True)
+
+    test_run = export_folder / testID
+    test_run.mkdir(exist_ok=True)
+
+    with test_run / EXPORT_RUN_PAGE_FILE_NAME as pointer:
         pointer.write_text(queryRequest)

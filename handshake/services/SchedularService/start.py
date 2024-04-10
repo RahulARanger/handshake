@@ -5,7 +5,7 @@ from handshake.services.DBService.lifecycle import (
     db_path,
     close_connection,
 )
-from shutil import copytree
+from shutil import copytree, rmtree
 from zipfile import ZipFile
 from pathlib import Path
 from typing import Optional
@@ -14,7 +14,10 @@ from tortoise.expressions import Q
 from handshake.services.DBService.models.result_base import (
     RunBase,
 )
-from handshake.services.SchedularService.handleTestResults import saveRunsQuery
+from handshake.services.SchedularService.handleTestResults import (
+    saveRunsQuery,
+    saveRunQuery,
+)
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
     ConfigBase,
@@ -191,30 +194,41 @@ class Scheduler:
 
     async def export_runs_page(self):
         logger.debug("Exporting Runs Page...")
-        await to_thread(
-            saveRunsQuery,
-            self.db_path,
-            json.dumps(
-                [
-                    dict(row)
-                    for row in (
-                        await self.connection.execute_query(
-                            """
-select rb.*, cb.framework from RUNBASE rb
+
+        runs = []
+
+        for row in (
+            await self.connection.execute_query(
+                """
+select rb.*, cb.* from RUNBASE rb
 left join testconfigbase cb on rb.testID = cb.test_id 
 WHERE rb.ended <> '' order by rb.started;
 """
-                        )
-                    )[-1]
-                ]
-            ),
+            )
+        )[-1]:
+            run = dict(row)
+            runs.append(run)
+            logger.info(
+                "Exporting runs page for {} - {}", run["projectName"], run["testID"]
+            )
+            await to_thread(
+                saveRunQuery,
+                self.db_path,
+                run["testID"],
+                json.dumps(run),
+            )
+
+        await to_thread(
+            saveRunsQuery,
+            self.db_path,
+            json.dumps(runs),
         )
         logger.info("Exported Runs Page!")
 
     def export_files(self):
         if self.export_dir.exists():
             logger.debug("removing previous results")
-            self.export_dir.rmdir()
+            rmtree(self.export_dir)
 
         self.export_dir.mkdir(exist_ok=False)
 

@@ -16,5 +16,6 @@ exportAttachmentFolderName = "Import"
 
 EXPORT_RUNS_PAGE_VERSION = "1"
 EXPORT_RUNS_PAGE_FILE_NAME = "runs.json"
+EXPORT_RUN_PAGE_FILE_NAME = "run.json"
 
 DASHBOARD_ZIP_FILE = "dashboard.zip"
