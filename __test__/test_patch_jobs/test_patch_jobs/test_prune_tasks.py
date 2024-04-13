@@ -4,12 +4,22 @@ from handshake.services.DBService.models import (
     TaskBase,
     TestLogBase,
 )
-from handshake.services.SchedularService.start import Scheduler
+from handshake.services.SchedularService.start import Scheduler, patch_jobs
+from handshake.services.SchedularService.register import mark_for_prune_task, JobType
 from handshake.services.DBService.models.enums import Status, LogType
 from handshake.services.SchedularService.register import (
     register_patch_suite,
     register_patch_test_run,
 )
+
+
+@mark.usefixtures("sample_test_session")
+async def test_delete_prune_task_if_sent(sample_test_session):
+    session = await sample_test_session
+    await mark_for_prune_task(session.test_id)
+    assert await TaskBase.filter(type=JobType.PRUNE_TASKS).exists()
+    await patch_jobs()
+    assert not await TaskBase.filter(type=JobType.PRUNE_TASKS).exists()
 
 
 @mark.usefixtures("sample_test_session")

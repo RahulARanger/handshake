@@ -61,3 +61,7 @@ async def pruneTasks(task_id: Optional[str] = ""):
 
     if not to_prune:
         logger.debug("No Tasks were pruned.")
+
+    if task_id:
+        # removing the prune task
+        await TaskBase.filter(ticketID=task_id).delete()
