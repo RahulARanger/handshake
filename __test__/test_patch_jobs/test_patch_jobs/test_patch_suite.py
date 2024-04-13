@@ -208,7 +208,7 @@ class TestPatchSuiteJob:
         assert (await record.suite).suiteID == suite.suiteID
 
         # retried suite
-        retried_suite = await create_suite(session_id, retried=1)
+        retried_suite = await create_suite(session_id, retried=1, started=suite.ended)
         await create_tests(session_id, retried_suite.suiteID, retried=1)
 
         await register_patch_suite(retried_suite.suiteID, test.testID)
@@ -239,36 +239,37 @@ class TestPatchSuiteJob:
 
         parent_suite = await create_suite(session_id)
         first_tests, first_suites = await create_hierarchy(
-            session_id,
-            parent_suite.suiteID,
-            test.testID,
+            session_id, parent_suite.suiteID, test.testID, started=parent_suite.started
         )
 
-        parent_suite_2 = await create_suite(second_session.sessionID, retried=1)
+        parent_suite_2 = await create_suite(
+            second_session.sessionID, retried=1, started=parent_suite.ended
+        )
         second_tests, second_suites = await create_hierarchy(
-            second_session.sessionID, parent_suite_2.suiteID, test.testID, retried=1
+            second_session.sessionID,
+            parent_suite_2.suiteID,
+            test.testID,
+            retried=1,
+            started=parent_suite_2.started,
         )
 
-        parent_suite_3 = await create_suite(third_session.sessionID, retried=2)
+        parent_suite_3 = await create_suite(
+            third_session.sessionID, retried=2, started=parent_suite_2.ended
+        )
         third_tests, third_suites = await create_hierarchy(
-            third_session.sessionID, parent_suite_3.suiteID, test.testID, retried=2
+            third_session.sessionID,
+            parent_suite_3.suiteID,
+            test.testID,
+            retried=2,
+            started=parent_suite_3.started,
         )
 
         for _ in [parent_suite, parent_suite_2, parent_suite_3]:
             await register_patch_suite(_.suiteID, test.testID)
 
-        for parent, children in [
-            [parent_suite.suiteID, first_suites],
-            [parent_suite_2.suiteID, second_suites],
-            [parent_suite_3.suiteID, third_suites],
-        ]:
-            for suite in children:
-                result = await patchTestSuite(suite, str(test.testID)) is True
-                assert result is True, "Child suite should have been patched"
+        await patch_jobs()
 
-            result = await patchTestSuite(parent, str(test.testID))
-            assert result is True, "Parent suite should have been patched"
-
+        # trying to re-patching things which were already patched
         for index, suite in enumerate(
             [
                 *first_suites,
@@ -415,6 +416,42 @@ class TestPatchSuiteScheduler:
         assert error_log.feed["parent_suite"] == str(parent_suite_2.suiteID)
         assert error_log.feed["job"] == JobType.MODIFY_SUITE
         assert "as the child suite was not registered" in error_log.message
+
+    async def test_patch_dependent_retried_suites(
+        self, sample_test_session, create_suite, attach_config
+    ):
+        session = await sample_test_session
+
+        await attach_config(session.test_id, file_retries=1)
+
+        parent_suite = await create_suite(
+            session.sessionID, retried=0, name="sample-test"
+        )
+
+        parent_suite_2 = await create_suite(
+            session.sessionID, retried=1, name="sample-test", started=parent_suite.ended
+        )
+
+        # imagine if the parent suite_2 is processed at the same time as parent_suite
+        # they belong to different tree but parent_suite_2 is dependent on parent_suite_1 since
+        await register_patch_suite(parent_suite_2.suiteID, session.test_id)
+        await register_patch_suite(parent_suite.suiteID, session.test_id)
+
+        await patch_jobs()
+        note = await TestLogBase.filter(
+            type=LogType.ERROR, test_id=session.test_id
+        ).first()
+
+        if note:
+            print(note.feed, note.message)
+
+        assert not note
+        assert (
+            await SuiteBase.filter(suiteID=parent_suite.suiteID).first()
+        ).standing == "RETRIED"
+        assert (
+            await SuiteBase.filter(suiteID=parent_suite_2.suiteID).first()
+        ).standing == "PASSED"
 
     async def test_patch_command(
         self, sample_test_session, create_suite, create_tests, root_dir

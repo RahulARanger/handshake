@@ -20,11 +20,11 @@ async def helper_create_suite(
     is_test: bool = False,
     standing=Status.YET_TO_CALCULATE,
     retried=0,
+    started=datetime.datetime.now(),
     file: str = "test-1.js",
 ):
     extras = {standing.lower(): 1} if is_test else {}
 
-    started = datetime.datetime.now()
     return await SuiteBase.create(
         session_id=session_id,
         suiteType=SuiteType.TEST if is_test else SuiteType.SUITE,
@@ -55,6 +55,7 @@ async def helper_create_normal_suites(
     test_id: str,
     retried=0,
     suite_files=("test-1.js", "test-2.js", "test-3.js"),
+    started=datetime.datetime.now(),
 ):
     suites = []
     tests = []
@@ -66,6 +67,7 @@ async def helper_create_normal_suites(
             parent_suite,
             retried=retried,
             file=suite_files[index],
+            started=started,
         )
         suites.append(suite.suiteID)
 

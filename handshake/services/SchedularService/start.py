@@ -11,13 +11,7 @@ from pathlib import Path
 from typing import Optional
 from loguru import logger
 from tortoise.expressions import Q
-from handshake.services.DBService.models.result_base import (
-    RunBase,
-)
-from handshake.services.SchedularService.handleTestResults import (
-    saveRunsQuery,
-    saveRunQuery,
-)
+from handshake.services.DBService.models.result_base import RunBase
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
     ConfigBase,
@@ -27,11 +21,18 @@ from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
     exportAttachmentFolderName,
     DASHBOARD_ZIP_FILE,
+    EXPORT_RUN_PAGE_FILE_NAME,
+    EXPORT_PROJECTS_FILE_NAME,
+    EXPORT_RUNS_PAGE_FILE_NAME,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
 from handshake.services.SchedularService.handleTestResults import delete_test_attachment
 from handshake.services.SchedularService.handlePending import patch_jobs
+from handshake.services.SchedularService.refer_types import (
+    SubSetOfRunBaseRequiredForProjectExport,
+    SuiteSummary,
+)
 
 
 class Scheduler:
@@ -46,6 +47,7 @@ class Scheduler:
         self.export = out_dir is None
         self.export_dir = Path(out_dir) if out_dir else None
         self.db_path = db_path(root_dir)
+        self.import_dir = self.db_path.parent / exportAttachmentFolderName
         self.reset = manual_reset
         self.connection: Optional[BaseDBAsyncClient] = None
 
@@ -168,20 +170,13 @@ class Scheduler:
         logger.debug("Pre-Patch Jobs have been initiated")
 
     async def export_jobs(self):
-        skip = (
-            (
-                await ConfigBase.filter(key=ConfigKeys.export_runs_page)
-                .only("value")
-                .first()
-            ).value
-            or False
-        ) == self.RUNS_PAGE_VERSION
-
         logger.info("Exporting results to json.")
 
-        async with TaskGroup() as exporter:
-            if not skip:
-                exporter.create_task(self.export_runs_page())
+        # we reset entire export folder
+        # we call it import, because from dashboard perspective its import
+        rmtree(self.import_dir)
+        self.import_dir.mkdir(exist_ok=False)
+        await self.export_runs_page()
 
         logger.info("Done!")
 
@@ -195,35 +190,65 @@ class Scheduler:
     async def export_runs_page(self):
         logger.debug("Exporting Runs Page...")
 
-        runs = []
+        async with TaskGroup() as exporter:
+            runs = []
+            projects = {}
 
-        for row in (
-            await self.connection.execute_query(
-                """
-select rb.*, cb.* from RUNBASE rb
+            for row in (
+                await self.connection.execute_query(
+                    """
+select rb.*, cb.*,
+rank()	over (order by rb.ended desc) as timelineIndex,
+rank() over (partition by projectName order by rb.ended desc) as projectIndex
+from RUNBASE rb
 left join testconfigbase cb on rb.testID = cb.test_id 
 WHERE rb.ended <> '' order by rb.started;
 """
-            )
-        )[-1]:
-            run = dict(row)
-            runs.append(run)
-            logger.info(
-                "Exporting runs page for {} - {}", run["projectName"], run["testID"]
-            )
-            await to_thread(
-                saveRunQuery,
-                self.db_path,
-                run["testID"],
-                json.dumps(run),
+                )
+            )[-1]:
+                run = dict(row)
+                test_run = SubSetOfRunBaseRequiredForProjectExport.model_validate(run)
+                runs.append(run)
+
+                logger.info(
+                    "Exporting runs page for {} - {}",
+                    test_run.projectName,
+                    test_run.testID,
+                )
+
+                projects[test_run.projectName] = projects.get(test_run.projectName, [])
+                suite_summary: SuiteSummary = json.loads(test_run.suiteSummary)
+                projects[test_run.projectName].append(
+                    dict(
+                        testID=test_run.testID,
+                        passed=test_run.passed,
+                        failed=test_run.failed,
+                        skipped=test_run.skipped,
+                        tests=test_run.tests,
+                        passedSuites=suite_summary["passed"],
+                        failedSuites=suite_summary["failed"],
+                        skippedSuites=suite_summary["skipped"],
+                        suites=suite_summary["count"],
+                        duration=test_run.duration,
+                    )
+                )
+
+                (self.import_dir / str(test_run.testID)).mkdir(exist_ok=True)
+
+                exporter.create_task(
+                    to_thread(
+                        self.save_run_query,
+                        str(test_run.testID),
+                        json.dumps(run),
+                    ),
+                    name="export-run-page",
+                )
+            exporter.create_task(
+                to_thread(self.save_runs_query, json.dumps(runs), json.dumps(projects)),
+                name="export-runs-page",
             )
 
-        await to_thread(
-            saveRunsQuery,
-            self.db_path,
-            json.dumps(runs),
-        )
-        logger.info("Exported Runs Page!")
+            logger.info("Exported Runs Page!")
 
     def export_files(self):
         if self.export_dir.exists():
@@ -248,3 +273,10 @@ WHERE rb.ended <> '' order by rb.started;
             zip_file.extractall(self.export_dir)
 
         logger.info("Done!")
+
+    def save_runs_query(self, feed: str, projectsFeed: str):
+        (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)
+        (self.import_dir / EXPORT_PROJECTS_FILE_NAME).write_text(projectsFeed)
+
+    def save_run_query(self, testID: str, feed: str):
+        (self.import_dir / testID / EXPORT_RUN_PAGE_FILE_NAME).write_text(feed)

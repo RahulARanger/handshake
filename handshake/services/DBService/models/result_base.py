@@ -99,6 +99,7 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
         "models.SessionBase", related_name="suites", to_field="sessionID"
     )
     attachments = ReverseRelation["AttachmentBase"]
+    retries = ReverseRelation["RetriedBase"]
     suiteID = UUIDField(pk=True)
     suiteType = CharEnumField(
         SuiteType,
@@ -162,7 +163,3 @@ class TestLogBase(Model):
         description="If you want to share any feed here", null=True, default={}
     )
     dropped = DatetimeField(auto_now=True, description="timestamp", null=False)
-
-
-RunBasePydanticModel = pydantic_model_creator(RunBase)
-SuiteBasePydanticModel = pydantic_model_creator(SuiteBase)

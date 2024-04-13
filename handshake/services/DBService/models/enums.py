@@ -48,4 +48,3 @@ class ConfigKeys(StrEnum):
     py_version = "PY_VERSION"
     last_patch = "LAST_PATCH"
     last_migration = "LAST_MIGRATION"
-    export_runs_page = "EXPORT_RUNS_PAGE"

@@ -5,7 +5,8 @@ from handshake.services.SchedularService.constants import JobType
 from handshake.services.SchedularService.completeTestRun import patchTestRun
 from handshake.services.SchedularService.pruneTasks import pruneTasks
 from loguru import logger
-from tortoise.expressions import Q
+from tortoise.expressions import Q, Subquery, F
+from tortoise.functions import Min
 from asyncio import TaskGroup
 from handshake.services.SchedularService.register import skip_test_run
 
@@ -30,31 +31,47 @@ async def patch_jobs():
             if not tasks:
                 break
 
+            # providers are list of child suites that needs to be processed and whose parents
+            # are planned for processing
             providers = SuiteBase.filter(
                 Q(parent__in=tasks)
                 & Q(standing=Status.YET_TO_CALCULATE)
                 & Q(suiteType=SuiteType.SUITE)
             )
+            # these are the list of the suites that needs to be processed and can be processed
+            required_suites = SuiteBase.filter(
+                Q(suiteID__in=tasks)
+                & ~Q(suiteID__in=Subquery(providers.values("parent")))
+            )
 
             # get list of tasks which do not have children that are yet to processed
             to_process = await TaskBase.filter(
-                Q(ticketID__in=tasks)
-                & ~Q(
-                    ticketID__in=await providers.only("parent").values_list(
-                        "parent", flat=True
+                Q(
+                    ticketID__in=Subquery(
+                        SuiteBase.filter(
+                            # these are the list of suites that can be processed
+                            # but filters out the suites whose previous retries were not processed
+                            Q(suiteID__in=Subquery(required_suites.values("suiteID")))
+                            & Q(
+                                retried=Subquery(
+                                    required_suites.only("retried")
+                                    .annotate(minRetries=Min("retried"))
+                                    .first()
+                                    .values("minRetries")
+                                )
+                            )
+                        ).values("suiteID")
                     )
                 )
             ).all()
+
+            # so we process the suites whose child suites are all processed and their previous retries were processed
 
             # if there are no such tasks to process then check if the tasks are there for the child suites
             if not (
                 to_process
                 or await TaskBase.filter(
-                    Q(
-                        ticketID__in=await providers.only("suiteID").values_list(
-                            "suiteID", flat=True
-                        )
-                    )
+                    Q(ticketID=Subquery(providers.values("suiteID")))
                 ).exists()
             ):
                 # if so mark each of the tests runs as banned.

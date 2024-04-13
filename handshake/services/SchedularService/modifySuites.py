@@ -238,6 +238,7 @@ class PatchTestSuite:
         await skip_test_run(
             self.test_id,
             f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}",
+            suiteID=self.suite_id,
         )
 
 

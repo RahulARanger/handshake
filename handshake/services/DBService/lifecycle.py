@@ -11,7 +11,6 @@ from typing import Optional, Union
 from loguru import logger
 from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
-    EXPORT_RUNS_PAGE_VERSION,
 )
 
 models = ["handshake.services.DBService.models"]
@@ -49,7 +48,6 @@ READ_ONLY = (
     ConfigKeys.version,
     ConfigKeys.recentlyDeleted,
     ConfigKeys.reset_test_run,
-    ConfigKeys.export_runs_page,
 )
 ALLOW_WRITE = {
     ConfigKeys.maxRunsPerProject,
@@ -68,7 +66,6 @@ async def set_default_config(path: Path):
     for key, value in [
         (ConfigKeys.version, DB_VERSION),
         (ConfigKeys.reset_test_run, ""),
-        (ConfigKeys.export_runs_page, EXPORT_RUNS_PAGE_VERSION),
         (ConfigKeys.maxRunsPerProject, "100")
         # below keys can be overridden by the config file
     ]:
