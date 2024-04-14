@@ -10,8 +10,8 @@ from zipfile import ZipFile
 from pathlib import Path
 from typing import Optional
 from loguru import logger
-from tortoise.expressions import Q
-from handshake.services.DBService.models.result_base import RunBase
+from tortoise.expressions import Q, RawSQL
+from handshake.services.DBService.models.result_base import RunBase, SuiteBase
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
     ConfigBase,
@@ -24,6 +24,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_RUN_PAGE_FILE_NAME,
     EXPORT_PROJECTS_FILE_NAME,
     EXPORT_RUNS_PAGE_FILE_NAME,
+    EXPORT_OVERVIEW_PAGE,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
@@ -203,6 +204,7 @@ rank() over (partition by projectName order by rb.ended desc) as projectIndex
 from RUNBASE rb
 left join testconfigbase cb on rb.testID = cb.test_id 
 WHERE rb.ended <> '' order by rb.started;
+-- note for: projectIndex and timelineIndex, latest -> oldest => 0 - ...
 """
                 )
             )[-1]:
@@ -243,12 +245,51 @@ WHERE rb.ended <> '' order by rb.started;
                     ),
                     name="export-run-page",
                 )
+
+                exporter.create_task(
+                    self.export_run_page(test_run.testID),
+                    name="export-more-for-run-page",
+                )
+
             exporter.create_task(
                 to_thread(self.save_runs_query, json.dumps(runs), json.dumps(projects)),
                 name="export-runs-page",
             )
 
             logger.info("Exported Runs Page!")
+
+    async def export_run_page(self, run_id: str):
+        await gather(self.export_overview_page(run_id))
+
+    async def export_overview_page(self, run_id: str):
+        recent_suites = await (
+            SuiteBase.filter(session__test_id=run_id)
+            .order_by("-started")
+            .limit(6)
+            .annotate(
+                numberOfErrors=RawSQL("json_array_length(errors)"),
+                id=RawSQL("suiteID"),
+                s=RawSQL("suitebase.started"),
+                e=RawSQL("suitebase.ended"),
+            )
+            .values(
+                "title",
+                "file",
+                "passed",
+                "failed",
+                "skipped",
+                "numberOfErrors",
+                suiteID="id",
+                started="s",
+                ended="e",
+            )
+        )
+
+        await to_thread(
+            self.save_overview_query,
+            run_id,
+            json.dumps(dict(recentSuites=recent_suites)),
+        )
 
     def export_files(self):
         if self.export_dir.exists():
@@ -280,3 +321,6 @@ WHERE rb.ended <> '' order by rb.started;
 
     def save_run_query(self, testID: str, feed: str):
         (self.import_dir / testID / EXPORT_RUN_PAGE_FILE_NAME).write_text(feed)
+
+    def save_overview_query(self, testID: str, feed: str):
+        (self.import_dir / testID / EXPORT_OVERVIEW_PAGE).write_text(feed)
