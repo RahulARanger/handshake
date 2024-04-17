@@ -25,10 +25,13 @@ export interface TestRunRecord extends OnlyTestRunRecord {
     fileRetries: number;
     avoidParentSuitesInCount: boolean;
     bail: number;
+    timelineIndex: number; // 1 - indexed
+    projectIndex: number; // 1 - indexed
 }
 
 export type specNode = {
     '<path>': string;
+    '<count>'?: number;
 } & { [key: string]: specNode };
 
 export interface SuiteSummary {
@@ -46,3 +49,18 @@ export type possibleFrameworks =
     | 'unknown';
 
 export type logTypes = 'WARN' | 'INFO' | 'ERROR';
+
+export interface Project {
+    duration: number;
+    tests: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    passedSuites: number;
+    failedSuites: number;
+    skippedSuites: number;
+    testID: string;
+    suites: number;
+}
+
+export type Projects = Record<string, Project[]>;

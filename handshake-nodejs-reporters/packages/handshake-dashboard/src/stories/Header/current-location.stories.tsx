@@ -1,24 +1,26 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import Header from 'components/about-test-run/header';
+import { Chance } from 'chance';
+import CurrentLocation from 'components/about-test-run/current-location';
 import dayjs from 'dayjs';
 
 const meta = {
-    title: 'AboutTestRun/Header',
-    component: Header,
+    title: 'AboutTestRun/Overview/Header/CurrentLocation',
+    component: CurrentLocation,
     parameters: {
         layout: 'centered',
     },
     tags: ['autodocs'],
-} satisfies Meta<typeof Header>;
+} satisfies Meta<typeof CurrentLocation>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
+const generator = new Chance();
+
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const InOverviewTab: Story = {
     args: {
-        inOverview: true,
-        date: dayjs().subtract(1, 'hour'),
-        projectName: 'overview-page-header',
+        projectName: generator.company(),
+        where: 'Overview',
     },
 };

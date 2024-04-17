@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import transformTestRunRecord from 'extractors/transform-run-record';
 import { Chance } from 'chance';
 import type { statusOfEntity } from 'types/session-records';
 
@@ -94,7 +93,7 @@ export function generateTestRun(feed: Feeder) {
             .subtract(generator.integer({ min: 5, max: 9 }), durationFor)
     ).toISOString();
 
-    return transformTestRunRecord({
+    return {
         started,
         ended,
         framework: feed.framework ?? 'webdriverio,mocha',
@@ -124,7 +123,7 @@ export function generateTestRun(feed: Feeder) {
             'features\\login.feature': { '<path>': 'features\\login.feature' },
         }),
         retried: generator.integer({ min: 0, max: 1 }),
-    });
+    };
 }
 
 export const onlySkipped = generateTestRun({

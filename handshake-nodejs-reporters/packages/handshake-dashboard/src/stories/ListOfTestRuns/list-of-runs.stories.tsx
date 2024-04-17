@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { ListOfRuns } from 'components/about-test-runs/run-cards';
+import transformTestRunRecord from 'extractors/transform-run-record';
 import { allPassed, mixed, onlySkipped } from 'stories/TestData/test-runs';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
@@ -23,20 +24,22 @@ type Story = StoryObj<typeof meta>;
 export const OnlyOneRun: Story = {
     args: {
         mah: 250,
-        runs: [allPassed],
+        runs: [transformTestRunRecord(allPassed)],
     },
 };
 
 export const MultipleRuns: Story = {
     args: {
-        runs: [allPassed, mixed, onlySkipped],
+        runs: [allPassed, mixed, onlySkipped].map(transformTestRunRecord),
         mah: 500,
     },
 };
 
 export const ScrollableRuns: Story = {
     args: {
-        runs: [allPassed, mixed, onlySkipped, allPassed, mixed],
+        runs: [allPassed, mixed, onlySkipped, allPassed, mixed].map(
+            transformTestRunRecord,
+        ),
         mah: '75vh',
     },
 };
@@ -54,7 +57,7 @@ export const PaginatedRuns: Story = {
             onlySkipped,
             allPassed,
             mixed,
-        ],
+        ].map(transformTestRunRecord),
         mah: '75vh',
         pageSize: 3,
     },

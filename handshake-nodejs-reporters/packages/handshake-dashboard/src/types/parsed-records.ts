@@ -28,6 +28,13 @@ export interface DetailedTestRecord extends BasicDetails {
     projectName: string;
     specStructure: specNode;
     Frameworks: possibleFrameworks[];
+    timelineIndex: number;
+    projectIndex: number;
+    Bail: number;
+    FileRetries: number;
+    ExitCode: number;
+    MaxInstances: number;
+    Platform: string;
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {

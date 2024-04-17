@@ -4,7 +4,7 @@ import CountUp from 'react-countup';
 
 export default function CountUpNumber(properties: {
     endNumber: number;
-    maxDigits?: number;
+    maxDigitsOf?: number;
     prefix?: string;
     decimalPoints?: number;
     style?: CSSProperties;
@@ -22,7 +22,7 @@ export default function CountUpNumber(properties: {
                     .padStart(
                         Math.floor(
                             Math.log10(
-                                properties.maxDigits ?? properties.endNumber,
+                                properties.maxDigitsOf ?? properties.endNumber,
                             ) + 1,
                         ),
                         '0',

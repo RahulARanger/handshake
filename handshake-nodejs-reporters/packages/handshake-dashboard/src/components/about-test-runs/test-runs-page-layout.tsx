@@ -106,7 +106,10 @@ export function RunsPageContent(properties: {
             {toLoad || filteredRuns.length > 0 ? (
                 <AppShell.Navbar p="xs">
                     <Skeleton animate={toLoad} visible={toLoad} mih={'100%'}>
-                        <ListOfRuns runs={filteredRuns} mah={'100%'} />
+                        <ListOfRuns
+                            runs={filteredRuns.toReversed()}
+                            mah={'100%'}
+                        />
                     </Skeleton>
                 </AppShell.Navbar>
             ) : (

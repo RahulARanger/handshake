@@ -84,7 +84,7 @@ export default function TestRunsChartArea(properties: {
                         )}
                     </Card.Section>
                 </Card>
-                <Card withBorder shadow="lg" radius="lg" p="lg">
+                <Card withBorder shadow="lg" radius="lg" p="lg" mb="sm">
                     <Card.Section withBorder>
                         <Group justify="space-between" p="xs">
                             <Text size="sm">Duration of our Test Runs</Text>

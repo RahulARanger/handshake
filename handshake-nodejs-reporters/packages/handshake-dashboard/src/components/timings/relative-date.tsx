@@ -9,14 +9,16 @@ import dayjs from 'dayjs';
 import { useRef } from 'react';
 import Autoplay from 'embla-carousel-autoplay';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
-import { dateFormatUsed } from './format';
+import { dateFormatUsed, timeFormatUsed } from './format';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(relativeTime);
 
 export default function RelativeDate(properties: {
     date: Dayjs;
+    relativeFrom?: Dayjs;
     size?: TextProps['size'];
+    showTime?: boolean;
 }): ReactNode {
     const autoplay = useRef(Autoplay({ delay: 3e3 }));
 
@@ -34,12 +36,16 @@ export default function RelativeDate(properties: {
         >
             <Carousel.Slide>
                 <Text size={properties.size ?? 'sm'}>
-                    {properties.date.format(dateFormatUsed)}
+                    {properties.date.format(
+                        properties.showTime ? timeFormatUsed : dateFormatUsed,
+                    )}
                 </Text>
             </Carousel.Slide>
             <Carousel.Slide>
                 <Text size={properties.size ?? 'sm'}>
-                    {properties.date.fromNow()}
+                    {properties.relativeFrom
+                        ? properties.date.from(properties.relativeFrom)
+                        : properties.date.fromNow()}
                 </Text>
             </Carousel.Slide>
         </Carousel>

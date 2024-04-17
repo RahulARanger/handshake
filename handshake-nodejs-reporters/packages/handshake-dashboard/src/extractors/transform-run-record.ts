@@ -1,13 +1,14 @@
-import dayjs from 'dayjs';
+import dayjs, { Dayjs } from 'dayjs';
 import type { DetailedTestRecord } from 'types/parsed-records';
-import { runPage } from 'components/links';
+import { testRunPage } from 'components/links';
 import type {
     possibleFrameworks,
     specNode,
     SuiteSummary,
     TestRunRecord,
 } from 'types/test-run-records';
-import duration from 'dayjs/plugin/duration';
+import duration, { Duration } from 'dayjs/plugin/duration';
+import { SuiteRecordDetails } from 'types/test-entity-related';
 
 dayjs.extend(duration);
 
@@ -38,8 +39,52 @@ export default function transformTestRunRecord(
             suiteSummary.skipped,
         ],
         Suites: suiteSummary.count,
-        Link: runPage(testRunRecord.testID),
-        projectName: testRunRecord.projectName,
+        Link: testRunPage(testRunRecord.testID),
+        projectName: testRunRecord.projectName.trim(),
         specStructure: JSON.parse(testRunRecord.specStructure) as specNode,
+        timelineIndex: testRunRecord.timelineIndex - 1,
+        projectIndex: testRunRecord.projectIndex - 1,
+        Bail: testRunRecord.bail,
+        ExitCode: testRunRecord.exitCode,
+        FileRetries: testRunRecord.fileRetries,
+        MaxInstances: testRunRecord.maxInstances,
+        Platform: testRunRecord.platform.trim(),
+    };
+}
+
+export interface OverviewOfEntities {
+    recentSuites: SuiteRecordDetails[];
+    aggregated: { files: number; sessions: number };
+}
+interface MiniSuitePreview {
+    Started: Dayjs;
+    Title: string;
+    Rate: [number, number, number];
+    Duration: Duration;
+    Id: string;
+}
+export interface TransformedOverviewOfEntities {
+    recentSuites: MiniSuitePreview[];
+    aggregated: { files: number; sessions: number };
+}
+
+function transformMiniSuite(suite: SuiteRecordDetails): MiniSuitePreview {
+    return {
+        Started: dayjs(suite.started),
+        Duration: dayjs.duration({ milliseconds: suite.duration }),
+        Title: suite.title,
+        Rate: [suite.passed, suite.failed, suite.skipped],
+        Id: suite.suiteID,
+    };
+}
+
+export function transformOverviewFeed(
+    feed: OverviewOfEntities,
+): TransformedOverviewOfEntities {
+    return {
+        recentSuites: feed.recentSuites.map((suite) =>
+            transformMiniSuite(suite),
+        ),
+        aggregated: feed.aggregated,
     };
 }
