@@ -17,7 +17,7 @@ from handshake.services.SchedularService.refer_types import PathTree, PathItem
 from handshake.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum, Max, Min, Count, Lower
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Tuple
 from pathlib import Path
 from os.path import join
 from loguru import logger
@@ -136,9 +136,11 @@ class PatchTestRun:
                         path
                         for path in await SuiteBase.filter(
                             Q(session__test_id=self.test_id)
+                            & Q(suiteType=SuiteType.SUITE)
                         )
-                        .distinct()
-                        .values_list("file", flat=True)
+                        .group_by("file")
+                        .annotate(suites=Sum("tests"))
+                        .values_list("file", "suites")
                     ]
                 ),
                 standing=fetch_key_from_status(
@@ -188,13 +190,10 @@ async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> Fal
     return await skip_test_run(test_id, reason, type=JobType.MODIFY_TEST_RUN, **extra)
 
 
-def simplify_file_paths(paths: List[str]):
+def simplify_file_paths(paths: List[Tuple[str, int]]):
     tree: PathTree = {"<path>": ""}
     _paths: List[PathItem] = [
-        dict(
-            children=list(reversed(Path(path).parts)),
-            pointer=tree,
-        )
+        dict(children=list(reversed(Path(path[0]).parts)), pointer=tree, count=path[1])
         for path in paths
     ]
 
@@ -203,6 +202,7 @@ def simplify_file_paths(paths: List[str]):
         path_to_include = _paths[-1]
         if not path_to_include["children"]:
             _paths.pop()
+            path_to_include["pointer"]["<count>"] = path_to_include["count"]
             continue
 
         parent_pointer: PathTree = path_to_include["pointer"]
@@ -225,6 +225,8 @@ def simplify_file_paths(paths: List[str]):
 
             children = set(target_node.keys())
             children.remove("<path>")
+            if "<count>" in children:
+                children.remove("<count>")
 
             if len(children) > 1:
                 for child_key in target_node.keys():

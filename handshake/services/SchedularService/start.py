@@ -267,28 +267,36 @@ WHERE rb.ended <> '' order by rb.started;
             .order_by("-started")
             .limit(6)
             .annotate(
-                numberOfErrors=RawSQL("json_array_length(errors)"),
+                # numberOfErrors=RawSQL("json_array_length(errors)"),
                 id=RawSQL("suiteID"),
                 s=RawSQL("suitebase.started"),
-                e=RawSQL("suitebase.ended"),
             )
             .values(
                 "title",
-                "file",
                 "passed",
                 "failed",
                 "skipped",
-                "numberOfErrors",
+                "duration",
                 suiteID="id",
                 started="s",
-                ended="e",
             )
+        )
+
+        aggregated = (
+            await SuiteBase.filter(session__test_id=run_id)
+            .annotate(
+                sessions=RawSQL("count(DISTINCT session_id)"),
+                files=RawSQL("count(DISTINCT file)"),
+            )
+            .only("sessions", "files")
+            .first()
+            .values("sessions", "files")
         )
 
         await to_thread(
             self.save_overview_query,
             run_id,
-            json.dumps(dict(recentSuites=recent_suites)),
+            json.dumps(dict(recentSuites=recent_suites, aggregated=aggregated)),
         )
 
     def export_files(self):
