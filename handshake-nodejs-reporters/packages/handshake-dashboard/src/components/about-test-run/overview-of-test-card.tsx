@@ -38,11 +38,10 @@ import {
     jsonFeedForProjects,
     testRunPage,
 } from 'components/links';
-import { Projects, specNode, TestRunRecord } from 'types/test-run-records';
+import { Projects, TestRunRecord } from 'types/test-run-records';
 import transformTestRunRecord, {
     OverviewOfEntities,
 } from 'extractors/transform-run-record';
-import { ResponsiveContainer, Treemap, TreemapProps } from 'recharts';
 import { FrameworksUsed } from './framework-icons';
 import { DetailedTestRecord } from 'types/parsed-records';
 import { OnPlatform } from './platform-icon';
@@ -69,49 +68,6 @@ function getChange(values: number[], referFrom?: number): number {
 const comparingToRecentRunLabel = 'Compared to the Recent Test Run';
 const forRecentTestRunLabel = 'Compared to the Last Test Run';
 
-export function PreviewOfProjectStructure(properties: { node: specNode }) {
-    const tree = useMemo<TreemapProps['data']>(() => {
-        const subTree: any[] = [];
-        const q = [[properties.node, 'Root', subTree]];
-        while (q.length > 0) {
-            const item = q.pop() as Array<specNode | string | any[]>;
-            const node = item[0] as specNode;
-            const name = item[1] as string;
-            const addTo = item[2] as any[];
-
-            if (node['<count>'] !== undefined) {
-                addTo.push({ name, size: node['<count>'] });
-                continue;
-            }
-
-            const children: any[] = [];
-            addTo.push({ name, children });
-            q.push(
-                ...Object.keys(node)
-                    .filter((prop) => !prop.startsWith('<'))
-                    .map((prop) => [node[prop], prop, children]),
-            );
-        }
-
-        return subTree;
-    }, [properties.node]);
-
-    return (
-        <Card w={'100%'} h={200}>
-            <ResponsiveContainer width="100%" height="100%">
-                <Treemap
-                    width={400}
-                    height={200}
-                    data={tree}
-                    dataKey="size"
-                    stroke="#fff"
-                    fill="#8884d8"
-                />
-            </ResponsiveContainer>
-        </Card>
-    );
-}
-
 function NotedValues(properties: {
     testRunRecord?: DetailedTestRecord;
 }): ReactNode {
@@ -130,7 +86,7 @@ function NotedValues(properties: {
 
     return (
         <Paper>
-            <ScrollArea h={180}>
+            <ScrollArea h={190}>
                 <Table>
                     <Table.Thead>
                         <Table.Tr>

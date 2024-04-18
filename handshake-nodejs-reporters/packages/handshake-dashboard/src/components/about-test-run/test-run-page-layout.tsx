@@ -60,7 +60,8 @@ export default function RunPageContent(properties: {
                                 animate
                                 visible={toLoad}
                                 width={113}
-                                height={30}
+                                height={28}
+                                mb={10}
                             />
                         ) : (
                             <RelativeDate
@@ -73,7 +74,7 @@ export default function RunPageContent(properties: {
             </AppShell.Header>
             <AppShell.Main>
                 <ScrollAreaAutosize
-                    p="md"
+                    p="sm"
                     style={{ overflowX: 'hidden' }}
                     h={'calc(100vh - var(--app-shell-header-height, 0px))'}
                 >

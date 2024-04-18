@@ -57,6 +57,12 @@ def zip_results(session):
         dashboard.exists()
     ), "Dashboard are not generated yet., Please generate it with npm run export in the dashboard package."
 
-    move(
-        make_archive("dashboard", "zip", dashboard, dashboard.parent), dashboard.parent
-    )
+    expected_here = Path.cwd() / "dashboard.zip"
+    if expected_here.exists():
+        expected_here.unlink()
+
+    or_here = dashboard.parent / "dashboard.zip"
+    if or_here.exists():
+        or_here.unlink()
+
+    move(make_archive("dashboard", "zip", dashboard), dashboard.parent)

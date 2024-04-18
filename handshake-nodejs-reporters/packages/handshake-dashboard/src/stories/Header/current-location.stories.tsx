@@ -22,5 +22,6 @@ export const InOverviewTab: Story = {
     args: {
         projectName: generator.company(),
         where: 'Overview',
+        toLoad: false,
     },
 };

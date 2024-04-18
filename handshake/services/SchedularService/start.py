@@ -171,21 +171,18 @@ class Scheduler:
         logger.debug("Pre-Patch Jobs have been initiated")
 
     async def export_jobs(self):
-        logger.info("Exporting results to json.")
+        if not self.export_dir:
+            logger.debug("Skipping export, as the output directory was not provided.")
+            return
 
+        logger.info("Exporting results to json.")
         # we reset entire export folder
         # we call it import, because from dashboard perspective its import
         rmtree(self.import_dir)
         self.import_dir.mkdir(exist_ok=False)
         await self.export_runs_page()
-
         logger.info("Done!")
-
-        if not self.export_dir:
-            logger.debug("Skipping export, as the output directory was not provided.")
-            return
-
-        logger.debug("Exporting Test Results...")
+        logger.debug("Exporting reports...")
         await to_thread(self.export_files)
 
     async def export_runs_page(self):

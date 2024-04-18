@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { Chance } from 'chance';
 import type { statusOfEntity } from 'types/session-records';
+import { TestRunRecord } from 'types/test-run-records';
 
 interface Feeder {
     started?: dayjs.Dayjs;
@@ -28,7 +29,7 @@ export function getStatus(
     return passed === 0 && skipped !== 0 ? 'SKIPPED' : 'PASSED';
 }
 
-export function generateTestRun(feed: Feeder) {
+export function generateTestRun(feed: Feeder): TestRunRecord {
     const generator = Chance();
 
     const tests = feed.tests ?? generator.integer({ min: 3, max: 100 });
@@ -123,6 +124,8 @@ export function generateTestRun(feed: Feeder) {
             'features\\login.feature': { '<path>': 'features\\login.feature' },
         }),
         retried: generator.integer({ min: 0, max: 1 }),
+        projectIndex: generator.integer({ min: 0, max: 10 }),
+        timelineIndex: generator.integer({ min: 0, max: 20 }),
     };
 }
 
