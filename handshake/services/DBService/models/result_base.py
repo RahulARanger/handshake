@@ -100,6 +100,8 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     )
     attachments = ReverseRelation["AttachmentBase"]
     retries = ReverseRelation["RetriedBase"]
+    rolled_up = ReverseRelation["RollupBase"]
+
     suiteID = UUIDField(pk=True)
     suiteType = CharEnumField(
         SuiteType,

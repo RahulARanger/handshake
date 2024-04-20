@@ -38,12 +38,11 @@ import {
     jsonFeedForProjects,
     testRunPage,
 } from 'components/links';
-import { Projects, TestRunRecord } from 'types/test-run-records';
-import transformTestRunRecord, {
-    OverviewOfEntities,
-} from 'extractors/transform-run-record';
+import type { Projects, TestRunRecord } from 'types/test-run-records';
+import type { OverviewOfEntities } from 'extractors/transform-run-record';
+import transformTestRunRecord from 'extractors/transform-run-record';
 import { FrameworksUsed } from './framework-icons';
-import { DetailedTestRecord } from 'types/parsed-records';
+import type { DetailedTestRecord } from 'types/parsed-records';
 import { OnPlatform } from './platform-icon';
 dayjs.extend(duration);
 
@@ -60,8 +59,8 @@ function indicateNumber(change: number, forceText?: string): string | number {
 
 function getChange(values: number[], referFrom?: number): number {
     return (
-        (values?.at(referFrom !== undefined ? referFrom : -1) ?? 0) -
-        (values.at(referFrom !== undefined ? -1 : -2) ?? 0)
+        (values?.at(referFrom === undefined ? -1 : referFrom) ?? 0) -
+        (values.at(referFrom === undefined ? -2 : -1) ?? 0)
     );
 }
 
@@ -77,7 +76,7 @@ function NotedValues(properties: {
         // isLoading: overviewFeed,
         // error,
     } = useSWRImmutable<OverviewOfEntities>(
-        run?.Id ? jsonFeedForOverviewOfTestRun(run.Id) : null,
+        run?.Id ? jsonFeedForOverviewOfTestRun(run.Id) : undefined,
         () =>
             fetch(jsonFeedForOverviewOfTestRun(run?.Id as string)).then(
                 async (response) => response.json(),
@@ -198,7 +197,7 @@ export default function OverviewCard(properties: {
         isLoading,
         error,
     } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : null,
+        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
         () =>
             fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
                 async (response) => response.json(),
@@ -375,7 +374,7 @@ export default function OverviewCard(properties: {
                                         size="sm"
                                         variant="subtle"
                                         disabled={!nextProject}
-                                        c={!nextProject ? 'gray' : undefined}
+                                        c={nextProject ? undefined : 'gray'}
                                         radius={'sm'}
                                         ml={0}
                                     >

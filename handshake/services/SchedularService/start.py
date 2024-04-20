@@ -25,6 +25,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_PROJECTS_FILE_NAME,
     EXPORT_RUNS_PAGE_FILE_NAME,
     EXPORT_OVERVIEW_PAGE,
+    EXPORT_ALL_SUITES,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
@@ -256,7 +257,7 @@ WHERE rb.ended <> '' order by rb.started;
             logger.info("Exported Runs Page!")
 
     async def export_run_page(self, run_id: str):
-        await gather(self.export_overview_page(run_id))
+        await gather(self.export_overview_page(run_id), self.export_all_suites(run_id))
 
     async def export_overview_page(self, run_id: str):
         recent_suites = await (
@@ -296,6 +297,52 @@ WHERE rb.ended <> '' order by rb.started;
             json.dumps(dict(recentSuites=recent_suites, aggregated=aggregated)),
         )
 
+    async def export_all_suites(self, run_id: str):
+        all_suites = await (
+            SuiteBase.filter(session__test_id=run_id)
+            .order_by("-started")
+            .prefetch_related("rollup")
+            .annotate(
+                numberOfErrors=RawSQL("json_array_length(errors)"),
+                id=RawSQL("suiteID"),
+                p_id=RawSQL("parent"),
+                s=RawSQL("suitebase.started"),
+                e=RawSQL("suitebase.ended"),
+                error=RawSQL("errors ->> '[0]'"),
+            )
+            .values(
+                "title",
+                "passed",
+                "failed",
+                "skipped",
+                "duration",
+                "file",
+                "retried",
+                "tags",
+                "description",
+                "errors",
+                "error",
+                suiteID="id",
+                parent="p_id",
+                started="s",
+                ended="e",
+                entityName="session__entityName",
+                entityVersion="session__entityVersion",
+                hooks="session__hooks",
+                simplified="session__simplified",
+                rollup_passed="rollup__passed",
+                rollup_failed="rollup__failed",
+                rollup_skipped="rollup__skipped",
+                rollup_tests="rollup__tests",
+            )
+        )
+
+        await to_thread(
+            self.save_all_suites_query,
+            run_id,
+            json.dumps(all_suites),
+        )
+
     def export_files(self):
         if self.export_dir.exists():
             logger.debug("removing previous results")
@@ -329,3 +376,6 @@ WHERE rb.ended <> '' order by rb.started;
 
     def save_overview_query(self, testID: str, feed: str):
         (self.import_dir / testID / EXPORT_OVERVIEW_PAGE).write_text(feed)
+
+    def save_all_suites_query(self, testID: str, feed: str):
+        (self.import_dir / testID / EXPORT_ALL_SUITES).write_text(feed)

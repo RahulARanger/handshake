@@ -1,5 +1,5 @@
 import type { AvatarProps } from '@mantine/core';
-import { Avatar } from '@mantine/core';
+import { Avatar, Tooltip } from '@mantine/core';
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { possibleFrameworks } from 'types/test-run-records';
@@ -39,34 +39,44 @@ export function FrameworksUsed(properties: {
 
         links.push(
             source ? (
-                <Avatar
-                    size={properties.size ?? 'md'}
-                    radius="xl"
-                    src={source}
-                    key={key}
-                    alt={framework}
-                />
+                <Tooltip
+                    label={key.at(0)?.toUpperCase() + key.slice(1)}
+                    color="orange.7"
+                >
+                    <Avatar
+                        size={properties.size ?? 'md'}
+                        radius="xl"
+                        src={source}
+                        key={key}
+                        aria-label={`${key}-avatar`}
+                        alt={framework}
+                    />
+                </Tooltip>
             ) : (
-                <Avatar
-                    size={properties.size ?? 'md'}
-                    radius={'xl'}
-                    src={source}
-                    key={key}
-                    alt={framework}
-                    color="red"
-                />
+                <Tooltip color="red" label={key}>
+                    <Avatar
+                        size={properties.size ?? 'md'}
+                        radius={'xl'}
+                        src={source}
+                        key={key}
+                        alt={framework}
+                        color="red"
+                    />
+                </Tooltip>
             ),
         );
     }
     return links.length > 0 ? (
         <Avatar.Group>{links}</Avatar.Group>
     ) : (
-        <Avatar
-            size={properties.size ?? 'md'}
-            radius={'xl'}
-            src={''}
-            alt={'No Frameworks used.'}
-            color="red"
-        />
+        <Tooltip label="No Frameworks were configured" color="red">
+            <Avatar
+                size={properties.size ?? 'md'}
+                radius={'xl'}
+                src={''}
+                alt={'No Frameworks used.'}
+                color="red"
+            />
+        </Tooltip>
     );
 }

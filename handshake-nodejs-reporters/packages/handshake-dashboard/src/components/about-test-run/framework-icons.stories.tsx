@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { userEvent, within, expect } from '@storybook/test';
 import { FrameworksUsed } from 'components/about-test-run/framework-icons';
 
 const meta = {
@@ -17,6 +18,13 @@ type Story = StoryObj<typeof meta>;
 export const MultipleFrameworksUsed: Story = {
     args: {
         frameworks: ['webdriverio', 'mocha', 'jasmine'],
+    },
+    play: async ({ canvasElement, step }) => {
+        const screen = within(canvasElement);
+
+        await step('testing the tooltip', async () => {
+            await userEvent.click(screen.getByLabelText('webdriverio-avatar'));
+        });
     },
 };
 
