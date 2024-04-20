@@ -9,15 +9,36 @@ import {
     rem,
     Text,
 } from '@mantine/core';
-import { IconCaretDown, IconRipple } from '@tabler/icons-react';
-import { runsPage } from 'components/links';
+import { IconCaretDown, IconGrid4x4, IconRipple } from '@tabler/icons-react';
+import { runsPage, suitesPage, testRunPage } from 'components/links';
+import { useRouter, type NextRouter } from 'next/router';
 
-export type TestRunTab = 'Overview' | 'Detailed';
+export type TestRunTab = 'Overview' | 'Suites';
+
+export function redirectToRightPageForTestRun(
+    router: NextRouter,
+    testID: string,
+    where: TestRunTab,
+) {
+    switch (where as TestRunTab) {
+        case 'Overview': {
+            router.push(testRunPage(testID));
+            break;
+        }
+        case 'Suites': {
+            router.push(suitesPage(testID));
+            break;
+        }
+    }
+}
 
 export function testRunTabDescription(text: TestRunTab) {
     switch (text) {
         case 'Overview': {
             return 'an Overview of your Test Run';
+        }
+        case 'Suites': {
+            return 'Grid of your Test Suites';
         }
         default: {
             return '';
@@ -29,8 +50,10 @@ export default function CurrentLocation(properties: {
     projectName: string;
     where: TestRunTab;
     toLoad?: boolean;
+    testID?: string;
 }): ReactNode {
     const toLoad = Boolean(properties.toLoad);
+    const router = useRouter();
     return (
         <Group align="center" mb="xs">
             <Breadcrumbs mb={4}>
@@ -53,18 +76,30 @@ export default function CurrentLocation(properties: {
                         </Text>
                     </Menu.Target>
                     <MenuDropdown>
-                        <Menu.Item leftSection={<IconRipple size=".9rem" />}>
-                            Overview
-                        </Menu.Item>
-                        {/* <Menu.Label>Detailed View</Menu.Label>
-                        <Menu.Item leftSection={<IconTable size=".9rem" />}>
-                            Table view
+                        <Menu.Item
+                            leftSection={<IconRipple size=".9rem" />}
+                            onClick={() =>
+                                redirectToRightPageForTestRun(
+                                    router,
+                                    properties.testID as string,
+                                    'Overview',
+                                )
+                            }
+                        >
+                            <Text size="sm">Overview</Text>
                         </Menu.Item>
                         <Menu.Item
-                            leftSection={<IconBinaryTree2 size=".9rem" />}
+                            leftSection={<IconGrid4x4 size=".9rem" />}
+                            onClick={() =>
+                                redirectToRightPageForTestRun(
+                                    router,
+                                    properties.testID as string,
+                                    'Suites',
+                                )
+                            }
                         >
-                            Tree view
-                        </Menu.Item> */}
+                            <Text size="sm">Suites</Text>
+                        </Menu.Item>
                     </MenuDropdown>
                 </Menu>
             </Breadcrumbs>

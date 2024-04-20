@@ -1,36 +1,33 @@
-import { Affix, Card, SimpleGrid, Skeleton, Text } from '@mantine/core';
+import { Card, SimpleGrid, Skeleton, Text } from '@mantine/core';
 import {
     jsonFeedAboutTestRun,
     jsonFeedForOverviewOfTestRun,
 } from 'components/links';
-import {
+import type {
     OverviewOfEntities,
     TransformedOverviewOfEntities,
-    transformOverviewFeed,
 } from 'extractors/transform-run-record';
-import React, { ReactNode, useMemo } from 'react';
+import { transformOverviewFeed } from 'extractors/transform-run-record';
+import type { ReactNode } from 'react';
+import React, { useMemo } from 'react';
 import useSWRImmutable from 'swr/immutable';
 import { DataTable } from 'mantine-datatable';
 import dayjs from 'dayjs';
 import RelativeDate from 'components/timings/relative-date';
-import { specNode, TestRunRecord } from 'types/test-run-records';
+import type { specNode, TestRunRecord } from 'types/test-run-records';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import PassedRate from './passed-rate';
-import {
-    ResponsiveContainer,
-    Treemap,
-    Tooltip as RToolTip,
-    TooltipProps,
-} from 'recharts';
+import type { TooltipProps } from 'recharts';
+import { ResponsiveContainer, Treemap, Tooltip as RToolTip } from 'recharts';
 
 function fetchTree(root: specNode) {
-    const subTree: any[] = [];
+    const subTree: unknown[] = [];
     const q = [[root, 'Root', subTree]];
     while (q.length > 0) {
-        const item = q.pop() as Array<specNode | string | any[]>;
+        const item = q.pop() as Array<specNode | string | unknown[]>;
         const node = item[0] as specNode;
         const name = item[1] as string;
-        const addTo = item[2] as any[];
+        const addTo = item[2] as unknown[];
 
         if (node['<count>'] !== undefined) {
             // addTo.push({ name, size: node['<count>'] });
@@ -39,19 +36,19 @@ function fetchTree(root: specNode) {
             continue;
         }
 
-        const children: any[] = [];
+        const children: unknown[] = [];
         addTo.push({ name, children });
         q.push(
             ...Object.keys(node)
-                .filter((prop) => !prop.startsWith('<'))
-                .map((prop) => [node[prop], prop, children]),
+                .filter((property) => !property.startsWith('<'))
+                .map((property) => [node[property], property, children]),
         );
     }
 
     return subTree;
 }
 
-function CustomTooltip(properties: TooltipProps<any[], 'name' | 'size'>) {
+function CustomTooltip(properties: TooltipProps<string[], 'name' | 'size'>) {
     if (!properties.payload?.length) return <></>;
     const note = properties.payload[0];
     return (
@@ -74,7 +71,7 @@ function PreviewOfProjectStructure(properties: { testID?: string }) {
         isLoading: runFeedLoading,
         error: runFeedError,
     } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : null,
+        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
         () =>
             fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
                 async (response) => response.json(),
@@ -82,20 +79,24 @@ function PreviewOfProjectStructure(properties: { testID?: string }) {
     );
 
     const node = useMemo(
-        () => run?.specStructure && fetchTree(JSON.parse(run.specStructure)),
+        () => run?.specStructure && fetchTree(JSON.parse(run?.specStructure)),
         [run?.specStructure],
     );
 
+    const toLoad =
+        node === undefined || runFeedLoading || runFeedError !== undefined;
+
     return (
         <Card w={'100%'} h={180} p="xs" radius="md" withBorder>
-            {!node ? (
+            {toLoad || !node ? (
                 <Skeleton animate width={'100%'} height={180} />
             ) : (
                 <ResponsiveContainer width="100%" height={'100%'}>
                     <Treemap
                         width={400}
                         height={180}
-                        data={node}
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        data={node as any[]}
                         dataKey="size"
                         stroke="#3a6186"
                         fill="#2c3e50"
@@ -120,7 +121,7 @@ function PreviewTestSuites(properties: { testID?: string }): ReactNode {
         isLoading: runFeedLoading,
         error: runFeedError,
     } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : null,
+        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
         () =>
             fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
                 async (response) => response.json(),
@@ -133,7 +134,7 @@ function PreviewTestSuites(properties: { testID?: string }): ReactNode {
     } = useSWRImmutable<OverviewOfEntities>(
         properties.testID
             ? jsonFeedForOverviewOfTestRun(properties.testID)
-            : null,
+            : undefined,
         () =>
             fetch(
                 jsonFeedForOverviewOfTestRun(properties.testID as string),

@@ -6,8 +6,8 @@ export function testRunPage(testID: string) {
     return `/RUNS/Overview?testID=${testID}`;
 }
 
-export function detailedPage(testID: string, tab: string) {
-    return `/RUNS/${testID}/detailed?tab=${tab}`;
+export function suitesPage(testID: string) {
+    return `/RUNS/Suites?testID=${testID}`;
 }
 
 export function jsonFeedForRunsPage() {
