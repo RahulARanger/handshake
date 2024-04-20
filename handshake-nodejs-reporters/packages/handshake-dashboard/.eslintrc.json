@@ -26,22 +26,13 @@
         "ecmaVersion": 12,
         "sourceType": "module"
     },
-    "plugins": [
-        "@typescript-eslint",
-        "react",
-        "jsx-a11y"
-    ],
+    "plugins": ["@typescript-eslint", "react", "jsx-a11y"],
     "rules": {},
     "parser": "@typescript-eslint/parser",
     "overrides": [
         {
-            "files": [
-                "**/*.ts",
-                "**/*.tsx"
-            ],
-            "extends": [
-                "plugin:@typescript-eslint/recommended"
-            ],
+            "files": ["**/*.ts", "**/*.tsx"],
+            "extends": ["plugin:@typescript-eslint/recommended"],
             "rules": {
                 "@typescript-eslint/consistent-type-imports": "error"
             }

@@ -1,0 +1,6 @@
+{
+    "extends": "handshake-utils/tsconfig.ui.json",
+    "compilerOptions": {
+        "module": "NodeNext"
+    }
+}

@@ -12,7 +12,9 @@
         "preview": "cd ../../ && npx handshake display ../TestReports",
         "host-images": "cd ../../../TestResults && npx serve -p 4000",
         "storybook": "storybook dev -p 6006",
-        "build-storybook": "storybook build"
+        "build-storybook": "storybook build",
+        "wdio": "npx cross-env TS_NODE_PROJECT=./tsconfig.test.json wdio run ./wdio.conf.ts",
+        "wdio:watch": "npx cross-env DEBUG=true TS_NODE_PROJECT=./tsconfig.test.json TS_NODE_TYPE_CHECK=true wdio run ./wdio.conf.ts --watch"
     },
     "devDependencies": {
         "@chromatic-com/storybook": "^1.3.3",
@@ -32,6 +34,9 @@
         "@storybook/react": "^8.0.8",
         "@storybook/test": "^8.0.8",
         "@tabler/icons-react": "^3.2.0",
+        "@testing-library/jest-dom": "^6.4.2",
+        "@testing-library/react": "^15.0.2",
+        "@testing-library/webdriverio": "^3.2.1",
         "@tsconfig/node18": "^18.2.4",
         "@types/chance": "^1.1.6",
         "@types/node": "20.12.7",
@@ -41,7 +46,15 @@
         "@typescript-eslint/eslint-plugin": "^7.3.1",
         "@typescript-eslint/parser": "^7.3.1",
         "@uiw/react-markdown-preview": "^5.1.1",
+        "@vitejs/plugin-react": "^4.2.1",
+        "@wdio/browser-runner": "^8.36.1",
+        "@wdio/cli": "^8.36.1",
+        "@wdio/mocha-framework": "^8.36.1",
+        "@wdio/spec-reporter": "^8.36.1",
+        "@wdio/visual-service": "^4.1.0",
         "ansi-to-html": "^0.7.2",
+        "clsx": "^2.1.0",
+        "cross-env": "^7.0.3",
         "dayjs": "^1.11.10",
         "embla-carousel-autoplay": "^8.0.2",
         "embla-carousel-react": "^8.0.2",
@@ -53,12 +66,13 @@
         "eslint-plugin-storybook": "^0.8.0",
         "eslint-plugin-unicorn": "^51.0.1",
         "handshake-utils": "0.5.0",
+        "mantine-datatable": "^7.8.1",
         "next": "14.2.2",
         "postcss": "^8.4.38",
         "postcss-preset-mantine": "^1.14.4",
         "postcss-simple-vars": "^7.0.1",
         "prettier": "^3.2.5",
-        "react": "18.2.0",
+        "react": "^18.2.0",
         "react-countup": "^6.5.3",
         "react-dom": "18.2.0",
         "recharts": "^2.12.5",
@@ -67,7 +81,7 @@
         "ts-node": "^10.9.2",
         "typescript": "^5.4.5",
         "typescript-eslint": "^7.5.0",
-        "clsx": "^2.1.0",
-        "mantine-datatable": "^7.8.1"
+        "wdio-eslinter-service": "^0.0.4",
+        "wdio-wait-for": "^3.0.11"
     }
 }
