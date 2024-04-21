@@ -15,6 +15,7 @@ export default async function handler(
 
     switch (file) {
         case 'overview.json':
+        case 'suites.json':
         case 'run.json': {
             break;
         }

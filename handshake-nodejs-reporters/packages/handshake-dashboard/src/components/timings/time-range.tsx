@@ -12,13 +12,19 @@ export function TimeRange(properties: {
     startTime: dayjs.Dayjs;
     endTime: dayjs.Dayjs;
     size?: TextProps['size'];
+    detailed?: boolean;
+    relativeFrom?: dayjs.Dayjs;
 }): ReactNode {
+    const rangeText = `${properties.startTime.format(timeFormatUsed)} - ${properties.endTime.format(timeFormatUsed)}`;
+    const relative = properties.relativeFrom
+        ? properties.endTime.from(properties.relativeFrom) +
+          ` relative from ${properties.relativeFrom.format(timeFormatUsed)}`
+        : properties.startTime.fromNow();
+
     return (
-        <Tooltip
-            label={`${properties.startTime.format(timeFormatUsed)} - ${properties.endTime.format(timeFormatUsed)}`}
-        >
+        <Tooltip label={properties.detailed ? relative : rangeText}>
             <Text size={properties.size ?? 'sm'}>
-                {properties.endTime.fromNow()}
+                {properties.detailed ? rangeText : relative}
             </Text>
         </Tooltip>
     );

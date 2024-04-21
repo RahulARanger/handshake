@@ -1,4 +1,4 @@
-import type { TooltipProps } from '@mantine/core';
+import type { AvatarProps, TooltipProps } from '@mantine/core';
 import { Avatar, Group, Text, Tooltip } from '@mantine/core';
 import React from 'react';
 import type { ReactNode } from 'react';
@@ -8,6 +8,7 @@ export default function PlatformEntity(properties: {
     entityName: possibleEntityNames;
     entityVersion: string;
     simplified: string;
+    size?: AvatarProps['size'];
 }): ReactNode {
     const note = properties.entityName.toLowerCase();
     let source = '';
@@ -25,14 +26,18 @@ export default function PlatformEntity(properties: {
 
     return (
         <Tooltip label={properties.simplified} color={color}>
-            <Group align="flex-end">
-                <Avatar src={source} alt={properties.simplified} />
+            <Group align="flex-end" wrap="nowrap">
+                <Avatar
+                    src={source}
+                    size={properties.size ?? 'md'}
+                    alt={properties.simplified}
+                />
                 <Text
                     size="xs"
                     style={{
                         position: 'relative',
-                        right: '22%',
-                        bottom: '-1px',
+                        right: '14%',
+                        bottom: '-3px',
                     }}
                 >
                     <sub>{properties.entityVersion}</sub>

@@ -11,7 +11,11 @@ from pathlib import Path
 from typing import Optional
 from loguru import logger
 from tortoise.expressions import Q, RawSQL
-from handshake.services.DBService.models.result_base import RunBase, SuiteBase
+from handshake.services.DBService.models.result_base import (
+    RunBase,
+    SuiteBase,
+    SuiteType,
+)
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
     ConfigBase,
@@ -261,7 +265,7 @@ WHERE rb.ended <> '' order by rb.started;
 
     async def export_overview_page(self, run_id: str):
         recent_suites = await (
-            SuiteBase.filter(session__test_id=run_id)
+            SuiteBase.filter(Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE))
             .order_by("-started")
             .limit(6)
             .annotate(
@@ -299,8 +303,8 @@ WHERE rb.ended <> '' order by rb.started;
 
     async def export_all_suites(self, run_id: str):
         all_suites = await (
-            SuiteBase.filter(session__test_id=run_id)
-            .order_by("-started")
+            SuiteBase.filter(Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE))
+            .order_by("started")
             .prefetch_related("rollup")
             .annotate(
                 numberOfErrors=RawSQL("json_array_length(errors)"),
@@ -309,11 +313,16 @@ WHERE rb.ended <> '' order by rb.started;
                 s=RawSQL("suitebase.started"),
                 e=RawSQL("suitebase.ended"),
                 error=RawSQL("errors ->> '[0]'"),
+                hasChildSuite=RawSQL(
+                    "(select count(*) from suitebase sb where sb.parent=suitebase.suiteID "
+                    "and sb.suiteType='SUITE' LIMIT 1)"
+                ),
             )
             .values(
                 "title",
                 "passed",
                 "failed",
+                "standing",
                 "skipped",
                 "duration",
                 "file",
@@ -322,6 +331,8 @@ WHERE rb.ended <> '' order by rb.started;
                 "description",
                 "errors",
                 "error",
+                "numberOfErrors",
+                "hasChildSuite",
                 suiteID="id",
                 parent="p_id",
                 started="s",

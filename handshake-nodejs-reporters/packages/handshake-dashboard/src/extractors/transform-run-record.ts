@@ -1,4 +1,5 @@
-import dayjs, { Dayjs } from 'dayjs';
+import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import { testRunPage } from 'components/links';
 import type {
@@ -7,8 +8,9 @@ import type {
     SuiteSummary,
     TestRunRecord,
 } from 'types/test-run-records';
-import duration, { Duration } from 'dayjs/plugin/duration';
-import { SuiteRecordDetails } from 'types/test-entity-related';
+import type { Duration } from 'dayjs/plugin/duration';
+import duration from 'dayjs/plugin/duration';
+import type { SuiteRecordDetails } from 'types/test-entity-related';
 
 dayjs.extend(duration);
 

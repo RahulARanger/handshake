@@ -38,9 +38,6 @@ export interface DetailedTestRecord extends BasicDetails {
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
-    errors: ErrorRecord[];
-    error: ErrorRecord;
-    testStartedAt: Dayjs;
     RollupValues: [number, number, number];
     totalRollupValue: number;
     Contribution: number;
@@ -50,7 +47,6 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     simplified: string;
     hooks: number;
     Tags: Tag[];
-    _UseFilterForTitle: string;
 }
 
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {

@@ -31,3 +31,9 @@ export function jsonFeedForOverviewOfTestRun(testID: string) {
         ? `/api/Import/Runs/${testID}/overview.json`
         : `/Import/${testID}/overview.json`;
 }
+
+export function jsonFeedForListOfSuites(testID: string) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/suites.json`
+        : `/Import/${testID}/suites.json`;
+}

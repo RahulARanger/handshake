@@ -89,7 +89,9 @@ export default function RunPageContent(properties: {
             </AppShell.Header>
             <AppShell.Main>
                 <ScrollAreaAutosize
-                    p="sm"
+                    py="sm"
+                    pl="sm"
+                    pr={4}
                     style={{ overflowX: 'hidden' }}
                     h={'calc(100vh - var(--app-shell-header-height, 0px))'}
                 >

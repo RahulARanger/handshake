@@ -18,9 +18,8 @@ export interface RecurringFields {
     file: string;
     parent: string;
     suiteType: suiteType;
-    errors: string;
     title: string;
-    tags: string;
+    tags: Tag[];
 }
 
 export interface SimpleSuiteDetails {
@@ -28,6 +27,9 @@ export interface SimpleSuiteDetails {
     Parent: string;
     type: suiteType;
     Desc: string;
+    errors: ErrorRecord[];
+    error: ErrorRecord;
+    hasChildSuite: boolean;
 }
 
 export interface SuiteRecordDetails
@@ -39,10 +41,9 @@ export interface SuiteRecordDetails
     rollup_tests: number;
     entityName: string;
     entityVersion: string;
-    error: string;
     hooks: number;
     simplified: string;
-    numberOfAssertions?:number;
+    numberOfAssertions?: number;
 }
 
 export interface TestRecordDetails extends RecurringFields {
