@@ -52,17 +52,15 @@ def test(session):
 # nox -s zip_results
 @nox.session
 def zip_results(session):
-    dashboard = pathlib.Path(__file__).parent / "handshake" / "dashboard"
-    assert (
-        dashboard.exists()
-    ), "Dashboard are not generated yet., Please generate it with npm run export in the dashboard package."
+    dashboard = pathlib.Path(__file__).parent / "dashboard"
+    assert dashboard.exists(), (
+        "Dashboard build is not generated yet., Please generate it with npm run local-build in the dashboard package or"
+        " through dashboard build-pipeline"
+    )
 
     expected_here = Path.cwd() / "dashboard.zip"
     if expected_here.exists():
         expected_here.unlink()
-
-    or_here = dashboard.parent / "dashboard.zip"
-    if or_here.exists():
-        or_here.unlink()
+    assert expected_here == dashboard.parent / "dashboard.zip"
 
     move(make_archive("dashboard", "zip", dashboard), dashboard.parent)

@@ -23,7 +23,7 @@ export default async function handler(
         }
     }
 
-    await sleep(3_000); // 😴 [3 seconds]
+    await sleep(3000); // 😴 [3 seconds]
 
     const filePath = join(dirname(process.env.DB_PATH ?? ''), 'Import', id);
 

@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { Chance } from 'chance';
 import type { statusOfEntity } from 'types/session-records';
-import { TestRunRecord } from 'types/test-run-records';
+import type { TestRunRecord } from 'types/test-run-records';
 
 interface Feeder {
     started?: dayjs.Dayjs;

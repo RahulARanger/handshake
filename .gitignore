@@ -66,3 +66,5 @@ handshake-nodejs-reporters/packages/handshake-dashboard/analyze/*
 BackUpTestReports
 handshake/dashboard/
 handshake/dashboard.zip
+dashboard/
+dashboard.zip
