@@ -1,15 +1,20 @@
 # dependencies
 handshake-dashboard/.next/*
+**/storybook-static/*
 dist/*
 **/out/*
 **/node_modules/*
 **/.turbo/*
 **/dist/*
 *.pyc
+
 # testing
+.nox
+
 results
 test-results/*
 TestResults/*
+SanityResults/*
 TestReports/*
 
 jest-init-tests
@@ -31,7 +36,9 @@ yarn-error.log*
 
 # local env files
 .env*.development
-*.env   
+*.env
+.env*
+!.env.vault
 venv/*
 
 # vercel
@@ -46,15 +53,19 @@ venv/*
 **/build/**
 check.py
 # Production
-/build
 
 # Generated files
 
 # Misc
-.DS_Store
 handshake-nodejs-reporters/packages/common-handshakes/bin
 handshake-nodejs-reporters/Jest-Results
 handshake-nodejs-reporters/packages/handshake-dashboard/public/antd.min.css
 /handshake-nodejs-reporters/packages/handshake-dashboard/test-export.ps1
 
 handshake-nodejs-reporters/packages/handshake-dashboard/analyze/*
+
+BackUpTestReports
+handshake/dashboard/
+handshake/dashboard.zip
+dashboard/
+dashboard.zip
