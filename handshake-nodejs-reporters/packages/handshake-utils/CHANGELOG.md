@@ -1,5 +1,11 @@
 # handshake-utils
 
+## 0.5.0
+
+### Minor Changes
+
+- 466e88c: feat: support handshake-server 0.3.2 and remodeled dashboard
+
 ## 0.4.3
 
 ### Patch Changes

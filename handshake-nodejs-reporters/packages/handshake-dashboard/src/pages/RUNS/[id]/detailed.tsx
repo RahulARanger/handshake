@@ -1,34 +1,34 @@
-import getConnection from 'src/components/scripts/connection';
-import LayoutStructureForRunDetails from 'src/components/core/TestRun';
+import getConnection from 'scripts/connection';
+import LayoutStructureForRunDetails from 'components/core/TestRun';
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { type GetStaticPropsResult } from 'next';
 import { type ReactNode } from 'react';
-import sqlFile from 'src/components/scripts/RunPage/script';
-import type TestRunRecord from 'src/types/test-run-records';
+import sqlFile from 'scripts/run-page/script';
+import type TestRunRecord from 'types/test-run-records';
 import type {
     TestRecordDetails,
     ImageRecord,
     AssertionRecord,
     RetriedRecord,
-} from 'src/types/test-entity-related';
-import { type SuiteRecordDetails } from 'src/types/test-entity-related';
-import type DetailedPageProperties from 'src/types/records-in-detailed';
-import type { ValuesInDetailedContext } from 'src/types/records-in-detailed';
-import { DetailedContext } from 'src/types/records-in-detailed';
+} from 'types/test-entity-related';
+import { type SuiteRecordDetails } from 'types/test-entity-related';
+import type DetailedPageProperties from 'types/records-in-detailed';
+import type { ValuesInDetailedContext } from 'types/records-in-detailed';
+import { DetailedContext } from 'types/records-in-detailed';
 import {
     parseDetailedTestRun,
     parseImageRecords,
     parseRetriedRecords,
     parseSuites,
     parseTests,
-} from 'src/components/parse-utils';
-import { menuTabs } from 'src/types/ui-constants';
+} from 'components/parse-utils';
+import { menuTabs } from 'types/ui-constants';
 import { useRouter } from 'next/router';
-import TestEntities from 'src/components/core/test-entities';
+import TestEntities from 'components/core/test-entities';
 import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
-import type DetailedPageParameters from 'src/types/redirection-parameters';
+import type DetailedPageParameters from 'types/redirection-parameters';
 
 export async function getStaticProps(prepareProperties: {
     params: {
@@ -80,7 +80,7 @@ export async function getStaticProps(prepareProperties: {
             suites,
             tests,
             assertions,
-            images,
+            images: parseImageRecords(images, detailsOfTestRun.testID),
             retriedRecords,
         },
     };
@@ -96,17 +96,13 @@ export default function TestRunResults(
             testRun.Started[0],
             testRun.Tests,
         );
-        const images = parseImageRecords(
-            properties.images,
-            properties.detailsOfTestRun.testID,
-        );
         return {
             detailsOfTestRun: testRun,
             suites,
             tests: parseTests(
                 properties.tests,
                 suites,
-                images,
+                properties.images,
                 properties.assertions,
             ),
             retriedRecords: parseRetriedRecords(properties.retriedRecords),
@@ -172,4 +168,4 @@ export default function TestRunResults(
     );
 }
 
-export { default as getStaticPaths } from 'src/components/scripts/RunPage/generate-path';
+export { default as getStaticPaths } from 'scripts/run-page/generate-path';

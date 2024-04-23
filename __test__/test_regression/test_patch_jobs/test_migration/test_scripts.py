@@ -6,6 +6,7 @@ from handshake.services.DBService.models import (
     SessionBase,
     AssertBase,
     ExportBase,
+    TestLogBase,
     TaskBase,
 )
 from handshake.services.DBService.models.enums import ConfigKeys
@@ -29,6 +30,15 @@ class TestMigrationScripts:
         assert int(sqlite3.sqlite_version_info[0]) >= 3
         assert int(sqlite3.sqlite_version_info[1]) >= 38
 
+    async def test_default_config(self, root_dir):
+        assert (root_dir / "config.json").exists()
+        for required in (
+            ConfigKeys.version,
+            ConfigKeys.maxRuns,
+            ConfigKeys.reset_test_run,
+        ):
+            assert ConfigBase.exists(key=required)
+
     async def test_bump_v3(
         self, get_vth_connection, scripts, sample_test_run, create_session, db_path
     ):
@@ -47,7 +57,10 @@ class TestMigrationScripts:
         assert script.exists()
         await assertEntityNameType(connection, "varchar(10)")
 
-        assert migrate(None, db_path) is True, "we still have further migration to go"
+        assert migrate(None, db_path) == (
+            True,
+            True,
+        ), "we still have further migration to go"
 
         await assertEntityNameType(connection, "varchar(30)")
 
@@ -81,26 +94,31 @@ class TestMigrationScripts:
         assert script.exists()
 
         suite = await create_suite(session.sessionID)
-        test = await create_suite(
+        another_suite = await create_suite(
             session.sessionID, name="test", parent=suite.suiteID, is_test=True
         )
 
         title = "toExist"
         for _ in range(10):
-            await add_assertion(test.suiteID, title, True)
+            await add_assertion(another_suite.suiteID, title, True)
         for _ in range(10):
-            await add_assertion(test.suiteID, title, False)
+            await add_assertion(another_suite.suiteID, title, False)
 
-        assert migrate(None, db_path) is True, "we still have further migration to go"
+        assert migrate(None, db_path) == (
+            True,
+            True,
+        ), "we still have further migration to go"
 
-        all_assertions_migrated = await AssertBase.filter(entity_id=test.suiteID).all()
+        all_assertions_migrated = await AssertBase.filter(
+            entity_id=another_suite.suiteID
+        ).all()
         assert len(all_assertions_migrated) == 20
 
         assert (
             await AssertBase.filter(
                 wait=1000,
                 interval=500,
-                entity_id=test.suiteID,
+                entity_id=another_suite.suiteID,
                 passed=False,
                 title=title,
             ).count()
@@ -108,7 +126,7 @@ class TestMigrationScripts:
         )
         assert (
             await AssertBase.filter(
-                entity_id=test.suiteID,
+                entity_id=another_suite.suiteID,
                 wait=1000,
                 interval=500,
                 title=title,
@@ -116,11 +134,6 @@ class TestMigrationScripts:
             ).count()
             == 10
         )
-
-        assert (
-            await ExportBase.filter(clarity="").count() >= 0
-        ), "This line would have failed if clarity column was not added."
-
         generated = await AssertBase.all().values_list("id", flat=True)
         assert len(generated) == len(set(generated))
 
@@ -154,13 +167,38 @@ class TestMigrationScripts:
         # you cannot use this because processed col is not there yet.
         # await register_patch_suite(suite.suiteID, test_run.testID)
 
-        assert not migrate(None, db_path), "it should now be in the latest version"
+        assert migrate(None, db_path) == (
+            True,
+            True,
+        ), "we still have further migration to go"
 
         assert (await TaskBase.filter(ticketID=suite.suiteID).first()).picked == 0
         # new column: processed, is added.
         assert (await TaskBase.filter(ticketID=suite.suiteID).first()).processed == 0
 
+    async def test_bump_v6(
+        self, get_vth_connection, scripts, db_path, sample_test_session
+    ):
+        await get_vth_connection(scripts, 6)
+        assert migrate(None, db_path) == (
+            False,
+            True,
+        ), "it should now be in the latest version"
+
+        # relies on init_job to complete the migration
+        record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
+        assert record.value == "1"
+
+        logs = await TestLogBase.all().values("dropped")
+        assert len(logs) >= 0
+
     async def test_version_command(self, root_dir):
         result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)
         assert result.returncode == 0
-        assert "Currently at: v6." in result.stderr.decode()
+        assert "Currently at: v7." in result.stderr.decode()
+
+    async def test_migration_command(self, get_vth_connection, root_dir, scripts):
+        await get_vth_connection(scripts, 3)
+        result = run(f'handshake migrate "{root_dir}"', shell=True, stderr=PIPE)
+        assert result.returncode == 0
+        assert "Migrated to latest version!" in result.stderr.decode()

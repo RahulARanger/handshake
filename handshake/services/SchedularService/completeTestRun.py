@@ -191,10 +191,9 @@ async def patchValues(test_run: RunBase):
             specStructure=simplify_file_paths(
                 [
                     path
-                    for paths in await SuiteBase.filter(Q(session__test_id=test_id))
+                    for path in await SuiteBase.filter(Q(session__test_id=test_id))
                     .distinct()
                     .values_list("file", flat=True)
-                    for path in paths
                 ]
             ),
             standing=fetch_key_from_status(
@@ -216,7 +215,9 @@ async def patchTestRun(test_id: str, current_test_id: str):
         return True
 
     logger.info("Patching up the Test Run: {}", test_id)
+
     if test_run.standing != Status.PENDING:
+        logger.warning("{} was already processed", test_id)
         return True
 
     pending_items = (

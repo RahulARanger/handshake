@@ -7,26 +7,26 @@
     padding: 0px !important;
     padding-left: 12px !important;
     margin-top: 7px !important;
-    margin-bottom: 3px !important;
     margin-left: 2px !important;
     margin-right: 2px !important;
     column-gap: 12px;
-    /* background-color: transparent !important; */
+    background-color: transparent !important;
     transition: all 0.5s ease-in-out !important;
-    height: 45px;
-
+    height: 45px !important;
     color: hsl(0 0% 100%);
     border-radius: 1rem;
     border: 1px solid rgba(256, 256, 256, 0.15);
-    background: hsl(0 0% 6%);
+    background: transparent;
     box-shadow: 1px 1px hsl(0 0% 100% / 0.25) inset;
-    background-color: ((240 4% 46%) / 1);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(0.4rem);
+    -webkit-backdrop-filter: blur(0.4rem);
+    opacity: 0.9;
 }
 
 .header:hover {
-    border: 1px solid rgba(256, 256, 256, 0.3);
+    border: 1px solid rgba(256, 256, 256, 0.4);
+    border-left: 1px solid rgba(256, 256, 256, 0.6);
+    opacity: 1;
 }
 
 .tab {
@@ -34,15 +34,4 @@
     border: 1px solid rgba(256, 256, 256, 0.15);
     height: 27px;
     padding-top: 3px;
-}
-
-.sider {
-    border: 1px solid rgba(256, 256, 256, 0.03);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    margin-top: 3px !important;
-    margin-bottom: 6px !important;
-    margin-left: 5px !important;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
 }

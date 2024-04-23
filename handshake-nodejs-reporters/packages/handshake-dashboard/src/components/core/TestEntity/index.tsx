@@ -1,4 +1,4 @@
-import React, { useContext, type ReactNode } from 'react';
+import React, { useContext, useState, type ReactNode } from 'react';
 import Space from 'antd/lib/space';
 import Collapse from 'antd/lib/collapse/Collapse';
 import BadgeLayer, { DurationLayer, RightSideOfBoard } from './header';
@@ -7,18 +7,52 @@ import {
     filterTestsAndSuites,
 } from './extractors';
 import Button from 'antd/lib/button/button';
-import { Divider, Tag, Tooltip } from 'antd/lib';
-import Text from 'antd/lib/typography/Text';
-import TestEntitiesBars from 'src/components/charts/test-bars';
+import { Divider, Select, Tag, Tooltip } from 'antd/lib';
+import TestEntitiesBars from 'components/charts/test-bars';
 import Layout, { Content, Header } from 'antd/lib/layout/layout';
-import { DetailedContext } from 'src/types/records-in-detailed';
+import { DetailedContext } from 'types/records-in-detailed';
 import Sider from 'antd/lib/layout/Sider';
-import ProgressPieChart from 'src/components/charts/status-pie-chart';
-import CardStyles from 'src/styles/card.module.css';
+import ProgressPieChart from 'components/charts/status-pie-chart';
+import CardStyles from 'styles/card.module.css';
 import PreviewGroup from 'antd/lib/image/PreviewGroup';
 import CloseCircleOutlined from '@ant-design/icons/CloseCircleOutlined';
-
 import Paragraph from 'antd/lib/typography/Paragraph';
+import { SwitchValues } from 'components/charts/stacked-bar-chart';
+import type { ParsedSuiteRecord } from 'types/parsed-records';
+import { RenderFilePath } from 'components/renderers';
+
+function RollupPieChart(properties: { suite: ParsedSuiteRecord }) {
+    const [showRollup, setShowRollup] = useState<boolean>(false);
+
+    return (
+        <div
+            style={{
+                width: '350px',
+                marginTop: '-40px',
+            }}
+        >
+            <SwitchValues
+                defaultIsRollup={showRollup}
+                onChange={(isRollup) => setShowRollup(isRollup)}
+                style={{
+                    position: 'relative',
+                    top: '40px',
+                    zIndex: 3,
+                    right: '-72%',
+                }}
+            />
+            <ProgressPieChart
+                rate={
+                    showRollup
+                        ? properties.suite.RollupValues
+                        : properties.suite.Rate
+                }
+                fullRound
+                forceText="Tests"
+            />
+        </div>
+    );
+}
 
 export default function DetailedTestEntityWindow(properties: {
     open: boolean;
@@ -27,10 +61,11 @@ export default function DetailedTestEntityWindow(properties: {
     setTestID: (testID: string) => void;
 }): ReactNode {
     const context = useContext(DetailedContext);
+
     if (context == undefined) return <></>;
     if (properties.testID == undefined) return <></>;
 
-    const { detailsOfTestRun: run, suites, tests } = context;
+    const { detailsOfTestRun: run, suites, tests, retriedRecords } = context;
 
     const selectedSuiteDetails = suites[properties.testID];
 
@@ -44,7 +79,8 @@ export default function DetailedTestEntityWindow(properties: {
         tests,
     );
 
-    const contributed = selectedSuiteDetails.Contribution * 100;
+    const records = retriedRecords[properties.testID];
+    const hasRetries = records && records?.length > 1;
 
     return (
         <Layout
@@ -61,6 +97,7 @@ export default function DetailedTestEntityWindow(properties: {
                     marginRight: '5px',
                     borderRadius: '10px',
                 }}
+                className={CardStyles.boardCard}
             >
                 <Header
                     style={{
@@ -114,12 +151,18 @@ export default function DetailedTestEntityWindow(properties: {
                     style={{
                         overflowY: 'auto',
                     }}
-                    className={CardStyles.card}
                 >
                     <Space
                         style={{ width: '100%', paddingTop: '6px' }}
                         direction="vertical"
                     >
+                        {/* <Space style={{ padding: '6px' }}>
+                            <Input
+                                variant="borderless"
+                                className="smooth-box"
+                                style={{ width: '100%' }}
+                            />
+                        </Space> */}
                         <Divider
                             type="horizontal"
                             style={{
@@ -135,6 +178,28 @@ export default function DetailedTestEntityWindow(properties: {
                                 ))
                             ) : (
                                 <BadgeLayer selected={selectedSuiteDetails} />
+                            )}
+                            {hasRetries ? (
+                                <Select
+                                    style={{ width: 120 }}
+                                    defaultValue={properties.testID}
+                                    variant="borderless"
+                                    options={records.tests.map(
+                                        (test, index) => ({
+                                            value: test,
+                                            label:
+                                                index ===
+                                                records.tests.length - 1
+                                                    ? 'Current Run'
+                                                    : `Retried #${index + 1}`,
+                                        }),
+                                    )}
+                                    onChange={(value) =>
+                                        properties.setTestID(value)
+                                    }
+                                />
+                            ) : (
+                                <></>
                             )}
                         </Divider>
                         <PreviewGroup>
@@ -164,18 +229,30 @@ export default function DetailedTestEntityWindow(properties: {
                     height: '100%',
                     borderRadius: '10px',
                 }}
+                className={CardStyles.card}
             >
                 <Space
                     direction="vertical"
-                    style={{ width: '100%' }}
+                    style={{
+                        width: '100%',
+                        padding: '12px',
+                        backgroundColor: 'transparent',
+                    }}
                     align="center"
+                    size="small"
                 >
                     <RightSideOfBoard
-                        contributed={contributed}
                         selected={selectedSuiteDetails}
                         setTestID={setTestID}
+                        totalTests={run.Tests}
+                        showContribution={
+                            !records || records.suite_id === properties.testID
+                        }
                     />
-                    <Text italic>{selectedSuiteDetails.File}</Text>
+                    <RenderFilePath
+                        relativePath={selectedSuiteDetails.File}
+                        italic
+                    />
                     <Divider
                         type="horizontal"
                         style={{
@@ -187,13 +264,7 @@ export default function DetailedTestEntityWindow(properties: {
                     >
                         <BadgeLayer selected={selectedSuiteDetails} />
                     </Divider>
-                    <div style={{ width: '350px' }}>
-                        <ProgressPieChart
-                            rate={selectedSuiteDetails.Rate}
-                            fullRound
-                            forceText="Tests"
-                        />
-                    </div>
+                    <RollupPieChart suite={selectedSuiteDetails} />
                     <DurationLayer
                         selected={selectedSuiteDetails}
                         wrt={run.Started[0]}

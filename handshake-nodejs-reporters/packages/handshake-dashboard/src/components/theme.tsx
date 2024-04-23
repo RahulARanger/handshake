@@ -13,8 +13,17 @@ const withTheme = (node: ReactNode): JSX.Element => {
         token: {
             colorPrimary: '#f66a00',
             colorInfo: '#f66a00',
+
             // fontFamily: selectedFont.style.fontFamily,
         },
+        components: {
+            Table: {
+                colorBgContainer: 'transparent',
+                headerBorderRadius: 10,
+                borderRadius: 10,
+            },
+        },
+
         algorithm: theme.darkAlgorithm,
     };
     return (

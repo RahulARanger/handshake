@@ -1,5 +1,5 @@
-import type { dataBaseConnection } from 'src/components/scripts/connection';
-import type ExportConfig from 'src/types/export-config-records';
+import type { dataBaseConnection } from 'scripts/connection';
+import type ExportConfig from 'types/export-config-records';
 
 export default async function currentExportConfig(
     connection: dataBaseConnection,

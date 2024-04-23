@@ -27,4 +27,5 @@ async def set_done(request: Request) -> HTTPResponse:
 async def bye(request: Request) -> HTTPResponse:
     await close_connection()
     request.app.m.terminate()
+
     return text("1")

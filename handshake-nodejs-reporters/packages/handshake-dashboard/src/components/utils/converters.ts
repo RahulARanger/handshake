@@ -1,4 +1,4 @@
-import type { statusOfEntity } from 'src/types/session-records';
+import type { statusOfEntity } from 'types/session-records';
 import type { BadgeProps } from 'antd/lib';
 import type { TimelineItemProps } from 'antd/lib';
 

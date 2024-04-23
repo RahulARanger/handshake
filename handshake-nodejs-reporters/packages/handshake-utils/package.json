@@ -1,6 +1,6 @@
 {
 	"name": "handshake-utils",
-	"version": "0.4.3",
+	"version": "0.5.0",
 	"description": "util required for the handshake packages, internally used",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -23,10 +23,10 @@
 	"license": "MIT",
 	"dependencies": {
 		"@tsconfig/node20": "^20.1.2",
-		"@types/react": "18.2.55",
-		"@types/react-dom": "18.2.19",
+		"@types/react": "18.2.64",
+		"@types/react-dom": "18.2.21",
 		"cross-env": "^7.0.3",
 		"tslib": "^2.6.2",
-		"typescript": "^5.3.3"
+		"typescript": "^5.4.2"
 	}
 }

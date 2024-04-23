@@ -14,6 +14,8 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     set_default_config,
     config_file,
+    READ_ONLY,
+    ALLOW_WRITE,
 )
 from pathlib import Path
 from typing import Dict
@@ -49,9 +51,9 @@ def dump_config(path: Path, to_dump: typing.List):
     formatted_dump: typing.Dict[str, str] = dict(to_dump)
 
     # not required
-    formatted_dump.pop(ConfigKeys.version)
-    if ConfigKeys.recentlyDeleted in formatted_dump:
-        formatted_dump.pop(ConfigKeys.recentlyDeleted)
+    for key in READ_ONLY:
+        if key in formatted_dump:
+            formatted_dump.pop(key)
 
     # show only required
     config_file(path).write_text(json.dumps(formatted_dump, indent=4))
@@ -65,6 +67,9 @@ async def setConfig(path: Path, feed: Dict[ConfigKeys, str], set_default: bool):
     if feed:
         to_change = await ConfigBase.filter(Q(key__in=feed.keys())).all()
         for to in to_change:
+            if to.key not in ALLOW_WRITE:
+                continue
+
             to.value = feed[to.key]
             await ConfigBase.bulk_update(to_change, fields=["value"])
 

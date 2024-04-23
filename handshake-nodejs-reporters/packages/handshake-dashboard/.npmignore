@@ -1,11 +1,11 @@
 .next
 .vscode
 .lintstagedrc.js
-.env
-.env.local
 *.ps1
 dist
 node_modules
 handshake
 analyze
 handshake.exe
+.env*
+!.env.vault

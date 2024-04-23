@@ -31,10 +31,7 @@ import { LabelLayout, UniversalTransition } from 'echarts/features';
 // Note that including the CanvasRenderer or SVGRenderer is a required step
 import { SVGRenderer } from 'echarts/renderers';
 import { standingToColors, toolTipFormats } from './constants';
-import type {
-    ParsedSuiteRecord,
-    ParsedTestRecord,
-} from 'src/types/parsed-records';
+import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
 import type {
     CallbackDataParams,
     TopLevelFormatterParams,

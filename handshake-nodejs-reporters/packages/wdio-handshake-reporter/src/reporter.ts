@@ -87,14 +87,13 @@ export default class HandshakeReporter extends ReporterContacts {
   onRunnerStart(runnerStats: RunnerStats): void {
     if (!runnerStats.sessionId) {
       this.skipTestRun = true;
-      this.logger.warn("😐 Skipping this test run, as we didn't get the session ID.");
+      this.logger.warn(`Skipping tests in ${this.currentSpec ?? this.specs}`);
       return;
     }
 
     this.supporter.requestRegisterSession(
       {
         started: this.runnerStat?.start ?? new Date(),
-        specs: sanitizePaths(runnerStats.specs),
         retried: this.runnerStat?.retry ?? 0,
       },
     );
@@ -167,7 +166,6 @@ export default class HandshakeReporter extends ReporterContacts {
     const caps = this.runnerStat
       ?.capabilities as WebdriverIO.Capabilities;
 
-    const standing = this.counts.failures > 0 ? 'FAILED' : 'PASSED';
     const payload: MarkTestSession = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
@@ -180,7 +178,6 @@ export default class HandshakeReporter extends ReporterContacts {
       entityName: caps.browserName ?? 'no-name-found',
       entityVersion: caps.browserVersion ?? '0.0.1',
       simplified: runnerStats.sanitizedCapabilities,
-      standing: this.counts.passes ? standing : 'SKIPPED',
     };
     this.supporter.markTestSession(() => payload);
   }

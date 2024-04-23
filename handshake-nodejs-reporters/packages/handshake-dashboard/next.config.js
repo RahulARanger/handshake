@@ -1,10 +1,14 @@
 const { PHASE_DEVELOPMENT_SERVER } = require("next/constants");
-const withBundleAnalyzer = require('@next/bundle-analyzer')({
-  enabled: process.env.ANALYZE === 'true',
-})
 
 module.exports = (phase, { defaultConfig }) => {
   const is_dev = phase === PHASE_DEVELOPMENT_SERVER;
+
+  let withBundleAnalyzer;
+
+  if (process.env.ANALYZE === 'true')
+    withBundleAnalyzer = require('@next/bundle-analyzer')({
+      enabled: true,
+    })
 
   /** @type {import('next').NextConfig} */
   const nextConfig = {
@@ -13,7 +17,7 @@ module.exports = (phase, { defaultConfig }) => {
 
     // Optional: Change links `/me` -> `/me/` and emit `/me.html` -> `/me/index.html`
     trailingSlash: true,
-    transpilePackages: ['handshake-dashboard', 'echarts', 'zrender'],
+    transpilePackages: ['handshake-dashboard', 'echarts', 'zrender', '@uiw/react-markdown-preview'],
     env: {
       NEXT_PY_PORT: process.env.NEXT_PY_PORT ?? '6969'
     },
@@ -23,5 +27,6 @@ module.exports = (phase, { defaultConfig }) => {
     distDir: process.env.EXPORT_DIR ?? "dist",
     typescript: { ignoreBuildErrors: !is_dev }
   }
-  return withBundleAnalyzer(nextConfig)
+
+  return withBundleAnalyzer ? withBundleAnalyzer(nextConfig) : nextConfig;
 }

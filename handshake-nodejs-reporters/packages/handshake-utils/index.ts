@@ -12,7 +12,7 @@ export const LOCATORS = {
         statusForTestEntity: "status",
         projectNameDropdown: 'project-name-dropdown',
         dateRangeSelector: 'dateRange-selector',
-        githubURL: 'github-repo',
+        about: 'about-handshake',
         testRunsCard: "test-runs-card",
         testRunsSwitch: 'switch-for-test-runs-plot'
 	},
@@ -45,11 +45,11 @@ export const TEXT = {
     },
     DETAILED: {
         greet: "In Detail",
-        description: "This page would show the test entities in detail."
+        description: "This page would show the test entities of the test run in detail."
     },
 	AUTHOR: "RahulARanger<saihanumarahul66@gmail.com>",
 	dateFormatUsed: "ddd, MMM Do YYYY",
-	timeFormatUsed: "HH:mm:ss A",
+	timeFormatUsed: "hh:mm:ss A",
 	dateTimeFormatUsed: "ddd, MMM Do YYYY hh:mm A",
 	REPO: "https://github.com/RahulARanger/handshake",
 };

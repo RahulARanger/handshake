@@ -1,0 +1,27 @@
+{
+	"extends": "handshake-utils/tsconfig.ui.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": {
+			"@/styles/*": ["../../packages/handshake-dashboard/src/styles/*"],
+			"@/types/*": ["../../packages/handshake-dashboard/src/types/*"],
+			"@/scripts/*": [
+				"../../packages/handshake-dashboard/src/components/scripts/*"
+			],
+			"@/components/*": [
+				"../../packages/handshake-dashboard/src/components/*"
+			],
+			"@/core/*": [
+				"../../packages/handshake-dashboard/src/components/core/*"
+			],
+			"@/public/*": ["../../packages/handshake-dashboard/public/*"]
+		}
+	},
+	"include": [
+		"./next-env.d.ts",
+		"./src",
+		"./next/types/**/*.ts",
+		"handshake-dashboard/src"
+	],
+	"exclude": ["./node_modules", "./results", "./next"]
+}

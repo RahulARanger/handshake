@@ -22,6 +22,7 @@ export interface OverviewPageProperties {
     summaryForAllSessions: SessionSummary[];
     randomImages: ImageRecord[];
     testRunConfig: TestRunConfig;
+    relatedRuns: TestRunRecord[];
     recentSuites: SuiteRecordDetails[];
     recentTests: SuiteRecordDetails[];
     aggResults: OverallAggResults;

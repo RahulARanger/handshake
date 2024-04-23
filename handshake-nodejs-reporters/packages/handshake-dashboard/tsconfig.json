@@ -1,8 +1,8 @@
 {
     "extends": "handshake-utils/tsconfig.ui.json",
     "compilerOptions": {
-        "baseUrl": ".",
+        "baseUrl": "./src"
     },
     "include": ["./next-env.d.ts", "./src", "./next/types/**/*.ts"],
-    "exclude": ["./node_modules", "./results", "./next"],
+    "exclude": ["./node_modules", "./results", "./next"]
 }

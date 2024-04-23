@@ -53,8 +53,16 @@ export class RunsPageLocators {
 		return $(`#${LOCATORS.RUNS.dateRangeSelector}`);
 	}
 
-	get githubRepo() {
-		return $(`#${LOCATORS.RUNS.githubURL}`);
+	get aboutModal() {
+		return $(`#${LOCATORS.RUNS.about}`);
+	}
+
+	get handshakeHeader() {
+		return $("h1#handshake-");
+	}
+
+	get resourcesHeader() {
+		return $("h2#resources");
 	}
 
 	get testRunsCard() {
@@ -69,6 +77,9 @@ export class RunsPageLocators {
 export class RunsPage extends RunsPageLocators {
 	async verifyPage() {
 		await expect(browser).toHaveTitle(TEXT.RUNS.greet);
+		await this.applicationName.waitForDisplayed();
+		await expect(this.projectNameDropdown.parentElement()).toBeDisplayed();
+		await expect(this.dateRangePicker.parentElement()).toBeDisplayed();
 	}
 
 	async latestTestRun() {
@@ -105,7 +116,7 @@ export class RunsPage extends RunsPageLocators {
 			)
 		).toHaveText(testRun.standing === "PASSED" ? "✅" : "❌");
 		await expect(link).toHaveText(
-			`${dayjs(testRun.started).format(TEXT.dateFormatUsed)} - ${testRun.projectName}`
+			`${dayjs(testRun.started).format(TEXT.dateFormatUsed)}`
 		);
 	}
 
@@ -115,24 +126,23 @@ export class RunsPage extends RunsPageLocators {
 		const runCard = await this.runCard(testRun.testID);
 		await expect(runCard).toBeDisplayed();
 
+		const summary = JSON.parse(testRun.suiteSummary);
+
+		const switchComp = await $(this.switchButton);
+		await expect(switchComp).toHaveText("Suites");
+		await expect(runCard.$(this.rateChart)).toHaveAttribute(
+			"class",
+			expect.stringContaining(
+				`${summary.passed}-${summary.failed}-${summary.skipped}`
+			)
+		);
+
+		await switchComp.click();
+		await expect(switchComp).toHaveText("Tests");
 		await expect(runCard.$(this.rateChart)).toHaveAttribute(
 			"class",
 			expect.stringContaining(
 				`${testRun.passed}-${testRun.failed}-${testRun.skipped}`
-			)
-		);
-
-		const switchComp = await $(this.switchButton);
-		await expect(switchComp).toHaveText("Tests");
-		await switchComp.click();
-		await expect(switchComp).toHaveText("Suites");
-
-		const summary = JSON.parse(testRun.suiteSummary);
-
-		await expect((await runCard).$(this.rateChart)).toHaveAttribute(
-			"class",
-			expect.stringContaining(
-				`${summary.passed}-${summary.failed}-${summary.skipped}`
 			)
 		);
 	}

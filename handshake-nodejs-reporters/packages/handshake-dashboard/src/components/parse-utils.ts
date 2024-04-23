@@ -1,15 +1,14 @@
-import { runPage } from 'src/components/links';
-import type TestRunRecord from 'src/types/test-run-records';
+import { runPage } from 'components/links';
+import type TestRunRecord from 'types/test-run-records';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
-
 import type {
     DetailedTestRecord,
     ParsedRetriedRecords,
     SuiteDetails,
     TestDetails,
-} from 'src/types/parsed-records';
+} from 'types/parsed-records';
 import type {
     Assertion,
     ErrorRecord,
@@ -17,15 +16,15 @@ import type {
     RetriedRecord,
     SuiteRecordDetails,
     TestRecordDetails,
-} from 'src/types/test-entity-related';
+} from 'types/test-entity-related';
 import type {
     TestRecord,
     TestRunConfig,
     possibleFrameworks,
     specNode,
-} from 'src/types/test-run-records';
+} from 'types/test-run-records';
 import Convert from 'ansi-to-html';
-import { attachmentPrefix } from 'src/types/ui-constants';
+import { attachmentPrefix } from 'types/ui-constants';
 
 dayjs.extend(duration);
 
@@ -160,7 +159,9 @@ export function parseTests(
                 .filter((assertion) => assertion.entity_id === record.suiteID)
                 .map((assertion) => ({
                     ...assertion,
-                    message: ansiToHTML.toHtml(assertion.message),
+                    message: ansiToHTML.toHtml(
+                        assertion.message ?? '<i>No Message added.</i>',
+                    ),
                 })),
         };
     }
@@ -171,10 +172,13 @@ export function convertForWrittenAttachments(
     testID: string,
     attachmentID: string,
 ): string {
-    const note = process?.env?.IMAGE_PROXY_URL
-        ? [process.env.IMAGE_PROXY_URL]
-        : [];
-    return [...note, attachmentPrefix, testID, attachmentID].join('/');
+    const basics = [attachmentPrefix, testID, attachmentID];
+    if (process.env.IMAGE_PROXY_URL && process.env.IS_TEST) {
+        basics.reverse();
+        basics.push(process.env.IMAGE_PROXY_URL);
+        basics.reverse();
+    }
+    return basics.join('/');
 }
 
 export function parseImageRecords(

@@ -22,7 +22,7 @@ commons = (
 
 copyfile(
     src=dist / dist_name,
-    dst=commons / (f"handshake" + ".exe" if changed else ""),
+    dst=commons / (f"handshake" + (".exe" if changed else "")),
 )
 
 # make sure to run the pyinstaller starter.spec before running this script
