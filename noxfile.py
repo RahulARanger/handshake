@@ -3,7 +3,7 @@ import pathlib
 import tomllib
 from json import dumps
 from pathlib import Path
-from shutil import make_archive, move
+from shutil import make_archive
 
 
 @nox.session
@@ -63,4 +63,4 @@ def zip_results(session):
         expected_here.unlink()
     assert expected_here == dashboard.parent / "dashboard.zip"
 
-    move(make_archive("dashboard", "zip", dashboard), dashboard.parent)
+    make_archive("dashboard", "zip", dashboard)

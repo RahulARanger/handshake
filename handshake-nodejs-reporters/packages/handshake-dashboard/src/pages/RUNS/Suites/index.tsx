@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { TEXT } from 'handshake-utils';
 import { useRouter } from 'next/router';
 import RunPageContent from 'components/about-test-run/test-run-page-layout';
-import ListOfSuits from 'components/about-test-run/list-of-suites';
+import ListOfSuits from 'components/about-test-entities/list-of-suites';
 
 export default function OverviewPage(): ReactNode {
     const router = useRouter();

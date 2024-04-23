@@ -22,8 +22,10 @@ export const MultipleFrameworksUsed: Story = {
     play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
 
-        await step('testing the tooltip', async () => {
+        await step('testing the presence of all elements', async () => {
             await userEvent.click(screen.getByLabelText('webdriverio-avatar'));
+            await userEvent.click(screen.getByLabelText('mocha-avatar'));
+            await userEvent.click(screen.getByLabelText('jasmine-avatar'));
         });
     },
 };
@@ -31,6 +33,18 @@ export const MultipleFrameworksUsed: Story = {
 export const NoFrameworksUsed: Story = {
     args: {
         frameworks: [],
+    },
+    play: async ({ canvasElement, step }) => {
+        const screen = within(canvasElement);
+
+        await step(
+            'testing the presence of avatar if no frameworks are mentioned',
+            async () => {
+                await userEvent.click(
+                    screen.getByLabelText('no-framework-used-avatar'),
+                );
+            },
+        );
     },
 };
 
@@ -50,6 +64,13 @@ export const Cucumber: Story = {
     args: {
         frameworks: ['cucumber'],
     },
+    play: async ({ canvasElement, step }) => {
+        const screen = within(canvasElement);
+
+        await step('testing the presence of cucumber avatar', async () => {
+            await userEvent.click(screen.getByLabelText('cucumber-avatar'));
+        });
+    },
 };
 
 export const Jasmine: Story = {
@@ -60,6 +81,18 @@ export const Jasmine: Story = {
 
 export const Unknown: Story = {
     args: {
-        frameworks: ['unknown'],
+        frameworks: ['unknown', 'unknown'],
+    },
+    play: async ({ canvasElement, step }) => {
+        const screen = within(canvasElement);
+
+        await step(
+            'testing the presence of avatar if no frameworks are identified',
+            async () => {
+                await expect(
+                    screen.getAllByLabelText('not-identified-framework-avatar'),
+                ).toHaveLength(2);
+            },
+        );
     },
 };

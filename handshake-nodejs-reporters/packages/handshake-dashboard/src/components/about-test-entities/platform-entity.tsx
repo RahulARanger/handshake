@@ -31,6 +31,9 @@ export default function PlatformEntity(properties: {
                     src={source}
                     size={properties.size ?? 'md'}
                     alt={properties.simplified}
+                    aria-label={
+                        source ? `${note}-platform` : `not-yet-noted-platform`
+                    }
                 />
                 <Text
                     size="xs"
@@ -39,6 +42,8 @@ export default function PlatformEntity(properties: {
                         right: '14%',
                         bottom: '-3px',
                     }}
+                    role="contentinfo"
+                    aria-label={`${note}-version`}
                 >
                     <sub>{properties.entityVersion}</sub>
                 </Text>
