@@ -1,5 +1,6 @@
 # dependencies
 handshake-dashboard/.next/*
+**/storybook-static/*
 dist/*
 **/out/*
 **/node_modules/*
