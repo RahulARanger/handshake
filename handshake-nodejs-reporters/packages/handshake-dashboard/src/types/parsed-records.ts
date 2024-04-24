@@ -11,8 +11,8 @@ import type {
 import type { possibleFrameworks, specNode } from './test-run-records';
 
 export default interface BasicDetails {
-    Started: [Dayjs, Dayjs];
-    Ended: [Dayjs, Dayjs];
+    Started: Dayjs;
+    Ended: Dayjs;
     Status: statusOfEntity;
     Title: string;
     Duration: Duration;
@@ -28,11 +28,16 @@ export interface DetailedTestRecord extends BasicDetails {
     projectName: string;
     specStructure: specNode;
     Frameworks: possibleFrameworks[];
+    timelineIndex: number;
+    projectIndex: number;
+    Bail: number;
+    FileRetries: number;
+    ExitCode: number;
+    MaxInstances: number;
+    Platform: string;
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
-    errors: ErrorRecord[];
-    error: ErrorRecord;
     RollupValues: [number, number, number];
     totalRollupValue: number;
     Contribution: number;
@@ -42,7 +47,6 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     simplified: string;
     hooks: number;
     Tags: Tag[];
-    _UseFilterForTitle: string;
 }
 
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {

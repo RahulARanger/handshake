@@ -1,5 +1,5 @@
 from handshake.services.DBService.models.enums import ConfigKeys
-from tortoise.fields import IntField, CharField
+from tortoise.fields import IntField
 from handshake.services.DBService.models.result_base import RunBase
 from tortoise.models import Model
 from tortoise.fields import (
@@ -16,7 +16,7 @@ class ConfigBase(Model):
     key = CharEnumField(
         ConfigKeys, pk=True, null=False, description="Type of job we would like to run"
     )
-    value = TextField(null=False, description="Handling type is upto us")
+    value = TextField(null=False, description="Handling type is up to us")
 
 
 class ExportBase(Model):
@@ -30,7 +30,7 @@ class ExportBase(Model):
 
 class TestConfigBase(Model):
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="config", to_field="testID"
+        "models.RunBase", related_name="runs", to_field="testID"
     )
     platform = TextField(null=False, description="could be windows or linux")
     framework = TextField(null=False, description="name of the framework used")

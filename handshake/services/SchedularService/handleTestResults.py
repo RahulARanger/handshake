@@ -1,8 +1,4 @@
-from typing import List
 from loguru import logger
-from handshake.services.SchedularService.constants import (
-    writtenAttachmentFolderName,
-)
 from shutil import rmtree, copytree
 from uuid import UUID
 import json
@@ -23,18 +19,13 @@ from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBa
 from tortoise.expressions import Q
 
 
-def deleteTestRunsRelatedAttachments(data_base: Path, runs: List[str]):
-    collection = data_base.parent / writtenAttachmentFolderName
+def delete_test_attachment(run: UUID, attachmentFolder: Path):
+    entry = attachmentFolder / str(run)
+    if not entry.exists():
+        return
 
-    for _run in runs:
-        run = str(_run)  # UUID to string
-
-        entry = collection / run
-        if not entry.exists():
-            continue
-
-        logger.warning("Deleting the attachments for run {}", run)
-        rmtree(entry)
+    logger.warning("Deleting the attachments for run {}", run)
+    rmtree(entry)
 
 
 def moveTestRunsRelatedAttachment(testID: UUID, copyFrom: Path, copyTo: Path):

@@ -1,17 +1,12 @@
 // eslint-disable-next-line max-classes-per-file
 import WDIOReporter, { TestStats } from '@wdio/reporter';
-import log4js, { Logger } from 'log4js';
 import { ReporterDialPad, ServiceDialPad } from 'common-handshakes';
 import { join } from 'node:path';
+import pino, { Logger } from 'pino';
 import type { ReporterOptions, HandshakeServiceOptions } from './types';
 
 // eslint-disable-next-line import/no-mutable-exports
 export let currentReporter: undefined | ReporterContacts;
-
-log4js.configure({
-  appenders: { console: { type: 'console' } },
-  categories: { default: { appenders: ['console'], level: 'info' } },
-});
 
 export default class ReporterContacts extends WDIOReporter {
   options: ReporterOptions;
@@ -26,8 +21,7 @@ export default class ReporterContacts extends WDIOReporter {
     super(options);
     this.options = options;
 
-    this.logger = log4js.getLogger('wdio-py-reporter');
-    this.logger.level = this.options.logLevel ?? 'debug';
+    this.logger = pino({ name: 'wdio-handshake-reporter', level: options.logLevel?.toLowerCase() ?? 'info' });
 
     this.supporter = new ReporterDialPad(
       this.options.port,
@@ -66,20 +60,18 @@ export class ContactsForService {
   options: HandshakeServiceOptions;
 
   constructor(options: HandshakeServiceOptions) {
-    this.logger = log4js.getLogger('wdio-py-service');
+    this.logger = pino({ name: 'wdio-handshake-service', level: options.logLevel?.toLowerCase() ?? 'info' });
     this.options = options;
-    this.logger.level = this.options.logLevel ?? 'debug';
     this.supporter = new ServiceDialPad(
       this.options.port,
       this.options.logLevel,
-      this.options.exePath,
     );
   }
 
   get resultsDir(): string {
     return join(
       this.options.root ?? process.cwd(),
-      this.options.collectionName ?? 'Test Results',
+      this.options.resultsFolderName ?? 'Test Results',
     );
   }
 }

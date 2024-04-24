@@ -1,4 +1,4 @@
-import { Level } from 'log4js';
+import { Level } from 'pino';
 
 export interface ReporterOptions {
   port: number;
@@ -10,8 +10,7 @@ export interface ReporterOptions {
 export interface HandshakeServiceOptions {
   port: number;
   root: string;
-  exePath?:string;
-  collectionName: string;
+  resultsFolderName: string;
   timeout?: number;
   workers?:number;
   logLevel?:Level;

@@ -1,28 +1,61 @@
-import log4js, { Level } from 'log4js';
 import superagent from 'superagent';
-import { spawn, spawnSync } from 'node:child_process';
+import { execSync, spawn, spawnSync } from 'node:child_process';
 import { setTimeout, setInterval, clearTimeout } from 'node:timers';
 import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import pino, { Level, Logger } from 'pino';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
-
-const logger = log4js.getLogger('handshake-service');
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
   pyProcess?: ChildProcess;
 
+  logger: Logger;
+
   workers: number = 2;
 
-  constructor(port: number, logLevel?: Level, exePath?: string) {
-    super(port, exePath);
-    logger.level = logLevel ?? 'info';
+  /**
+   * constructs the service it is responsible for starting the handshake-server.
+   * and it also ensures we are using the correct version of handshake or not.
+   * @param {number} port port where we would need handshake server to run
+   * @param {Level} logLevel log level for the logger at this service
+   */
+  constructor(port: number, logLevel?: Level) {
+    super(port);
+    this.logger = pino({ name: 'handshake-service-feeder', level: logLevel?.toLowerCase() ?? 'info' });
+
+    const observedVersion = execSync(`${this.exePath} v`).toString().trim();
+    const currentDir = dirname(typeof __dirname !== 'undefined'
+      ? __dirname
+      : dirname(fileURLToPath(import.meta.url)));
+
+    const expected = JSON.parse(readFileSync(join(currentDir, '.version'), 'utf-8'))?.version ?? '';
+
+    if (expected === observedVersion) this.logger.debug({ for: 'found-expected-version', version: expected });
+    else {
+      this.logger.error({ observedVersion, expected });
+      throw new Error(`Please Install handshake in your venv as suggested: pip install handshakes==${expected}`);
+    }
   }
 
+  /**
+   * url for updating the configuration of a test run
+   */
   get updateRunConfigUrl(): string {
     return `${this.saveUrl}/currentRun`;
   }
 
+  /**
+ * helper to spawn a process mostly used to call handshake server.
+ * @param {string[]} args args that we need to pass to a process
+ * @param {boolean} isSync spawn or spawnSync
+ * @param {string} cwd u know this
+ * @param {number | undefined} timeout timeout for the process to start, its optional
+ * @returns
+ */
   executeCommand(
     args: string[],
     isSync: boolean,
@@ -31,19 +64,28 @@ export class ServiceDialPad extends DialPad {
   ) {
     const starter = isSync ? spawnSync : spawn;
 
-    logger.info(
-      `🫱🏻‍🫲🏾 with ${args} at ${this.exePath} from ${cwd} => ${args.join(' ')}`,
+    this.logger.info(
+      { args, cwd, for: 'executingCommand' },
     );
 
     return starter(this.exePath, args, {
       timeout,
-      shell: false,
+      shell: true,
       cwd,
       stdio: 'inherit',
       detached: false,
     });
   }
 
+  /**
+   * starts the handshake test run, now server would listen to our results once invoked
+   * @param projectName project-name label for the test run
+   * @param resultsDir results directory where attachments and db would be saved.
+   * @param rootDir root directory
+   * @param workers number of workers for the handshake server, more the number.
+   * faster it would be
+   * @returns
+   */
   startService(
     projectName: string,
     resultsDir: string,
@@ -54,14 +96,14 @@ export class ServiceDialPad extends DialPad {
     const args = [
       'run-app',
       projectName,
-      resultsDir,
+      `"${resultsDir}"`,
       '-p',
       this.port.toString(),
       '-w',
       String(this.workers),
     ];
-    logger.info(
-      `Requesting a handshake server, command used: ${args.join(' ')} from ${rootDir}`,
+    this.logger.info(
+      { rootDir, for: 'requestingServer' },
     );
 
     const pyProcess = this.executeCommand(
@@ -70,8 +112,8 @@ export class ServiceDialPad extends DialPad {
       rootDir,
     ) as ChildProcess;
     this.pyProcess = pyProcess;
-    pyProcess.stdout?.on('data', (chunk) => logger.info(chunk.toString()));
-    pyProcess.stderr?.on('data', (chunk) => logger.error(chunk.toString()));
+    pyProcess.stdout?.on('data', (chunk) => this.logger.info({ type: 'stdout', chunk: chunk.toString() }));
+    pyProcess.stderr?.on('data', (chunk) => this.logger.info({ type: 'stderr', chunk: chunk.toString() }));
 
     pyProcess.on('error', (err: Buffer) => {
       throw new Error(String(err));
@@ -79,13 +121,13 @@ export class ServiceDialPad extends DialPad {
 
     pyProcess.on('exit', (code) => {
       if (code !== 0) {
-        logger.warn(
-          `handshake-server was closed with the exit code: ${code}`,
+        this.logger.warn(
+          { for: 'serverExited', code },
         );
       }
     });
 
-    logger.info(`Started handshake-server, pid: ${pyProcess.pid}`);
+    this.logger.info({ for: 'handshakeServer', pid: pyProcess.pid });
 
     // important for avoiding zombie py server
     process.on('exit', async () => {
@@ -96,16 +138,25 @@ export class ServiceDialPad extends DialPad {
     return pyProcess;
   }
 
+  /**
+   * checks if the handshake-server has started
+   * @returns {boolean} returns true if the server responded to ping else false
+   */
   async ping(): Promise<boolean> {
-    logger.info('pinging py-server...');
     const resp = await superagent
       .get(`${this.url}/`)
-      .catch(() => logger.warn('ping failed'));
-    logger.info(`found response: ${resp?.statusCode ?? '404'}`);
+      .catch(() => this.logger.info({ for: 'retryingPing' }));
+
+    this.logger.debug({ for: 'pingStatus', status: resp?.statusCode ?? '404' });
     return resp?.statusCode === 200;
   }
 
-  async waitUntilItsReady(force?: number): Promise<unknown> {
+  /**
+   * waits until the server is up
+   * @param timeout optional parameter in milliseconds to wait for the server
+   * @returns
+   */
+  async waitUntilItsReady(timeout?: number): Promise<unknown> {
     const waitingForTheServer = new Error(
       '🔴 Not able to connect with handshake-server within a minute. Please try running this again, else report this as an issue.',
     );
@@ -121,63 +172,80 @@ export class ServiceDialPad extends DialPad {
         cleanup();
         await this.terminateServer();
         reject(waitingForTheServer);
-      }, force ?? 60e3);
+      }, timeout ?? 60e3);
 
       timer = setInterval(async () => {
         const isOnline = await this.ping();
 
         if (isOnline) {
           cleanup();
-          logger.info('Server is online! 🟢');
+          this.logger.debug({ for: 'handshake-server is online now' });
           resolve({});
         } else {
-          logger.warn('🟡 pinging server again...');
+          this.logger.info({ for: 'pinging server again' });
         }
       }, 3e3);
     });
   }
 
+  /**
+   * checks if the handshake-server has terminated or not
+   * @returns {boolean} true if it has terminated else false
+   */
   async isServerTerminated(): Promise<boolean> {
     if (this.pyProcess?.killed) return true;
     const resp = await superagent
       .get(`${this.url}/`)
-      .catch(() => logger.warn('ping failed'));
+      .catch(() => this.logger.info({ for: 'retryingPing' }));
     const wasTerminated = resp?.statusCode !== 200;
-    if (!wasTerminated) logger.warn('→ Had to 🗡️ the handshake-server.');
+    if (!wasTerminated) this.logger.warn({ crime: '🗡️', victim: 'handshake-server', murderer: 'me' });
     return wasTerminated;
   }
 
+  /**
+   * terminates the server
+   */
   async terminateServer() {
-    logger.debug('Shutting down a worker of handshake-server');
+    this.logger.debug({ for: 'scaling handshake-server down' });
     await superagent
-          .post(`${this.url}/bye`)
-          .retry(2)
-          .catch(() => {
-            logger.info('→ Py Process was closed');
-          })
+      .post(`${this.url}/bye`)
+      .retry(2)
+      .catch(() => {
+        this.logger.info({ for: 'handshake-server is closed now' });
+      });
 
     if (this.pyProcess?.pid) {
       try {
         process.kill(this.pyProcess.pid);
       } catch {
-        logger.warn('🙀 handshake-sever was already terminated.');
+        this.logger.debug({ note: 'handshake-server was alreeady closed' });
       }
     }
   }
 
   async updateRunConfig(payload: UpdateTestRunConfig) {
-    logger.info(
-      `📃 Updating config for this current test run with ${payload}.`,
+    this.logger.debug(
+      { for: 'update-runConfig', payload },
     );
     const resp = await superagent
       .put(this.updateRunConfigUrl)
       .send(JSON.stringify(payload))
-      .catch((err) => logger.error(`⚠️ Failed to update the config: ${err}`));
+      .catch((err) => this.logger.error({ error: err, for: 'update-runConfig' }));
 
     if (resp) {
-      logger.info(`Updated config ⚙️ for the test run: ${resp.text}`);
+      this.logger.info({ for: 'update-runConfig', response: resp.text });
     }
     return resp;
+  }
+
+  async markTestRunCompletion() {
+    await superagent
+      .put(`${this.url}/done`)
+      .retry(3)
+      .then(async (data) => {
+        this.logger.info({ for: 'mark-test-run-completion', text: data.text });
+      })
+      .catch((err) => this.logger.error({ for: 'mark-test-run-completion', err }));
   }
 
   generateReport(
@@ -189,57 +257,25 @@ export class ServiceDialPad extends DialPad {
     timeout?: number,
   ): false | Error | undefined {
     if (skipPatch) {
-      logger.warn(
-        'Test Results are not patched, as per request. Make sure to patch it up later.',
+      this.logger.warn(
+        { note: 'patching was skipped as requested', so: 'please run the patch the requested command manually.', command: `handshake patch ${rootDir}` },
       );
       return false;
     }
-    const patchArgs = ['patch', resultsDir];
+    const patchArgs = ['patch', `"${resultsDir}"`];
     if (outDir == null) {
-      logger.info(
-        `Patching the results 🟠, passing the command ${patchArgs}`,
+      this.logger.debug(
+        { for: 'patching as requested' },
       );
     }
 
     // for patching
-    let result = this.executeCommand(
+    const result = this.executeCommand(
       patchArgs,
       true,
       rootDir,
       timeout,
     ) as SpawnSyncReturns<Buffer>;
-
-    if (outDir != null && result.error == null) {
-      const exportArgs = [
-        'export',
-        resultsDir,
-        '--out',
-        outDir,
-        '-mr',
-        (maxTestRuns ?? 100).toString(),
-      ];
-      logger.info(
-        `Generating Report 📃, passing the command: ${exportArgs}`,
-      );
-
-      result = this.executeCommand(
-        exportArgs,
-        true,
-        process.cwd(),
-        timeout,
-      ) as SpawnSyncReturns<Buffer>;
-      return result.error;
-    }
     return result.error;
-  }
-
-  async markTestRunCompletion() {
-    await superagent
-      .put(`${this.url}/done`)
-      .retry(3)
-      .then(async (data) => {
-        logger.info(`Marked Test Run: ${data.text} for patching.`);
-      })
-      .catch((err) => logger.error(`⚠️ Failed to mark test run completion: ${err}`));
   }
 }

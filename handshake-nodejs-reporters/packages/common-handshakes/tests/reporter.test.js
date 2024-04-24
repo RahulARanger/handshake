@@ -8,8 +8,8 @@ const {
 } = require('./utils');
 
 describe('Verifying the functionality of the handshake-reporter', () => {
-  const service = new ServiceDialPad(6969, 'ERROR');
-  const reporter = new ReporterDialPad(6969, 12e3, 'ERROR');
+  const service = new ServiceDialPad(6969, 'error');
+  const reporter = new ReporterDialPad(6969, 12e3, 'error');
 
   beforeAll(async () => {
     resetDir();
@@ -19,7 +19,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
   }, 20e3);
 
   afterAll(async () => {
-    return service.terminateServer();
+    service.terminateServer();
   }, 30e3);
 
   test('Verifying the config set', () => {
@@ -31,7 +31,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
   describe('verifying the registration endpoints', () => {
     test('verifying the registration of session', async () => {
       expect(reporter.pipeQueue.size).toBe(0);
-      const job = reporter.requestRegisterSession({ retried: 0, specs: ['test.js'], started: new Date() });
+      const job = reporter.registerTestSession({ retried: 0, specs: ['test.js'], started: new Date() });
       await job;
       expect(reporter.pipeQueue.size).toBe(0);
       expect(reporter.idMapped.session).toMatch(uuidRegex);
@@ -41,7 +41,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     test('verifying the registration of suites', async () => {
       const jobs = Array(3).fill(true).map(
         (_, index) => reporter
-          .requestRegisterTestEntity(
+          .registerTestEntity(
             `suite-${index}`,
             () => (
               {
@@ -75,7 +75,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       Array(3).fill(true).forEach((_, suite) => {
         Array(3).fill(true).forEach(
           (__, index) => jobs.push(reporter
-            .requestRegisterTestEntity(
+            .registerTestEntity(
               `test-${suite}-${index}`,
               () => (
                 {
@@ -149,7 +149,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
           (__, index) => {
             expect(reporter.idMapped[`test-${suite}-${index}`]).toMatch(uuidRegex);
             jobs.push(reporter
-              .markTestEntity(
+              .updateTestEntity(
                 () => ({
                   duration: 20e3,
                   errors: [],
@@ -171,7 +171,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     test('verifying the marking of the suites', async () => {
       const jobs = Array(3).fill(true).map(
         (_, index) => reporter
-          .markTestEntity(
+          .updateTestEntity(
             () => (
               {
                 duration: 20e3,
@@ -192,7 +192,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       expect(reporter.requests).toHaveLength(added);
 
       const job = reporter
-        .markTestSession(
+        .updateTestSession(
           () => (
             {
               duration: 20e3,

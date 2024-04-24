@@ -27,7 +27,7 @@ class TaskBase(Model):
         description="Data required to process the task, Not used as of now though",
     )
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="tasks", to_field="testID"
+        "models.RunBase", related_name="test", to_field="testID"
     )
     picked = BooleanField(
         null=True,

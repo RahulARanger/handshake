@@ -12,8 +12,7 @@ from click import (
 )
 from handshake import __version__
 from handshake.services.DBService.migrator import check_version, migration, DB_VERSION
-from handshake.services.SchedularService.center import start_service
-from handshake.services.SchedularService.lifecycle import start_loop
+from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.handleTestResults import (
     moveTestRunsRelatedAttachment,
     setConfig,
@@ -29,15 +28,14 @@ from subprocess import call, check_output
 from loguru import logger
 from concurrent.futures import ThreadPoolExecutor
 import json
-from handshake.services.DBService.lifecycle import (
-    config_file,
-)
+from handshake.services.DBService.lifecycle import config_file, close_connection
 from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
 from handshake.services.DBService.models.config_base import ConfigKeys
 from tortoise import run_async
 from os import getenv
+from asyncio import run
 
 
 @group(
@@ -86,9 +84,9 @@ def migrate(collection_path: str):
 
 
 @handle_cli.command(
-    short_help="Processes the collected results",
-    help="runs an async scheduler, thanks to apscheduler, it would process your test results to patch some missing "
-    "values. which are essential while showcasing your test reports",
+    short_help="Processes the collected results and even could export the test results",
+    help="runs an async loop, schedules some tasks to patch some your test results "
+    "so you can see it in the way we need. you can pass the output directory to generate the report",
 )
 @option(
     "--log-file",
@@ -108,7 +106,16 @@ def migrate(collection_path: str):
     is_flag=True,
 )
 @general_requirement
-def patch(collection_path, log_file: str, reset: bool = False):
+# TODO: Support the max runs feature, allows user to only export certain number of test runs
+# @option(
+#     "-mr",
+#     "--max-runs",
+#     type=int,
+#     default=100,
+#     help="Asks Sanic to set the use max. number of workers",
+# )
+@option("--out", "-o", type=C_Path(dir_okay=True), required=False)
+def patch(collection_path, log_file: str, reset: bool = False, out: str = None):
     if log_file:
         logger.add(
             log_file if log_file.endswith(".log") else f"{log_file}.log",
@@ -118,8 +125,19 @@ def patch(collection_path, log_file: str, reset: bool = False):
 
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
-    start_service(db_path(collection_path), reset)
-    start_loop()
+
+    scheduler = Scheduler(collection_path, out, reset)
+    try:
+        run(scheduler.start())
+    except (KeyboardInterrupt, SystemExit):
+        run(close_connection())
+
+
+@handle_cli.command(
+    help="returns the version of the handshake", short_help="example: 1.0.0"
+)
+def v():
+    secho(__version__)
 
 
 @handle_cli.command(
@@ -137,8 +155,7 @@ def patch(collection_path, log_file: str, reset: bool = False):
     help="Asks Sanic to set the use max. number of workers",
 )
 @option("--out", type=C_Path(dir_okay=True), required=True)
-@option("--clarity", is_flag=True)
-def export(collection_path, max_runs, out, clarity):
+def export(collection_path, max_runs, out):
     saved_db_path = db_path(collection_path)
     if not saved_db_path.exists():
         raise FileNotFoundError(f"DB file not in {collection_path}")
@@ -238,7 +255,7 @@ def config(collection_path, max_runs):
     feed_from = config_file(saved_db_path)
     feed = dict() if not feed_from.exists() else json.loads(feed_from.read_text())
     if max_runs > 1:
-        feed[ConfigKeys.maxRuns] = max_runs
+        feed[ConfigKeys.maxRunsPerProject] = max_runs
 
     run_async(setConfig(saved_db_path, feed, set_default_first))
 
@@ -272,15 +289,18 @@ def latest_run(ctx: Context, allow_pending: bool):
     db_file = db_path(Path(ctx.parent.params["collection_path"]))
     pipe = connect(db_file)
     result = pipe.execute(
-        "SELECT ENDED FROM RUNBASE WHERE ENDED <> '' ORDER BY STARTED LIMIT 1"
+        "SELECT PROJECTNAME, ENDED FROM RUNBASE WHERE ENDED <> '' ORDER BY STARTED LIMIT 1"
         if not allow_pending
-        else "SELECT ENDED FROM RUNBASE ORDER BY STARTED LIMIT 1"
+        else "SELECT PROJECTNAME, ENDED FROM RUNBASE ORDER BY STARTED LIMIT 1"
     ).fetchone()
 
     secho(
         "No Test Runs were found"
         if not result
-        else datetime.datetime.fromisoformat(result[0]).astimezone().strftime("%c %Z"),
+        else (
+            result[0],
+            datetime.datetime.fromisoformat(result[1]).astimezone().strftime("%c %Z"),
+        ),
         fg="bright_yellow" if not result else "bright_magenta",
     )
 

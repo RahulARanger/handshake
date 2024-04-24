@@ -9,9 +9,15 @@ import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
 
 export default class HandshakeReporter extends ReporterContacts {
-  expectedIndex(snapshotIndex: number, requestFromEnd: number) {
+  /**
+   * gets the relative suite from the current suite id
+   * @param snapshotIndex index of the current suite when observed previously in this.currentSuites
+   * @param index from the current suite id fetch this index [optional, default: 0]
+   * @returns
+   */
+  expectedIndex(snapshotIndex: number, index: number) {
     // assumed requestFromEnd < 0
-    return -(this.currentSuites.length - snapshotIndex) + requestFromEnd;
+    return -(this.currentSuites.length - snapshotIndex) + index;
   }
 
   fetchParent(suiteOrTest: SuiteStats | TestStats, snapshot: number): string {
@@ -31,6 +37,14 @@ export default class HandshakeReporter extends ReporterContacts {
     );
   }
 
+  /**
+   * extracts the payload for registering a test entity [hook/test/suite]
+   * @param suiteOrTest suite object or test object
+   * @param type is it suite or test
+   * @param snapshot at the time of its invocation (or adding the request)
+   * what were the number of suites
+   * @returns
+   */
   extractRegistrationPayloadForTestEntity(
     suiteOrTest: SuiteStats | TestStats,
     type: SuiteType,
@@ -56,6 +70,11 @@ export default class HandshakeReporter extends ReporterContacts {
   }
 
   // eslint-disable-next-line class-methods-use-this
+  /**
+   * extracts the payload from the test entity for updating its values.
+   * @param suiteOrTest test entity to update
+   * @returns
+   */
   extractRequiredForEntityCompletion(
     suiteOrTest: SuiteStats | TestStats,
   ): MarkTestEntity {
@@ -87,11 +106,11 @@ export default class HandshakeReporter extends ReporterContacts {
   onRunnerStart(runnerStats: RunnerStats): void {
     if (!runnerStats.sessionId) {
       this.skipTestRun = true;
-      this.logger.warn(`Skipping tests in ${this.currentSpec ?? this.specs}`);
+      this.logger.warn({ for: 'skipping tests', in: this.currentSpec ?? this.specs });
       return;
     }
 
-    this.supporter.requestRegisterSession(
+    this.supporter.registerTestSession(
       {
         started: this.runnerStat?.start ?? new Date(),
         retried: this.runnerStat?.retry ?? 0,
@@ -103,7 +122,7 @@ export default class HandshakeReporter extends ReporterContacts {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.requestRegisterTestEntity(
+    this.supporter.registerTestEntity(
       suite.uid,
       () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE', this.currentSuites.length),
     );
@@ -113,7 +132,7 @@ export default class HandshakeReporter extends ReporterContacts {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.requestRegisterTestEntity(
+    this.supporter.registerTestEntity(
       test.uid,
       () => this.extractRegistrationPayloadForTestEntity(test, 'TEST', note ?? this.currentSuites.length),
     );
@@ -123,7 +142,7 @@ export default class HandshakeReporter extends ReporterContacts {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.markTestEntity(() => this.extractRequiredForEntityCompletion(suite));
+    this.supporter.updateTestEntity(() => this.extractRequiredForEntityCompletion(suite));
   }
 
   onTestStart(test: TestStats): void {
@@ -134,7 +153,7 @@ export default class HandshakeReporter extends ReporterContacts {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.markTestEntity(() => this.extractRequiredForEntityCompletion(test));
+    this.supporter.updateTestEntity(() => this.extractRequiredForEntityCompletion(test));
   }
 
   onTestFail(test: TestStats): void {
@@ -179,7 +198,7 @@ export default class HandshakeReporter extends ReporterContacts {
       entityVersion: caps.browserVersion ?? '0.0.1',
       simplified: runnerStats.sanitizedCapabilities,
     };
-    this.supporter.markTestSession(() => payload);
+    this.supporter.updateTestSession(() => payload);
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {

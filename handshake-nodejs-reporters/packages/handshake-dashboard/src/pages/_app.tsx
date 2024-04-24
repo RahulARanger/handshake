@@ -1,16 +1,29 @@
 import React, { type ReactNode } from 'react';
 import type { AppProps } from 'next/app';
-import withTheme from 'components/theme';
-import '../../public/antd.min.css';
 import 'styles/globals.css';
-import { StyleProvider } from '@ant-design/cssinjs';
+import '@mantine/core/styles.css';
+import '@mantine/charts/styles.css';
+import '@mantine/carousel/styles.css';
+import 'mantine-datatable/styles.layer.css';
+import { createTheme, MantineProvider } from '@mantine/core';
 
-const App = ({ Component, pageProps }: AppProps): ReactNode => {
+const theme = createTheme({
+    primaryColor: 'orange',
+    primaryShade: { dark: 9 },
+});
+
+export function OurApp(properties: { Component: ReactNode }): ReactNode {
     return (
-        <StyleProvider hashPriority="high">
-            {withTheme(<Component {...pageProps} />)}
-        </StyleProvider>
+        <MantineProvider defaultColorScheme="dark" theme={theme}>
+            {properties.Component}
+        </MantineProvider>
     );
-};
+}
 
-export default App;
+export default function App(properties: AppProps): ReactNode {
+    return (
+        <OurApp
+            Component={<properties.Component {...properties.pageProps} />}
+        />
+    );
+}

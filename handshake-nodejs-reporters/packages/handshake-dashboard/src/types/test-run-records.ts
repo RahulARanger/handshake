@@ -1,6 +1,6 @@
 import type { statusOfEntity } from './session-records';
 
-export default interface TestRunRecord {
+export default interface OnlyTestRunRecord {
     projectName: string;
     testID: string;
     standing: statusOfEntity;
@@ -13,22 +13,25 @@ export default interface TestRunRecord {
     ended: string;
     retried: number;
     tags: string[];
-    suitesConfig: string[];
     specStructure: string;
     suiteSummary: string;
-    suites: number;
-    passedSuites: number;
-    failedSuites: number;
-    skippedSuites: number;
-}
-
-export interface TestRecord extends TestRunRecord {
     framework: string;
-    frameworks: possibleFrameworks[];
+}
+export interface TestRunRecord extends OnlyTestRunRecord {
+    platform: string;
+    framework: string;
+    maxInstances: number;
+    exitCode: number;
+    fileRetries: number;
+    avoidParentSuitesInCount: boolean;
+    bail: number;
+    timelineIndex: number; // 1 - indexed
+    projectIndex: number; // 1 - indexed
 }
 
 export type specNode = {
     '<path>': string;
+    '<count>'?: number;
 } & { [key: string]: specNode };
 
 export interface SuiteSummary {
@@ -46,14 +49,18 @@ export type possibleFrameworks =
     | 'unknown';
 
 export type logTypes = 'WARN' | 'INFO' | 'ERROR';
-export interface TestRunConfig {
-    platform: string;
-    framework: string;
-    maxInstances: number;
-    exitCode: number;
-    fileRetries: number;
-    avoidParentSuitesInCount: boolean;
-    bail: number;
-    test_id: string;
-    frameworks: possibleFrameworks[];
+
+export interface Project {
+    duration: number;
+    tests: number;
+    passed: number;
+    failed: number;
+    skipped: number;
+    passedSuites: number;
+    failedSuites: number;
+    skippedSuites: number;
+    testID: string;
+    suites: number;
 }
+
+export type Projects = Record<string, Project[]>;

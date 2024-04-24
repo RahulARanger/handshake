@@ -10,59 +10,190 @@ from traceback import format_exc
 from handshake.services.SchedularService.register import (
     skip_test_run,
 )
+from handshake.services.SchedularService.constants import JobType
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.types import Status, SuiteType
 from handshake.services.SchedularService.refer_types import PathTree, PathItem
 from handshake.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum, Max, Min, Count, Lower
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Tuple
 from pathlib import Path
 from os.path import join
 from loguru import logger
 from tortoise.expressions import Q
+from typing import Optional
+from asyncio import gather
+
+
+class PatchTestRun:
+    actual_start = "actual_start"
+    actual_end = "actual_end"
+
+    def __init__(self, test_id):
+        self.test: Optional[RunBase] = None
+        self.test_id = test_id
+        self.task: Optional[TaskBase] = None
+
+    async def fetch_records(self):
+        self.test = await RunBase.filter(testID=self.test_id).first()
+        self.task = await TaskBase.filter(ticketID=self.test_id).first()
+
+    async def patch_test(self):
+        await self.fetch_records()
+        if not await self.do_we_need_patch():
+            return False
+        await self.patch_test_values()
+        await self.mark_processed()
+        return True
+
+    async def mark_processed(self):
+        self.task.processed = True
+        await self.task.save()
+
+    async def fetch_suite_summary(self):
+        test_config = await TestConfigBase.filter(test_id=self.test_id).first()
+
+        refer = SuiteBase
+
+        if test_config:
+            # consider cucumber files
+            # if the feature file has 3 scenarios, then if user sets the avoidParentSuitesInCount
+            # we would get a value of 3 as total scenarios else 4
+            if test_config.avoidParentSuitesInCount:
+                refer = SuiteBase.filter(~Q(parent=""))
+
+        # we want to count the number of suites status
+        summary = dict(passed=0, failed=0, skipped=0)
+        summary.update(
+            await refer.filter(
+                Q(session__test_id=self.test_id)
+                & Q(suiteType=SuiteType.SUITE)
+                & ~Q(standing=Status.RETRIED)
+            )
+            .annotate(count=Count("suiteID"), status=Lower("standing"))
+            .group_by("standing")
+            .values_list("status", "count")
+        )
+        summary["count"] = sum(summary.values())
+
+        return summary
+
+    async def fetch_agg_values_of_test(self):
+        filtered = SessionBase.filter(Q(test_id=self.test_id) & Q(retried=False))
+
+        # we get the values of the test run from the non-retried test sessions
+        test_result = (
+            await filtered.annotate(
+                passed=Sum("passed"),
+                failed=Sum("failed"),
+                skipped=Sum("skipped"),
+                tests=Sum("tests"),
+                actual_end=Max("ended"),
+                actual_start=Min("started"),
+            )
+            .first()
+            .values(
+                "passed",
+                "failed",
+                "skipped",
+                "tests",
+                self.actual_start,
+                self.actual_end,
+            )
+        )
+
+        return test_result
+
+    async def patch_test_values(self):
+        (summary, test_result, retried_sessions) = await gather(
+            self.fetch_suite_summary(),
+            self.fetch_agg_values_of_test(),
+            # just to get the count of the retried sessions we had in this run
+            SessionBase.filter(Q(test_id=self.test_id) & Q(retried=True)).count(),
+        )
+
+        # start date was initially when we start the shipment
+        # now it is when the first session starts
+        started = (
+            test_result.get(self.actual_start, self.test.started) or self.test.started
+        )
+        ended = test_result.get(
+            self.actual_end, datetime.now(timezone.utc)
+        ) or datetime.now(timezone.utc)
+        test_result.pop(self.actual_start) if self.actual_start in test_result else ...
+        test_result.pop(self.actual_end) if self.actual_end in test_result else ...
+
+        await self.test.update_from_dict(
+            dict(
+                **{_: test_result[_] or 0 for _ in test_result.keys()},
+                retried=retried_sessions,
+                started=started,
+                ended=ended,
+                duration=(ended - started).total_seconds() * 1000,
+                specStructure=simplify_file_paths(
+                    [
+                        path
+                        for path in await SuiteBase.filter(
+                            Q(session__test_id=self.test_id)
+                            & Q(suiteType=SuiteType.SUITE)
+                        )
+                        .group_by("file")
+                        .annotate(suites=Sum("tests"))
+                        .values_list("file", "suites")
+                    ]
+                ),
+                standing=fetch_key_from_status(
+                    summary["passed"], summary["failed"], summary["skipped"]
+                ),
+                suiteSummary=summary,
+            )
+        )
+        await self.test.save()
+
+    async def pick_it_later(self):
+        self.task.picked = False
+        await self.task.save()
+
+    async def do_we_need_patch(self):
+        # check: 1
+        # to see if the test is not pending
+        if self.test.standing != Status.PENDING:
+            logger.warning("{} was already processed", self.test_id)
+            await self.mark_processed()
+            return False
+
+        # check: 2
+        # check if any child suites are yet to be processed
+        # this should not happen, as we are patching all the related suites before test run
+
+        pending_items = (
+            await SuiteBase.filter(session__test_id=self.test_id)
+            .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+            .count()
+        )
+
+        if pending_items > 0:
+            await skip_coz_error(
+                self.test_id,
+                f"Failed to patch the Test Run: {self.test_id} of project: {self.test.projectName},"
+                f" because some of the suites were not processed",
+                incomplete=self.test.projectName,
+                pending_suites=pending_items,
+            )
+            return False
+
+        return True
 
 
 async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> False:
-    return await skip_test_run(test_id, reason, **extra)
+    return await skip_test_run(test_id, reason, type=JobType.MODIFY_TEST_RUN, **extra)
 
 
-async def mark_test_failure_if_required(test_id: str) -> bool:
-    test_run = await RunBase.filter(testID=test_id).first()
-    if test_run.ended is None:
-        await skip_coz_error(
-            test_id,
-            f"Failed to patch the Test Run: {test_id} of project: {test_run.projectName},"
-            f" because it didn't have a end date",
-            incomplete=test_run.projectName,
-        )
-        return True
-
-    suites = [
-        str(_)
-        for _ in await SuiteBase.filter(session__test_id=test_id)
-        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
-        .all()
-        .values_list("suiteID", flat=True)
-    ]
-
-    does_it_exist = await TaskBase.exists(ticketID__in=suites)
-    if does_it_exist:
-        # it means there are child tasks ensured to complete the child suites
-        return False
-
-    reason = f"Failed to patch TestRun: {test_id} because of incomplete child suites"
-    await skip_coz_error(test_id, reason, incomplete=suites)
-    return True
-
-
-def simplify_file_paths(paths: List[str]):
+def simplify_file_paths(paths: List[Tuple[str, int]]):
     tree: PathTree = {"<path>": ""}
     _paths: List[PathItem] = [
-        dict(
-            children=list(reversed(Path(path).parts)),
-            pointer=tree,
-        )
+        dict(children=list(reversed(Path(path[0]).parts)), pointer=tree, count=path[1])
         for path in paths
     ]
 
@@ -71,6 +202,7 @@ def simplify_file_paths(paths: List[str]):
         path_to_include = _paths[-1]
         if not path_to_include["children"]:
             _paths.pop()
+            path_to_include["pointer"]["<count>"] = path_to_include["count"]
             continue
 
         parent_pointer: PathTree = path_to_include["pointer"]
@@ -93,6 +225,8 @@ def simplify_file_paths(paths: List[str]):
 
             children = set(target_node.keys())
             children.remove("<path>")
+            if "<count>" in children:
+                children.remove("<count>")
 
             if len(children) > 1:
                 for child_key in target_node.keys():
@@ -123,123 +257,12 @@ def simplify_file_paths(paths: List[str]):
     return tree
 
 
-async def patchValues(test_run: RunBase):
-    test_id = test_run.testID
-
-    filtered = SessionBase.filter(Q(test_id=test_id) & Q(retried=False))
-    retried_sessions = await SessionBase.filter(
-        Q(test_id=test_id) & Q(retried=True)
-    ).count()
-
-    actual_start = "actual_start"
-    actual_end = "actual_end"
-
-    test_result = (
-        await filtered.annotate(
-            passed=Sum("passed"),
-            failed=Sum("failed"),
-            skipped=Sum("skipped"),
-            tests=Sum("tests"),
-            actual_end=Max("ended"),
-            actual_start=Min("started"),
-        )
-        .first()
-        .values("passed", "failed", "skipped", "tests", actual_start, actual_end)
-    )
-
-    test_config = await TestConfigBase.filter(test_id=test_id).first()
-
-    refer = SuiteBase
-
-    if test_config:
-        # consider cucumber files
-        # if the feature file has 3 scenarios, then if user sets the avoidParentSuitesInCount
-        # we would get a value of 3 as total scenarios else 4
-        if test_config.avoidParentSuitesInCount:
-            refer = SuiteBase.filter(~Q(parent=""))
-
-    # we want to count the number of suites status
-    summary = dict(passed=0, failed=0, skipped=0)
-    summary.update(
-        await refer.filter(
-            Q(session__test_id=test_id)
-            & Q(suiteType=SuiteType.SUITE)
-            & ~Q(standing=Status.RETRIED)
-        )
-        .annotate(count=Count("suiteID"), status=Lower("standing"))
-        .group_by("standing")
-        .values_list("status", "count")
-    )
-    summary["count"] = sum(summary.values())
-
-    # start date was initially when we start the shipment
-    # now it is when the first session starts
-    started = test_result.get(actual_start, test_run.started) or test_run.started
-    ended = test_result.get(actual_end, datetime.now(timezone.utc)) or datetime.now(
-        timezone.utc
-    )
-    test_result.pop(actual_start) if actual_start in test_result else ...
-    test_result.pop(actual_end) if actual_end in test_result else ...
-
-    await test_run.update_from_dict(
-        dict(
-            **{_: test_result[_] or 0 for _ in test_result.keys()},
-            retried=retried_sessions,
-            started=started,
-            ended=ended,
-            duration=(ended - started).total_seconds() * 1000,
-            specStructure=simplify_file_paths(
-                [
-                    path
-                    for path in await SuiteBase.filter(Q(session__test_id=test_id))
-                    .distinct()
-                    .values_list("file", flat=True)
-                ]
-            ),
-            standing=fetch_key_from_status(
-                summary["passed"], summary["failed"], summary["skipped"]
-            ),
-            suiteSummary=summary,
-        )
-    )
-    return True
-
-
-async def patchTestRun(test_id: str, current_test_id: str):
-    test_run = await RunBase.filter(testID=test_id).first()
-    if not test_run:
-        return True
-
-    task = await TaskBase.filter(ticketID=test_run.testID).first()
-    if not task:
-        return True
-
-    logger.info("Patching up the Test Run: {}", test_id)
-
-    if test_run.standing != Status.PENDING:
-        logger.warning("{} was already processed", test_id)
-        return True
-
-    pending_items = (
-        await SuiteBase.filter(session__test_id=test_id)
-        .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
-        .count()
-    )
-
-    if pending_items > 0:
-        if await mark_test_failure_if_required(test_id):
-            return
-        logger.warning(
-            "Patch Test Run: {} will be picked in the next run, some of its entities are not processed yet.",
-            test_id,
-        )
-        await task.update_from_dict(dict(picked=False))
-        await task.save()  # continue in the next run
-        return False
-
+async def patchTestRun(test_id: str):
+    patcher = PatchTestRun(test_id)
     to_return = False
+
     try:
-        if await patchValues(test_run):
+        if await patcher.patch_test():
             logger.info("Completed the patch for test run: {}", test_id)
             to_return = True
     except Exception:
@@ -247,7 +270,4 @@ async def patchTestRun(test_id: str, current_test_id: str):
             test_id,
             f"Failed to patch the test run, error in calculation, {format_exc()}",
         )
-    finally:
-        await test_run.save()
-
     return to_return
