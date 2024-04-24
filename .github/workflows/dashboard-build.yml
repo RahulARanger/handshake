@@ -75,6 +75,7 @@ jobs:
             generate_release_notes: true
 
         - name: build version file
+          if: ${{ inputs.export-build }}
           env:
             ASSETS: ${{ steps.release.outputs.assets }}
           run: node .github/scripts/sdv.cjs
