@@ -46,7 +46,9 @@ venv/*
 
 # typescript
 *.tsbuildinfox
-
+codeql-agent-results
+js-ts-db
+*.ql
 
 **/.pytest_cache/*
 **/dist/**
