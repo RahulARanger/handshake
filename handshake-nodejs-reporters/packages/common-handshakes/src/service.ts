@@ -1,7 +1,7 @@
 import superagent from 'superagent';
-import { execSync, spawn, spawnSync } from 'node:child_process';
+import { execFile, execFileSync, execSync } from 'node:child_process';
 import { setTimeout, setInterval, clearTimeout } from 'node:timers';
-import type { ChildProcess, SpawnSyncReturns } from 'node:child_process';
+import type { ChildProcess } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
@@ -63,19 +63,12 @@ export class ServiceDialPad extends DialPad {
     cwd: string,
     timeout?: number,
   ) {
-    const starter = isSync ? spawnSync : spawn;
-
+    const parsedArgs = args.trim().split(" ").map((_) => escapeShell(_))
     this.logger.info(
-      { args, cwd, for: 'executingCommand' },
+      { parsedArgs, cwd, for: 'executingCommand' },
     );
-
-    return starter(this.exePath, args.trim().split(" ").map((_) => escapeShell(_)), {
-      timeout,
-      shell: true,
-      cwd,
-      stdio: 'inherit',
-      detached: false,
-    });
+    if(isSync) return execFileSync(this.exePath, parsedArgs, {timeout, shell: true, cwd})
+    return execFile(this.exePath, parsedArgs, {timeout, shell: true, cwd, })
   }
 
   /**

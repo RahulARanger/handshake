@@ -16,11 +16,16 @@ describe('Verifying the handshake-server helper class', () => {
     });
 
     test('verifying the function for executing synchronous command', (done) => {
-      const result = instance.executeCommand('--help', true, process.cwd());
-      expect(result).not.toBeUndefined(); // there should be process returned
-      expect(result.error).toBeUndefined(); // no errors
-      expect(result.status).toBe(0); // 0 exit code
-      done();
+      /**
+       * @type {Buffer}
+       */
+      try{
+        const result = instance.executeCommand('--help', true, process.cwd());
+        expect(result).not.toBeNull();
+      }
+      catch(error){
+        expect(false).toBe(true);
+      }
     });
 
     test('verifying the closed ping', async () => {
