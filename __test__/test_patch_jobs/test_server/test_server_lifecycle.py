@@ -5,7 +5,7 @@ from handshake.services.DBService.models import (
     SuiteBase,
     TaskBase,
 )
-from subprocess import Popen
+from subprocess import Popen, call
 from requests import post, Session
 from requests.adapters import HTTPAdapter, Retry
 from datetime import datetime, timedelta
@@ -209,3 +209,11 @@ async def test_life_cycle(root_dir):
     parse_test = await TaskBase.filter(ticketID=session_record.test_id).first()
     assert not parse_test.processed
     assert not parse_test.picked
+
+
+@mark.usefixtures("root_dir")
+async def test_mismatch_version(root_dir):
+    note = call(
+        f'handshake run-app test-life-cycle "{root_dir}" -p 6978 -v 0.0.1', shell=True
+    )
+    assert note == 1, "It should not have terminated peacefully.was a version mismatch"

@@ -1,4 +1,7 @@
-import { relative } from 'node:path';
+import { execSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // eslint-disable-next-line import/prefer-default-export
 export function sanitizePaths(specs?: string[]): string[] {
@@ -16,12 +19,12 @@ export function frameworksUsedString(frameworks: string[]): string {
   return frameworks.join(',');
 }
 
-export function escapeShell(command: string) {
-  // To avoid shell related codeQL bugs
-  // excluded: ":\
-  return command.replace(/[!$&'()*+,;<=>?@^`{|}~\\]/g, '\\$&').trim();
-}
+export function checkVersion(exePath: string) {
+  const observedVersion = execSync(`${exePath} v`).toString().trim();
+  const currentDir = dirname(typeof __dirname !== 'undefined'
+    ? __dirname
+    : dirname(fileURLToPath(import.meta.url)));
 
-export function inQuotes(command: string){
-  return `\"${command}\"`
+  const expected = JSON.parse(readFileSync(join(currentDir, '.version'), 'utf-8'))?.version ?? '';
+  return [expected, observedVersion, expected === observedVersion];
 }

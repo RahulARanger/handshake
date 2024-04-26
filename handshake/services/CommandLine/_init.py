@@ -54,7 +54,17 @@ general_requirement = argument(
 general_but_optional_requirement = argument(
     "COLLECTION_PATH", nargs=1, type=C_Path(dir_okay=True), required=True
 )
-observed_version = option("--version", "-v", default=False, required=False)
+observed_version = option(
+    "--version",
+    "-v",
+    default="",
+    type=str,
+    required=False,
+    show_default=True,
+    help="Used Internally with the reporters,"
+    " reporters will pass the version of the expected handshake server if it matches,"
+    " we run the server else we terminate the execution.",
+)
 
 
 def break_if_mismatch(expected: str) -> bool:

@@ -26,7 +26,8 @@
 		"p-queue": "^8.0.1",
 		"pino": "^9.0.0",
 		"superagent": "^9.0.1",
-		"tsup": "^8.0.2"
+		"tsup": "^8.0.2",
+		"shell-quote": "^1.8.1"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.24.4",
@@ -38,6 +39,7 @@
 		"@types/jest": "^29.5.12",
 		"@types/mocha": "^10.0.6",
 		"@types/node": "^20.12.7",
+		"@types/shell-quote": "^1.7.5",
 		"@types/superagent": "^8.1.6",
 		"@types/supertest": "^6.0.2",
 		"babel-jest": "^29.7.0",

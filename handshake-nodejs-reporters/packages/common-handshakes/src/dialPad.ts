@@ -3,12 +3,15 @@ export default class DialPad {
 
   exePath: string;
 
+  disabled: boolean;
+
   static get defaultExe() {
     return 'handshake';
   }
 
-  constructor(port: number) {
+  constructor(port: number, disabled?:boolean) {
     this.port = port; this.exePath = DialPad.defaultExe;
+    this.disabled = disabled || false;
   }
 
   get url(): string {

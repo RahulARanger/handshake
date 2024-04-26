@@ -13,7 +13,7 @@ describe("Installing the dashboard built", () => {
         if(existsSync(target)) rmSync(target);
         expect(existsSync(target)).toBe(false);
         await spawnInstallation()
-    })
+    }, 60_000) // we wait for a minute
 
     test("expect the presence of the dashboard build", () => {
         expect(existsSync(target)).toBe(true);

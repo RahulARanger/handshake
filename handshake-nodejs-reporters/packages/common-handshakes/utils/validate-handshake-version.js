@@ -1,3 +1,3 @@
-import { validateConnection } from "./installation-script.js";
+import { validateConnection } from './installation-script';
 
 validateConnection(true);
