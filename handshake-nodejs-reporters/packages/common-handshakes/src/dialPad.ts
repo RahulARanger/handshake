@@ -8,7 +8,7 @@ export default class DialPad {
   }
 
   constructor(port: number) {
-    this.port = Number.isNaN(port) ? 0 : port; this.exePath = DialPad.defaultExe;
+    this.port = port; this.exePath = DialPad.defaultExe;
   }
 
   get url(): string {

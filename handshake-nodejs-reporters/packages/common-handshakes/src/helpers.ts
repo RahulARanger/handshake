@@ -19,7 +19,7 @@ export function frameworksUsedString(frameworks: string[]): string {
 export function escapeShell(command: string) {
   // To avoid shell related codeQL bugs
   // excluded: ":\
-  return command.replace(/[!$&'()*+,;<=>?@^`{|}~]/g, '\\$&').trim();
+  return command.replace(/[!$&'()*+,;<=>?@^`{|}~\\]/g, '\\$&').trim();
 }
 
 export function inQuotes(command: string){

@@ -28,16 +28,6 @@ def delete_test_attachment(run: UUID, attachmentFolder: Path):
     rmtree(entry)
 
 
-def moveTestRunsRelatedAttachment(testID: UUID, copyFrom: Path, copyTo: Path):
-    test_id = copyFrom / str(testID)
-    logger.warning("{} to {} for {}", copyFrom, copyTo, testID)
-
-    if not test_id.exists():
-        return
-
-    return copytree(test_id, copyTo / str(testID), dirs_exist_ok=True)
-
-
 def dump_config(path: Path, to_dump: typing.List):
     formatted_dump: typing.Dict[str, str] = dict(to_dump)
 

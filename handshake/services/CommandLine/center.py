@@ -1,6 +1,7 @@
 from handshake.services.CommandLine._init import (
     handle_cli,
     general_but_optional_requirement,
+    version_option,
 )
 from handshake.services.Endpoints.center import service_provider
 from handshake.services.DBService.lifecycle import (
@@ -78,6 +79,7 @@ ports.
 )
 @argument("PROJECT_NAME", nargs=1, required=True, type=str)
 @general_but_optional_requirement
+@version_option()
 @option(
     "-p",
     "--port",
@@ -123,7 +125,11 @@ def run_app(
     help="Port for the service to connect to",
     type=int,
 )
-def display(static_path: Union[str, P_Path] = "TestReports", port: int = 8000):
+def display(
+    version: Union[bool, str] = False,
+    static_path: Union[str, P_Path] = "TestReports",
+    port: int = 8000,
+):
     if static_path:
         static_path = P_Path(static_path)
 
