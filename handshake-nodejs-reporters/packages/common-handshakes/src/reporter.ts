@@ -114,7 +114,7 @@ export class ReporterDialPad extends DialPad {
     callThisInside?: () => object,
     storeIn?: string,
   ) {
-    if(this.disabled) return ;
+    if (this.disabled) return;
 
     const feed = JSON.stringify(
       (callThisInside === undefined ? payload : callThisInside()) ?? {},
@@ -167,7 +167,7 @@ export class ReporterDialPad extends DialPad {
     storeIn?: string,
     callThisInside?: () => object,
   ) {
-    if(this.disabled) return;
+    if (this.disabled) return undefined;
     const job = await this.pipeQueue.add(
       () => this.office(contact, payload, callThisInside, storeIn),
     );
@@ -260,7 +260,7 @@ export class ReporterDialPad extends DialPad {
       this.logger.warn(
         { forWhat, for: 'skipping', reason: 'no Test entity found' },
       );
-      return;
+      return undefined;
     }
 
     let pipeOutput: string | false = false;

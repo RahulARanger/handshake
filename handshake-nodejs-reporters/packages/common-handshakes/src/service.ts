@@ -1,5 +1,5 @@
 import superagent from 'superagent';
-import { spawn, spawnSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { setTimeout, setInterval, clearTimeout } from 'node:timers';
 import type { ChildProcess } from 'node:child_process';
 import pino, { Level, Logger } from 'pino';
@@ -34,35 +34,6 @@ export class ServiceDialPad extends DialPad {
   }
 
   /**
- * helper to spawn a process mostly used to call handshake server.
- * @param {string[]} args args that we need to pass to a process
- * @param {boolean} isSync spawn or spawnSync
- * @param {string} cwd u know this
- * @param {number | undefined} timeout timeout for the process to start, its optional
- * @returns
- */
-  executeCommand(
-    args: string[],
-    isSync: boolean,
-    cwd: string,
-    timeout?: number,
-  ) {
-    if (this.disabled) return false;
-
-    const starter = isSync ? spawnSync : spawn;
-
-    this.logger.info({ args, cwd, for: 'executingCommand' });
-
-    return starter(this.exePath, args, {
-      timeout,
-      shell: true,
-      cwd,
-      stdio: 'inherit',
-      detached: false,
-    });
-  }
-
-  /**
    * starts the handshake test run, now server would listen to our results once invoked
    * @param projectName project-name label for the test run
    * @param resultsDir results directory where attachments and db would be saved.
@@ -91,11 +62,15 @@ export class ServiceDialPad extends DialPad {
     command[1] = `"${command[1]}"`;
     command[2] = `"${command[2]}"`;
 
-    const pyProcess = this.executeCommand(
-      command,
-      false,
-      rootDir,
-    ) as ChildProcess;
+    this.logger.info({ for: 'starting server', command });
+
+    const pyProcess = spawn(this.exePath, command, {
+      shell: true,
+      cwd: rootDir,
+      stdio: 'inherit',
+      detached: false,
+    });
+
     this.pyProcess = pyProcess;
     pyProcess.stdout?.on('data', (chunk) => this.logger.info({ type: 'stdout', chunk: chunk.toString() }));
     pyProcess.stderr?.on('data', (chunk) => this.logger.info({ type: 'stderr', chunk: chunk.toString() }));

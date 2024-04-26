@@ -28,3 +28,13 @@ export function checkVersion(exePath: string) {
   const expected = JSON.parse(readFileSync(join(currentDir, '.version'), 'utf-8'))?.version ?? '';
   return [expected, observedVersion, expected === observedVersion];
 }
+
+export function escapeShell(command: string) {
+  // To avoid shell related codeQL bugs
+  // excluded: ":\
+  return command.replace(/[!$&'()*+,;<=>?@^`{|}~\\]/g, '\\$&').trim();
+}
+
+export function inQuotes(command: string) {
+  return `"${command}"`;
+}
