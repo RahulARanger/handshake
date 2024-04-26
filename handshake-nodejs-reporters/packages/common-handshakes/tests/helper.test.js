@@ -1,6 +1,7 @@
 const { describe, test, expect } = require('@jest/globals');
-const { join } = require('path');
-const { sanitizePaths, acceptableDateString } = require('../src/helpers');
+const { join, dirname } = require('path');
+const { readFileSync } = require('fs');
+const { sanitizePaths, acceptableDateString, checkVersion } = require('../src/helpers');
 
 describe('verifying sanitizer', () => {
   const current = join('tests', 'helper.test.js');
@@ -17,4 +18,9 @@ describe('verifying sanitizer', () => {
     const note = new Date();
     expect(acceptableDateString(note)).toEqual(note.toISOString()); // we only save the ISO string
   });
+});
+
+test('verifying the version mis-match test', async () => {
+  const { version } = JSON.parse(readFileSync(join(dirname(__dirname), '.version').toString()));
+  expect(checkVersion('handshake')).toEqual([version, version, true]);
 });

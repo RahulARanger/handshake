@@ -14,19 +14,9 @@ from handshake import __version__
 from handshake.services.DBService.migrator import check_version, migration, DB_VERSION
 from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.handleTestResults import (
-    moveTestRunsRelatedAttachment,
     setConfig,
 )
-from functools import partial
-from handshake.services.SchedularService.constants import writtenAttachmentFolderName
-from handshake.services.SchedularService.register import (
-    deleteExportTicket,
-    createExportTicket,
-)
-from os.path import relpath
-from subprocess import call, check_output
 from loguru import logger
-from concurrent.futures import ThreadPoolExecutor
 import json
 from handshake.services.DBService.lifecycle import config_file, close_connection
 from click import option
@@ -34,7 +24,6 @@ from pathlib import Path
 from handshake.services.DBService.shared import db_path
 from handshake.services.DBService.models.config_base import ConfigKeys
 from tortoise import run_async
-from os import getenv
 from asyncio import run
 
 
@@ -65,6 +54,26 @@ general_requirement = argument(
 general_but_optional_requirement = argument(
     "COLLECTION_PATH", nargs=1, type=C_Path(dir_okay=True), required=True
 )
+observed_version = option(
+    "--version",
+    "-v",
+    default="",
+    type=str,
+    required=False,
+    show_default=True,
+    help="Used Internally with the reporters,"
+    " reporters will pass the version of the expected handshake server if it matches,"
+    " we run the server else we terminate the execution.",
+)
+
+
+def break_if_mismatch(expected: str) -> bool:
+    if expected:
+        assert expected.strip() == __version__, (
+            f"Mismatch between expected version: {expected} "
+            f"and the actual version v{__version__}"
+        )
+    return True
 
 
 @general_requirement
@@ -138,99 +147,6 @@ def patch(collection_path, log_file: str, reset: bool = False, out: str = None):
 )
 def v():
     secho(__version__)
-
-
-@handle_cli.command(
-    help="Helper command which would assume you have nodejs installed and with the help of Next.js's SSG [Static Site "
-    "Generation] we would generate reports from processed results."
-    " Note: make sure to run this command from the directory where we can access the required npm scope",
-    short_help="Generates the static dashboard from processed results",
-)
-@general_requirement
-@option(
-    "-mr",
-    "--max-runs",
-    type=int,
-    default=100,
-    help="Asks Sanic to set the use max. number of workers",
-)
-@option("--out", type=C_Path(dir_okay=True), required=True)
-def export(collection_path, max_runs, out):
-    saved_db_path = db_path(collection_path)
-    if not saved_db_path.exists():
-        raise FileNotFoundError(f"DB file not in {collection_path}")
-
-    resolved = Path(out).resolve()
-    resolved.mkdir(exist_ok=True)
-
-    logger.debug(
-        "we are currently at: {}. assuming npm in scope, finding dashboard lib.",
-        Path.cwd(),
-    )
-
-    node_modules = check_output(
-        "npm root", shell=True, text=True, cwd=Path.cwd()
-    ).strip()
-
-    logger.info("Found Node modules at: {}", node_modules)
-
-    handshake = Path(node_modules) / "handshake-dashboard"
-    if not handshake.exists():
-        logger.error(
-            "handshake-dashboard was not found in packages located at {}. please try to install the dashboard through "
-            "the command: npm install handshake",
-            handshake,
-        )
-        raise FileNotFoundError(
-            "Please install handshake-dashboard in your project, npm install handshake"
-        )
-
-    logger.debug("Given details are valid, creating a export ticket")
-
-    ticket_i_ds = []
-    runs = []
-    run_async(createExportTicket(max_runs, saved_db_path, ticket_i_ds, runs, clarity))
-
-    if len(ticket_i_ds) == 0:
-        logger.error("Ticket was not created, please report this as a issue.")
-
-    logger.info("Exporting results to {}", relpath(resolved, handshake))
-    logger.debug(
-        "building files, with command:"
-        ' "npx cross-env TICKET_ID={} EXPORT_DIR={}'
-        ' DB_PATH={} npm run export"',
-        ticket_i_ds[0],
-        relpath(resolved, handshake),
-        relpath(saved_db_path, handshake),
-    )
-
-    exported = call(
-        f"npx cross-env TICKET_ID={ticket_i_ds[0]} EXPORT_DIR={relpath(resolved, handshake)}"
-        f" DB_PATH={relpath(saved_db_path, handshake)} CLARITY={getenv('CLARITY')} npm run export",
-        cwd=handshake,
-        shell=True,
-    )
-
-    if ticket_i_ds:
-        run_async(deleteExportTicket(ticket_i_ds[0]))
-
-    attachments = Path(out) / writtenAttachmentFolderName
-    attachments.mkdir(exist_ok=True)
-
-    attachments_from = Path(collection_path) / writtenAttachmentFolderName
-
-    if not (Path(out).exists() and exported == 0 and attachments_from.exists()):
-        return logger.warning("Task for copying attachments was skipped.")
-
-    allocated_work = partial(
-        moveTestRunsRelatedAttachment, copyFrom=attachments_from, copyTo=attachments
-    )
-
-    with ThreadPoolExecutor(max_workers=6) as workers:
-        logger.info("Copying attachments for {} test runs.", len(runs))
-        workers.map(allocated_work, runs)
-
-    logger.info("Done.")
 
 
 @handle_cli.command(

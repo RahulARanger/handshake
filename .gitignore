@@ -46,7 +46,9 @@ venv/*
 
 # typescript
 *.tsbuildinfox
-
+codeql-agent-results
+js-ts-db
+*.ql
 
 **/.pytest_cache/*
 **/dist/**
@@ -69,3 +71,5 @@ handshake/dashboard/
 handshake/dashboard.zip
 dashboard/
 dashboard.zip
+*.tar.bz2
+*.sarif

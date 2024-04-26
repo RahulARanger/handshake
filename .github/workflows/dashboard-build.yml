@@ -88,4 +88,3 @@ jobs:
             ref: ${{ github.head_ref }}
             commit_message: Bump Handshake Dashboard Version
             file_pattern: '*.version'
-            tagging_message: "v`${{ steps.version.outputs.VERSION }}`"
