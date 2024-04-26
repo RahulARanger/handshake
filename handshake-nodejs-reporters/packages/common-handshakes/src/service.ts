@@ -8,6 +8,7 @@ import { dirname, join } from 'node:path';
 import pino, { Level, Logger } from 'pino';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
+import { escapeShell, inQuotes } from './helpers';
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
@@ -57,7 +58,7 @@ export class ServiceDialPad extends DialPad {
  * @returns
  */
   executeCommand(
-    args: string[],
+    args: string,
     isSync: boolean,
     cwd: string,
     timeout?: number,
@@ -68,7 +69,7 @@ export class ServiceDialPad extends DialPad {
       { args, cwd, for: 'executingCommand' },
     );
 
-    return starter(this.exePath, args, {
+    return starter(this.exePath, args.trim().split(" ").map((_) => escapeShell(_)), {
       timeout,
       shell: true,
       cwd,
@@ -93,21 +94,14 @@ export class ServiceDialPad extends DialPad {
     workers?: number,
   ): ChildProcess {
     this.workers = Math.max(workers ?? 1, 2);
-    const args = [
-      'run-app',
-      projectName,
-      `"${resultsDir}"`,
-      '-p',
-      this.port.toString(),
-      '-w',
-      String(this.workers),
-    ];
     this.logger.info(
       { rootDir, for: 'requestingServer' },
     );
 
+    const command = `run-app ${inQuotes(projectName)} ${inQuotes(resultsDir)} -p ${this.port} -w ${this.workers.toString()}`;
+    
     const pyProcess = this.executeCommand(
-      args,
+      command,
       false,
       rootDir,
     ) as ChildProcess;
@@ -248,34 +242,33 @@ export class ServiceDialPad extends DialPad {
       .catch((err) => this.logger.error({ for: 'mark-test-run-completion', err }));
   }
 
-  generateReport(
-    resultsDir: string,
-    rootDir: string,
-    outDir?: string,
-    maxTestRuns?: number,
-    skipPatch?: boolean,
-    timeout?: number,
-  ): false | Error | undefined {
-    if (skipPatch) {
-      this.logger.warn(
-        { note: 'patching was skipped as requested', so: 'please run the patch the requested command manually.', command: `handshake patch ${rootDir}` },
-      );
-      return false;
-    }
-    const patchArgs = ['patch', `"${resultsDir}"`];
-    if (outDir == null) {
-      this.logger.debug(
-        { for: 'patching as requested' },
-      );
-    }
+  // generateReport(
+  //   resultsDir: string,
+  //   rootDir: string,
+  //   outDir?: string,
+  //   skipPatch?: boolean,
+  //   timeout?: number,
+  // ): false | Error | undefined {
+  //   if (skipPatch) {
+  //     this.logger.warn(
+  //       { note: 'patching was skipped as requested', so: 'please run the patch the requested command manually.', command: `handshake patch ${rootDir}` },
+  //     );
+  //     return false;
+  //   }
+  //   const patchArgs = ['patch', `"${resultsDir}"`];
+  //   if (outDir == null) {
+  //     this.logger.debug(
+  //       { for: 'patching as requested' },
+  //     );
+  //   }
 
-    // for patching
-    const result = this.executeCommand(
-      patchArgs,
-      true,
-      rootDir,
-      timeout,
-    ) as SpawnSyncReturns<Buffer>;
-    return result.error;
-  }
+  //   // for patching
+  //   const result = this.executeCommand(
+  //     patchArgs,
+  //     true,
+  //     rootDir,
+  //     timeout,
+  //   ) as SpawnSyncReturns<Buffer>;
+  //   return result.error;
+  // }
 }

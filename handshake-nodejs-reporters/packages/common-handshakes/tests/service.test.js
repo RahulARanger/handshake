@@ -8,7 +8,7 @@ describe('Verifying the handshake-server helper class', () => {
   beforeAll(() => resetDir);
 
   describe('Verifying the closed server end to end', () => {
-    const instance = new ServiceDialPad(6969);
+    const instance = new ServiceDialPad(6969, "debug");
 
     test('instance configuration', () => {
       expect(instance.exePath).toBe(ServiceDialPad.defaultExe);
@@ -16,7 +16,7 @@ describe('Verifying the handshake-server helper class', () => {
     });
 
     test('verifying the function for executing synchronous command', (done) => {
-      const result = instance.executeCommand(['--help'], true, process.cwd());
+      const result = instance.executeCommand('--help', true, process.cwd());
       expect(result).not.toBeUndefined(); // there should be process returned
       expect(result.error).toBeUndefined(); // no errors
       expect(result.status).toBe(0); // 0 exit code
