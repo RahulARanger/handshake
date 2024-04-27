@@ -23,9 +23,9 @@ permissions:
 
 jobs:
     test:
-      name: building the dashboard
+      name: testing the dashboard
       runs-on: 'ubuntu-latest'
-      permissions: write-all
+      if: !${{ inputs.export-build }}
 
       steps:
         - uses: actions/checkout@v4
@@ -53,19 +53,38 @@ jobs:
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npm run build
 
+    build:
+      name: bundling the dashboard-build
+      runs-on: 'ubuntu-latest'
+      permissions: write-all
+      if: ${{ inputs.export-build }}
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Use Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20.9.0
+
+        - name: Installing node packages
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+
+        - name: Building Dashboard
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm run build
+
         - name: Zipping the dashboard export
-          if: ${{ inputs.export-build }}
           working-directory: dashboard
           run: tar -cjf ../dashboard.tar.bz2 *
 
         - name: fetch dashboard-version
-          if: ${{ inputs.export-build }}
           id: version
-          run:  bash .github/scripts/fetch-dashboard-version.sh
+          run: bash .github/scripts/fetch-dashboard-version.sh
 
         - name: create pre-release
           uses: softprops/action-gh-release@v2
-          if: ${{ inputs.export-build }}
           id: release
           with:
             files: dashboard.tar.bz2
@@ -76,14 +95,12 @@ jobs:
             generate_release_notes: true
 
         - name: build version file
-          if: ${{ inputs.export-build }}
           env:
             ASSETS: ${{ steps.release.outputs.assets }}
           run: node .github/scripts/sdv.cjs
 
         - name: commiting the changes
           uses: stefanzweifel/git-auto-commit-action@v5
-          if: ${{ inputs.export-build }}
           id: post-release
           with:
             ref: ${{ github.head_ref }}
