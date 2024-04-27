@@ -73,3 +73,5 @@ dashboard/
 dashboard.zip
 *.tar.bz2
 *.sarif
+TestExportBase
+TestExportedReports

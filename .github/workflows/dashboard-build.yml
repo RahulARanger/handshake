@@ -55,7 +55,8 @@ jobs:
 
         - name: Zipping the dashboard export
           if: ${{ inputs.export-build }}
-          run: tar -cjf dashboard.tar.bz2 dashboard
+          working-directory: dashboard
+          run: tar -cjf ../dashboard.tar.bz2 *
 
         - name: fetch dashboard-version
           if: ${{ inputs.export-build }}

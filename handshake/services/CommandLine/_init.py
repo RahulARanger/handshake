@@ -123,8 +123,20 @@ def migrate(collection_path: str):
 #     default=100,
 #     help="Asks Sanic to set the use max. number of workers",
 # )
-@option("--out", "-o", type=C_Path(dir_okay=True), required=False)
-def patch(collection_path, log_file: str, reset: bool = False, out: str = None):
+@option(
+    "--build",
+    "-b",
+    required=False,
+    type=C_Path(exists=True, file_okay=True, readable=True),
+)
+@option("--out", "-o", type=C_Path(dir_okay=True, writable=True), required=False)
+def patch(
+    collection_path,
+    log_file: str,
+    reset: bool = False,
+    build: str = None,
+    out: str = None,
+):
     if log_file:
         logger.add(
             log_file if log_file.endswith(".log") else f"{log_file}.log",
@@ -135,7 +147,7 @@ def patch(collection_path, log_file: str, reset: bool = False, out: str = None):
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    scheduler = Scheduler(collection_path, out, reset)
+    scheduler = Scheduler(collection_path, out, reset, build)
     try:
         run(scheduler.start())
     except (KeyboardInterrupt, SystemExit):

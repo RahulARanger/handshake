@@ -1,4 +1,3 @@
-import datetime
 import json
 from handshake.services.DBService.models import RunBase
 from handshake.services.SchedularService.start import Scheduler
@@ -9,17 +8,24 @@ from handshake.services.SchedularService.constants import (
 )
 from handshake.services.SchedularService.register import (
     register_patch_test_run,
-    register_patch_suite,
 )
 from subprocess import run, PIPE
 
 
-class TestRunsWithNoRuns:
+class TestPatchWithExportDisabled:
     async def test_export_runs_page(self, root_dir):
-        await Scheduler(root_dir).start()
-        assert (
-            root_dir / exportAttachmentFolderName / EXPORT_RUNS_PAGE_FILE_NAME
-        ).read_text() == "[]"
+        scheduler = Scheduler(root_dir)
+        assert scheduler.export_dir is None
+        assert scheduler.dashboard_build is None
+
+
+class TestPatchWithNoRuns:
+    async def test_export_runs_page(self, root_dir, report_dir, zipped_build):
+        scheduler = Scheduler(root_dir, report_dir, zipped_build=zipped_build)
+        assert scheduler.export_dir == report_dir
+        assert scheduler.dashboard_build == zipped_build
+
+        await scheduler.start()
 
 
 class TestExportWithNoPatch:

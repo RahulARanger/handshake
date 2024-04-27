@@ -5,8 +5,8 @@ from handshake.services.DBService.lifecycle import (
     db_path,
     close_connection,
 )
-from shutil import copytree, rmtree
-from zipfile import ZipFile
+from shutil import rmtree
+from tarfile import open
 from pathlib import Path
 from typing import Optional
 from loguru import logger
@@ -49,11 +49,17 @@ class Scheduler:
         root_dir: str,
         out_dir: Optional[str] = None,
         manual_reset: Optional[bool] = False,
+        zipped_build: Optional[str] = None,
     ):
         self.export = out_dir is None
-        self.export_dir = Path(out_dir) if out_dir else None
+        self.dashboard_build = zipped_build
+        self.export_dir = Path(out_dir) if out_dir and zipped_build else None
         self.db_path = db_path(root_dir)
-        self.import_dir = self.db_path.parent / exportAttachmentFolderName
+        self.import_dir = (
+            None
+            if not self.export_dir
+            else self.export_dir / exportAttachmentFolderName
+        )
         self.reset = manual_reset
         self.connection: Optional[BaseDBAsyncClient] = None
 
@@ -180,15 +186,13 @@ class Scheduler:
             logger.debug("Skipping export, as the output directory was not provided.")
             return
 
-        logger.info("Exporting results to json.")
-        # we reset entire export folder
-        # we call it import, because from dashboard perspective its import
-        rmtree(self.import_dir)
-        self.import_dir.mkdir(exist_ok=False)
-        await self.export_runs_page()
-        logger.info("Done!")
         logger.debug("Exporting reports...")
         await to_thread(self.export_files)
+        logger.info("Exporting results...")
+        self.import_dir.mkdir(exist_ok=False)
+
+        await self.export_runs_page()
+        logger.info("Done!")
 
     async def export_runs_page(self):
         logger.debug("Exporting Runs Page...")
@@ -355,28 +359,15 @@ WHERE rb.ended <> '' order by rb.started;
         )
 
     def export_files(self):
+        # we reset entire export folder
         if self.export_dir.exists():
             logger.debug("removing previous results")
             rmtree(self.export_dir)
 
         self.export_dir.mkdir(exist_ok=False)
 
-        logger.info("copying json files")
-
-        copytree(
-            self.db_path.parent / exportAttachmentFolderName,
-            self.export_dir / exportAttachmentFolderName,
-        )
-        logger.debug("Done!")
-
-        logger.info("Copying html files")
-
-        with ZipFile(
-            Path(__file__).parent.parent.parent / DASHBOARD_ZIP_FILE, "r"
-        ) as zip_file:
-            zip_file.extractall(self.export_dir)
-
-        logger.info("Done!")
+        tar_file = open(self.dashboard_build, "r:bz2")
+        tar_file.extractall(self.export_dir)
 
     def save_runs_query(self, feed: str, projectsFeed: str):
         (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)
