@@ -36,7 +36,7 @@ pytest = "^7.4.2"
 pytest-asyncio = "^0.21.1"
 sanic-testing = "^23.6.0"
 psutil = "^5.9.5"
-black = "^23.9.1"
+black = ">=23.9.1,<25.0.0"
 virtualenv = "^20.25.1"
 requests = "^2.31.0"
 
