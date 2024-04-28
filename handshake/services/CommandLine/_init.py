@@ -1,6 +1,6 @@
 import datetime
 import pprint
-from sqlite3 import connect
+from sqlite3 import connect, sqlite_version_info
 from click import (
     group,
     argument,
@@ -80,6 +80,17 @@ def break_if_mismatch(expected: str) -> bool:
 @handle_cli.command()
 def db_version(collection_path):
     return check_version(db_path(collection_path))
+
+
+@handle_cli.command(
+    short_help="checks the version of the sqlite3 installed in your system"
+)
+def check_sqlite():
+    assert int(sqlite_version_info[0]) >= 3, "Required version is >= 3."
+    assert (
+        int(sqlite_version_info[1]) >= 38
+    ), "Required Version is >= 3.38,  for supporting our sql scripts, for supporting our sql scripts"
+    logger.info("your sqlite version is fine as per our need")
 
 
 @general_requirement
