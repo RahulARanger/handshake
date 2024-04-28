@@ -221,7 +221,6 @@ describe('Verifying the functionality of the handshake-reporter', () => {
   });
 });
 
-
 describe('Verifying the functionality of the disabled handshake-reporter', () => {
   const service = new ServiceDialPad(6969, 'error', true);
   const reporter = new ReporterDialPad(6969, 12e3, 'error', true);
@@ -276,9 +275,9 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
       await Promise.all(jobs);
       expect(reporter.misFire).toBe(0);
 
-      expect(reporter.idMapped['suite-0']).toBeUndefined()
-      expect(reporter.idMapped['suite-1']).toBeUndefined()
-      expect(reporter.idMapped['suite-2']).toBeUndefined()
+      expect(reporter.idMapped['suite-0']).toBeUndefined();
+      expect(reporter.idMapped['suite-1']).toBeUndefined();
+      expect(reporter.idMapped['suite-2']).toBeUndefined();
     });
 
     test('Verifying the registration of tests', async () => {
@@ -347,7 +346,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
       Array(3).fill(true).forEach((_, suite) => {
         Array(3).fill(true).forEach(
           (__, index) => {
-            expect(reporter.idMapped[`test-${suite}-${index}`]).toBeUndefined()
+            expect(reporter.idMapped[`test-${suite}-${index}`]).toBeUndefined();
             jobs.push(reporter
               .updateTestEntity(
                 () => ({

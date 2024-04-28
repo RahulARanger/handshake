@@ -162,6 +162,7 @@ def patch(
     try:
         run(scheduler.start())
     except (KeyboardInterrupt, SystemExit):
+        logger.warning("Scheduler terminated explicitly...")
         run(close_connection())
 
 

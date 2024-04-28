@@ -14,7 +14,7 @@ from handshake.services.SchedularService.register import (
     register_patch_test_run,
     register_patch_suite,
 )
-from subprocess import run, PIPE
+from subprocess import run, PIPE, TimeoutExpired
 
 
 class TestMinimalExport:
@@ -364,3 +364,23 @@ class TestExportsWithRuns:
 
         for_this_project = feed[second_project]
         assert len(for_this_project) == 2
+
+
+async def test_patch_interruption(
+    helper_create_test_run, root_dir, report_dir, zipped_build
+):
+    test_run = await helper_create_test_run()
+    await register_patch_test_run(test_run.testID)
+    found_error = False
+
+    try:
+        run(
+            f'handshake patch "{root_dir}" -o "{report_dir}" -b "{zipped_build}"',
+            shell=True,
+            stderr=PIPE,
+            timeout=0.3,  # 1 second is not enough, so it fail
+        )
+    except TimeoutExpired:
+        found_error = True
+
+    assert found_error, "Expected TimeoutExpired Error"

@@ -1,11 +1,12 @@
 import superagent from 'superagent';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { setTimeout, setInterval, clearTimeout } from 'node:timers';
 import type { ChildProcess } from 'node:child_process';
 import pino, { Level, Logger } from 'pino';
 import { parse } from 'shell-quote';
 import DialPad from './dialPad';
 import { UpdateTestRunConfig } from './payload';
+import { dashboardBuild, inQuotes } from './helpers';
 
 // eslint-disable-next-line import/prefer-default-export
 export class ServiceDialPad extends DialPad {
@@ -59,8 +60,7 @@ export class ServiceDialPad extends DialPad {
       port: this.port.toString(),
       workers: this.workers.toString(),
     }) as string[];
-    command[1] = `"${command[1]}"`;
-    command[2] = `"${command[2]}"`;
+    [1, 2].forEach((index) => { command[index] = inQuotes(command[index]); });
 
     this.logger.info({ for: 'starting server', command });
 
@@ -225,35 +225,52 @@ export class ServiceDialPad extends DialPad {
       .catch((err) => this.logger.error({ for: 'mark-test-run-completion', err }));
   }
 
-  // generateReport(
-  //   resultsDir: string,
-  //   rootDir: string,
-  //   outDir?: string,
-  //   skipPatch?: boolean,
-  //   timeout?: number,
-  // ): false | Error | undefined {
-  //   if (skipPatch) {
-  //     this.logger.warn(
-  //       { note: 'patching was skipped as requested', so:
-  // 'please run the patch the requested command manually.',
-  //  command: `handshake patch ${rootDir}` },
-  //     );
-  //     return false;
-  //   }
-  //   const patchArgs = ['patch', `"${resultsDir}"`];
-  //   if (outDir == null) {
-  //     this.logger.debug(
-  //       { for: 'patching as requested' },
-  //     );
-  //   }
+  async generateReport(resultDir: string, rootDir: string, outDir: string, timeout?:number) {
+    if (this.disabled) return;
 
-  //   // for patching
-  //   const result = this.executeCommand(
-  //     patchArgs,
-  //     true,
-  //     rootDir,
-  //     timeout,
-  //   ) as SpawnSyncReturns<Buffer>;
-  //   return result.error;
-  // }
+    const command = parse('patch "$r" -o "$out" -b "$b"', {
+      r: resultDir,
+      out: outDir,
+      b: dashboardBuild(),
+    }) as string[];
+
+    const waitFor = timeout ?? 180e3;
+
+    // manual feeding
+    [1, 3, 5].forEach((index) => { command[index] = inQuotes(command[index]); });
+
+    const waitingForTheScheduler = new Error(
+      `Not able to export the build with the provided (or default) timeout of ${waitFor / 1e3} seconds. Please set the timeout to higher level if required.`,
+    );
+    await new Promise((resolve, reject) => {
+      let bomb: NodeJS.Timeout;
+      const defuse = () => {
+        clearTimeout(bomb);
+      };
+
+      bomb = setTimeout(async () => {
+        reject(waitingForTheScheduler);
+      }, waitFor);
+
+      this.logger.debug({
+        for: 'export', command,
+      });
+      const output = spawnSync(
+        this.exePath,
+        command,
+        { cwd: rootDir, timeout: waitFor, shell: true },
+      );
+      defuse();
+
+      const { status } = output;
+      this.logger.info({ for: 'exported', status });
+      if (status !== 0) {
+        const error = output.stderr?.toString();
+        this.logger.error({ for: 'export-reports', error: error?.toString(), output: JSON.stringify(output.error ?? {}) });
+        reject(new Error(`Failed due to ${output.error} with stack:\n ${error}`));
+      } else {
+        resolve({});
+      }
+    });
+  }
 }

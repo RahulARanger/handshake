@@ -29,10 +29,11 @@ export function checkVersion(exePath: string) {
   return [expected, observedVersion, expected === observedVersion];
 }
 
-export function escapeShell(command: string) {
-  // To avoid shell related codeQL bugs
-  // excluded: ":\
-  return command.replace(/[!$&'()*+,;<=>?@^`{|}~\\]/g, '\\$&').trim();
+export function dashboardBuild(): string {
+  const currentDir = dirname(typeof __dirname !== 'undefined'
+    ? __dirname
+    : dirname(fileURLToPath(import.meta.url)));
+  return join(currentDir, 'dashboard.tar.bz2');
 }
 
 export function inQuotes(command: string) {
