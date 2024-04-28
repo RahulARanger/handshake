@@ -24,7 +24,6 @@ from handshake.services.DBService.models.config_base import (
 from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
     exportAttachmentFolderName,
-    DASHBOARD_ZIP_FILE,
     EXPORT_RUN_PAGE_FILE_NAME,
     EXPORT_PROJECTS_FILE_NAME,
     EXPORT_RUNS_PAGE_FILE_NAME,
@@ -205,7 +204,7 @@ class Scheduler:
                 await self.connection.execute_query(
                     """
 select rb.*, cb.*,
-rank()	over (order by rb.ended desc) as timelineIndex,
+rank() over (order by rb.ended desc) as timelineIndex,
 rank() over (partition by projectName order by rb.ended desc) as projectIndex
 from RUNBASE rb
 left join testconfigbase cb on rb.testID = cb.test_id 
@@ -366,8 +365,8 @@ WHERE rb.ended <> '' order by rb.started;
 
         self.export_dir.mkdir(exist_ok=False)
 
-        tar_file = open(self.dashboard_build, "r:bz2")
-        tar_file.extractall(self.export_dir)
+        with open(self.dashboard_build, "r:bz2") as tar_file:
+            tar_file.extractall(self.export_dir)
 
     def save_runs_query(self, feed: str, projectsFeed: str):
         (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)

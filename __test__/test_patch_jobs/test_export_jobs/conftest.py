@@ -69,3 +69,6 @@ async def clean_close(db_path, init_db, root_dir, report_dir, zipped_build):
 
     if zipped_build.exists():
         zipped_build.unlink()
+
+    if report_dir.exists():
+        shutil.rmtree(report_dir)

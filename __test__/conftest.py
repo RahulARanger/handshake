@@ -91,8 +91,12 @@ async def clean_close(db_path, init_db):
 
 
 async def sample_test_run(postfix: Optional[str] = ""):
+    noted = datetime.now(UTC)
     return await RunBase.create(
-        projectName=testNames + postfix, started=datetime.now(UTC)
+        projectName=testNames + postfix,
+        started=noted,
+        ended=noted + timedelta(minutes=10),
+        duration=timedelta(minutes=10).total_seconds() * 1000,
     )
 
 
@@ -134,3 +138,9 @@ def helper_create_test_session():
 @fixture()
 def app():
     return service_provider
+
+
+def helper_to_test_date_operator(from_db: datetime, from_json: str):
+    assert datetime.strptime(from_json, "%Y-%m-%d %H:%M:%S.%f%z").strftime(
+        "%Y-%m-%d %H:%M:%S%z"
+    ) == from_db.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S%z"), "Datetime is not same"

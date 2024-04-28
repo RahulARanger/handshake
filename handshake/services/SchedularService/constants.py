@@ -19,5 +19,3 @@ EXPORT_RUN_PAGE_FILE_NAME = "run.json"
 EXPORT_PROJECTS_FILE_NAME = "projects.json"
 EXPORT_OVERVIEW_PAGE = "overview.json"
 EXPORT_ALL_SUITES = "suites.json"
-
-DASHBOARD_ZIP_FILE = "dashboard.zip"
