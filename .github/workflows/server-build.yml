@@ -33,10 +33,10 @@ jobs:
       steps:
         - uses: actions/checkout@v4
 
-#        - name: If in ubuntu, Install sqlite3 3.45.0
-#          if: ${{ matrix.os == 'ubuntu-latest' }}
-#          run: |
-#            bash ./.github/scripts/build-sqlite.sh
+        - name: If in ubuntu, Install sqlite3 3.45.0
+          if: ${{ matrix.os == 'ubuntu-latest' }}
+          run: |
+            bash ./.github/scripts/build-sqlite.sh
 
         - name: Set up Python 3.11
           uses: actions/setup-python@v5
