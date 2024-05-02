@@ -9,25 +9,21 @@ export default class HandshakeService
   async flagToPyThatsItsDone() {
     // closing handshake server for now.
     await this.supporter.terminateServer();
-
-    const hasError = this.supporter.generateReport(
-      this.resultsDir,
-      this.options.root || process.cwd(),
-      this.options?.export?.out,
-      this.options?.export?.maxTestRuns,
-      this.options?.export?.skipPatch,
-      this.options.timeout,
-    );
-    if (hasError) {
-      this.logger.error({ for: 'failed to patch', reason: hasError.message });
+    if (!this.options.exportOutDir) {
+      this.logger.info({ for: 'generate-report', note: 'skipping reports as exportOutDir is not set' });
       return;
     }
 
-    this.logger.info(
-      this.options.export?.out
-        ? { furtherAction: `npx handshake display ${this.options.export?.out} or simply host this folder ${this.options.export?.out}` }
-        : { furtherAction: `npx handshake patch ${this.options.root} --out [OUT_DIR_FOR_REPORT]`, why: 'skipped to generate reports as requested' },
-    );
+    try {
+      await this.supporter.generateReport(
+        this.resultsDir,
+        this.options.root || process.cwd(),
+        this.options?.exportOutDir,
+        this.options.reportGenerationTimeout,
+      );
+    } catch (err) {
+      this.logger.error({ for: 'generate-report', err });
+    }
   }
 
   onPrepare(options: Options.Testrunner)

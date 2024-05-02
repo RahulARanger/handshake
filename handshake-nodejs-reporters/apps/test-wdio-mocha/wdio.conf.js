@@ -44,7 +44,7 @@ const root = dirname(dirname(dirname(process.cwd())))
 export const config = attachReporter(metaConfig, {
     resultsFolderName: process.env.SANITY ? "SanityResults" : "TestResults",
     port: 6969,
-    timeout: 360e3,
+    requestsTimeout: 360e3,
     root,
     addScreenshots: true,
     testConfig: { projectName: process.env.SANITY ? 'sanity-test-wdio-mocha' : 'test-wdio-mocha' },

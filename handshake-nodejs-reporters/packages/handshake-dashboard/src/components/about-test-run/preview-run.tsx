@@ -1,4 +1,4 @@
-import { Card, SimpleGrid, Skeleton, Text } from '@mantine/core';
+import { Card, Group, rem, SimpleGrid, Skeleton, Text } from '@mantine/core';
 import {
     jsonFeedAboutTestRun,
     jsonFeedForOverviewOfTestRun,
@@ -11,7 +11,7 @@ import { transformOverviewFeed } from 'extractors/transform-run-record';
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import useSWRImmutable from 'swr/immutable';
-import { DataTable } from 'mantine-datatable';
+import DataGrid from 'react-data-grid';
 import dayjs from 'dayjs';
 import RelativeDate from 'components/timings/relative-date';
 import type { specNode, TestRunRecord } from 'types/test-run-records';
@@ -19,6 +19,8 @@ import { HumanizedDuration } from 'components/timings/humanized-duration';
 import PassedRate from './passed-rate';
 import type { TooltipProps } from 'recharts';
 import { ResponsiveContainer, Treemap, Tooltip as RToolTip } from 'recharts';
+import { IconArrowsHorizontal } from '@tabler/icons-react';
+import GridStyles from 'styles/data-table.module.css';
 
 function fetchTree(root: specNode) {
     const subTree: unknown[] = [];
@@ -87,14 +89,14 @@ function PreviewOfProjectStructure(properties: { testID?: string }) {
         node === undefined || runFeedLoading || runFeedError !== undefined;
 
     return (
-        <Card w={'100%'} h={180} p="xs" radius="md" withBorder>
+        <Card w={'100%'} h={192} p="xs" radius="md" withBorder>
             {toLoad || !node ? (
-                <Skeleton animate width={'100%'} height={180} />
+                <Skeleton animate width={'100%'} height={192} />
             ) : (
                 <ResponsiveContainer width="100%" height={'100%'}>
                     <Treemap
                         width={400}
-                        height={180}
+                        height={192}
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         data={node as any[]}
                         dataKey="size"
@@ -147,59 +149,95 @@ function PreviewTestSuites(properties: { testID?: string }): ReactNode {
     );
 
     if (isLoading || error || !data || runFeedLoading || runFeedError || !run) {
-        return <Skeleton animate w={'100%'} h={250} />;
+        return <Skeleton animate w={'100%'} h={300} />;
     }
 
     return (
-        <DataTable
-            height={300}
+        <DataGrid
             columns={[
-                { accessor: 'Title', title: 'Title (Recent Test Suites)' },
                 {
-                    accessor: 'Started',
-                    render: (record, index) => {
-                        return (
-                            <RelativeDate
-                                date={record.Started}
-                                relativeFrom={dayjs(run.started)}
-                                showTime
-                                key={index}
-                            />
-                        );
-                    },
-                    width: 100,
+                    key: 'Title',
+                    name: (
+                        <Group
+                            justify="space-between"
+                            align="center"
+                            style={{ height: '100%', width: '100%' }}
+                        >
+                            <Text fw="bold" size="sm">
+                                Title
+                            </Text>
+                            <IconArrowsHorizontal size={16} />
+                        </Group>
+                    ),
+                    width: 'max-content',
+                    resizable: true,
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
                 },
                 {
-                    accessor: 'Duration',
-                    render: (record, index) => {
+                    key: 'Started',
+                    name: 'Started',
+                    width: 120,
+                    resizable: false,
+                    renderCell: ({ row, rowIdx }) => (
+                        <RelativeDate
+                            date={row.Started}
+                            relativeFrom={dayjs(run.started)}
+                            showTime
+                            key={rowIdx}
+                            height={45}
+                        />
+                    ),
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
+                },
+                {
+                    key: 'Duration',
+                    name: 'Duration',
+                    resizable: false,
+                    width: 120,
+                    renderCell: ({ row, rowIdx }) => {
                         return (
                             <HumanizedDuration
-                                duration={record.Duration}
-                                key={index}
+                                duration={row.Duration}
+                                key={rowIdx}
                             />
                         );
                     },
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
                 },
                 {
-                    accessor: 'Rate',
-                    render: (record, index) => {
+                    name: 'Rate',
+                    key: 'Rate',
+                    resizable: false,
+                    width: 'max-content',
+                    renderCell: ({ row, rowIdx }) => {
                         return (
                             <PassedRate
-                                rate={record.Rate}
+                                rate={row.Rate}
                                 text="Entities"
-                                key={index}
-                                width={100}
+                                width={'100%'}
+                                key={rowIdx}
+                                minWidth={200}
                             />
                         );
                     },
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
                 },
             ]}
-            records={data?.recentSuites}
-            striped
-            highlightOnHover
-            withColumnBorders
-            shadow="md"
-            withTableBorder
+            rows={data?.recentSuites}
+            rowKeyGetter={(row) => row.Id}
+            style={{
+                height: rem(310),
+            }}
+            headerRowHeight={35}
+            rowHeight={45}
+            className={GridStyles.table}
+            rowClass={(_, rowIndex) =>
+                rowIndex % 2 === 0 ? GridStyles.evenRow : GridStyles.oddRow
+            }
         />
     );
 }
@@ -210,9 +248,7 @@ export default function PreviewTestRun(properties: {
     return (
         <SimpleGrid cols={1}>
             <PreviewOfProjectStructure testID={properties.testID} />
-            <Card withBorder radius={'md'} p={'xs'}>
-                <PreviewTestSuites testID={properties.testID} />
-            </Card>
+            <PreviewTestSuites testID={properties.testID} />
         </SimpleGrid>
     );
 }

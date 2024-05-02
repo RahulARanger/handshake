@@ -11,6 +11,7 @@ import type {
 import type { Duration } from 'dayjs/plugin/duration';
 import duration from 'dayjs/plugin/duration';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
+import type { statusOfEntity } from 'types/session-records';
 
 dayjs.extend(duration);
 
@@ -89,4 +90,29 @@ export function transformOverviewFeed(
         ),
         aggregated: feed.aggregated,
     };
+}
+
+export function getStandingFromList(feeds: statusOfEntity[]): statusOfEntity {
+    let foundRetried = false;
+    let foundPassed = false;
+
+    for (const feed of feeds) {
+        switch (feed) {
+            case 'FAILED': {
+                return 'FAILED';
+            }
+            case 'PASSED': {
+                foundPassed = true;
+                break;
+            }
+            case 'RETRIED': {
+                foundRetried = true;
+                break;
+            }
+        }
+    }
+
+    if (foundPassed) return 'PASSED';
+
+    return foundRetried ? 'RETRIED' : 'SKIPPED';
 }

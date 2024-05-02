@@ -9,11 +9,13 @@ export default function CountUpNumber(properties: {
     decimalPoints?: number;
     style?: CSSProperties;
     suffix?: string;
+    cn?: string;
 }): ReactNode {
     return (
         <CountUp
             end={properties.endNumber}
             start={0}
+            className={properties.cn}
             useIndianSeparators={true}
             style={properties.style}
             formattingFn={(n: number) =>

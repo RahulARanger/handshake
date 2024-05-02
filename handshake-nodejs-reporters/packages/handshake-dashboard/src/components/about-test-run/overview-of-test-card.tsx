@@ -397,7 +397,6 @@ export default function OverviewCard(properties: {
             <Card.Section
                 p="sm"
                 style={{
-                    borderRadius: rem(20),
                     background:
                         'linear-gradient(to left, #2c3e50,#1D4350); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */',
                 }}

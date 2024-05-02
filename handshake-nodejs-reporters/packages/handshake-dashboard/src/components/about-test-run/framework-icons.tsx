@@ -46,6 +46,7 @@ export function FrameworksUsed(properties: {
             source ? (
                 <Tooltip
                     label={key.at(0)?.toUpperCase() + key.slice(1)}
+                    key={key}
                     color={color}
                     id="test"
                 >
@@ -53,18 +54,16 @@ export function FrameworksUsed(properties: {
                         size={properties.size ?? 'md'}
                         radius="xl"
                         src={source}
-                        key={key}
                         aria-label={`${key}-avatar`}
                         alt={framework}
                     />
                 </Tooltip>
             ) : (
-                <Tooltip color="red" label={key}>
+                <Tooltip color="red" label={key} key={key}>
                     <Avatar
                         size={properties.size ?? 'md'}
                         radius={'xl'}
                         src={source}
-                        key={key}
                         alt={framework}
                         aria-label={`not-identified-framework-avatar`}
                         color="red"

@@ -2,19 +2,13 @@ name: 'server-build'
 
 on:
   workflow_dispatch:
-      inputs:
-        export-build:
-          description: 'publish on pypi'
-          required: false
-          type: boolean
-          default: false
   push:
     branches:
       - build
     paths:
       - "handshake/*"
       - ".github/scripts/save-env.py"
-      - "**server-build.yml"
+      - "**test-handshake-py.yml"
 
 
 permissions:
@@ -23,7 +17,6 @@ permissions:
 jobs:
     test:
       name: check if the build is stable
-      if: ${{ !inputs.export-build }}
       runs-on: ${{ matrix.os }}
 
       strategy:

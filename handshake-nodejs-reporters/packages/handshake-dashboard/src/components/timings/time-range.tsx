@@ -14,6 +14,7 @@ export function TimeRange(properties: {
     size?: TextProps['size'];
     detailed?: boolean;
     relativeFrom?: dayjs.Dayjs;
+    cn?: string;
 }): ReactNode {
     const rangeText = `${properties.startTime.format(timeFormatUsed)} - ${properties.endTime.format(timeFormatUsed)}`;
     const relative = properties.relativeFrom
@@ -22,7 +23,11 @@ export function TimeRange(properties: {
         : properties.startTime.fromNow();
 
     return (
-        <Tooltip label={properties.detailed ? relative : rangeText}>
+        <Tooltip
+            label={properties.detailed ? relative : rangeText}
+            color="blue"
+            className={properties.cn}
+        >
             <Text size={properties.size ?? 'sm'}>
                 {properties.detailed ? rangeText : relative}
             </Text>

@@ -88,9 +88,13 @@ export default async function spawnInstallation() {
         console.log(chalk.blue('+ Download completed, we can now use the handshake executable.'));
         resolve();
       } else {
-        console.log(chalk.red(`+ Failed to download the handshake executable, please check if this url is still valid: ${dashboardBuild}, found status code: ${code}.\nPlease contact package owner reg. this. if this error is visible even on latest version.`));
+        console.warn(chalk.red(`+ Failed to download the handshake executable, please check if this url is still valid: ${dashboardBuild}, found status code: ${code}.\nPlease contact package owner reg. this. if this error is visible even on latest version.`));
         reject();
       }
     });
+  }).catch((err) => {
+    console.error(chalk.red(`Failed to download the build from ${target}, Please raise an issues in Handshake repo. refer this error: ${err} for reference.`));
+    // TODO: allow user to execute a command to manually install the build
+    // console.error(chalk.blue("Please execute the command: "))})
   });
 }

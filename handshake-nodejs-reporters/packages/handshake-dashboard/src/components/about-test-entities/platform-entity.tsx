@@ -39,13 +39,13 @@ export default function PlatformEntity(properties: {
                     size="xs"
                     style={{
                         position: 'relative',
-                        right: '14%',
+                        right: '5%',
                         bottom: '-3px',
                     }}
                     role="contentinfo"
                     aria-label={`${note}-version`}
                 >
-                    <sub>{properties.entityVersion}</sub>
+                    <sub>{properties.entityVersion.slice(0, 5)}</sub>
                 </Text>
             </Group>
         </Tooltip>
