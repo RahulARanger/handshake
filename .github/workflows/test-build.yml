@@ -34,6 +34,12 @@ jobs:
               dashboard:
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
                 - '**/test-build.yml'
+              py:
+                - 'handshake/**'
+                - '**/test-build.yml'
+                - "poetry.toml"
+                - "pyproject.toml"
+                - "poetry.lock"
 
     test-dashboard:
       needs: decide

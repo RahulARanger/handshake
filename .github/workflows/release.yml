@@ -37,6 +37,14 @@ jobs:
             dashboard:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
               - '**/release.yml'
+              - '.github/scripts/fetch-dashboard-version.sh'
+            py:
+                - 'handshake/**'
+                - '**/release.yml'
+                - "poetry.toml"
+                - "pyproject.toml"
+                - "poetry.lock"
+                - '.github/scripts/build-sqlite.sh'
 
   release:
     name: bundling the dashboard-build
