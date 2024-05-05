@@ -8,14 +8,14 @@ on:
       - master
     paths:
       - "handshake-nodejs-reporters/**"
-      - "handshake/*"
+      - "handshake/**"
       - ".github/**"
       - "__test__/**"
       - "noxfile.py"
       - "poetry.toml"
       - "pyproject.toml"
       - "poetry.lock"
-      - "**release.yml"
+      - "**/release.yml"
 
 
 permissions:
@@ -36,7 +36,7 @@ jobs:
           filters: |
             dashboard:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
-              - '*release.yml'
+              - '**/release.yml'
 
   release:
     name: bundling the dashboard-build
