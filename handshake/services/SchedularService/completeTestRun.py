@@ -137,10 +137,13 @@ class PatchTestRun:
                         for path in await SuiteBase.filter(
                             Q(session__test_id=self.test_id)
                             & Q(suiteType=SuiteType.SUITE)
+                            & ~Q(standing=Status.RETRIED)
+                            & Q(parent="")
                         )
                         .group_by("file")
+                        .prefetch_related("rollup")
                         .annotate(suites=Sum("tests"))
-                        .values_list("file", "suites")
+                        .values_list("file", "rollup__tests")
                     ]
                 ),
                 standing=fetch_key_from_status(

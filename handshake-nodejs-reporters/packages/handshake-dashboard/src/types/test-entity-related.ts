@@ -53,9 +53,7 @@ export interface TestRecordDetails extends RecurringFields {
 
 export interface Tag {
     name: string;
-    id: string;
-    location: { line: number; column: number };
-    astNodeId: string;
+    label: string;
 }
 export interface AssertionRecord {
     entity_id: string;

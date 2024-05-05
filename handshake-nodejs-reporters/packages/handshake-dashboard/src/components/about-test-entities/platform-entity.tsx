@@ -1,53 +1,50 @@
 import type { AvatarProps, TooltipProps } from '@mantine/core';
-import { Avatar, Group, Text, Tooltip } from '@mantine/core';
+import { Avatar, AvatarGroup, Tooltip } from '@mantine/core';
+import { uniqBy } from 'lodash-es';
 import React from 'react';
 import type { ReactNode } from 'react';
 import type { possibleEntityNames } from 'types/session-records';
 
 export default function PlatformEntity(properties: {
-    entityName: possibleEntityNames;
-    entityVersion: string;
-    simplified: string;
+    records: Array<{
+        entityName: possibleEntityNames;
+        entityVersion: string;
+        simplified: string;
+    }>;
     size?: AvatarProps['size'];
 }): ReactNode {
-    const note = properties.entityName.toLowerCase();
-    let source = '';
-    let color: TooltipProps['color'] = 'orange.7';
+    const avatars = uniqBy(properties.records, 'entityName').map(
+        ({ entityName }) => {
+            const note = entityName.toLowerCase();
+            let source = '';
+            let color: TooltipProps['color'] = 'orange.7';
 
-    if (note.includes('chrome')) {
-        source = '/chrome.png';
-        color = 'yellow';
-    }
-    if (note.includes('firefox')) source = '/firefox.png';
-    if (note.includes('edge')) {
-        color = 'blue.9';
-        source = '/edge.png';
-    }
+            if (note.includes('chrome')) {
+                source = '/chrome.png';
+                color = 'yellow';
+            }
+            if (note.includes('firefox')) source = '/firefox.png';
+            if (note.includes('edge')) {
+                color = 'blue.9';
+                source = '/edge.png';
+            }
 
-    return (
-        <Tooltip label={properties.simplified} color={color}>
-            <Group align="flex-end" wrap="nowrap">
-                <Avatar
-                    src={source}
-                    size={properties.size ?? 'md'}
-                    alt={properties.simplified}
-                    aria-label={
-                        source ? `${note}-platform` : `not-yet-noted-platform`
-                    }
-                />
-                <Text
-                    size="xs"
-                    style={{
-                        position: 'relative',
-                        right: '5%',
-                        bottom: '-3px',
-                    }}
-                    role="contentinfo"
-                    aria-label={`${note}-version`}
-                >
-                    <sub>{properties.entityVersion.slice(0, 5)}</sub>
-                </Text>
-            </Group>
-        </Tooltip>
+            return (
+                <Tooltip label={entityName} key={entityName} color={color}>
+                    <Avatar
+                        src={source}
+                        size={properties.size ?? 'md'}
+                        alt={entityName}
+                        aria-label={
+                            source
+                                ? `${note}-platform`
+                                : `not-yet-noted-platform`
+                        }
+                    />
+                </Tooltip>
+            );
+        },
     );
+
+    return <AvatarGroup>{avatars}</AvatarGroup>;
 }

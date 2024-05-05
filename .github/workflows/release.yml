@@ -1,0 +1,87 @@
+name: 'releases'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+    paths:
+      - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+      - ".github/scripts/fetch-dashboard-version.sh"
+      - ".github/scripts/sdv.cjs"
+      - "**pre-release-dashboard.yml"
+
+
+permissions:
+    contents: write
+
+jobs:
+  decide:
+    runs-on: ubuntu-latest
+    outputs:
+      dashboard: ${{ steps.filter.outputs.dashboard }}
+    name: decides which job to run based on the file changes
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            dashboard:
+              - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+            
+
+  release:
+    name: bundling the dashboard-build
+    runs-on: 'ubuntu-latest'
+    permissions: write-all
+    if: ${{ needs.changes.outputs.dashboard == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.9.0
+
+      - name: Installing node packages
+        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+
+      - name: Building Dashboard
+        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        run: npm run build
+
+      - name: Zipping the dashboard export
+        working-directory: dashboard
+        run: tar -cjf ../dashboard.tar.bz2 *
+
+      - name: fetch dashboard-version
+        id: version
+        run: bash .github/scripts/fetch-dashboard-version.sh
+
+      - name: create pre-release
+        uses: softprops/action-gh-release@v2
+        id: release
+        with:
+          files: dashboard.tar.bz2
+          body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
+          prerelease: true
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "Handshake v${{ steps.version.outputs.VERSION }}"
+          generate_release_notes: true
+
+      - name: build version file
+        env:
+          ASSETS: ${{ steps.release.outputs.assets }}
+        run: node .github/scripts/sdv.cjs
+
+      - name: commiting the changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        id: post-release
+        with:
+          ref: ${{ github.head_ref }}
+          commit_message: Bump Handshake Dashboard Version
+          file_pattern: '*.version'

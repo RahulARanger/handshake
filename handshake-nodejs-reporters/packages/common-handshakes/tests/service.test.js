@@ -62,6 +62,7 @@ describe('Verifying the handshake-server helper class', () => {
         framework: 'jest-tests',
         exitCode: 0,
         fileRetries: 1,
+        tags: ['@test', '*.spec.js'],
         platformName: 'windows',
       });
       expect(resp).not.toBeUndefined();
@@ -130,6 +131,7 @@ describe('Verifying the handshake-server helper class', () => {
         exitCode: 0,
         fileRetries: 1,
         platformName: 'windows',
+        tags: ['@test', '*.spec.js'],
       });
       expect(resp).toBeUndefined();
     });

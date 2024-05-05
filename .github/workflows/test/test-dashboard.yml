@@ -2,14 +2,14 @@ name: 'dashboard-build'
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - build
-    paths:
-      - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
-      - ".github/scripts/fetch-dashboard-version.sh"
-      - ".github/scripts/sdv.cjs"
-      - "**test-dashboard.yml"
+#  push:
+#    branches:
+#      - build
+#    paths:
+#      - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+#      - ".github/scripts/fetch-dashboard-version.sh"
+#      - ".github/scripts/sdv.cjs"
+#      - "**test-dashboard.yml"
 
 
 permissions:

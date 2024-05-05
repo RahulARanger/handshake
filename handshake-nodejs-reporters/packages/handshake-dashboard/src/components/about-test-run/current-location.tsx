@@ -67,11 +67,11 @@ export default function CurrentLocation(properties: {
                 </Text>
                 <Menu trigger="click-hover">
                     <Menu.Target>
-                        <Text>
+                        <Text size="sm">
                             {properties.where}
                             <sub>
                                 <IconCaretDown
-                                    size=".6rem"
+                                    size=".55rem"
                                     style={{ marginTop: rem(13) }}
                                 />
                             </sub>

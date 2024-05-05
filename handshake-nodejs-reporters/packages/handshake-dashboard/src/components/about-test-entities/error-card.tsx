@@ -25,7 +25,7 @@ export default function ErrorCard(properties: {
             </Card.Section> */}
 
             <Card.Section p="xs" withBorder={opened} onClick={toggle}>
-                <Group justify="space-between">
+                <Group justify="space-between" wrap="nowrap">
                     <Text
                         size="sm"
                         dangerouslySetInnerHTML={{

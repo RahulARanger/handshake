@@ -2,13 +2,13 @@ name: 'server-build'
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - build
-    paths:
-      - "handshake/*"
-      - ".github/scripts/save-env.py"
-      - "**test-handshake-py.yml"
+#  push:
+#    branches:
+#      - build
+#    paths:
+#      - "handshake/*"
+#      - ".github/scripts/save-env.py"
+#      - "**test-handshake-py.yml"
 
 
 permissions:

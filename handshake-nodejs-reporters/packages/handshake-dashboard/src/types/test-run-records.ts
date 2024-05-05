@@ -12,7 +12,7 @@ export default interface OnlyTestRunRecord {
     started: string;
     ended: string;
     retried: number;
-    tags: string[];
+    tags: string;
     specStructure: string;
     suiteSummary: string;
     framework: string;
@@ -29,10 +29,13 @@ export interface TestRunRecord extends OnlyTestRunRecord {
     projectIndex: number; // 1 - indexed
 }
 
+export type specStructure = Record<string, specNode>;
+
 export type specNode = {
-    '<path>': string;
-    '<count>'?: number;
-} & { [key: string]: specNode };
+    paths: specStructure;
+    current: string;
+    suites?: number;
+};
 
 export interface SuiteSummary {
     passed: number;

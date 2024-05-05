@@ -11,7 +11,10 @@ import type {
 import type { Duration } from 'dayjs/plugin/duration';
 import duration from 'dayjs/plugin/duration';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
-import type { statusOfEntity } from 'types/session-records';
+import type {
+    possibleEntityNames,
+    statusOfEntity,
+} from 'types/session-records';
 
 dayjs.extend(duration);
 
@@ -52,14 +55,20 @@ export default function transformTestRunRecord(
         FileRetries: testRunRecord.fileRetries,
         MaxInstances: testRunRecord.maxInstances,
         Platform: testRunRecord.platform.trim(),
+        Tags: JSON.parse(testRunRecord.tags),
     };
 }
 
 export interface OverviewOfEntities {
     recentSuites: SuiteRecordDetails[];
     aggregated: { files: number; sessions: number };
+    platforms: Array<{
+        entityName: possibleEntityNames;
+        entityVersion: string;
+        simplified: string;
+    }>;
 }
-interface MiniSuitePreview {
+export interface MiniSuitePreview {
     Started: Dayjs;
     Title: string;
     Rate: [number, number, number];

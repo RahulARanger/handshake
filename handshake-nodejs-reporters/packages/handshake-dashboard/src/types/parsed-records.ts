@@ -8,7 +8,7 @@ import type {
     SimpleSuiteDetails,
     Tag,
 } from './test-entity-related';
-import type { possibleFrameworks, specNode } from './test-run-records';
+import type { possibleFrameworks, specStructure } from './test-run-records';
 
 export default interface BasicDetails {
     Started: Dayjs;
@@ -26,7 +26,7 @@ export interface DetailedTestRecord extends BasicDetails {
     Suites: number;
     Link: string;
     projectName: string;
-    specStructure: specNode;
+    specStructure: specStructure;
     Frameworks: possibleFrameworks[];
     timelineIndex: number;
     projectIndex: number;
@@ -35,6 +35,7 @@ export interface DetailedTestRecord extends BasicDetails {
     ExitCode: number;
     MaxInstances: number;
     Platform: string;
+    Tags: Tag[];
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {

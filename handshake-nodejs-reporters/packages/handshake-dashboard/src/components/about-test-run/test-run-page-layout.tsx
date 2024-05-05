@@ -7,17 +7,18 @@ import type { TestRunTab } from './current-location';
 import CurrentLocation, {
     redirectToRightPageForTestRun,
 } from './current-location';
-import useSWRImmutable from 'swr/immutable';
-import { jsonFeedAboutTestRun } from 'components/links';
-import transformTestRunRecord from 'extractors/transform-run-record';
-import type { TestRunRecord } from 'types/test-run-records';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
+import transformTestRunRecord from 'extractors/transform-run-record';
+import { jsonFeedAboutTestRun } from 'components/links';
+import useSWRImmutable from 'swr/immutable';
+import type { TestRunRecord } from 'types/test-run-records';
 
 export default function RunPageContent(properties: {
     testID?: string;
     children: ReactNode;
     where: TestRunTab;
+    avoidScrollWindow?: boolean;
 }): ReactNode {
     const {
         data: rawRun,
@@ -47,14 +48,14 @@ export default function RunPageContent(properties: {
                         projectName={run?.projectName ?? ''}
                         where={properties.where}
                         toLoad={toLoad}
-                        testID={properties.testID}
+                        testID={run?.Id}
                     />
                     <Group align="flex-end">
                         <Tabs
                             onChange={(value) =>
                                 redirectToRightPageForTestRun(
                                     router,
-                                    properties.testID as string,
+                                    run?.Id as string,
                                     value as TestRunTab,
                                 )
                             }
@@ -88,15 +89,19 @@ export default function RunPageContent(properties: {
                 </Group>
             </AppShell.Header>
             <AppShell.Main>
-                <ScrollAreaAutosize
-                    py="sm"
-                    pl="sm"
-                    pr={4}
-                    style={{ overflowX: 'hidden' }}
-                    h={'calc(100vh - var(--app-shell-header-height, 0px))'}
-                >
-                    {properties.children}
-                </ScrollAreaAutosize>
+                {properties.avoidScrollWindow ? (
+                    properties.children
+                ) : (
+                    <ScrollAreaAutosize
+                        py="sm"
+                        pl="sm"
+                        pr={4}
+                        style={{ overflowX: 'hidden' }}
+                        h={'calc(100vh - var(--app-shell-header-height, 0px))'}
+                    >
+                        {properties.children}
+                    </ScrollAreaAutosize>
+                )}
             </AppShell.Main>
         </AppShell>
     );

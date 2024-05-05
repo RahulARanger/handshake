@@ -67,6 +67,16 @@ const options: Options.Testrunner = {
 				args: ["--headless"],
 			},
 		},
+		...(process.env.SANITY
+			? [
+					{
+						browserName: "chrome",
+						"goog:chromeOptions": {
+							args: ["headless", "disable-gpu"],
+						},
+					},
+				]
+			: []),
 	],
 
 	//
@@ -144,7 +154,11 @@ const options: Options.Testrunner = {
 	// If you are using Cucumber you need to specify the location of your step definitions.
 	cucumberOpts: {
 		// <string[]> (file/dir) require files before executing features
-		require: ["./features/step-definitions/steps.ts"],
+		require: [
+			process.env.SANITY
+				? "./features/step-definitions/steps.ts"
+				: "./features/step-definitions/*.steps.ts",
+		],
 		// <boolean> show full backtrace for errors
 		backtrace: false,
 		// <string[]> ("extension:module") require files with the given EXTENSION after requiring MODULE (repeatable)
@@ -347,10 +361,13 @@ const options: Options.Testrunner = {
 const root = dirname(dirname(dirname(process.cwd())));
 
 export const config = attachReporter(options, {
-	resultsFolderName: process.env.SANITY ? "SanityResults" : "TestResults",
+	resultsFolderName: "TestResults",
 	port: 6969,
-	timeout: 360e3,
 	root,
 	addScreenshots: true,
-	testConfig: { projectName: "WDIO:Cucumber" },
+	testConfig: {
+		projectName: process.env.SANITY
+			? "sanity-test-wdio-cucumber"
+			: "test-wdio-mocha",
+	},
 });

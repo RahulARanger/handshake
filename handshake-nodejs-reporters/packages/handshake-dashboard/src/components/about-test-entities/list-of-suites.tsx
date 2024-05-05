@@ -1,11 +1,8 @@
 import {
-    Badge,
     Button,
     Center,
-    Grid,
     Group,
     Modal,
-    Paper,
     Stack,
     Text,
     Tooltip,
@@ -20,6 +17,7 @@ import type { RowRecord } from 'extractors/transform-test-entity';
 import transformTestEntity, {
     addRowsToSuiteStructure,
     spawnConverterForAnsiToHTML,
+    topLevelSuites,
     transformSuitesStructure,
 } from 'extractors/transform-test-entity';
 import React, { useMemo, useState } from 'react';
@@ -36,10 +34,12 @@ import { IconTrendingDown2 } from '@tabler/icons-react';
 import GridStyles from 'styles/data-table.module.css';
 import type { ColumnOrColumnGroup, Column } from 'react-data-grid';
 import { TreeDataGrid } from 'react-data-grid';
-import { groupBy as rowGrouper, sumBy } from 'lodash-es';
+import { groupBy as rowGrouper, sumBy, uniqBy } from 'lodash-es';
 import clsx from 'clsx';
 import { getStandingFromList } from 'extractors/transform-run-record';
-import TestEntityStatus from './test-entity-status';
+import TestEntityStatus, {
+    TestEntityStatusMetrics,
+} from './test-entity-status';
 import CountUpNumber from 'components/counter';
 import { useDisclosure } from '@mantine/hooks';
 import ErrorCard from './error-card';
@@ -308,12 +308,15 @@ export default function ListOfSuits(properties: {
                                 {
                                     key: 'numberOfErrors',
                                     name: 'Errors',
-                                    width: 65,
+                                    width: 63,
                                     headerCellClass: GridStyles.cell,
                                     cellClass: (row) =>
                                         clsx(
                                             row.Status === 'FAILED'
-                                                ? GridStyles.redRow
+                                                ? clsx(
+                                                      GridStyles.redRow,
+                                                      GridStyles.clickable,
+                                                  )
                                                 : undefined,
                                             GridStyles.cell,
                                         ),
@@ -337,7 +340,7 @@ export default function ListOfSuits(properties: {
                                     renderGroupCell: (rows) => (
                                         <CountUpNumber
                                             endNumber={sumBy(
-                                                rows.childRows,
+                                                topLevelSuites(rows.childRows),
                                                 'numberOfErrors',
                                             )}
                                             cn={GridStyles.FHCell}
@@ -347,14 +350,14 @@ export default function ListOfSuits(properties: {
                                 {
                                     key: 'totalRollupValue',
                                     name: 'Tests',
-                                    width: 65,
+                                    width: 63,
 
                                     cellClass: GridStyles.cell,
                                     headerCellClass: GridStyles.cell,
                                     renderGroupCell: (rows) => (
                                         <CountUpNumber
                                             endNumber={sumBy(
-                                                rows.childRows,
+                                                topLevelSuites(rows.childRows),
                                                 'totalRollupValue',
                                             )}
                                             cn={GridStyles.FHCell}
@@ -367,53 +370,31 @@ export default function ListOfSuits(properties: {
                                     width: 110,
                                     cellClass: GridStyles.cell,
                                     headerCellClass: GridStyles.cell,
-                                    renderCell: ({ row, rowIdx }) => {
-                                        return (
-                                            <Group
-                                                gap={2}
-                                                wrap="nowrap"
-                                                key={rowIdx}
-                                                justify="space-between"
-                                            >
-                                                <Tooltip
-                                                    color="green.8"
-                                                    label="Passed"
-                                                >
-                                                    <Badge
-                                                        color="green.6"
-                                                        size="sm"
-                                                        variant="light"
-                                                    >
-                                                        {row.RollupValues[0]}
-                                                    </Badge>
-                                                </Tooltip>
-                                                <Tooltip
-                                                    color="red.8"
-                                                    label="Failed"
-                                                >
-                                                    <Badge
-                                                        variant="light"
-                                                        color="red.9"
-                                                        size="sm"
-                                                    >
-                                                        {row.RollupValues[1]}
-                                                    </Badge>
-                                                </Tooltip>
-                                                <Tooltip
-                                                    color="yellow.9"
-                                                    label="Skipped"
-                                                >
-                                                    <Badge
-                                                        color="yellow.9"
-                                                        size="sm"
-                                                        variant="light"
-                                                    >
-                                                        {row.RollupValues[2]}
-                                                    </Badge>
-                                                </Tooltip>
-                                            </Group>
-                                        );
-                                    },
+                                    renderCell: ({ row, rowIdx }) => (
+                                        <TestEntityStatusMetrics
+                                            key={rowIdx}
+                                            passed={row.RollupValues[0]}
+                                            failed={row.RollupValues[1]}
+                                            skipped={row.RollupValues[2]}
+                                        />
+                                    ),
+                                    renderGroupCell: (rows) => (
+                                        <TestEntityStatusMetrics
+                                            cn={GridStyles.FHCell}
+                                            passed={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'RollupValues.0',
+                                            )}
+                                            failed={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'RollupValues.1',
+                                            )}
+                                            skipped={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'RollupValues.2',
+                                            )}
+                                        />
+                                    ),
                                 },
                                 {
                                     key: 'Contribution',
@@ -432,7 +413,7 @@ export default function ListOfSuits(properties: {
                                     renderGroupCell: (rows) => (
                                         <CountUpNumber
                                             endNumber={sumBy(
-                                                rows.childRows,
+                                                topLevelSuites(rows.childRows),
                                                 'Contribution',
                                             )}
                                             cn={GridStyles.FHCell}
@@ -450,18 +431,36 @@ export default function ListOfSuits(properties: {
                             renderCell: ({ row, rowIdx }) => {
                                 return (
                                     <PlatformEntity
-                                        entityName={
-                                            row.entityName as possibleEntityNames
-                                        }
+                                        entityNames={[
+                                            row.entityName as possibleEntityNames,
+                                        ]}
                                         size="sm"
                                         key={rowIdx}
-                                        entityVersion={row.entityVersion}
-                                        simplified={row.simplified}
+                                        entityVersion={[row.entityVersion]}
+                                        simplified={[row.simplified]}
                                     />
                                 );
                             },
-                            cellClass: GridStyles.cell,
-                            headerCellClass: GridStyles.cell,
+                            // renderGroupCell: (rows) => {
+                            //     rows.childRows
+                            //     (
+                            //         <CountUpNumber
+                            //             endNumber={sumBy(
+                            //                 topLevelSuites(rows.childRows),
+                            //                 'numberOfErrors',
+                            //             )}
+                            //             cn={GridStyles.FHCell}
+                            //         />
+                            //     )
+                            // },
+                            cellClass: clsx(
+                                GridStyles.cell,
+                                GridStyles.clickable,
+                            ),
+                            headerCellClass: clsx(
+                                GridStyles.cell,
+                                GridStyles.clickable,
+                            ),
                         },
                     ] as Array<
                         Column<ParsedSuiteRecord, unknown> &
@@ -487,6 +486,7 @@ export default function ListOfSuits(properties: {
                 onCellClick={(cell) => {
                     switch (cell.column.key) {
                         case 'numberOfErrors': {
+                            if (!cell.row.numberOfErrors) return;
                             setErrorsToShow(() => cell.row.errors);
                             open();
                             break;
@@ -496,8 +496,27 @@ export default function ListOfSuits(properties: {
             />
             <Modal
                 opened={opened}
-                onClose={close}
+                onClose={() => {
+                    close();
+                    setErrorsToShow(() => []);
+                }}
                 title={`Errors (${errorsToShow.length})`}
+                centered
+                size="lg"
+            >
+                <Stack p="sm">
+                    {errorsToShow.map((error, index) => (
+                        <ErrorCard error={error} key={index} />
+                    ))}
+                </Stack>
+            </Modal>
+            <Modal
+                opened={opened && errorsToShow.length === 0}
+                onClose={() => {
+                    close();
+                    setErrorsToShow(() => []);
+                }}
+                title={'Platform'}
                 centered
                 size="lg"
             >
@@ -510,56 +529,3 @@ export default function ListOfSuits(properties: {
         </>
     );
 }
-
-// function SuiteDetailedView(properties: {
-//     record: ParsedSuiteRecord;
-// }): ReactNode {
-//     const record = properties.record;
-//     return (
-//         <Card withBorder radius="md" shadow="xl">
-//             <Card.Section withBorder p="xs">
-//                 <Text size="sm">Description</Text>
-//             </Card.Section>
-//             {record.Desc ? (
-//                 <Card.Section p="sm" px="sm">
-//                     <Text size="sm">{record.Desc}</Text>
-//                 </Card.Section>
-//             ) : (
-//                 <></>
-//             )}
-
-//             <Card.Section p="xs">
-//                 {record.Desc ? (
-//                     <Text size="sm" c="dimmed">
-//                         {record.Desc}
-//                     </Text>
-//                 ) : (
-//                     <Text size="xs" c="dimmed" fs="italic">
-//                         No Description Provided
-//                     </Text>
-//                 )}
-//             </Card.Section>
-//             <Card.Section withBorder p="xs">
-//                 <Group justify="space-between" wrap="nowrap">
-//                     <Text size="sm">Errors</Text>
-//                     <Badge color="red.9" variant="light" size="sm">
-//                         {record.numberOfErrors}
-//                     </Badge>
-//                 </Group>
-//             </Card.Section>
-//             <Card.Section p="xs">
-// {record.errors.length > 0 ? (
-//     <Grid p="sm">
-//         {record.errors.map((error, index) => (
-//             <Grid.Col span="content" key={index}>
-//                 <ErrorCard error={error} key={index} />
-//             </Grid.Col>
-//         ))}
-//     </Grid>
-// ) : (
-//     <Alert color="green" title="No Errors Found" />
-// )}
-//             </Card.Section>
-//         </Card>
-//     );
-// }

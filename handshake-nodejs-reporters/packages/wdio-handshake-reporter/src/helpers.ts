@@ -1,6 +1,6 @@
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
-import { Assertion } from 'common-handshakes';
+import { Assertion, checkVersion } from 'common-handshakes';
 import { HandshakeServiceOptions, ReporterOptions } from './types';
 import HandshakeService from './service';
 import { currentReporter } from './contacts';
@@ -10,6 +10,7 @@ export function attachReporter(
   options: ReporterOptions & HandshakeServiceOptions,
 ): Options.Testrunner {
   if (options.disabled) return config;
+  checkVersion();
 
   const port = options.port ?? 6969;
   const toModify = config;

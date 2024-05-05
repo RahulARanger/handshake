@@ -56,6 +56,31 @@ export default class HandshakeService
     const cap = config.capabilities as WebdriverIO.Capabilities;
     const platformName = String(cap?.platformName ?? process.platform);
 
+    const tags = [];
+
+    switch (config.framework?.toLowerCase()) {
+      case 'cucumber': {
+        if (config?.cucumberOpts?.tags) tags.push({ name: config.cucumberOpts.tags, label: 'cucumberOpts:tags' });
+        if (config?.cucumberOpts?.profile) tags.push({ name: config.cucumberOpts.profile as string, label: 'cucumberOpts:profile' });
+        break;
+      }
+      case 'mocha': {
+        if (config.mochaOpts?.ui) tags.push({ name: config.mochaOpts?.ui, label: 'mochaOpts:ui' });
+        if (config.mochaOpts?.invert === false) tags.push({ name: 'inverted', label: 'inverted grep filters' });
+        if (config.mochaOpts?.grep) tags.push({ name: config.mochaOpts?.grep, label: 'mochaOpts:grep' });
+        if (config.mochaOpts?.fgrep) tags.push({ name: config.mochaOpts?.fgrep, label: 'mochaOpts:fgrep' });
+        break;
+      }
+      case 'jasmine': {
+        if (config.jasmineOpts?.invertGrep === false) tags.push({ name: 'inverted', label: 'inverted grep filters' });
+        if (config.jasmineOpts?.grep) tags.push({ name: config.jasmineOpts?.grep, label: 'jasmineOpts:grep' });
+        break;
+      }
+      default: {
+        this.logger.warn(`Unknown framework: ${config.framework}`);
+      }
+    }
+
     await this.supporter.updateRunConfig({
       maxInstances: config.maxInstances ?? 1,
       platformName,
@@ -64,6 +89,7 @@ export default class HandshakeService
       fileRetries: config.specFileRetries ?? 0,
       bail: config.bail ?? 0,
       exitCode,
+      tags,
     });
 
     const completed = this.supporter.pyProcess?.killed;

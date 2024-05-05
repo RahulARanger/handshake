@@ -76,6 +76,7 @@ export function spawnConverterForAnsiToHTML(): Convert {
 export type RowRecord = ParsedSuiteRecord & {
     children: ParsedSuiteRecord[];
     isExpanded: boolean;
+    level: number;
 };
 
 export function transformSuitesStructure(suites: ParsedSuiteRecord[]) {
@@ -88,6 +89,7 @@ export function transformSuitesStructure(suites: ParsedSuiteRecord[]) {
             ...suite,
             children: [],
             isExpanded: false,
+            level: (telephoneBook[suite.Parent]?.level ?? -1) + 1,
         };
         telephoneBook[suite.Id] = testSuite;
 
@@ -120,4 +122,10 @@ export function addRowsToSuiteStructure(suites: RowRecord[], fromId: string) {
         );
     }
     return addedSuites;
+}
+
+export function topLevelSuites(
+    suites: RowRecord[] | readonly ParsedSuiteRecord[],
+) {
+    return suites.filter((suite) => !(suite as RowRecord).level);
 }

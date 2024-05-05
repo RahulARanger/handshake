@@ -1,0 +1,64 @@
+name: 'test-build'
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - build
+    paths:
+      - "handshake-nodejs-reporters/*"
+      - "handshake/*"
+      - ".github/*"
+      - "__test__/*"
+      - "noxfile.py"
+      - "**test-build.yml"
+      - "poetry.toml"
+      - "pyproject.toml"
+      - "poetry.lock"
+
+
+jobs:
+    decide:
+      runs-on: ubuntu-latest
+      outputs:
+        dashboard: ${{ steps.filter.outputs.dashboard }}
+      name: decides which job to run based on the file changes
+
+      steps:
+        - uses: actions/checkout@v4
+        - uses: dorny/paths-filter@v3
+          id: filter
+          with:
+            filters: |
+              dashboard:
+                - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+
+    test-dashboard:
+      needs: decide
+      name: testing the dashboard build
+      runs-on: 'ubuntu-latest'
+      if: ${{ needs.changes.outputs.dashboard == 'true' }}
+
+      steps:
+        - uses: actions/checkout@v4
+        - name: Use Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20.9.0
+        - name: Installing node packages
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+
+        - name: Building storybook
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm run build-storybook --quiet
+
+        - name: Conducting Component Tests
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+            "npx http-server storybook-static --port 6006 --silent" \
+            "npx wait-on tcp:6006 && npm run test-storybook"
+
+        - name: Building Dashboard
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm run build
