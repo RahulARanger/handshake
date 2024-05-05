@@ -40,6 +40,7 @@ jobs:
 
   release:
     name: bundling the dashboard-build
+    needs: decide
     runs-on: 'ubuntu-latest'
     permissions: write-all
     if: ${{ needs.decide.outputs.dashboard == 'true' }}
