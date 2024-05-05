@@ -2,7 +2,6 @@ import React, { type ReactNode } from 'react';
 import type { AppProps } from 'next/app';
 import 'styles/globals.css';
 import '@mantine/core/styles.css';
-import 'mantine-datatable/styles.layer.css';
 import 'react-data-grid/lib/styles.css';
 import '@mantine/charts/styles.css';
 import '@mantine/carousel/styles.css';
