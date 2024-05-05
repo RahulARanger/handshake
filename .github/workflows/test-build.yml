@@ -38,7 +38,7 @@ jobs:
       needs: decide
       name: testing the dashboard build
       runs-on: 'ubuntu-latest'
-      if: ${{ needs.changes.outputs.dashboard == 'true' }}
+      if: ${{ needs.decide.outputs.dashboard == 'true' }}
 
       steps:
         - uses: actions/checkout@v4

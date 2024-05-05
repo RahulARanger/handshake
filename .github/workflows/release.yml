@@ -36,7 +36,7 @@ jobs:
     name: bundling the dashboard-build
     runs-on: 'ubuntu-latest'
     permissions: write-all
-    if: ${{ needs.changes.outputs.dashboard == 'true' }}
+    if: ${{ needs.decide.outputs.dashboard == 'true' }}
 
     steps:
       - uses: actions/checkout@v4
