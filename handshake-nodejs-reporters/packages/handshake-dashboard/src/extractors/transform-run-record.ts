@@ -4,17 +4,15 @@ import type { DetailedTestRecord } from 'types/parsed-records';
 import { testRunPage } from 'components/links';
 import type {
     possibleFrameworks,
-    specNode,
+    specStructure,
     SuiteSummary,
     TestRunRecord,
 } from 'types/test-run-records';
 import type { Duration } from 'dayjs/plugin/duration';
 import duration from 'dayjs/plugin/duration';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
-import type {
-    possibleEntityNames,
-    statusOfEntity,
-} from 'types/session-records';
+import type { statusOfEntity } from 'types/session-records';
+import type { PlatformDetails } from 'components/about-test-entities/platform-entity';
 
 dayjs.extend(duration);
 
@@ -47,7 +45,7 @@ export default function transformTestRunRecord(
         Suites: suiteSummary.count,
         Link: testRunPage(testRunRecord.testID),
         projectName: testRunRecord.projectName.trim(),
-        specStructure: JSON.parse(testRunRecord.specStructure) as specNode,
+        specStructure: JSON.parse(testRunRecord.specStructure) as specStructure,
         timelineIndex: testRunRecord.timelineIndex - 1,
         projectIndex: testRunRecord.projectIndex - 1,
         Bail: testRunRecord.bail,
@@ -62,11 +60,7 @@ export default function transformTestRunRecord(
 export interface OverviewOfEntities {
     recentSuites: SuiteRecordDetails[];
     aggregated: { files: number; sessions: number };
-    platforms: Array<{
-        entityName: possibleEntityNames;
-        entityVersion: string;
-        simplified: string;
-    }>;
+    platforms: PlatformDetails;
 }
 export interface MiniSuitePreview {
     Started: Dayjs;

@@ -142,8 +142,8 @@ class PatchTestRun:
                         )
                         .group_by("file")
                         .prefetch_related("rollup")
-                        .annotate(suites=Sum("tests"))
-                        .values_list("file", "rollup__tests")
+                        .annotate(tests=Sum("rollup__tests"))
+                        .values_list("file", "tests")
                     ]
                 ),
                 standing=fetch_key_from_status(

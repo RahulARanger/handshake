@@ -27,14 +27,13 @@ import type { ErrorRecord } from 'types/test-entity-related';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
 import type { TestRunRecord } from 'types/test-run-records';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
-import PlatformEntity from './platform-entity';
-import type { possibleEntityNames } from 'types/session-records';
+import PlatformEntity, { DetailedPlatformVersions } from './platform-entity';
 import type { ParsedSuiteRecord } from 'types/parsed-records';
 import { IconTrendingDown2 } from '@tabler/icons-react';
 import GridStyles from 'styles/data-table.module.css';
 import type { ColumnOrColumnGroup, Column } from 'react-data-grid';
 import { TreeDataGrid } from 'react-data-grid';
-import { groupBy as rowGrouper, sumBy, uniqBy } from 'lodash-es';
+import { pick, groupBy as rowGrouper, sumBy, uniqBy } from 'lodash-es';
 import clsx from 'clsx';
 import { getStandingFromList } from 'extractors/transform-run-record';
 import TestEntityStatus, {
@@ -71,9 +70,11 @@ export default function ListOfSuits(properties: {
 
     const suites = useMemo(() => {
         const converter = spawnConverterForAnsiToHTML();
-        return (data ?? []).map((suite) =>
-            transformTestEntity(suite, run?.tests ?? 0, converter),
-        );
+        return (data ?? [])
+            .filter((suite) => suite.standing !== 'RETRIED')
+            .map((suite) =>
+                transformTestEntity(suite, run?.tests ?? 0, converter),
+            );
     }, [run?.tests, data]);
 
     const [expandedGroupIds, setExpandedGroupIds] = useState(
@@ -97,6 +98,10 @@ export default function ListOfSuits(properties: {
 
     const [opened, { open, close }] = useDisclosure(false);
     const [errorsToShow, setErrorsToShow] = useState<ErrorRecord[]>([]);
+    const [groupedRowsByFile, setGroupedRowsByFile] = useState<{
+        records: ParsedSuiteRecord[];
+        title: string;
+    }>({ records: [], title: '' });
 
     return (
         <>
@@ -206,7 +211,7 @@ export default function ListOfSuits(properties: {
                             resizable: true,
                             cellClass: GridStyles.cell,
                             headerCellClass: GridStyles.cell,
-                            renderGroupCell: ({ groupKey }) => (
+                            renderGroupCell: ({ groupKey, tabIndex }) => (
                                 <Tooltip
                                     label={groupKey as string}
                                     color="violet"
@@ -214,6 +219,7 @@ export default function ListOfSuits(properties: {
                                     <Button
                                         size="sm"
                                         className={GridStyles.cell}
+                                        tabIndex={tabIndex}
                                         style={{
                                             height: '100%',
                                             width: '100%',
@@ -365,7 +371,7 @@ export default function ListOfSuits(properties: {
                                     ),
                                 },
                                 {
-                                    key: 'totalRollupValue',
+                                    key: 'Entities',
                                     name: 'Entities',
                                     width: 110,
                                     cellClass: GridStyles.cell,
@@ -427,40 +433,60 @@ export default function ListOfSuits(properties: {
                         {
                             key: 'entityName',
                             name: 'Platform',
-                            width: 120,
+                            width: 110,
                             renderCell: ({ row, rowIdx }) => {
                                 return (
                                     <PlatformEntity
-                                        entityNames={[
-                                            row.entityName as possibleEntityNames,
-                                        ]}
+                                        records={[row]}
                                         size="sm"
                                         key={rowIdx}
-                                        entityVersion={[row.entityVersion]}
-                                        simplified={[row.simplified]}
                                     />
                                 );
                             },
-                            // renderGroupCell: (rows) => {
-                            //     rows.childRows
-                            //     (
-                            //         <CountUpNumber
-                            //             endNumber={sumBy(
-                            //                 topLevelSuites(rows.childRows),
-                            //                 'numberOfErrors',
-                            //             )}
-                            //             cn={GridStyles.FHCell}
-                            //         />
-                            //     )
-                            // },
+                            renderGroupCell: (rows) => {
+                                return (
+                                    <Button
+                                        variant="subtle"
+                                        color="violet"
+                                        tabIndex={rows.tabIndex}
+                                        w={'100%'}
+                                        onClick={() => {
+                                            setGroupedRowsByFile(() => ({
+                                                records: uniqBy(
+                                                    rows.childRows,
+                                                    'simplified',
+                                                ).map((row) =>
+                                                    pick(row, [
+                                                        'entityName',
+                                                        'entityVersion',
+                                                        'simplified',
+                                                    ]),
+                                                ) as ParsedSuiteRecord[],
+                                                title: `Platforms for File: ${rows.childRows?.at(0)?.File}`,
+                                            }));
+                                            open();
+                                        }}
+                                    >
+                                        <PlatformEntity
+                                            records={uniqBy(
+                                                rows.childRows,
+                                                'simplified',
+                                            )}
+                                            c={clsx(
+                                                GridStyles.clickable,
+                                                GridStyles.FHCell,
+                                            )}
+                                            size="sm"
+                                            moveRight
+                                        />
+                                    </Button>
+                                );
+                            },
                             cellClass: clsx(
                                 GridStyles.cell,
                                 GridStyles.clickable,
                             ),
-                            headerCellClass: clsx(
-                                GridStyles.cell,
-                                GridStyles.clickable,
-                            ),
+                            headerCellClass: GridStyles.cell,
                         },
                     ] as Array<
                         Column<ParsedSuiteRecord, unknown> &
@@ -491,11 +517,25 @@ export default function ListOfSuits(properties: {
                             open();
                             break;
                         }
+                        case 'entityName': {
+                            setGroupedRowsByFile(() => ({
+                                records: [
+                                    pick(cell.row, [
+                                        'entityName',
+                                        'entityVersion',
+                                        'simplified',
+                                    ]) as ParsedSuiteRecord,
+                                ],
+                                title: `"${cell.row.Title.slice(0, 30) + (cell.row.Title.length > 10 ? '...' : '')}" ran on ${cell.row.entityName}`,
+                            }));
+                            open();
+                            break;
+                        }
                     }
                 }}
             />
             <Modal
-                opened={opened}
+                opened={opened && errorsToShow.length > 0}
                 onClose={() => {
                     close();
                     setErrorsToShow(() => []);
@@ -510,22 +550,15 @@ export default function ListOfSuits(properties: {
                     ))}
                 </Stack>
             </Modal>
-            <Modal
+            <DetailedPlatformVersions
+                title={groupedRowsByFile.title}
+                records={groupedRowsByFile.records}
                 opened={opened && errorsToShow.length === 0}
                 onClose={() => {
                     close();
-                    setErrorsToShow(() => []);
+                    setGroupedRowsByFile({ records: [], title: '' });
                 }}
-                title={'Platform'}
-                centered
-                size="lg"
-            >
-                <Stack p="sm">
-                    {errorsToShow.map((error, index) => (
-                        <ErrorCard error={error} key={index} />
-                    ))}
-                </Stack>
-            </Modal>
+            />
         </>
     );
 }

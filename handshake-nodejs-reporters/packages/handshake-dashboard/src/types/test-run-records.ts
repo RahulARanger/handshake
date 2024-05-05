@@ -32,7 +32,7 @@ export interface TestRunRecord extends OnlyTestRunRecord {
 export type specStructure = Record<string, specNode>;
 
 export type specNode = {
-    paths: specStructure;
+    paths?: specStructure;
     current: string;
     suites?: number;
 };

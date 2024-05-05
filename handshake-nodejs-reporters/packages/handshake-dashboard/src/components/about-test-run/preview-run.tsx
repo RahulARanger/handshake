@@ -31,6 +31,7 @@ import { IconArrowsHorizontal } from '@tabler/icons-react';
 import GridStyles from 'styles/data-table.module.css';
 import GradientStyles from 'styles/gradients.module.css';
 import type { DetailedTestRecord } from 'types/parsed-records';
+import CountUpNumber from 'components/counter';
 
 type treeNode = {
     name: string;
@@ -48,7 +49,7 @@ function fetchTree(root: specStructure) {
     while (q && q.length > 0) {
         const [node, name, addTo] = q.pop() as [specNode, string, treeNode[]];
 
-        if (Object.keys(node.paths).length === 0) {
+        if (Object.keys(node.paths ?? []).length === 0) {
             addTo.push({
                 name,
                 path: node.current,
@@ -66,17 +67,15 @@ function fetchTree(root: specStructure) {
         });
 
         q.push(
-            ...(Object.keys(node.paths).map((child) => [
-                node.paths[child],
+            ...(Object.keys(node?.paths ?? []).map((child) => [
+                (node?.paths ?? {})[child],
                 child,
                 children,
             ]) as Array<[specNode, string, treeNode[]]>),
         );
     }
 
-    console.log(subTree);
-
-    return subTree?.at(0)?.children ?? [];
+    return subTree;
 }
 
 function CustomTooltip(properties: TooltipProps<string[], 'name' | 'size'>) {
@@ -85,11 +84,20 @@ function CustomTooltip(properties: TooltipProps<string[], 'name' | 'size'>) {
     return (
         <Card>
             <Card.Section withBorder p="xs">
-                <Text size="sm">{note.payload.name}</Text>
-                <sub>
-                    <Text fs="italic" size="xs">
-                        {note.payload.path}
-                    </Text>
+                <Text size="sm" aria-label="file-name">
+                    {note.payload.name}
+                </Text>
+                <sub aria-label="file-details">
+                    <Group wrap="nowrap" align="baseline">
+                        <Text fs="italic" size="xs" aria-label="file-path">
+                            {note.payload.path}
+                        </Text>
+                        <CountUpNumber
+                            endNumber={note.payload.size ?? 1}
+                            prefix="Tests: "
+                            style={{ fontStyle: 'italic', fontSize: '.69rem' }}
+                        />
+                    </Group>
                 </sub>
             </Card.Section>
         </Card>

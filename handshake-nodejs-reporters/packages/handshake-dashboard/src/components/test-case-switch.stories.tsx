@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { fn } from '@storybook/test';
+import { expect, fn, userEvent, within } from '@storybook/test';
 import SwitchTestCases from 'components/test-case-switch';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
@@ -26,12 +26,36 @@ export const Primary: Story = {
     args: {
         isDefaultTestCases: true,
     },
+    play: async ({ canvasElement, step }) => {
+        const screen = within(canvasElement);
+
+        await step('testing the default value', async () => {
+            await expect(screen.getByText('Tests')).toBeInTheDocument();
+            await expect(screen.queryByText('Suites')).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('switch'));
+            await expect(screen.queryByText('Tests')).not.toBeInTheDocument();
+            await expect(screen.getByText('Suites')).toBeInTheDocument();
+        });
+    },
 };
 
 export const WithPrefix: Story = {
     args: {
-        isDefaultTestCases: true,
+        isDefaultTestCases: false,
         prefix: 'x-',
         trackWidth: 70,
+    },
+    play: async ({ canvasElement, step }) => {
+        const screen = within(canvasElement);
+
+        await step('testing the prefix value', async () => {
+            await expect(screen.queryByText('x-Tests')).not.toBeInTheDocument();
+            await expect(screen.getByText('x-Suites')).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('switch'));
+            await expect(screen.getByText('x-Tests')).toBeInTheDocument();
+            await expect(
+                screen.queryByText('x-Suites'),
+            ).not.toBeInTheDocument();
+        });
     },
 };

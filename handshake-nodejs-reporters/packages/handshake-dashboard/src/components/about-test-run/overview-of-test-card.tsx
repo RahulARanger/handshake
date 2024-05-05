@@ -43,7 +43,10 @@ import type { DetailedTestRecord } from 'types/parsed-records';
 import { FrameworksUsed } from './framework-icons';
 import { OnPlatform } from './platform-icon';
 import type { OverviewOfEntities } from 'extractors/transform-run-record';
-import PlatformEntity from 'components/about-test-entities/platform-entity';
+import PlatformEntity, {
+    DetailedPlatformVersions,
+} from 'components/about-test-entities/platform-entity';
+import { useDisclosure } from '@mantine/hooks';
 
 dayjs.extend(duration);
 
@@ -84,6 +87,8 @@ function NotedValues(properties: {
             ),
     );
 
+    const [opened, { open, close }] = useDisclosure();
+
     return (
         <Paper withBorder radius="md">
             <Table>
@@ -113,9 +118,22 @@ function NotedValues(properties: {
                         <Table.Tr>
                             <Table.Td>Platforms</Table.Td>
                             <Table.Td>
-                                <PlatformEntity
+                                <ActionIcon
+                                    onClick={() => open()}
+                                    color="gray"
+                                    variant="light"
+                                    w={20 + 10 * rawFeed.platforms.length}
+                                >
+                                    <PlatformEntity
+                                        records={rawFeed.platforms}
+                                        size="sm"
+                                    />
+                                </ActionIcon>
+                                <DetailedPlatformVersions
                                     records={rawFeed.platforms}
-                                    size="sm"
+                                    opened={opened}
+                                    onClose={close}
+                                    title={'Ran on Platforms:'}
                                 />
                             </Table.Td>
                             <Table.Td>
@@ -257,10 +275,10 @@ export default function OverviewCard(properties: {
         ? -(run.projectIndex + 1)
         : undefined;
 
-    const fromFrontIndex =
-        run?.projectIndex !== undefined && ids.length - run?.projectIndex - 1;
-    const previousProject = fromFrontIndex !== false && ids[fromFrontIndex - 1];
-    const nextProject = fromFrontIndex !== false && ids[fromFrontIndex + 1];
+    const previousProject =
+        run?.projectIndex !== undefined && ids[run?.projectIndex + 1];
+    const nextProject =
+        run?.projectIndex !== undefined && ids[run?.projectIndex - 1];
 
     const improvedCount =
         (rateValues && getChange(testCounts, relativeIndex)) ?? '--';
@@ -390,7 +408,6 @@ export default function OverviewCard(properties: {
                                             size="sm"
                                             variant="subtle"
                                             disabled={!nextProject}
-                                            c={nextProject ? undefined : 'gray'}
                                             radius={'sm'}
                                             ml={0}
                                         >
