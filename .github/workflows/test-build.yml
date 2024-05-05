@@ -19,6 +19,7 @@ on:
 
 jobs:
     decide:
+      # TODO: skip decide job if manually triggered
       runs-on: ubuntu-latest
       outputs:
         dashboard: ${{ steps.filter.outputs.dashboard }}

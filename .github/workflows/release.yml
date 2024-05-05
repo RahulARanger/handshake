@@ -1,7 +1,8 @@
 name: 'releases'
 
 on:
-  workflow_dispatch:
+  # NOTE: yet to decided if manual trigger is required
+  #  workflow_dispatch:
   push:
     branches:
       - master
@@ -30,7 +31,6 @@ jobs:
           filters: |
             dashboard:
               - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
-            
 
   release:
     name: bundling the dashboard-build
