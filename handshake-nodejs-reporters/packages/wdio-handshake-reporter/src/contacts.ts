@@ -25,7 +25,7 @@ export default class ReporterContacts extends WDIOReporter {
 
     this.supporter = new ReporterDialPad(
       this.options.port,
-      this.options.timeout,
+      this.options.requestsTimeout,
       this.options.logLevel,
     );
     currentReporter = this;

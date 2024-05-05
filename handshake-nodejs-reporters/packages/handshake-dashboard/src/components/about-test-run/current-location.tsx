@@ -12,6 +12,7 @@ import {
 import { IconCaretDown, IconGrid4x4, IconRipple } from '@tabler/icons-react';
 import { runsPage, suitesPage, testRunPage } from 'components/links';
 import { useRouter, type NextRouter } from 'next/router';
+import ApplicationName from 'components/about-test-runs/application-name';
 
 export type TestRunTab = 'Overview' | 'Suites';
 
@@ -57,6 +58,7 @@ export default function CurrentLocation(properties: {
     return (
         <Group align="center" mb="xs">
             <Breadcrumbs mb={4}>
+                <ApplicationName size="sm" />
                 <Anchor size="sm" href={runsPage()}>
                     Runs
                 </Anchor>
@@ -65,11 +67,11 @@ export default function CurrentLocation(properties: {
                 </Text>
                 <Menu trigger="click-hover">
                     <Menu.Target>
-                        <Text>
+                        <Text size="sm">
                             {properties.where}
                             <sub>
                                 <IconCaretDown
-                                    size=".6rem"
+                                    size=".55rem"
                                     style={{ marginTop: rem(13) }}
                                 />
                             </sub>

@@ -12,6 +12,11 @@ class CommonRegisterCols(BaseModel):
     started: datetime
 
 
+class Tag(TypedDict):
+    name: str
+    label: str
+
+
 class RegisterSession(CommonRegisterCols):
     ...
 
@@ -24,7 +29,7 @@ class RegisterSuite(CommonRegisterCols):
     session_id: uuid.UUID
     file: str
     parent: str
-    tags: Optional[List] = []
+    tags: Optional[List[Tag]] = []
 
 
 class MarkSession(BaseModel):
@@ -92,4 +97,4 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     bail: Optional[int] = 0
     fileRetries: Optional[int] = 0
     avoidParentSuitesInCount: Optional[bool] = False
-    teamsHook: Optional[str] = ""
+    tags: List[Tag]

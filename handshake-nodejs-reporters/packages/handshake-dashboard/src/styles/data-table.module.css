@@ -1,0 +1,60 @@
+.evenRow .cell {
+    background-color: var(--mantine-color-dark-filled);
+}
+
+.oddRow .cell {
+    background-color: var(--mantine-color-dark-light);
+}
+
+.evenRow:hover .cell,
+.oddRow:hover .cell {
+    background-color: var(--mantine-color-dark-filled-hover);
+    box-shadow: var(--thick-box);
+}
+
+.cell {
+    padding: 3px;
+    padding-top: 0px;
+    padding-left: 7px;
+    display: flex;
+    align-items: center;
+    transition: box-shadow 0.5s ease;
+}
+
+.FHCell {
+    padding: 3px;
+    padding-top: 0px;
+    padding-left: 7px;
+    display: flex;
+    align-items: center !important;
+    transition: box-shadow 0.5s ease;
+    height: 100% !important;
+    width: 100% !important;
+}
+
+.clickable {
+    cursor: pointer;
+}
+
+.table {
+    background-color: var(--mantine-color-body);
+    border-radius: 0.4rem;
+    block-size: 100%;
+    padding: 2px;
+}
+
+.redRow {
+    color: var(--mantine-color-red-6);
+    background-color: light-dark(
+        color-mix(
+            in srgb,
+            var(--mantine-color-red-6) 10%,
+            var(--mantine-color-white)
+        ),
+        color-mix(
+            in srgb,
+            var(--mantine-color-red-6) 30%,
+            var(--mantine-color-black)
+        )
+    );
+}

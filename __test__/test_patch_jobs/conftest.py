@@ -24,6 +24,7 @@ async def helper_create_suite(
     file: str = "test-1.js",
 ):
     extras = {standing.lower(): 1} if is_test else {}
+    error = [] if standing != Status.FAILED else [{"message": "sample-error"}]
 
     return await SuiteBase.create(
         session_id=session_id,
@@ -36,6 +37,7 @@ async def helper_create_suite(
         parent=parent,
         tests=1,
         retried=retried,
+        errors=error,
         **extras,
     )
 
@@ -49,6 +51,29 @@ async def helper_create_all_types_of_tests(session_id: str, parent: str, retried
             )
 
 
+async def helper_create_session_with_hierarchy_with_no_retries(
+    test_id: str,
+    suite_files=("test-1.js", "test-2.js", "test-3.js"),
+    parent_suite: str = "",
+    started=datetime.datetime.now(),
+):
+    to_return = []
+
+    # 3 suites with each suite having 9 tests with 3 in failed, 2 passed, 3 skipped
+    for thing in suite_files:
+        session = await helper_create_session(test_id)
+        suite = await helper_create_suite(
+            session.sessionID, parent_suite, started=started, file=thing
+        )
+        to_return.append(str(session.sessionID))
+        await helper_create_all_types_of_tests(session.sessionID, suite.suiteID)
+        await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
+        await session.save()
+        await register_patch_suite(suite.suiteID, test_id)
+
+    return to_return
+
+
 async def helper_create_normal_suites(
     session_id: str,
     parent_suite: str,
@@ -60,6 +85,7 @@ async def helper_create_normal_suites(
     suites = []
     tests = []
 
+    # 3 suites with 3 tests in each (all tests have failed)
     for index in range(3):
         suite = await helper_create_suite(
             session_id,
@@ -168,3 +194,8 @@ def add_assertion():
 @fixture
 def create_session():
     return helper_create_session
+
+
+@fixture
+def create_session_with_hierarchy_with_no_retries():
+    return helper_create_session_with_hierarchy_with_no_retries

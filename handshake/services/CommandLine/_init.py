@@ -1,6 +1,6 @@
 import datetime
 import pprint
-from sqlite3 import connect
+from sqlite3 import connect, sqlite_version_info
 from click import (
     group,
     argument,
@@ -82,6 +82,17 @@ def db_version(collection_path):
     return check_version(db_path(collection_path))
 
 
+@handle_cli.command(
+    short_help="checks the version of the sqlite3 installed in your system"
+)
+def check_sqlite():
+    assert int(sqlite_version_info[0]) >= 3, "Required version is >= 3."
+    assert (
+        int(sqlite_version_info[1]) >= 38
+    ), "Required Version is >= 3.38,  for supporting our sql scripts, for supporting our sql scripts"
+    logger.info("your sqlite version is fine as per our need")
+
+
 @general_requirement
 @handle_cli.command(
     short_help="Migrates the database to the latest version as per the handshake executable.",
@@ -123,8 +134,32 @@ def migrate(collection_path: str):
 #     default=100,
 #     help="Asks Sanic to set the use max. number of workers",
 # )
-@option("--out", "-o", type=C_Path(dir_okay=True), required=False)
-def patch(collection_path, log_file: str, reset: bool = False, out: str = None):
+@option(
+    "--build",
+    "-b",
+    required=False,
+    help="builds the dashboard output at the build output folder",
+    type=C_Path(exists=True, file_okay=True, readable=True),
+)
+@option(
+    "--include",
+    "-i",
+    required=False,
+    help="generates the Import Data folder inside the test results (used for internal purposes only)",
+    type=bool,
+    is_flag=True,
+    default=False,
+    show_default=True,
+)
+@option("--out", "-o", type=C_Path(dir_okay=True, writable=True), required=False)
+def patch(
+    collection_path,
+    log_file: str,
+    reset: bool = False,
+    build: str = None,
+    out: str = None,
+    include=False,
+):
     if log_file:
         logger.add(
             log_file if log_file.endswith(".log") else f"{log_file}.log",
@@ -135,10 +170,11 @@ def patch(collection_path, log_file: str, reset: bool = False, out: str = None):
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    scheduler = Scheduler(collection_path, out, reset)
+    scheduler = Scheduler(collection_path, out, reset, build, include)
     try:
         run(scheduler.start())
     except (KeyboardInterrupt, SystemExit):
+        logger.warning("Scheduler terminated explicitly...")
         run(close_connection())
 
 

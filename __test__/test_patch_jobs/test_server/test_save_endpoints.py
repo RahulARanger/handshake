@@ -245,14 +245,16 @@ class TestSaveEndPoints:
             exitCode=1,
             bail=1,
             platformName="windows",
+            tags=[{"name": "*.py", "label": "only py file"}],
             avoidParentSuitesInCount=False,
         )
         request, response = await client.put("/save/currentRun", json=payload)
-        assert response.status == 200
+        assert response.status == 200, response.text
 
         record = await TestConfigBase.filter(test_id=test.testID).first()
         assert record is not None
-        assert record.exitCode == 1
+        test = await record.test
+        assert test.exitCode == 1
         assert record.platform == "windows"
         assert record.maxInstances == 1
         assert record.fileRetries == 1

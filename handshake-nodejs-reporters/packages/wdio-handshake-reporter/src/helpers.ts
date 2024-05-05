@@ -1,6 +1,6 @@
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
-import { Assertion } from 'common-handshakes';
+import { Assertion, checkVersion } from 'common-handshakes';
 import { HandshakeServiceOptions, ReporterOptions } from './types';
 import HandshakeService from './service';
 import { currentReporter } from './contacts';
@@ -9,6 +9,9 @@ export function attachReporter(
   config: Options.Testrunner,
   options: ReporterOptions & HandshakeServiceOptions,
 ): Options.Testrunner {
+  if (options.disabled) return config;
+  checkVersion();
+
   const port = options.port ?? 6969;
   const toModify = config;
 
@@ -20,7 +23,10 @@ export function attachReporter(
     {
       port,
       addScreenshots: options.addScreenshots || false,
-      timeout: Math.max(options.timeout ?? config.reporterSyncTimeout ?? 60e3, 60e3),
+      requestsTimeout: Math.max(
+        options.requestsTimeout ?? config.reporterSyncTimeout ?? 60e3,
+        60e3,
+      ),
       logLevel: options.logLevel ?? config.logLevel ?? 'info',
     },
   ]);
@@ -28,17 +34,21 @@ export function attachReporter(
   toModify.services.push([
     HandshakeService, {
       port,
-      timeout: Math.max(options.timeout ?? config.connectionRetryTimeout ?? 120e3, 120e3),
+      requestsTimeout: Math.max(
+        options.requestsTimeout ?? config.connectionRetryTimeout ?? 120e3,
+        120e3,
+      ),
+      reportGenerationTimeout: Math.max(options.reportGenerationTimeout ?? 180e3, 180e3),
       root: options.root,
       workers: options.workers,
       resultsFolderName: options.resultsFolderName,
       logLevel: options.logLevel ?? config.logLevel ?? 'info',
-      export: options.export,
       testConfig: {
         ...options.testConfig,
         avoidParentSuitesInCount:
           options.testConfig?.avoidParentSuitesInCount ?? config.framework === 'cucumber',
       },
+      exportOutDir: options.exportOutDir,
     },
   ]);
 

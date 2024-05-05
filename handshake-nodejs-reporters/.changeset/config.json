@@ -3,9 +3,9 @@
   "changelog": "@changesets/cli/changelog",
   "commit": false,
   "fixed": [],
-  "linked": [["wdio-handshake-reporter", "common-handshakes", "handshake-dashboard"]],
+  "linked": [["wdio-handshake-reporter", "common-handshakes"]],
   "access": "public",
   "baseBranch": "master",
   "updateInternalDependencies": "patch",
-  "ignore": ["test-*", "handshake-docs"]
+  "ignore": ["test-*", "handshake-dashboard"]
 }

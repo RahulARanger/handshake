@@ -6,11 +6,16 @@ export interface RegisterSession {
 export type SuiteType = 'SUITE' | 'TEST';
 export type Standing = 'PASSED' | 'FAILED' | 'SKIPPED' | 'PENDING' | 'YET_TO_CALC';
 
+interface Tag{
+  name: string;
+  label: string;
+}
+
 export interface RegisterTestEntity {
   title: string;
   description: string;
   file: string;
-  tags: Array<{ astNodeId: string, name: string }>;
+  tags: Tag[];
   started: string;
   suiteType: SuiteType;
   parent: string;
@@ -48,7 +53,7 @@ export interface UpdateTestRunConfig {
   fileRetries:number;
   bail?: number;
   avoidParentSuitesInCount: boolean;
-  teamsHook?:string;
+  tags: Tag[];
 }
 
 export interface Assertion {

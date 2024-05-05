@@ -59,7 +59,14 @@ export default class HandshakeReporter extends ReporterContacts {
       title,
       description: description ?? '',
       file: sanitizePaths([file || this.currentSuites.at(this.expectedIndex(snapshot, -1))?.file || '']).at(0) ?? '',
-      tags: tags?.map((tag, index) => ({ name: typeof tag === 'string' ? tag : tag.name, astNodeId: String(index) })) || [],
+      tags: tags?.map(
+        (tag: any) => (typeof tag === 'string'
+          ? { name: tag, label: 'tag' }
+          : {
+            name: tag.name,
+            label: tag?.location ? `${file}-${tag?.location.line}:${tag?.location.column}` : `${file}:${JSON.stringify(tag)}`,
+          }),
+      )?.filter((tag) => tag) || [],
       started,
       suiteType: type,
       parent: this.fetchParent(suiteOrTest, snapshot),

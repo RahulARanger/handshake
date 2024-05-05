@@ -1,18 +1,8 @@
 import {
-    ActionIcon,
-    Alert,
-    Badge,
-    Box,
-    Breadcrumbs,
     Button,
-    Card,
-    Collapse,
-    Divider,
-    Grid,
+    Center,
     Group,
-    Paper,
-    rem,
-    Skeleton,
+    Modal,
     Stack,
     Text,
     Tooltip,
@@ -23,31 +13,35 @@ import {
 } from 'components/links';
 import { TimeRange } from 'components/timings/time-range';
 import dayjs from 'dayjs';
+import type { RowRecord } from 'extractors/transform-test-entity';
 import transformTestEntity, {
-    spawnConverter,
+    addRowsToSuiteStructure,
+    spawnConverterForAnsiToHTML,
+    topLevelSuites,
+    transformSuitesStructure,
 } from 'extractors/transform-test-entity';
-import { DataTable } from 'mantine-datatable';
 import React, { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import useSWRImmutable from 'swr/immutable';
-import type {
-    ErrorRecord,
-    SuiteRecordDetails,
-} from 'types/test-entity-related';
+import type { ErrorRecord } from 'types/test-entity-related';
+import { type SuiteRecordDetails } from 'types/test-entity-related';
 import type { TestRunRecord } from 'types/test-run-records';
-import GridStyles from 'styles/suitesGrid.module.css';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
-import PlatformEntity from './platform-entity';
-import type { possibleEntityNames } from 'types/session-records';
+import PlatformEntity, { DetailedPlatformVersions } from './platform-entity';
 import type { ParsedSuiteRecord } from 'types/parsed-records';
+import { IconTrendingDown2 } from '@tabler/icons-react';
+import GridStyles from 'styles/data-table.module.css';
+import type { ColumnOrColumnGroup, Column } from 'react-data-grid';
+import { TreeDataGrid } from 'react-data-grid';
+import { pick, groupBy as rowGrouper, sumBy, uniqBy } from 'lodash-es';
+import clsx from 'clsx';
+import { getStandingFromList } from 'extractors/transform-run-record';
+import TestEntityStatus, {
+    TestEntityStatusMetrics,
+} from './test-entity-status';
+import CountUpNumber from 'components/counter';
 import { useDisclosure } from '@mantine/hooks';
-import {
-    IconArrowLeft,
-    IconArrowsMaximize,
-    IconBrandStackshare,
-    IconCaretDownFilled,
-} from '@tabler/icons-react';
-import filterListOfSuites from 'extractors/filter-entities-on-suites-grid';
+import ErrorCard from './error-card';
 
 export default function ListOfSuits(properties: {
     testID?: string;
@@ -75,17 +69,17 @@ export default function ListOfSuits(properties: {
     );
 
     const suites = useMemo(() => {
-        const converter = spawnConverter();
-        return (data ?? []).map((suite) =>
-            transformTestEntity(suite, run?.tests ?? 0, converter),
-        );
+        const converter = spawnConverterForAnsiToHTML();
+        return (data ?? [])
+            .filter((suite) => suite.standing !== 'RETRIED')
+            .map((suite) =>
+                transformTestEntity(suite, run?.tests ?? 0, converter),
+            );
     }, [run?.tests, data]);
 
-    const [parentSuites, setParentSuites] = useState<
-        Array<{ suiteID: string; title: string }>
-    >([{ suiteID: '', title: 'Parent Suites' }]);
-
-    const [pages, setPages] = useState<number[]>([1]);
+    const [expandedGroupIds, setExpandedGroupIds] = useState(
+        (): ReadonlySet<unknown> => new Set<unknown>([]),
+    );
 
     const toLoad =
         runFeedLoading ||
@@ -95,378 +89,478 @@ export default function ListOfSuits(properties: {
         run === undefined ||
         data === undefined;
 
-    const filteredSuites = useMemo(
-        () =>
-            toLoad
-                ? suites
-                : filterListOfSuites(suites, {
-                      parentSuite: parentSuites?.at(-1)?.suiteID ?? '',
-                  }),
-        [parentSuites, suites, toLoad],
+    const [parsedSuites, setParsedSuites] = useState<RowRecord[]>([]);
+
+    useMemo(
+        () => setParsedSuites(toLoad ? [] : transformSuitesStructure(suites)),
+        [suites, toLoad], // NOTE: do not remove toLoad from dependency, else react will not re-calculate once data is ready
     );
-    const pageSize = 10;
-    const startFrom = ((pages?.at(-1) ?? 1) - 1) * pageSize;
-    const till = startFrom + pageSize;
+
+    const [opened, { open, close }] = useDisclosure(false);
+    const [errorsToShow, setErrorsToShow] = useState<ErrorRecord[]>([]);
+    const [groupedRowsByFile, setGroupedRowsByFile] = useState<{
+        records: ParsedSuiteRecord[];
+        title: string;
+    }>({ records: [], title: '' });
 
     return (
-        <Stack>
-            {parentSuites?.length === 1 ? (
-                <Text size="sm" c="dimmed">
-                    Parent Suites
-                </Text>
-            ) : (
-                <Group wrap="nowrap" justify="flex-left">
-                    <ActionIcon
-                        color="orange.8"
-                        variant="subtle"
-                        onClick={() => {
-                            setParentSuites(() => parentSuites.slice(0, -1));
-                            setPages(() => pages.slice(0, -1));
-                        }}
-                    >
-                        <IconArrowLeft size={16} />
-                    </ActionIcon>
-                    <Breadcrumbs>
-                        {parentSuites.map((suite, index) => (
-                            <Button
-                                size="xs"
-                                c="dimmed"
-                                p={0}
-                                key={suite.suiteID}
-                                variant="transparent"
-                                onClick={() => {
-                                    index < parentSuites.length - 1 &&
-                                        setParentSuites(() =>
-                                            parentSuites.slice(0, index + 1),
-                                        );
-
-                                    setPages(() => pages.slice(0, index + 1));
-                                }}
-                            >
-                                {suite.title}
-                            </Button>
-                        ))}
-                    </Breadcrumbs>
-                </Group>
-            )}
-            {toLoad ? (
-                <Skeleton width="100%" height="82vh" animate />
-            ) : (
-                <DataTable
-                    records={filteredSuites.slice(startFrom, till)}
-                    striped
-                    highlightOnHover
-                    withColumnBorders
-                    withTableBorder
-                    shadow="xl"
-                    pinLastColumn
-                    idAccessor={'Id'}
-                    mr={'sm'}
-                    columns={[
+        <>
+            <TreeDataGrid
+                columns={
+                    [
                         {
-                            accessor: 'Status',
-                            title: 'Status',
-                            render: (_, index) => index + 1,
-                        },
-                        {
-                            accessor: 'Title',
-                        },
-                        {
-                            accessor: 'Started',
-                            title: 'Range',
-                            render: (record, index) => {
+                            key: 'Status',
+                            name: 'Status',
+                            width: 55,
+                            headerCellClass: GridStyles.cell,
+                            renderGroupCell: (rows) => {
                                 return (
-                                    <TimeRange
-                                        startTime={record.Started}
-                                        endTime={record.Ended}
-                                        key={index}
-                                        detailed
-                                        relativeFrom={dayjs(run.started)}
-                                    />
+                                    <Center
+                                        style={{
+                                            height: '100%',
+                                        }}
+                                    >
+                                        <TestEntityStatus
+                                            status={getStandingFromList(
+                                                rows.childRows.map(
+                                                    (row) => row.Status,
+                                                ),
+                                            )}
+                                        />
+                                    </Center>
                                 );
                             },
-                        },
-                        {
-                            accessor: 'Duration',
-                            render: (record, index) => {
-                                return (
-                                    <HumanizedDuration
-                                        duration={record.Duration}
-                                        key={index}
+                            renderCell: ({ row, rowIdx }) => (
+                                <Center
+                                    style={{
+                                        width: '100%',
+                                    }}
+                                >
+                                    <TestEntityStatus
+                                        status={row.Status}
+                                        key={rowIdx}
                                     />
-                                );
-                            },
+                                </Center>
+                            ),
+                            cellClass: GridStyles.cell,
+                            summaryCellClass: GridStyles.cell,
                         },
                         {
-                            accessor: 'entityName',
-                            title: 'Platform',
-                            render: (record) => {
-                                return (
-                                    <PlatformEntity
-                                        entityName={
-                                            record.entityName as possibleEntityNames
-                                        }
-                                        size="sm"
-                                        entityVersion={record.entityVersion}
-                                        simplified={record.simplified}
-                                    />
-                                );
-                            },
-                        },
-                        {
-                            accessor: 'numberOfErrors',
-                            title: 'Errors',
-                            cellsClassName: (record) =>
-                                record.Status === 'FAILED'
-                                    ? GridStyles.redRow
-                                    : undefined,
-                        },
-                        {
-                            accessor: 'totalRollupValue',
-                            title: 'Tests',
-                            render: (record) => {
+                            key: 'Title',
+                            name: 'Title',
+                            resizable: true,
+                            cellClass: GridStyles.cell,
+                            minWidth: 150,
+                            headerCellClass: GridStyles.cell,
+                            renderCell: ({ row, rowIdx, tabIndex }) => {
                                 return (
                                     <Group
-                                        gap={5}
-                                        justify="space-between"
                                         wrap="nowrap"
+                                        style={{ width: '100%' }}
+                                        key={rowIdx}
+                                        align="flex-start"
+                                        justify="flex-start"
                                     >
-                                        <Text size="xs">
-                                            {record.totalRollupValue}
-                                        </Text>
-                                        <Divider
-                                            color="dimmed"
-                                            size="xs"
-                                            orientation="vertical"
-                                        />
-                                        <Group gap={2} wrap="nowrap">
-                                            <Tooltip
-                                                color="green.8"
-                                                label="Passed"
-                                            >
-                                                <Badge
-                                                    color="green.6"
-                                                    size="xs"
-                                                    variant="light"
+                                        {row.hasChildSuite || !row.Parent ? (
+                                            <></>
+                                        ) : (
+                                            <IconTrendingDown2
+                                                color="gray"
+                                                size={18}
+                                                strokeWidth={2.5}
+                                            />
+                                        )}
+                                        <Tooltip
+                                            label={row.Title}
+                                            color="orange"
+                                        >
+                                            {row.hasChildSuite ? (
+                                                <Button
+                                                    tabIndex={tabIndex}
+                                                    color="gray.4"
+                                                    pl={1}
+                                                    variant="subtle"
+                                                    size="sm"
+                                                    fw="normal"
+                                                    onClick={() =>
+                                                        row.hasChildSuite &&
+                                                        setParsedSuites(
+                                                            addRowsToSuiteStructure(
+                                                                parsedSuites,
+                                                                row.Id,
+                                                            ),
+                                                        )
+                                                    }
                                                 >
-                                                    {record.Rate[0]}
-                                                </Badge>
-                                            </Tooltip>
-                                            <Tooltip
-                                                color="red.8"
-                                                label="Failed"
-                                            >
-                                                <Badge
-                                                    variant="light"
-                                                    color="red.9"
-                                                    size="xs"
-                                                >
-                                                    {record.Rate[1]}
-                                                </Badge>
-                                            </Tooltip>
-                                            <Tooltip
-                                                color="yellow.9"
-                                                label="Skipped"
-                                            >
-                                                <Badge
-                                                    color="yellow.9"
-                                                    size="xs"
-                                                    variant="light"
-                                                >
-                                                    {record.Rate[2]}
-                                                </Badge>
-                                            </Tooltip>
-                                        </Group>
+                                                    {row.Title}
+                                                </Button>
+                                            ) : (
+                                                <Text size="sm" color="gray.4">
+                                                    {row.Title}
+                                                </Text>
+                                            )}
+                                        </Tooltip>
                                     </Group>
                                 );
                             },
                         },
                         {
-                            accessor: 'File',
-                        },
-                        {
-                            accessor: 'Contribution',
-                            title: 'Contrib.',
-                            render: (record) =>
-                                String(record.Contribution) + '%',
-                        },
-                        {
-                            accessor: 'actions',
-                            title: <Box mr={6}>Row actions</Box>,
-                            textAlign: 'center',
-                            render: (record) => (
-                                <Group gap={4} justify="center" wrap="nowrap">
-                                    {record.hasChildSuite ? (
-                                        <Tooltip
-                                            color="green"
-                                            label="Drill-down to child suites"
-                                        >
-                                            <ActionIcon
-                                                size="sm"
-                                                variant="subtle"
-                                                color="green"
-                                                onClick={() => {
-                                                    setParentSuites(() => [
-                                                        ...parentSuites,
-                                                        {
-                                                            suiteID: record.Id,
-                                                            title: record.Title,
-                                                        },
-                                                    ]);
-                                                    setPages(() => [
-                                                        ...pages,
-                                                        1,
-                                                    ]);
-                                                }}
-                                            >
-                                                <IconBrandStackshare
-                                                    size={16}
-                                                />
-                                            </ActionIcon>
-                                        </Tooltip>
-                                    ) : (
-                                        <></>
-                                    )}
-                                    <Tooltip
-                                        color="blue"
-                                        label="Open Detailed View for this suite"
+                            key: 'File',
+                            name: 'File',
+                            width: 150,
+                            resizable: true,
+                            cellClass: GridStyles.cell,
+                            headerCellClass: GridStyles.cell,
+                            renderGroupCell: ({ groupKey, tabIndex }) => (
+                                <Tooltip
+                                    label={groupKey as string}
+                                    color="violet"
+                                >
+                                    <Button
+                                        size="sm"
+                                        className={GridStyles.cell}
+                                        tabIndex={tabIndex}
+                                        style={{
+                                            height: '100%',
+                                            width: '100%',
+                                        }}
+                                        p="sm"
+                                        color="violet"
+                                        variant="subtle"
                                     >
-                                        <ActionIcon
-                                            size="sm"
-                                            variant="subtle"
-                                            color="blue"
-                                            // onClick={() =>
-                                            //     showModal({
-                                            //         company,
-                                            //         action: 'edit',
-                                            //     })
-                                            // }
-                                        >
-                                            <IconArrowsMaximize size={16} />
-                                        </ActionIcon>
-                                    </Tooltip>
-                                </Group>
+                                        {(groupKey as string).slice(
+                                            (groupKey as string).lastIndexOf(
+                                                '\\',
+                                            ) + 1,
+                                        )}
+                                    </Button>
+                                </Tooltip>
                             ),
                         },
-                    ]}
-                    rowExpansion={{
-                        trigger: 'click',
-                        collapseProps: {
-                            transitionDuration: 200,
-                            animateOpacity: false,
-                            transitionTimingFunction: 'ease-out',
+                        {
+                            key: 'Started',
+                            name: 'Range',
+                            width: 190,
+                            renderCell: ({ row, rowIdx }) => {
+                                return (
+                                    <TimeRange
+                                        startTime={row.Started}
+                                        endTime={row.Ended}
+                                        key={rowIdx}
+                                        detailed
+                                        relativeFrom={dayjs(run?.started)}
+                                    />
+                                );
+                            },
+                            cellClass: GridStyles.cell,
+                            headerCellClass: GridStyles.cell,
+                            renderGroupCell: (rows) => {
+                                return (
+                                    <div className={GridStyles.FHCell}>
+                                        <TimeRange
+                                            startTime={
+                                                rows.childRows.at(0)?.Started ??
+                                                dayjs()
+                                            }
+                                            endTime={
+                                                rows.childRows.at(-1)?.Ended ??
+                                                dayjs()
+                                            }
+                                            detailed
+                                            relativeFrom={dayjs(run?.started)}
+                                        />
+                                    </div>
+                                );
+                            },
                         },
-                        allowMultiple: true,
-                        content: ({ record }) => {
-                            return <SuiteDetailedView record={record} />;
+                        {
+                            key: 'Duration',
+                            width: 120,
+                            name: 'Duration',
+                            renderCell: ({ row, rowIdx }) => {
+                                return (
+                                    <HumanizedDuration
+                                        duration={row.Duration}
+                                        key={rowIdx}
+                                    />
+                                );
+                            },
+                            cellClass: GridStyles.cell,
+                            headerCellClass: GridStyles.cell,
+                            renderGroupCell: (rows) => {
+                                const started =
+                                    rows.childRows.at(0)?.Started ?? dayjs();
+                                const ended =
+                                    rows.childRows.at(-1)?.Ended ?? dayjs();
+
+                                return (
+                                    <div className={GridStyles.FHCell}>
+                                        <HumanizedDuration
+                                            duration={dayjs.duration({
+                                                milliseconds:
+                                                    ended.diff(started),
+                                            })}
+                                        />
+                                    </div>
+                                );
+                            },
                         },
-                    }}
-                    recordsPerPage={pageSize}
-                    totalRecords={filteredSuites.length}
-                    page={pages?.at(-1) ?? 1}
-                    onPageChange={(p) => {
-                        setPages([...pages.slice(0, -1), p]);
-                    }}
-                />
-            )}
-        </Stack>
-    );
-}
+                        {
+                            name: 'Metrics',
+                            headerCellClass: GridStyles.cell,
+                            key: 'metrics',
+                            width: 'max-content',
+                            children: [
+                                {
+                                    key: 'numberOfErrors',
+                                    name: 'Errors',
+                                    width: 63,
+                                    headerCellClass: GridStyles.cell,
+                                    cellClass: (row) =>
+                                        clsx(
+                                            row.Status === 'FAILED'
+                                                ? clsx(
+                                                      GridStyles.redRow,
+                                                      GridStyles.clickable,
+                                                  )
+                                                : undefined,
+                                            GridStyles.cell,
+                                        ),
+                                    renderCell: ({ row, rowIdx }) => {
+                                        return (
+                                            <CountUpNumber
+                                                endNumber={row.numberOfErrors}
+                                                style={{
+                                                    textDecoration:
+                                                        row.numberOfErrors
+                                                            ? 'underline'
+                                                            : '',
+                                                    cursor: row.numberOfErrors
+                                                        ? 'pointer'
+                                                        : '',
+                                                }}
+                                                key={rowIdx}
+                                            />
+                                        );
+                                    },
+                                    renderGroupCell: (rows) => (
+                                        <CountUpNumber
+                                            endNumber={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'numberOfErrors',
+                                            )}
+                                            cn={GridStyles.FHCell}
+                                        />
+                                    ),
+                                },
+                                {
+                                    key: 'totalRollupValue',
+                                    name: 'Tests',
+                                    width: 63,
 
-function SuiteDetailedView(properties: {
-    record: ParsedSuiteRecord;
-}): ReactNode {
-    const record = properties.record;
-    return (
-        <Card withBorder radius="md" shadow="xl">
-            <Card.Section withBorder p="xs">
-                <Text size="sm">Description</Text>
-            </Card.Section>
-            {record.Desc ? (
-                <Card.Section p="sm" px="sm">
-                    <Text size="sm">{record.Desc}</Text>
-                </Card.Section>
-            ) : (
-                <></>
-            )}
+                                    cellClass: GridStyles.cell,
+                                    headerCellClass: GridStyles.cell,
+                                    renderGroupCell: (rows) => (
+                                        <CountUpNumber
+                                            endNumber={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'totalRollupValue',
+                                            )}
+                                            cn={GridStyles.FHCell}
+                                        />
+                                    ),
+                                },
+                                {
+                                    key: 'Entities',
+                                    name: 'Entities',
+                                    width: 110,
+                                    cellClass: GridStyles.cell,
+                                    headerCellClass: GridStyles.cell,
+                                    renderCell: ({ row, rowIdx }) => (
+                                        <TestEntityStatusMetrics
+                                            key={rowIdx}
+                                            passed={row.RollupValues[0]}
+                                            failed={row.RollupValues[1]}
+                                            skipped={row.RollupValues[2]}
+                                        />
+                                    ),
+                                    renderGroupCell: (rows) => (
+                                        <TestEntityStatusMetrics
+                                            cn={GridStyles.FHCell}
+                                            passed={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'RollupValues.0',
+                                            )}
+                                            failed={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'RollupValues.1',
+                                            )}
+                                            skipped={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'RollupValues.2',
+                                            )}
+                                        />
+                                    ),
+                                },
+                                {
+                                    key: 'Contribution',
+                                    name: 'Contri.',
+                                    width: 66,
+                                    cellClass: GridStyles.cell,
+                                    headerCellClass: GridStyles.cell,
+                                    renderCell: ({ row }) => (
+                                        <CountUpNumber
+                                            endNumber={row.Contribution}
+                                            suffix="%"
+                                            decimalPoints={2}
+                                        />
+                                    ),
 
-            <Card.Section p="xs">
-                {record.Desc ? (
-                    <Text size="sm" c="dimmed">
-                        {record.Desc}
-                    </Text>
-                ) : (
-                    <Text size="xs" c="dimmed" fs="italic">
-                        No Description Provided
-                    </Text>
-                )}
-            </Card.Section>
-            <Card.Section withBorder p="xs">
-                <Group justify="space-between" wrap="nowrap">
-                    <Text size="sm">Errors</Text>
-                    <Badge color="red.9" variant="light" size="sm">
-                        {record.numberOfErrors}
-                    </Badge>
-                </Group>
-            </Card.Section>
-            <Card.Section p="xs">
-                {record.errors.length > 0 ? (
-                    <Grid p="sm">
-                        {record.errors.map((error, index) => (
-                            <Grid.Col span="content" key={index}>
-                                <ErrorCard error={error} key={index} />
-                            </Grid.Col>
-                        ))}
-                    </Grid>
-                ) : (
-                    <Alert color="green" title="No Errors Found" />
-                )}
-            </Card.Section>
-        </Card>
-    );
-}
-
-export function ErrorCard(properties: { error: ErrorRecord }): ReactNode {
-    const [opened, { toggle }] = useDisclosure(false);
-
-    return (
-        <Card shadow="lg" withBorder radius="md">
-            {/* <Card.Section p="xs" withBorder>
-                <Text size="sm">{properties.error.mailedFrom}</Text>
-            </Card.Section> */}
-
-            <Card.Section p="xs" withBorder={opened} onClick={toggle}>
-                <Group justify="space-between">
-                    <Text
-                        size="sm"
-                        dangerouslySetInnerHTML={{
-                            __html: properties.error.message ?? '',
-                        }}
-                    />
-                    <ActionIcon size="xs" variant="light" onClick={toggle}>
-                        <IconCaretDownFilled
-                            style={{
-                                width: rem(12),
-                                height: rem(12),
-                            }}
-                            stroke={1.5}
-                        />
-                    </ActionIcon>
-                </Group>
-            </Card.Section>
-
-            <Collapse in={opened} py="xs">
-                <Card.Section p="sm">
-                    <Paper shadow="md" withBorder radius="sm" p="sm">
-                        <Text
-                            size="xs"
-                            dangerouslySetInnerHTML={{
-                                __html: properties.error.stack ?? '',
-                            }}
-                        />
-                    </Paper>
-                </Card.Section>
-            </Collapse>
-        </Card>
+                                    renderGroupCell: (rows) => (
+                                        <CountUpNumber
+                                            endNumber={sumBy(
+                                                topLevelSuites(rows.childRows),
+                                                'Contribution',
+                                            )}
+                                            cn={GridStyles.FHCell}
+                                            suffix="%"
+                                            decimalPoints={2}
+                                        />
+                                    ),
+                                },
+                            ],
+                        },
+                        {
+                            key: 'entityName',
+                            name: 'Platform',
+                            width: 110,
+                            renderCell: ({ row, rowIdx }) => {
+                                return (
+                                    <PlatformEntity
+                                        entityNames={[row.entityName]}
+                                        size="sm"
+                                        key={rowIdx}
+                                    />
+                                );
+                            },
+                            renderGroupCell: (rows) => {
+                                return (
+                                    <Button
+                                        variant="subtle"
+                                        color="violet"
+                                        tabIndex={rows.tabIndex}
+                                        w={'100%'}
+                                        onClick={() => {
+                                            setGroupedRowsByFile(() => ({
+                                                records: uniqBy(
+                                                    rows.childRows,
+                                                    'simplified',
+                                                ).map((row) =>
+                                                    pick(row, [
+                                                        'entityName',
+                                                        'entityVersion',
+                                                        'simplified',
+                                                    ]),
+                                                ) as ParsedSuiteRecord[],
+                                                title: `Platforms for File: ${rows.childRows?.at(0)?.File}`,
+                                            }));
+                                            open();
+                                        }}
+                                    >
+                                        <PlatformEntity
+                                            entityNames={uniqBy(
+                                                rows.childRows,
+                                                'entityName',
+                                            ).map(
+                                                (entity) => entity.entityName,
+                                            )}
+                                            c={clsx(
+                                                GridStyles.clickable,
+                                                GridStyles.FHCell,
+                                            )}
+                                            size="sm"
+                                            moveRight
+                                        />
+                                    </Button>
+                                );
+                            },
+                            cellClass: clsx(
+                                GridStyles.cell,
+                                GridStyles.clickable,
+                            ),
+                            headerCellClass: GridStyles.cell,
+                        },
+                    ] as Array<
+                        Column<ParsedSuiteRecord, unknown> &
+                            ColumnOrColumnGroup<ParsedSuiteRecord, unknown>
+                    >
+                }
+                rows={parsedSuites}
+                rowKeyGetter={(row) => row.Id}
+                headerRowHeight={35}
+                rowHeight={45}
+                className={GridStyles.table}
+                rowClass={(_, rowIndex) =>
+                    rowIndex % 2 === 0 ? GridStyles.evenRow : GridStyles.oddRow
+                }
+                style={{
+                    height: '100%',
+                    width: '98.6vw',
+                }}
+                groupBy={['File']}
+                rowGrouper={rowGrouper}
+                expandedGroupIds={expandedGroupIds}
+                onExpandedGroupIdsChange={setExpandedGroupIds}
+                onCellClick={(cell) => {
+                    switch (cell.column.key) {
+                        case 'numberOfErrors': {
+                            if (!cell.row.numberOfErrors) return;
+                            setErrorsToShow(() => cell.row.errors);
+                            open();
+                            break;
+                        }
+                        case 'entityName': {
+                            setGroupedRowsByFile(() => ({
+                                records: [
+                                    pick(cell.row, [
+                                        'entityName',
+                                        'entityVersion',
+                                        'simplified',
+                                    ]) as ParsedSuiteRecord,
+                                ],
+                                title: `"${cell.row.Title.slice(0, 30) + (cell.row.Title.length > 10 ? '...' : '')}" ran on ${cell.row.entityName}`,
+                            }));
+                            open();
+                            break;
+                        }
+                    }
+                }}
+            />
+            <Modal
+                opened={opened && errorsToShow.length > 0}
+                onClose={() => {
+                    close();
+                    setErrorsToShow(() => []);
+                }}
+                title={`Errors (${errorsToShow.length})`}
+                centered
+                size="lg"
+            >
+                <Stack p="sm">
+                    {errorsToShow.map((error, index) => (
+                        <ErrorCard error={error} key={index} />
+                    ))}
+                </Stack>
+            </Modal>
+            <DetailedPlatformVersions
+                title={groupedRowsByFile.title}
+                records={groupedRowsByFile.records}
+                opened={opened && errorsToShow.length === 0}
+                onClose={() => {
+                    close();
+                    setGroupedRowsByFile({ records: [], title: '' });
+                }}
+            />
+        </>
     );
 }

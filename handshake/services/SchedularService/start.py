@@ -5,8 +5,8 @@ from handshake.services.DBService.lifecycle import (
     db_path,
     close_connection,
 )
-from shutil import copytree, rmtree
-from zipfile import ZipFile
+from shutil import rmtree
+from tarfile import open
 from pathlib import Path
 from typing import Optional
 from loguru import logger
@@ -15,6 +15,7 @@ from handshake.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
     SuiteType,
+    SessionBase,
 )
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
@@ -24,7 +25,6 @@ from handshake.services.DBService.models.config_base import (
 from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
     exportAttachmentFolderName,
-    DASHBOARD_ZIP_FILE,
     EXPORT_RUN_PAGE_FILE_NAME,
     EXPORT_PROJECTS_FILE_NAME,
     EXPORT_RUNS_PAGE_FILE_NAME,
@@ -49,11 +49,19 @@ class Scheduler:
         root_dir: str,
         out_dir: Optional[str] = None,
         manual_reset: Optional[bool] = False,
+        zipped_build: Optional[str] = None,
+        include_build: Optional[bool] = False,
     ):
         self.export = out_dir is None
-        self.export_dir = Path(out_dir) if out_dir else None
+        self.dashboard_build = zipped_build
+        self.export_dir = Path(out_dir) if out_dir and zipped_build else None
         self.db_path = db_path(root_dir)
-        self.import_dir = self.db_path.parent / exportAttachmentFolderName
+        self.include_build = include_build
+        self.import_dir = (
+            self.db_path.parent / exportAttachmentFolderName
+            if not self.export_dir
+            else self.export_dir / exportAttachmentFolderName
+        )
         self.reset = manual_reset
         self.connection: Optional[BaseDBAsyncClient] = None
 
@@ -178,17 +186,18 @@ class Scheduler:
     async def export_jobs(self):
         if not self.export_dir:
             logger.debug("Skipping export, as the output directory was not provided.")
-            return
+            if not self.include_build:
+                return
 
-        logger.info("Exporting results to json.")
-        # we reset entire export folder
-        # we call it import, because from dashboard perspective its import
-        rmtree(self.import_dir)
-        self.import_dir.mkdir(exist_ok=False)
+        if self.export_dir:
+            logger.debug("Exporting reports...")
+            await to_thread(self.export_files)
+            logger.info("Exporting results...")
+
+        self.import_dir.mkdir(exist_ok=self.include_build)
+
         await self.export_runs_page()
         logger.info("Done!")
-        logger.debug("Exporting reports...")
-        await to_thread(self.export_files)
 
     async def export_runs_page(self):
         logger.debug("Exporting Runs Page...")
@@ -201,7 +210,7 @@ class Scheduler:
                 await self.connection.execute_query(
                     """
 select rb.*, cb.*,
-rank()	over (order by rb.ended desc) as timelineIndex,
+rank() over (order by rb.ended desc) as timelineIndex,
 rank() over (partition by projectName order by rb.ended desc) as projectIndex
 from RUNBASE rb
 left join testconfigbase cb on rb.testID = cb.test_id 
@@ -295,11 +304,24 @@ WHERE rb.ended <> '' order by rb.started;
             .values("sessions", "files")
         )
 
+        platforms = (
+            await SessionBase.filter(test_id=run_id)
+            .only("entityName", "entityVersion", "simplified")
+            .distinct()
+            .values("entityName", "entityVersion", "simplified")
+        )
+
         await to_thread(
             self.save_overview_query,
             run_id,
-            json.dumps(dict(recentSuites=recent_suites, aggregated=aggregated)),
-        )
+            json.dumps(
+                dict(
+                    recentSuites=recent_suites,
+                    aggregated=aggregated,
+                    platforms=platforms,
+                )
+            ),
+        ),
 
     async def export_all_suites(self, run_id: str):
         all_suites = await (
@@ -355,28 +377,15 @@ WHERE rb.ended <> '' order by rb.started;
         )
 
     def export_files(self):
+        # we reset entire export folder
         if self.export_dir.exists():
             logger.debug("removing previous results")
             rmtree(self.export_dir)
 
         self.export_dir.mkdir(exist_ok=False)
 
-        logger.info("copying json files")
-
-        copytree(
-            self.db_path.parent / exportAttachmentFolderName,
-            self.export_dir / exportAttachmentFolderName,
-        )
-        logger.debug("Done!")
-
-        logger.info("Copying html files")
-
-        with ZipFile(
-            Path(__file__).parent.parent.parent / DASHBOARD_ZIP_FILE, "r"
-        ) as zip_file:
-            zip_file.extractall(self.export_dir)
-
-        logger.info("Done!")
+        with open(self.dashboard_build, "r:bz2") as tar_file:
+            tar_file.extractall(self.export_dir)
 
     def save_runs_query(self, feed: str, projectsFeed: str):
         (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)

@@ -1,0 +1,48 @@
+name: 'dashboard-build'
+
+on:
+  workflow_dispatch:
+#  push:
+#    branches:
+#      - build
+#    paths:
+#      - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+#      - ".github/scripts/fetch-dashboard-version.sh"
+#      - ".github/scripts/sdv.cjs"
+#      - "**test-dashboard.yml"
+
+
+permissions:
+    contents: write
+
+jobs:
+    test:
+      name: testing the dashboard
+      runs-on: 'ubuntu-latest'
+      if: ${{ !inputs.export-build }}
+
+      steps:
+        - uses: actions/checkout@v4
+
+        - name: Use Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20.9.0
+
+        - name: Installing node packages
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+
+        - name: Building storybook
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm run build-storybook --quiet
+
+        - name: Conducting Component Tests
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
+            "npx http-server storybook-static --port 6006 --silent" \
+            "npx wait-on tcp:6006 && npm run test-storybook"
+
+        - name: Building Dashboard
+          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          run: npm run build

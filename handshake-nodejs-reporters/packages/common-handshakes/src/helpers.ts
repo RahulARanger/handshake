@@ -2,6 +2,7 @@ import { execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import DialPad from './dialPad';
 
 // eslint-disable-next-line import/prefer-default-export
 export function sanitizePaths(specs?: string[]): string[] {
@@ -19,8 +20,8 @@ export function frameworksUsedString(frameworks: string[]): string {
   return frameworks.join(',');
 }
 
-export function checkVersion(exePath: string) {
-  const observedVersion = execSync(`${exePath} v`).toString().trim();
+export function checkVersion(exePath?: string) {
+  const observedVersion = execSync(`${exePath ?? DialPad.defaultExe} v`).toString().trim();
   const currentDir = dirname(typeof __dirname !== 'undefined'
     ? __dirname
     : dirname(fileURLToPath(import.meta.url)));
@@ -29,10 +30,11 @@ export function checkVersion(exePath: string) {
   return [expected, observedVersion, expected === observedVersion];
 }
 
-export function escapeShell(command: string) {
-  // To avoid shell related codeQL bugs
-  // excluded: ":\
-  return command.replace(/[!$&'()*+,;<=>?@^`{|}~\\]/g, '\\$&').trim();
+export function dashboardBuild(): string {
+  const currentDir = dirname(typeof __dirname !== 'undefined'
+    ? __dirname
+    : dirname(fileURLToPath(import.meta.url)));
+  return join(currentDir, 'dashboard.tar.bz2');
 }
 
 export function inQuotes(command: string) {

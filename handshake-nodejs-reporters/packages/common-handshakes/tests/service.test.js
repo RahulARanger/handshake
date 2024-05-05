@@ -1,10 +1,12 @@
 const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
-const { existsSync } = require('fs');
+const { existsSync, rmSync } = require('fs');
 const { join } = require('path');
 const { ServiceDialPad } = require('../dist/index');
-const { root, resetDir, results } = require('./utils');
+const {
+  root, resetDir, results, reports,
+} = require('./utils');
 
 describe('Verifying the handshake-server helper class', () => {
   beforeAll(() => resetDir);
@@ -16,7 +18,6 @@ describe('Verifying the handshake-server helper class', () => {
       expect(instance.exePath).toBe(ServiceDialPad.defaultExe);
       expect(instance.port).toBe(6962);
     });
-
 
     test('verifying the closed ping', async () => {
       expect(await instance.ping()).toBe(false);
@@ -32,7 +33,7 @@ describe('Verifying the handshake-server helper class', () => {
   });
 
   describe('verifying the running service', () => {
-    const instance = new ServiceDialPad(7272);
+    const instance = new ServiceDialPad(7272, 'debug');
 
     afterAll(async () => {
       await instance.terminateServer();
@@ -61,6 +62,7 @@ describe('Verifying the handshake-server helper class', () => {
         framework: 'jest-tests',
         exitCode: 0,
         fileRetries: 1,
+        tags: ['@test', '*.spec.js'],
         platformName: 'windows',
       });
       expect(resp).not.toBeUndefined();
@@ -88,6 +90,23 @@ describe('Verifying the handshake-server helper class', () => {
 
       expect(await instance.isServerTerminated()).toBe(true);
     }, 20e3);
+
+    test('verifying the export generation but cancelled due to timeout error', async () => {
+      try {
+        await instance.generateReport(results, root, reports, 1e3);
+        expect(false).toBe(true);
+      } catch (err) {
+        expect(err.message?.includes('ETIMEDOUT')).toBe(true);
+      }
+    });
+    test('verifying the export generation', async () => {
+      if (existsSync(reports)) rmSync(reports, { recursive: true, force: true });
+      expect(existsSync(reports)).toBe(false);
+      await instance.generateReport(results, root, reports);
+      expect(existsSync(reports)).toBe(true);
+      expect(existsSync(join(reports, 'RUNS', 'index.html'))).toBe(true);
+      expect(existsSync(join(reports, 'Import'))).toBe(true);
+    });
   });
 
   describe('verifying the disabled service', () => {
@@ -112,6 +131,7 @@ describe('Verifying the handshake-server helper class', () => {
         exitCode: 0,
         fileRetries: 1,
         platformName: 'windows',
+        tags: ['@test', '*.spec.js'],
       });
       expect(resp).toBeUndefined();
     });
@@ -124,5 +144,9 @@ describe('Verifying the handshake-server helper class', () => {
       await instance.terminateServer();
       expect(await instance.isServerTerminated()).toBe(true);
     }, 20e3);
+
+    test('Verifying the skipped export', async () => {
+      await instance.generateReport(results, root, reports);
+    });
   });
 });

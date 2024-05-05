@@ -9,25 +9,21 @@ export default class HandshakeService
   async flagToPyThatsItsDone() {
     // closing handshake server for now.
     await this.supporter.terminateServer();
-
-    const hasError = this.supporter.generateReport(
-      this.resultsDir,
-      this.options.root || process.cwd(),
-      this.options?.export?.out,
-      this.options?.export?.maxTestRuns,
-      this.options?.export?.skipPatch,
-      this.options.timeout,
-    );
-    if (hasError) {
-      this.logger.error({ for: 'failed to patch', reason: hasError.message });
+    if (!this.options.exportOutDir) {
+      this.logger.info({ for: 'generate-report', note: 'skipping reports as exportOutDir is not set' });
       return;
     }
 
-    this.logger.info(
-      this.options.export?.out
-        ? { furtherAction: `npx handshake display ${this.options.export?.out} or simply host this folder ${this.options.export?.out}` }
-        : { furtherAction: `npx handshake patch ${this.options.root} --out [OUT_DIR_FOR_REPORT]`, why: 'skipped to generate reports as requested' },
-    );
+    try {
+      await this.supporter.generateReport(
+        this.resultsDir,
+        this.options.root || process.cwd(),
+        this.options?.exportOutDir,
+        this.options.reportGenerationTimeout,
+      );
+    } catch (err) {
+      this.logger.error({ for: 'generate-report', err });
+    }
   }
 
   onPrepare(options: Options.Testrunner)
@@ -60,6 +56,31 @@ export default class HandshakeService
     const cap = config.capabilities as WebdriverIO.Capabilities;
     const platformName = String(cap?.platformName ?? process.platform);
 
+    const tags = [];
+
+    switch (config.framework?.toLowerCase()) {
+      case 'cucumber': {
+        if (config?.cucumberOpts?.tags) tags.push({ name: config.cucumberOpts.tags, label: 'cucumberOpts:tags' });
+        if (config?.cucumberOpts?.profile) tags.push({ name: config.cucumberOpts.profile as string, label: 'cucumberOpts:profile' });
+        break;
+      }
+      case 'mocha': {
+        if (config.mochaOpts?.ui) tags.push({ name: config.mochaOpts?.ui, label: 'mochaOpts:ui' });
+        if (config.mochaOpts?.invert === false) tags.push({ name: 'inverted', label: 'inverted grep filters' });
+        if (config.mochaOpts?.grep) tags.push({ name: config.mochaOpts?.grep, label: 'mochaOpts:grep' });
+        if (config.mochaOpts?.fgrep) tags.push({ name: config.mochaOpts?.fgrep, label: 'mochaOpts:fgrep' });
+        break;
+      }
+      case 'jasmine': {
+        if (config.jasmineOpts?.invertGrep === false) tags.push({ name: 'inverted', label: 'inverted grep filters' });
+        if (config.jasmineOpts?.grep) tags.push({ name: config.jasmineOpts?.grep, label: 'jasmineOpts:grep' });
+        break;
+      }
+      default: {
+        this.logger.warn(`Unknown framework: ${config.framework}`);
+      }
+    }
+
     await this.supporter.updateRunConfig({
       maxInstances: config.maxInstances ?? 1,
       platformName,
@@ -68,6 +89,7 @@ export default class HandshakeService
       fileRetries: config.specFileRetries ?? 0,
       bail: config.bail ?? 0,
       exitCode,
+      tags,
     });
 
     const completed = this.supporter.pyProcess?.killed;

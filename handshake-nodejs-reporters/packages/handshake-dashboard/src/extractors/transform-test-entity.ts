@@ -2,6 +2,8 @@ import dayjs from 'dayjs';
 import type { ParsedSuiteRecord } from 'types/parsed-records';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
 import Convert from 'ansi-to-html';
+import { findIndex } from 'lodash-es';
+import type { possibleEntityNames } from 'types/session-records';
 
 export default function transformTestEntity(
     testEntity: SuiteRecordDetails,
@@ -34,7 +36,7 @@ export default function transformTestEntity(
             testEntity.rollup_skipped,
         ],
         totalRollupValue: testEntity.rollup_tests,
-        entityName: testEntity.entityName,
+        entityName: testEntity.entityName as possibleEntityNames,
         entityVersion: testEntity.entityVersion,
         simplified: testEntity.simplified,
         hooks: testEntity.hooks,
@@ -48,7 +50,7 @@ export default function transformTestEntity(
     };
 }
 
-export function spawnConverter(): Convert {
+export function spawnConverterForAnsiToHTML(): Convert {
     return new Convert({
         newline: true,
         colors: {
@@ -70,4 +72,61 @@ export function spawnConverter(): Convert {
             15: 'white',
         },
     });
+}
+
+export type RowRecord = ParsedSuiteRecord & {
+    children: ParsedSuiteRecord[];
+    isExpanded: boolean;
+    level: number;
+};
+
+export function transformSuitesStructure(suites: ParsedSuiteRecord[]) {
+    const telephoneBook: Record<string, RowRecord> = {};
+    const results: Array<RowRecord> = [];
+
+    for (const suite of suites) {
+        const showByDefault = suite.hasChildSuite || !suite.Parent;
+        const testSuite = {
+            ...suite,
+            children: [],
+            isExpanded: false,
+            level: (telephoneBook[suite.Parent]?.level ?? -1) + 1,
+        };
+        telephoneBook[suite.Id] = testSuite;
+
+        if (showByDefault) {
+            results.push(testSuite);
+            continue;
+        }
+        telephoneBook[suite.Parent].children.push(testSuite);
+    }
+
+    return results;
+}
+
+export function addRowsToSuiteStructure(suites: RowRecord[], fromId: string) {
+    const parentSuiteIndex = findIndex(suites, ['Id', fromId]);
+    const parentSuite = suites[parentSuiteIndex];
+
+    const addedSuites = [...suites];
+    addedSuites[parentSuiteIndex] = {
+        ...parentSuite,
+        isExpanded: !parentSuite.isExpanded,
+    };
+    if (parentSuite.isExpanded) {
+        addedSuites.splice(parentSuiteIndex + 1, parentSuite.children.length);
+    } else {
+        addedSuites.splice(
+            parentSuiteIndex + 1,
+            0,
+            ...(parentSuite.children as RowRecord[]),
+        );
+    }
+    return addedSuites;
+}
+
+export function topLevelSuites(
+    suites: RowRecord[] | readonly ParsedSuiteRecord[],
+) {
+    return suites.filter((suite) => !(suite as RowRecord).level);
 }

@@ -1,9 +1,16 @@
-import { Card, SimpleGrid, Skeleton, Text } from '@mantine/core';
 import {
-    jsonFeedAboutTestRun,
-    jsonFeedForOverviewOfTestRun,
-} from 'components/links';
+    Badge,
+    Card,
+    Group,
+    rem,
+    ScrollAreaAutosize,
+    Skeleton,
+    Text,
+    Tooltip,
+} from '@mantine/core';
+import { jsonFeedForOverviewOfTestRun } from 'components/links';
 import type {
+    MiniSuitePreview,
     OverviewOfEntities,
     TransformedOverviewOfEntities,
 } from 'extractors/transform-run-record';
@@ -11,37 +18,60 @@ import { transformOverviewFeed } from 'extractors/transform-run-record';
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
 import useSWRImmutable from 'swr/immutable';
-import { DataTable } from 'mantine-datatable';
+import DataGrid from 'react-data-grid';
+import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import RelativeDate from 'components/timings/relative-date';
-import type { specNode, TestRunRecord } from 'types/test-run-records';
+import type { specNode, specStructure } from 'types/test-run-records';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import PassedRate from './passed-rate';
 import type { TooltipProps } from 'recharts';
 import { ResponsiveContainer, Treemap, Tooltip as RToolTip } from 'recharts';
+import { IconArrowsHorizontal } from '@tabler/icons-react';
+import GridStyles from 'styles/data-table.module.css';
+import GradientStyles from 'styles/gradients.module.css';
+import type { DetailedTestRecord } from 'types/parsed-records';
+import CountUpNumber from 'components/counter';
 
-function fetchTree(root: specNode) {
-    const subTree: unknown[] = [];
-    const q = [[root, 'Root', subTree]];
-    while (q.length > 0) {
-        const item = q.pop() as Array<specNode | string | unknown[]>;
-        const node = item[0] as specNode;
-        const name = item[1] as string;
-        const addTo = item[2] as unknown[];
+type treeNode = {
+    name: string;
+    path: string;
+    size: number;
+    children?: treeNode[];
+};
 
-        if (node['<count>'] !== undefined) {
-            // addTo.push({ name, size: node['<count>'] });
-            addTo.push({ name, size: 1, path: node['<path>'] });
+function fetchTree(root: specStructure) {
+    const subTree: treeNode[] = [];
+    const q: Array<[specNode, string, treeNode[]]> = Object.keys(root).map(
+        (node) => [root[node], node, subTree],
+    );
 
+    while (q && q.length > 0) {
+        const [node, name, addTo] = q.pop() as [specNode, string, treeNode[]];
+
+        if (Object.keys(node.paths ?? []).length === 0) {
+            addTo.push({
+                name,
+                path: node.current,
+                size: node.suites ?? 1,
+            });
             continue;
         }
 
-        const children: unknown[] = [];
-        addTo.push({ name, children });
+        const children: treeNode[] = [];
+        addTo.push({
+            name,
+            children,
+            size: node.suites ?? 1,
+            path: node.current,
+        });
+
         q.push(
-            ...Object.keys(node)
-                .filter((property) => !property.startsWith('<'))
-                .map((property) => [node[property], property, children]),
+            ...(Object.keys(node?.paths ?? []).map((child) => [
+                (node?.paths ?? {})[child],
+                child,
+                children,
+            ]) as Array<[specNode, string, treeNode[]]>),
         );
     }
 
@@ -54,91 +84,175 @@ function CustomTooltip(properties: TooltipProps<string[], 'name' | 'size'>) {
     return (
         <Card>
             <Card.Section withBorder p="xs">
-                <Text size="sm">{note.payload.name}</Text>
-                <sub>
-                    <Text fs="italic" size="xs">
-                        {note.payload.path}
-                    </Text>
+                <Text size="sm" aria-label="file-name">
+                    {note.payload.name}
+                </Text>
+                <sub aria-label="file-details">
+                    <Group wrap="nowrap" align="baseline">
+                        <Text fs="italic" size="xs" aria-label="file-path">
+                            {note.payload.path}
+                        </Text>
+                        <CountUpNumber
+                            endNumber={note.payload.size ?? 1}
+                            prefix="Tests: "
+                            style={{ fontStyle: 'italic', fontSize: '.69rem' }}
+                        />
+                    </Group>
                 </sub>
             </Card.Section>
         </Card>
     );
 }
 
-function PreviewOfProjectStructure(properties: { testID?: string }) {
-    const {
-        data: run,
-        isLoading: runFeedLoading,
-        error: runFeedError,
-    } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
-        () =>
-            fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
-                async (response) => response.json(),
-            ),
-    );
-
+export function PreviewOfProjectStructure(properties: {
+    specStructure?: specStructure;
+    quick?: boolean;
+    w?: string;
+}): ReactNode {
     const node = useMemo(
-        () => run?.specStructure && fetchTree(JSON.parse(run?.specStructure)),
-        [run?.specStructure],
+        () => properties.specStructure && fetchTree(properties.specStructure),
+        [properties.specStructure],
     );
 
-    const toLoad =
-        node === undefined || runFeedLoading || runFeedError !== undefined;
+    const toLoad = properties.specStructure === undefined || !node;
+    const h = 192;
 
     return (
-        <Card w={'100%'} h={180} p="xs" radius="md" withBorder>
-            {toLoad || !node ? (
-                <Skeleton animate width={'100%'} height={180} />
+        <>
+            {toLoad ? (
+                <Skeleton
+                    color="#820164"
+                    animate
+                    width={properties.w ?? '100%'}
+                    aria-label="loading-project-structure"
+                    height={h}
+                />
             ) : (
-                <ResponsiveContainer width="100%" height={'100%'}>
+                <ResponsiveContainer height={h} width={properties.w ?? '100%'}>
                     <Treemap
-                        width={400}
-                        height={180}
                         // eslint-disable-next-line @typescript-eslint/no-explicit-any
                         data={node as any[]}
+                        height={h}
                         dataKey="size"
-                        stroke="#3a6186"
-                        fill="#2c3e50"
+                        stroke="white"
+                        fill="#820164"
+                        nameKey={'name'}
+                        type="flat"
+                        animationDuration={properties.quick ? 0 : undefined}
                     >
                         <RToolTip content={<CustomTooltip />} />
                     </Treemap>
                 </ResponsiveContainer>
             )}
-            <Text
-                style={{ position: 'absolute', bottom: '5%', right: '3%' }}
-                size="xs"
-            >
-                Project Structure
-            </Text>
-        </Card>
+        </>
     );
 }
 
-function PreviewTestSuites(properties: { testID?: string }): ReactNode {
-    const {
-        data: run,
-        isLoading: runFeedLoading,
-        error: runFeedError,
-    } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
-        () =>
-            fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
-                async (response) => response.json(),
-            ),
+function PreviewTestSuites(properties: {
+    recentSuites: MiniSuitePreview[];
+    runStartedAt: Dayjs;
+}): ReactNode {
+    return (
+        <DataGrid
+            columns={[
+                {
+                    key: 'Title',
+                    name: (
+                        <Group
+                            justify="space-between"
+                            align="center"
+                            style={{ height: '100%', width: '100%' }}
+                        >
+                            <Text fw="bold" size="sm">
+                                Title
+                            </Text>
+                            <IconArrowsHorizontal size={16} />
+                        </Group>
+                    ),
+                    width: 200,
+                    resizable: true,
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
+                },
+                {
+                    key: 'Started',
+                    name: 'Started',
+                    width: 120,
+                    resizable: false,
+                    renderCell: ({ row, rowIdx }) => (
+                        <RelativeDate
+                            date={row.Started}
+                            relativeFrom={properties.runStartedAt}
+                            showTime
+                            key={rowIdx}
+                            height={45}
+                        />
+                    ),
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
+                },
+                {
+                    key: 'Duration',
+                    name: 'Duration',
+                    resizable: false,
+                    width: 120,
+                    renderCell: ({ row, rowIdx }) => {
+                        return (
+                            <HumanizedDuration
+                                duration={row.Duration}
+                                key={rowIdx}
+                            />
+                        );
+                    },
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
+                },
+                {
+                    name: 'Rate',
+                    key: 'Rate',
+                    resizable: false,
+                    width: 'max-content',
+                    renderCell: ({ row, rowIdx }) => {
+                        return (
+                            <PassedRate
+                                rate={row.Rate}
+                                text="Entities"
+                                width={'100%'}
+                                key={rowIdx}
+                                minWidth={200}
+                            />
+                        );
+                    },
+                    cellClass: GridStyles.cell,
+                    headerCellClass: GridStyles.cell,
+                },
+            ]}
+            rows={properties.recentSuites}
+            rowKeyGetter={(row) => row.Id}
+            headerRowHeight={35}
+            rowHeight={45}
+            className={GridStyles.table}
+            rowClass={(_, rowIndex) =>
+                rowIndex % 2 === 0 ? GridStyles.evenRow : GridStyles.oddRow
+            }
+        />
     );
+}
+
+export default function PreviewTestRun(properties: {
+    run?: DetailedTestRecord;
+}): ReactNode {
+    const run = properties.run;
     const {
         data: rawFeed,
         isLoading,
         error,
     } = useSWRImmutable<OverviewOfEntities>(
-        properties.testID
-            ? jsonFeedForOverviewOfTestRun(properties.testID)
-            : undefined,
+        run?.Id ? jsonFeedForOverviewOfTestRun(run.Id) : undefined,
         () =>
-            fetch(
-                jsonFeedForOverviewOfTestRun(properties.testID as string),
-            ).then(async (response) => response.json()),
+            fetch(jsonFeedForOverviewOfTestRun(run?.Id as string)).then(
+                async (response) => response.json(),
+            ),
     );
 
     const data = useMemo<TransformedOverviewOfEntities | undefined>(
@@ -146,73 +260,55 @@ function PreviewTestSuites(properties: { testID?: string }): ReactNode {
         [rawFeed],
     );
 
-    if (isLoading || error || !data || runFeedLoading || runFeedError || !run) {
-        return <Skeleton animate w={'100%'} h={250} />;
-    }
+    const toLoad = run === undefined || isLoading || error || !data;
 
     return (
-        <DataTable
-            height={300}
-            columns={[
-                { accessor: 'Title', title: 'Title (Recent Test Suites)' },
-                {
-                    accessor: 'Started',
-                    render: (record, index) => {
-                        return (
-                            <RelativeDate
-                                date={record.Started}
-                                relativeFrom={dayjs(run.started)}
-                                showTime
-                                key={index}
-                            />
-                        );
-                    },
-                    width: 100,
-                },
-                {
-                    accessor: 'Duration',
-                    render: (record, index) => {
-                        return (
-                            <HumanizedDuration
-                                duration={record.Duration}
-                                key={index}
-                            />
-                        );
-                    },
-                },
-                {
-                    accessor: 'Rate',
-                    render: (record, index) => {
-                        return (
-                            <PassedRate
-                                rate={record.Rate}
-                                text="Entities"
-                                key={index}
-                                width={100}
-                            />
-                        );
-                    },
-                },
-            ]}
-            records={data?.recentSuites}
-            striped
-            highlightOnHover
-            withColumnBorders
-            shadow="md"
-            withTableBorder
-        />
-    );
-}
+        <Card
+            h={'calc(95vh - var(--app-shell-header-height, 0px))'}
+            p="sm"
+            mr="sm"
+            mt="md"
+            mb="sm"
+            withBorder
+            shadow="lg"
+            radius="lg"
+        >
+            <Card.Section
+                p="sm"
+                px="md"
+                pt="md"
+                style={{ height: rem(53) }}
+                withBorder
+            >
+                <Group align="baseline" wrap="nowrap">
+                    {(run?.Tags ?? [])?.map((tag) => (
+                        <Tooltip key={tag.name} label={tag.label}>
+                            <Badge size="sm">{tag.name}</Badge>
+                        </Tooltip>
+                    ))}
+                </Group>
+                <Group align="center" wrap="nowrap"></Group>
+            </Card.Section>
 
-export default function PreviewTestRun(properties: {
-    testID?: string;
-}): ReactNode {
-    return (
-        <SimpleGrid cols={1}>
-            <PreviewOfProjectStructure testID={properties.testID} />
-            <Card withBorder radius={'md'} p={'xs'}>
-                <PreviewTestSuites testID={properties.testID} />
-            </Card>
-        </SimpleGrid>
+            <Card.Section
+                p="sm"
+                withBorder
+                className={GradientStyles.dottedOnes}
+            >
+                <PreviewOfProjectStructure specStructure={run?.specStructure} />
+            </Card.Section>
+            {toLoad ? (
+                <Skeleton animate w={'100%'} h={250} />
+            ) : (
+                <Card.Section withBorder>
+                    <ScrollAreaAutosize p="sm" h={250} w={'100%'}>
+                        <PreviewTestSuites
+                            recentSuites={data.recentSuites}
+                            runStartedAt={dayjs(run.Started)}
+                        />
+                    </ScrollAreaAutosize>
+                </Card.Section>
+            )}
+        </Card>
     );
 }

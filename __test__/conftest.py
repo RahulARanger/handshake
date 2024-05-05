@@ -32,20 +32,11 @@ def dist(root_dir):
 
 
 @fixture()
-def dist_name():
-    return (
-        f"handshake-{platform.system()}.exe"
-        if platform.system() == "Windows"
-        else f"handshake-{platform.system()}"
-    )
-
-
-@fixture()
 def init_db(root_dir):
     return lambda: subprocess.call(f'handshake config "{root_dir}"', shell=True)
 
 
-async def get_connection(scripts, v=3):
+async def get_connection(scripts, v=5):
     connection = connections.get("default")
 
     # assuming we are at v7
@@ -53,10 +44,6 @@ async def get_connection(scripts, v=3):
         await connection.execute_script((scripts / "revert-v7.sql").read_text())
     if v < 6:
         await connection.execute_script((scripts / "revert-v6.sql").read_text())
-    if v < 5:
-        await connection.execute_script((scripts / "revert-v5.sql").read_text())
-    if v < 4:
-        await connection.execute_script((scripts / "revert-v4.sql").read_text())
 
     return connection
 
@@ -91,8 +78,12 @@ async def clean_close(db_path, init_db):
 
 
 async def sample_test_run(postfix: Optional[str] = ""):
+    noted = datetime.now(UTC)
     return await RunBase.create(
-        projectName=testNames + postfix, started=datetime.now(UTC)
+        projectName=testNames + postfix,
+        started=noted,
+        ended=noted + timedelta(minutes=10),
+        duration=timedelta(minutes=10).total_seconds() * 1000,
     )
 
 
@@ -134,3 +125,9 @@ def helper_create_test_session():
 @fixture()
 def app():
     return service_provider
+
+
+def helper_to_test_date_operator(from_db: datetime, from_json: str):
+    assert datetime.strptime(from_json, "%Y-%m-%d %H:%M:%S.%f%z").strftime(
+        "%Y-%m-%d %H:%M:%S%z"
+    ) == from_db.astimezone(UTC).strftime("%Y-%m-%d %H:%M:%S%z"), "Datetime is not same"

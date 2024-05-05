@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { Chance } from 'chance';
 import CurrentLocation from 'components/about-test-run/current-location';
-import dayjs from 'dayjs';
 
 const meta = {
     title: 'AboutTestRun/Overview/Header/CurrentLocation',

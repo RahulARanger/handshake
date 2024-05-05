@@ -1,53 +1,121 @@
 import type { AvatarProps, TooltipProps } from '@mantine/core';
-import { Avatar, Group, Text, Tooltip } from '@mantine/core';
+import {
+    Avatar,
+    AvatarGroup,
+    Modal,
+    Paper,
+    Table,
+    Text,
+    Tooltip,
+} from '@mantine/core';
+import { uniqBy } from 'lodash-es';
 import React from 'react';
 import type { ReactNode } from 'react';
 import type { possibleEntityNames } from 'types/session-records';
 
-export default function PlatformEntity(properties: {
+export type PlatformDetails = Array<{
     entityName: possibleEntityNames;
     entityVersion: string;
     simplified: string;
+}>;
+
+export default function PlatformEntity(properties: {
+    entityNames: string[];
     size?: AvatarProps['size'];
+    c?: string;
+    moveRight?: boolean;
 }): ReactNode {
-    const note = properties.entityName.toLowerCase();
-    let source = '';
-    let color: TooltipProps['color'] = 'orange.7';
+    const avatars = properties.entityNames.map((entityName) => {
+        const note = entityName.toLowerCase() as possibleEntityNames;
+        let source = '';
+        let key = `not-yet-noted-platform`;
+        let color: TooltipProps['color'] = 'orange.7';
 
-    if (note.includes('chrome')) {
-        source = '/chrome.png';
-        color = 'yellow';
-    }
-    if (note.includes('firefox')) source = '/firefox.png';
-    if (note.includes('edge')) {
-        color = 'blue.9';
-        source = '/edge.png';
-    }
+        if (note.includes('chrome')) {
+            source = '/chrome.png';
+            color = 'yellow';
+            key = 'chrome';
+        }
+        if (note.includes('firefox')) {
+            source = '/firefox.png';
+            key = 'firefox';
+        }
+        if (note.includes('edge')) {
+            color = 'blue.9';
+            source = '/edge.png';
+            key = 'edge';
+        }
 
-    return (
-        <Tooltip label={properties.simplified} color={color}>
-            <Group align="flex-end" wrap="nowrap">
+        return (
+            <Tooltip
+                label={entityName}
+                key={entityName}
+                color={source ? color : 'red'}
+            >
                 <Avatar
                     src={source}
                     size={properties.size ?? 'md'}
-                    alt={properties.simplified}
-                    aria-label={
-                        source ? `${note}-platform` : `not-yet-noted-platform`
-                    }
+                    alt={entityName}
+                    aria-label={source ? `${key}-platform` : key}
                 />
-                <Text
-                    size="xs"
-                    style={{
-                        position: 'relative',
-                        right: '14%',
-                        bottom: '-3px',
-                    }}
-                    role="contentinfo"
-                    aria-label={`${note}-version`}
-                >
-                    <sub>{properties.entityVersion}</sub>
-                </Text>
-            </Group>
-        </Tooltip>
+            </Tooltip>
+        );
+    });
+
+    return (
+        <AvatarGroup
+            ml={properties.moveRight ? 3 : undefined}
+            className={properties.c}
+        >
+            {avatars}
+        </AvatarGroup>
+    );
+}
+
+export function DetailedPlatformVersions(properties: {
+    records: PlatformDetails;
+    opened: boolean;
+    onClose: () => void;
+    title: string;
+}): ReactNode {
+    const records = uniqBy(properties.records, 'simplified');
+    return (
+        <Modal
+            opened={properties.opened}
+            onClose={properties.onClose}
+            title={properties.title}
+            centered
+            size="lg"
+        >
+            <Paper withBorder radius="md">
+                <Table>
+                    <Table.Thead>
+                        <Table.Tr>
+                            <Table.Th w={160}>Platform Name</Table.Th>
+                            <Table.Th w={140}>Platform Version</Table.Th>
+                            <Table.Th>Summarized</Table.Th>
+                        </Table.Tr>
+                    </Table.Thead>
+                    <Table.Tbody>
+                        {records.map((record) => (
+                            <Table.Tr key={record.simplified}>
+                                <Table.Td>{record.entityName}</Table.Td>
+                                <Table.Td>
+                                    <PlatformEntity
+                                        entityNames={[record.entityName]}
+                                        size="sm"
+                                    />
+                                </Table.Td>
+                                <Table.Td>
+                                    <Text c="dimmed" size="sm">
+                                        {record.simplified}
+                                    </Text>
+                                </Table.Td>
+                            </Table.Tr>
+                        ))}
+                    </Table.Tbody>
+                </Table>
+            </Paper>
+        </Modal>
     );
 }

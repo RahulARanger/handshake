@@ -3,22 +3,20 @@ import { Level } from 'pino';
 export interface ReporterOptions {
   port: number;
   addScreenshots?:boolean;
-  timeout?:number;
+  requestsTimeout?:number;
   logLevel?:Level;
+  disabled?: boolean;
 
 }
 export interface HandshakeServiceOptions {
   port: number;
   root: string;
   resultsFolderName: string;
-  timeout?: number;
+  requestsTimeout?: number;
+  reportGenerationTimeout?:number;
   workers?:number;
   logLevel?:Level;
-  export?: {
-    out?: string;
-    maxTestRuns: number;
-    skipPatch?: boolean;
-  }
+  exportOutDir?: string;
   testConfig: {
     projectName: string;
     avoidParentSuitesInCount?: boolean;

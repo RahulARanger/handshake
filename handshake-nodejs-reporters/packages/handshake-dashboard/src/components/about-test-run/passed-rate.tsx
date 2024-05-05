@@ -4,15 +4,20 @@ import React from 'react';
 
 export default function PassedRate(properties: {
     rate: [number, number, number];
-    width?: number;
+    width?: number | string;
     text: string;
+    minWidth?: number | string;
 }): ReactNode {
     const total = properties.rate[0] + properties.rate[1] + properties.rate[2];
     const toPercent = (_: number) => Number(((_ / total) * 100).toFixed(2));
     return (
         <Progress.Root
             size="xl"
-            style={{ width: rem(properties.width ?? 200) }}
+            style={{
+                minWidth: properties.minWidth,
+                width: rem(properties.width ?? 200),
+                textAlign: 'center',
+            }}
         >
             <Tooltip
                 label={`Passed ${properties.text} - ${properties.rate[0]} - ${toPercent(properties.rate[0]) + '%'}`}

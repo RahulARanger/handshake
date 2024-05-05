@@ -9,6 +9,7 @@ from tortoise.fields import (
     TextField,
     UUIDField,
     BooleanField,
+    JSONField,
 )
 
 
@@ -37,13 +38,10 @@ class TestConfigBase(Model):
     maxInstances = IntField(
         null=True, default=1, description="Max. Number of workers used to run the tests"
     )
-    exitCode = IntField(
-        null=False, default=0, description="Exit code for the test execution"
-    )
     fileRetries = IntField(
         null=False,
         default=0,
-        description="Number of times it retried to execute a spec file",
+        description="Number of times it can retry a spec file",
     )
     avoidParentSuitesInCount = BooleanField(
         null=False,
@@ -56,4 +54,9 @@ class TestConfigBase(Model):
         null=False,
         default=0,
         description="if > 0 then it means that run would stop if it finds this number of test cases failed",
+    )
+    tags = JSONField(
+        default=[],
+        null=False,
+        description="comma separated list of tags (used by framework) to filter the spec files",
     )

@@ -19,6 +19,7 @@ export default function RelativeDate(properties: {
     relativeFrom?: Dayjs;
     size?: TextProps['size'];
     showTime?: boolean;
+    height?: number;
 }): ReactNode {
     const autoplay = useRef(Autoplay({ delay: 3e3 }));
 
@@ -27,21 +28,21 @@ export default function RelativeDate(properties: {
             withControls={false}
             align="start"
             loop
-            height={rem(31)}
+            height={rem(properties.height ?? 31)}
             slideSize="100%"
             orientation="vertical"
             plugins={[autoplay.current]}
             onMouseEnter={autoplay.current.stop}
             onMouseLeave={autoplay.current.reset}
         >
-            <Carousel.Slide>
+            <Carousel.Slide style={{ display: 'flex', alignItems: 'center' }}>
                 <Text size={properties.size ?? 'sm'}>
                     {properties.date.format(
                         properties.showTime ? timeFormatUsed : dateFormatUsed,
                     )}
                 </Text>
             </Carousel.Slide>
-            <Carousel.Slide>
+            <Carousel.Slide style={{ display: 'flex', alignItems: 'center' }}>
                 <Text size={properties.size ?? 'sm'}>
                     {properties.relativeFrom
                         ? properties.date.from(properties.relativeFrom)

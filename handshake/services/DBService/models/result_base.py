@@ -30,15 +30,12 @@ class CommandReportFields(Model):
     retried = IntField(
         default=0, null=False, description="number of the retries performed"
     )
-    suitesConfig = JSONField(description="Dict. of suites", default={})
 
     class Meta:
         abstract = True
 
 
 class CommonDetailedFields(CommandReportFields):
-    suitesConfig = JSONField(description="Dict. of suites", default={})  # not used yet.
-
     class Meta:
         abstract = True
 
@@ -68,6 +65,9 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
     suiteSummary = JSONField(
         description="summary of the suites",
         default=dict(count=0, passed=0, failed=0, skipped=0),
+    )
+    exitCode = IntField(
+        null=False, default=0, description="Exit code for the test execution"
     )
 
 
@@ -114,7 +114,10 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
         null=True, default="", description="Summary if provided for the test entity"
     )
     parent = CharField(max_length=45, description="Parent Suite's ID", default="")
-    tags = JSONField(description="list of all tags", default=[])
+    tags = JSONField(
+        description="comma separated list of tags used by the framework to filter the suites or spec files",
+        default=[],
+    )
     modified = DatetimeField(
         auto_now=True, description="Modified timestamp", null=False
     )

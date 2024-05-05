@@ -1,8 +1,0 @@
-{
-	"cucumberautocomplete.steps": ["./tests/steps/*.steps.ts"],
-	"cucumberautocomplete.strictGherkinCompletion": true,
-	"editor.formatOnSave": true,
-	"code-runner.executorMap": {
-		"feature": "npx cross-env TYPE=SANITY PORT=8000 wdio run wdio.conf.ts --spec $fileName"
-	}
-}

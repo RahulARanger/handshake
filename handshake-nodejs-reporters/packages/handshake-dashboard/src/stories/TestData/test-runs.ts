@@ -65,8 +65,12 @@ export function generateTestRun(feed: Feeder): TestRunRecord {
 
     // eslint-disable-next-line unicorn/no-new-array
     const tags = new Array(generator.integer({ min: 0, max: 4 }))
-        .map(() => (generator.bool() ? generator.hashtag() : false))
-        .filter((index) => index !== false) as string[];
+        .map(() =>
+            generator.bool()
+                ? { name: generator.hashtag(), label: 'test' }
+                : false,
+        )
+        .filter((index) => index !== false);
 
     const back = generator.integer({ min: 0, max: 3 });
     const backBy = generator.pickone([
@@ -118,10 +122,12 @@ export function generateTestRun(feed: Feeder): TestRunRecord {
         testID: generator.unique(generator.state, 1)[0],
         tests,
         standing: getStatus(passed, failed, skipped),
-        tags,
+        tags: JSON.stringify(tags),
         specStructure: JSON.stringify({
-            '<path>': '',
-            'features\\login.feature': { '<path>': 'features\\login.feature' },
+            'features\\login.feature': {
+                current: 'features\\login.feature',
+                suites: 2,
+            },
         }),
         retried: generator.integer({ min: 0, max: 1 }),
         projectIndex: generator.integer({ min: 0, max: 10 }),
