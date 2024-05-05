@@ -35,8 +35,8 @@ jobs:
         with:
           filters: |
             dashboard:
-              - "handshake-nodejs-reporters/packages/handshake-dashboard/**"
-              - "**release.yml"
+              - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
+              - '**release.yml'
 
   release:
     name: bundling the dashboard-build
