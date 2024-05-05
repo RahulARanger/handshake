@@ -100,3 +100,43 @@ jobs:
           ref: ${{ github.head_ref }}
           commit_message: Bump Handshake Dashboard Version
           file_pattern: '*.version'
+
+  test-py:
+    needs: decide
+    name: check if the py-build for handshake is stable
+    runs-on: 'ubuntu-latest'
+    if: ${{ needs.decide.outputs.py == 'true' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: |
+            3.11
+            3.12
+
+      - name: Set up venv
+        run: |
+          python -m venv venv
+
+      - name: Activate venv if not Windows
+        if: ${{ matrix.os != 'windows-latest' }}
+        run: | 
+          source ./venv/bin/activate
+
+      - name: Activate venv if Windows
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: ./venv/scripts/activate
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install poetry
+
+      - name: Publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+        run: poetry build && poetry publish
