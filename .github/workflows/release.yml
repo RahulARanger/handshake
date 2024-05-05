@@ -12,10 +12,10 @@ on:
       - ".github/**"
       - "__test__/**"
       - "noxfile.py"
-      - "**test-build.yml"
       - "poetry.toml"
       - "pyproject.toml"
       - "poetry.lock"
+      - "**release.yml"
 
 
 permissions:
@@ -36,6 +36,7 @@ jobs:
           filters: |
             dashboard:
               - "handshake-nodejs-reporters/packages/handshake-dashboard/**"
+              - "**release.yml"
 
   release:
     name: bundling the dashboard-build

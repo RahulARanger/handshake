@@ -33,6 +33,7 @@ jobs:
             filters: |
               dashboard:
                 - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+                - "**test-build.yml"
 
     test-dashboard:
       needs: decide
