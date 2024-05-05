@@ -138,7 +138,18 @@ def migrate(collection_path: str):
     "--build",
     "-b",
     required=False,
+    help="builds the dashboard output at the build output folder",
     type=C_Path(exists=True, file_okay=True, readable=True),
+)
+@option(
+    "--include",
+    "-i",
+    required=False,
+    help="generates the Import Data folder inside the test results (used for internal purposes only)",
+    type=bool,
+    is_flag=True,
+    default=False,
+    show_default=True,
 )
 @option("--out", "-o", type=C_Path(dir_okay=True, writable=True), required=False)
 def patch(
@@ -147,6 +158,7 @@ def patch(
     reset: bool = False,
     build: str = None,
     out: str = None,
+    include=False,
 ):
     if log_file:
         logger.add(
@@ -158,7 +170,7 @@ def patch(
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    scheduler = Scheduler(collection_path, out, reset, build)
+    scheduler = Scheduler(collection_path, out, reset, build, include)
     try:
         run(scheduler.start())
     except (KeyboardInterrupt, SystemExit):

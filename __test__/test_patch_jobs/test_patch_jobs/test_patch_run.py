@@ -75,14 +75,12 @@ class TestPatchRunJob:
         assert record.suiteSummary["passed"] == 0
         assert record.suiteSummary["failed"] == 3
         assert record.suiteSummary["skipped"] == 0
-        # {"<path>":"","test-mocha\\specs\\test.e2e.js":{"<path>":"test-mocha\\specs\\test.e2e.js"}}
-        assert pathlib.Path(record.specStructure["<path>"]) == pathlib.Path("")
         assert "spec-1.js" in record.specStructure
         assert "inside-1" in record.specStructure
-        assert pathlib.Path(record.specStructure["inside-1"]["<path>"]) == pathlib.Path(
-            "inside-1"
-        )
-        assert pathlib.Path(record.specStructure["inside-1"]["<path>"])
+        assert pathlib.Path(
+            record.specStructure["inside-1"]["current"]
+        ) == pathlib.Path("inside-1")
+        assert pathlib.Path(record.specStructure["inside-1"]["current"])
 
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session

@@ -185,11 +185,15 @@ async def update_run_config(request: Request) -> HTTPResponse:
         platform=run_config.platformName,
         framework=run_config.framework,
         maxInstances=run_config.maxInstances,
-        exitCode=run_config.exitCode,
         fileRetries=run_config.fileRetries,
         avoidParentSuitesInCount=run_config.avoidParentSuitesInCount,
         bail=run_config.bail,
+        tags=run_config.tags,
     )
+
+    test = await config.test
+    await test.update_from_dict(dict(exitCode=run_config.exitCode))
+    await test.save()
     await config.save()
 
     return text("provided config was saved successfully.", status=200)

@@ -15,6 +15,7 @@ from handshake.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
     SuiteType,
+    SessionBase,
 )
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
@@ -49,13 +50,15 @@ class Scheduler:
         out_dir: Optional[str] = None,
         manual_reset: Optional[bool] = False,
         zipped_build: Optional[str] = None,
+        include_build: Optional[bool] = False,
     ):
         self.export = out_dir is None
         self.dashboard_build = zipped_build
         self.export_dir = Path(out_dir) if out_dir and zipped_build else None
         self.db_path = db_path(root_dir)
+        self.include_build = include_build
         self.import_dir = (
-            None
+            self.db_path.parent / exportAttachmentFolderName
             if not self.export_dir
             else self.export_dir / exportAttachmentFolderName
         )
@@ -183,12 +186,15 @@ class Scheduler:
     async def export_jobs(self):
         if not self.export_dir:
             logger.debug("Skipping export, as the output directory was not provided.")
-            return
+            if not self.include_build:
+                return
 
-        logger.debug("Exporting reports...")
-        await to_thread(self.export_files)
-        logger.info("Exporting results...")
-        self.import_dir.mkdir(exist_ok=False)
+        if self.export_dir:
+            logger.debug("Exporting reports...")
+            await to_thread(self.export_files)
+            logger.info("Exporting results...")
+
+        self.import_dir.mkdir(exist_ok=self.include_build)
 
         await self.export_runs_page()
         logger.info("Done!")
@@ -298,11 +304,24 @@ WHERE rb.ended <> '' order by rb.started;
             .values("sessions", "files")
         )
 
+        platforms = (
+            await SessionBase.filter(test_id=run_id)
+            .only("entityName", "entityVersion", "simplified")
+            .distinct()
+            .values("entityName", "entityVersion", "simplified")
+        )
+
         await to_thread(
             self.save_overview_query,
             run_id,
-            json.dumps(dict(recentSuites=recent_suites, aggregated=aggregated)),
-        )
+            json.dumps(
+                dict(
+                    recentSuites=recent_suites,
+                    aggregated=aggregated,
+                    platforms=platforms,
+                )
+            ),
+        ),
 
     async def export_all_suites(self, run_id: str):
         all_suites = await (

@@ -2,7 +2,12 @@ from pydantic import BaseModel
 from typing import List, Dict, Union, TypedDict, Optional
 
 Node = TypedDict("Node", {"<path>": str, "<count>": Optional[int]}, total=False)
-PathTree = Dict[str, Union[Node, "PathTree"]]
+
+
+class PathTree(TypedDict):
+    current: str
+    suites: Optional[int]
+    paths: Dict[str, "PathTree"]
 
 
 class PathItem(TypedDict):

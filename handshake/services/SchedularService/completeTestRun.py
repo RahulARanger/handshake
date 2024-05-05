@@ -191,7 +191,7 @@ async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> Fal
 
 
 def simplify_file_paths(paths: List[Tuple[str, int]]):
-    tree: PathTree = {"<path>": ""}
+    tree: PathTree = {"current": "", "paths": {}, "suites": 1}
     _paths: List[PathItem] = [
         dict(children=list(reversed(Path(path[0]).parts)), pointer=tree, count=path[1])
         for path in paths
@@ -202,36 +202,36 @@ def simplify_file_paths(paths: List[Tuple[str, int]]):
         path_to_include = _paths[-1]
         if not path_to_include["children"]:
             _paths.pop()
-            path_to_include["pointer"]["<count>"] = path_to_include["count"]
+            path_to_include["pointer"]["suites"] = path_to_include["count"]
             continue
 
         parent_pointer: PathTree = path_to_include["pointer"]
         possible_parent: str = path_to_include["children"].pop()
         # that dict will be inside the tree
 
-        pointing_to = parent_pointer.setdefault(
-            possible_parent, {"<path>": join(parent_pointer["<path>"], possible_parent)}
+        # NOTE: we are not calculating the cumulative count of suites for the folder
+        pointing_to = parent_pointer["paths"].setdefault(
+            possible_parent,
+            {
+                "current": join(parent_pointer["current"], possible_parent),
+                "paths": {},
+                "suites": 1,
+            },
         )
         path_to_include["pointer"] = pointing_to
 
     # Reducer
     while True:
-        stack = [(_, tree) for _ in tree.keys() if not _.startswith("<")]
+        stack = [(_, tree) for _ in tree["paths"].keys()]
         movements = 0
 
         while stack:
             node_key, parent_node = stack.pop()
-            target_node = parent_node[node_key]
+            target_node = parent_node["paths"][node_key]
 
-            children = set(target_node.keys())
-            children.remove("<path>")
-            if "<count>" in children:
-                children.remove("<count>")
-
+            children = list(target_node["paths"].keys())
             if len(children) > 1:
-                for child_key in target_node.keys():
-                    if child_key.startswith("<"):
-                        continue
+                for child_key in target_node["paths"]:
                     stack.append((child_key, target_node))
                 continue
 
@@ -240,21 +240,19 @@ def simplify_file_paths(paths: List[Tuple[str, int]]):
             child_key = children.pop()
 
             movements += 1
-            target_popped = parent_node.pop(node_key)
+            target_popped = parent_node["paths"].pop(node_key)
             new_key = join(node_key, child_key)
-            parent_node[new_key] = target_popped.pop(child_key)
-            new_child = parent_node[new_key]
-            new_child["<path>"] = join(target_popped["<path>"], child_key)
+            parent_node["paths"][new_key] = target_popped["paths"].pop(child_key)
+            new_child = parent_node["paths"][new_key]
+            new_child["current"] = join(target_popped["current"], child_key)
 
-            for child_key in new_child.keys():
-                if child_key.startswith("<"):
-                    continue
+            for child_key in new_child["paths"]:
                 stack.append((child_key, new_child))
 
         if not movements:
             break
 
-    return tree
+    return tree["paths"]
 
 
 async def patchTestRun(test_id: str):
