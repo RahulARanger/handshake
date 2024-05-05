@@ -437,7 +437,7 @@ export default function ListOfSuits(properties: {
                             renderCell: ({ row, rowIdx }) => {
                                 return (
                                     <PlatformEntity
-                                        records={[row]}
+                                        entityNames={[row.entityName]}
                                         size="sm"
                                         key={rowIdx}
                                     />
@@ -468,9 +468,11 @@ export default function ListOfSuits(properties: {
                                         }}
                                     >
                                         <PlatformEntity
-                                            records={uniqBy(
+                                            entityNames={uniqBy(
                                                 rows.childRows,
-                                                'simplified',
+                                                'entityName',
+                                            ).map(
+                                                (entity) => entity.entityName,
                                             )}
                                             c={clsx(
                                                 GridStyles.clickable,

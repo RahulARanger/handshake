@@ -125,7 +125,9 @@ function NotedValues(properties: {
                                     w={20 + 10 * rawFeed.platforms.length}
                                 >
                                     <PlatformEntity
-                                        records={rawFeed.platforms}
+                                        entityNames={rawFeed.platforms.map(
+                                            (entity) => entity.entityName,
+                                        )}
                                         size="sm"
                                     />
                                 </ActionIcon>

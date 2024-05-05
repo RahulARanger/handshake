@@ -3,6 +3,7 @@ import type { ParsedSuiteRecord } from 'types/parsed-records';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
 import Convert from 'ansi-to-html';
 import { findIndex } from 'lodash-es';
+import type { possibleEntityNames } from 'types/session-records';
 
 export default function transformTestEntity(
     testEntity: SuiteRecordDetails,
@@ -35,7 +36,7 @@ export default function transformTestEntity(
             testEntity.rollup_skipped,
         ],
         totalRollupValue: testEntity.rollup_tests,
-        entityName: testEntity.entityName,
+        entityName: testEntity.entityName as possibleEntityNames,
         entityVersion: testEntity.entityVersion,
         simplified: testEntity.simplified,
         hooks: testEntity.hooks,

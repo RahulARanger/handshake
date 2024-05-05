@@ -2,6 +2,11 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { userEvent, within, expect, fireEvent, waitFor } from '@storybook/test';
 import { PreviewOfProjectStructure } from './preview-run';
 import { specNode } from 'types/test-run-records';
+import {
+    simpleStructure,
+    withMoreDepth,
+    withTwoDirectories,
+} from 'stories/TestData/spec-structures';
 
 const meta = {
     title: 'AboutTestRun/PreviewOfProjectStructure',
@@ -18,28 +23,7 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const SimpleStructure: Story = {
     args: {
-        specStructure: {
-            'features\\login.feature': {
-                current: 'features\\login.feature',
-                suites: 16,
-                paths: {},
-            },
-            'features\\login-2.feature': {
-                current: 'features\\login-2.feature',
-                suites: 10,
-                paths: {},
-            },
-            'features\\login-3.feature': {
-                current: 'features\\login-3.feature',
-                suites: 1,
-                paths: {},
-            },
-            'features\\login-4.feature': {
-                current: 'features\\login-4.feature',
-                suites: 0,
-                paths: {},
-            },
-        },
+        specStructure: simpleStructure,
     },
     render: (args) => (
         <div style={{ width: '500px' }}>
@@ -90,38 +74,7 @@ export const SimpleStructure: Story = {
 
 export const TwoDirectories: Story = {
     args: {
-        specStructure: {
-            features: {
-                current: 'features',
-                paths: {
-                    'login.feature': {
-                        current: 'features\\login.feature',
-                        paths: {},
-                        suites: 16,
-                    },
-                    'login-2.feature': {
-                        current: 'features\\login-2.feature',
-                        paths: {},
-                        suites: 10,
-                    },
-                },
-            },
-            specs: {
-                current: 'specs',
-                paths: {
-                    'login.feature': {
-                        current: 'specs\\login.feature',
-                        paths: {},
-                        suites: 16,
-                    },
-                    'login-2.feature': {
-                        current: 'specs\\login-2.feature',
-                        paths: {},
-                        suites: 10,
-                    },
-                },
-            },
-        },
+        specStructure: withTwoDirectories,
     },
     render: (args) => (
         <div style={{ width: '500px' }}>
@@ -166,77 +119,53 @@ export const TwoDirectories: Story = {
 
 export const WithMoreDepth: Story = {
     args: {
-        specStructure: {
-            features: {
-                current: 'features',
-                paths: {
-                    specs: {
-                        current: 'features/specs',
-                        paths: {
-                            test: {
-                                current: 'features/specs/tests',
-                                paths: {
-                                    'test-login.feature': {
-                                        current:
-                                            'features\\specs\\tests\\login.feature',
-                                        paths: {},
-                                        suites: 16,
-                                    },
-                                    'test-login-2.feature': {
-                                        current:
-                                            'features\\specs\\tests\\login-2.feature',
-                                        paths: {},
-                                        suites: 10,
-                                    },
-                                    fixes: {
-                                        current: 'features/specs/tests/fixes',
-                                        paths: {
-                                            'fix-login.feature': {
-                                                current:
-                                                    'features\\specs\\tests\\fixes\\login.feature',
-                                                paths: {},
-                                                suites: 16,
-                                            },
-                                            'fix-login-2.feature': {
-                                                current:
-                                                    'features\\specs\\tests\\fixes\\login-2.feature',
-                                                paths: {},
-                                                suites: 10,
-                                            },
-                                        },
-                                    },
-                                },
-                            },
-                        },
-                    },
-                },
-            },
-        },
+        specStructure: withMoreDepth,
     },
     render: (args) => (
         <div style={{ width: '500px' }}>
-            <PreviewOfProjectStructure specStructure={args.specStructure} />
+            <PreviewOfProjectStructure
+                specStructure={args.specStructure}
+                quick
+            />
         </div>
     ),
     play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
 
         await step('testing the presence of the tree parts', async () => {
-            await waitFor(
-                () =>
-                    expect(
-                        screen.findByText('test-login.feature'),
-                    ).toBeInTheDocument(),
-                { timeout: 10e3 },
-            );
+            expect(
+                await screen.findByText('test-login-2.feature'),
+            ).not.toBeNull();
+            expect(
+                await screen.findByText('test-login.feature'),
+            ).not.toBeNull();
+            expect(
+                await screen.findByText('fix-login-2.feature'),
+            ).not.toBeNull();
+            expect(await screen.findByText('fix-login.feature')).not.toBeNull();
         });
         await step(
             'testing the tooltip content of the tree parts',
             async () => {
-                const loginFeature = screen.queryByText(
+                const loginFeature = await screen.findByText(
+                    'test-login-2.feature',
+                );
+                await userEvent.hover(loginFeature);
+
+                await expect(
+                    screen.getByLabelText('file-name'),
+                ).toHaveTextContent('login-2.feature');
+                await expect(
+                    screen.getByLabelText('file-path'),
+                ).toHaveTextContent('features\\specs\\tests\\login-2.feature');
+            },
+        );
+        await step(
+            'testing the tooltip content of the node at deepest level',
+            async () => {
+                const loginFeature = await screen.findByText(
                     'fix-login-2.feature',
-                ) as HTMLElement;
-                expect(loginFeature).not.toBeNull();
+                );
                 await userEvent.hover(loginFeature);
 
                 await expect(
@@ -246,16 +175,6 @@ export const WithMoreDepth: Story = {
                     screen.getByLabelText('file-path'),
                 ).toHaveTextContent(
                     'features\\specs\\tests\\fixes\\login-2.feature',
-                );
-                await waitFor(
-                    async () => {
-                        const text =
-                            screen.queryByLabelText(
-                                'file-details',
-                            )?.textContent;
-                        return text?.includes('Tests: 10');
-                    },
-                    { timeout: 10e3 },
                 );
             },
         );

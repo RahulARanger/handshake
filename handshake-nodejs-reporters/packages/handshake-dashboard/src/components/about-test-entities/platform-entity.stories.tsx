@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import PlatformEntity from './platform-entity';
-import { userEvent, within, expect } from '@storybook/test';
+import { userEvent, within, expect, waitFor } from '@storybook/test';
 
 const meta = {
     title: 'AboutTestRun/PlatformEntity',
@@ -16,64 +16,58 @@ type Story = StoryObj<typeof meta>;
 
 export const Chrome: Story = {
     args: {
-        entityName: 'chrome',
-        entityVersion: '123.0.0',
-        simplified: 'chrome_v123.0.0',
+        entityNames: ['Chrome'], // case-insensitive
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
 
         await step(
             'testing the version mentioned beside the icon',
             async () => {
                 await userEvent.click(screen.getByLabelText(`chrome-platform`));
-                await expect(
-                    screen.getByLabelText('chrome-version'),
-                ).toHaveTextContent(args.entityVersion);
             },
         );
     },
 };
 
-export const Firefox: Story = {
+export const FirefoxAndEdge: Story = {
     args: {
-        entityName: 'firefox',
-        entityVersion: '123.0.0',
-        simplified: 'firefox_v123.0.0',
+        entityNames: ['firefox', 'edge-headless-shell'], // we check for the keyword
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
 
         await step(
-            'testing the version mentioned beside the icon',
+            'testing if we are finding platforms through keywords',
             async () => {
                 await userEvent.click(
                     screen.getByLabelText(`firefox-platform`),
                 );
-                await expect(
-                    screen.getByLabelText('firefox-version'),
-                ).toHaveTextContent(args.entityVersion);
+                await userEvent.click(screen.getByLabelText(`edge-platform`));
             },
         );
     },
 };
 
-export const Edge: Story = {
+export const EdgeFirefoxChrome: Story = {
     args: {
-        entityName: 'edge',
-        entityVersion: '123.0.0',
-        simplified: 'edge_v123.0.0',
+        entityNames: [
+            'chrome-headless-shell',
+            'firefox-headless-shell',
+            'edge-headless-shell',
+        ],
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
 
         await step(
-            'testing the version mentioned beside the icon',
+            'testing if we are finding platforms through keywords',
             async () => {
+                await userEvent.click(
+                    screen.getByLabelText(`firefox-platform`),
+                );
                 await userEvent.click(screen.getByLabelText(`edge-platform`));
-                await expect(
-                    screen.getByLabelText('edge-version'),
-                ).toHaveTextContent(args.entityVersion);
+                await userEvent.click(screen.getByLabelText(`chrome-platform`));
             },
         );
     },
@@ -81,22 +75,16 @@ export const Edge: Story = {
 
 export const NotYetRegistered: Story = {
     args: {
-        entityName: 'safari',
-        entityVersion: '123.0.0',
-        simplified: 'safari_v123.0.0',
+        entityNames: ['safari'],
     },
     play: async ({ canvasElement, step, args }) => {
         const screen = within(canvasElement);
-
         await step(
-            'testing the version mentioned beside the icon',
+            'testing if we are allowing unknown keywords but we are showing a default avatar in that case',
             async () => {
                 await userEvent.click(
                     screen.getByLabelText(`not-yet-noted-platform`),
                 );
-                await expect(
-                    screen.getByLabelText('safari-version'),
-                ).toHaveTextContent(args.entityVersion);
             },
         );
     },

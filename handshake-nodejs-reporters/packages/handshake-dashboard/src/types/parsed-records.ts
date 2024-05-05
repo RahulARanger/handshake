@@ -1,5 +1,8 @@
 import type { Dayjs } from 'dayjs';
-import type { statusOfEntity } from 'types/session-records';
+import type {
+    possibleEntityNames,
+    statusOfEntity,
+} from 'types/session-records';
 import type { Duration } from 'dayjs/plugin/duration';
 import type {
     Assertion,
@@ -43,7 +46,7 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     totalRollupValue: number;
     Contribution: number;
     File: string;
-    entityName: string;
+    entityName: possibleEntityNames;
     entityVersion: string;
     simplified: string;
     hooks: number;

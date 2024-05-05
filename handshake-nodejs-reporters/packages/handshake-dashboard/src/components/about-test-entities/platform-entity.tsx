@@ -11,51 +11,56 @@ import {
 import { uniqBy } from 'lodash-es';
 import React from 'react';
 import type { ReactNode } from 'react';
+import type { possibleEntityNames } from 'types/session-records';
 
 export type PlatformDetails = Array<{
-    entityName: string;
+    entityName: possibleEntityNames;
     entityVersion: string;
     simplified: string;
 }>;
 
 export default function PlatformEntity(properties: {
-    records: PlatformDetails;
+    entityNames: string[];
     size?: AvatarProps['size'];
     c?: string;
     moveRight?: boolean;
 }): ReactNode {
-    const avatars = uniqBy(properties.records, 'entityName').map(
-        ({ entityName }) => {
-            const note = entityName.toLowerCase();
-            let source = '';
-            let color: TooltipProps['color'] = 'orange.7';
+    const avatars = properties.entityNames.map((entityName) => {
+        const note = entityName.toLowerCase() as possibleEntityNames;
+        let source = '';
+        let key = `not-yet-noted-platform`;
+        let color: TooltipProps['color'] = 'orange.7';
 
-            if (note.includes('chrome')) {
-                source = '/chrome.png';
-                color = 'yellow';
-            }
-            if (note.includes('firefox')) source = '/firefox.png';
-            if (note.includes('edge')) {
-                color = 'blue.9';
-                source = '/edge.png';
-            }
+        if (note.includes('chrome')) {
+            source = '/chrome.png';
+            color = 'yellow';
+            key = 'chrome';
+        }
+        if (note.includes('firefox')) {
+            source = '/firefox.png';
+            key = 'firefox';
+        }
+        if (note.includes('edge')) {
+            color = 'blue.9';
+            source = '/edge.png';
+            key = 'edge';
+        }
 
-            return (
-                <Tooltip label={entityName} key={entityName} color={color}>
-                    <Avatar
-                        src={source}
-                        size={properties.size ?? 'md'}
-                        alt={entityName}
-                        aria-label={
-                            source
-                                ? `${note}-platform`
-                                : `not-yet-noted-platform`
-                        }
-                    />
-                </Tooltip>
-            );
-        },
-    );
+        return (
+            <Tooltip
+                label={entityName}
+                key={entityName}
+                color={source ? color : 'red'}
+            >
+                <Avatar
+                    src={source}
+                    size={properties.size ?? 'md'}
+                    alt={entityName}
+                    aria-label={source ? `${key}-platform` : key}
+                />
+            </Tooltip>
+        );
+    });
 
     return (
         <AvatarGroup
@@ -97,7 +102,7 @@ export function DetailedPlatformVersions(properties: {
                                 <Table.Td>{record.entityName}</Table.Td>
                                 <Table.Td>
                                     <PlatformEntity
-                                        records={[record]}
+                                        entityNames={[record.entityName]}
                                         size="sm"
                                     />
                                 </Table.Td>

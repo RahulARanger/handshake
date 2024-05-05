@@ -106,6 +106,7 @@ function CustomTooltip(properties: TooltipProps<string[], 'name' | 'size'>) {
 
 export function PreviewOfProjectStructure(properties: {
     specStructure?: specStructure;
+    quick?: boolean;
     w?: string;
 }): ReactNode {
     const node = useMemo(
@@ -137,6 +138,7 @@ export function PreviewOfProjectStructure(properties: {
                         fill="#820164"
                         nameKey={'name'}
                         type="flat"
+                        animationDuration={properties.quick ? 0 : undefined}
                     >
                         <RToolTip content={<CustomTooltip />} />
                     </Treemap>
