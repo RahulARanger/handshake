@@ -7,10 +7,15 @@ on:
     branches:
       - master
     paths:
-      - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
-      - ".github/scripts/fetch-dashboard-version.sh"
-      - ".github/scripts/sdv.cjs"
-      - "**pre-release-dashboard.yml"
+      - "handshake-nodejs-reporters/**"
+      - "handshake/*"
+      - ".github/**"
+      - "__test__/**"
+      - "noxfile.py"
+      - "**test-build.yml"
+      - "poetry.toml"
+      - "pyproject.toml"
+      - "poetry.lock"
 
 
 permissions:
@@ -30,7 +35,7 @@ jobs:
         with:
           filters: |
             dashboard:
-              - "handshake-nodejs-reporters/packages/handshake-dashboard/*"
+              - "handshake-nodejs-reporters/packages/handshake-dashboard/**"
 
   release:
     name: bundling the dashboard-build
