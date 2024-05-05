@@ -47,3 +47,7 @@ DB_PATH would tell you where to look for the exported json files (it looks for t
 
 -   Please do not upgrade eslint packages, because all such would be major from now on, to support the flat configuration of eslint v9 which was released on April 8th, 2024.
     -   Let all of the dependents complete their transition and I would quickly migrate to eslint v9.
+
+## Versioning
+
+Refer [this](https://docs.npmjs.com/cli/v10/commands/npm-version)
