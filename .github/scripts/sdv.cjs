@@ -18,6 +18,6 @@ for (const output of outputs) {
 
     fs.writeFileSync(output_file, JSON.stringify({ ...store, ...built }))
     console.log(
-        `Output file for ${output_file} generated as: ${JSON.parse(fs.readFileSync(output))}`
+        `Output file for ${output_file} generated as: ${JSON.parse(fs.readFileSync(output_file))}`
     )
 }
