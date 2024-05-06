@@ -36,7 +36,6 @@ jobs:
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
               py:
                 - 'handshake/**'
-                - '**/test-build.yml'
                 - "poetry.toml"
                 - "pyproject.toml"
                 - "poetry.lock"

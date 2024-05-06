@@ -38,12 +38,7 @@ jobs:
             dashboard:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/package.json'
             py:
-                - 'handshake/**'
-                - '**/release.yml'
                 - "poetry.toml"
-                - "pyproject.toml"
-                - "poetry.lock"
-                - '.github/scripts/build-sqlite.sh'
 
   release-dashboard:
     name: Builds and Release Dashboard Static Build
@@ -96,7 +91,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         id: post-release
         with:
-          ref: ${{ github.head_ref }}
           commit_message: Bump Handshake Dashboard Version
           file_pattern: '**/.version'
 
@@ -149,6 +143,5 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         id: post-release
         with:
-          ref: ${{ github.head_ref }}
           commit_message: Bump Handshake Dashboard Version
           file_pattern: '**/.version'
