@@ -6,7 +6,7 @@ export interface RegisterSession {
 export type SuiteType = 'SUITE' | 'TEST';
 export type Standing = 'PASSED' | 'FAILED' | 'SKIPPED' | 'PENDING' | 'YET_TO_CALC';
 
-interface Tag{
+interface Tag {
   name: string;
   label: string;
 }
