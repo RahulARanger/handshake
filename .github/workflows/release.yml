@@ -104,6 +104,7 @@ jobs:
     needs: [decide, release-dashboard]
     name: releases handshakes to pypi
     runs-on: 'ubuntu-latest'
+    permissions: write-all
 
     # if dashboard-build has not failed (if triggered) then only run this job (if triggered)
     if: ${{ !failure() && needs.decide.outputs.py == 'true' }}
@@ -129,11 +130,15 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
 
+      - name: Build Package
+        run: poetry build
+
       - name: Publish handshakes to PYPI
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: poetry build && poetry publish
+        run: |
+          poetry config pypi-token.pypi $PYPI_TOKEN
+          poetry publish
 
       - name: Post Release Update common-handshakes
         env:
