@@ -31,24 +31,18 @@ def zipped_build(root_dir):
 
 
 @fixture(autouse=True)
-async def clean_close(db_path, init_db, root_dir, report_dir, zipped_build):
+async def clean_close(
+    db_path, init_db, root_dir, report_dir, zipped_build, version_file
+):
     if root_dir.exists():
         shutil.rmtree(root_dir)
     zipped_build.unlink(missing_ok=True)
 
     root_dir.mkdir()
-    release_info = urlopen(
-        Request(
-            "https://api.github.com/repos/RahulARanger/handshake/releases",
-            headers=dict(accept="application/vnd.github+json"),
-        )
-    )
-    print("DOWNLOADING...")
+    release_info = loads(version_file.read_text())
 
     urlretrieve(
-        loads(release_info.read().decode("utf-8"))[0]["assets"][0][
-            "browser_download_url"
-        ],
+        release_info["0"]["browser_download_url"],
         zipped_build,
     )
 

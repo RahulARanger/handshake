@@ -37,8 +37,6 @@ jobs:
           filters: |
             dashboard:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/package.json'
-              - '**/release.yml'
-              - '**/sdv.cjs'
             py:
                 - 'handshake/**'
                 - '**/release.yml'
@@ -106,6 +104,7 @@ jobs:
 #    needs: decide
 #    name: releases handshakes to pypi
 #    runs-on: 'ubuntu-latest'
+#if: ${{ failure() }}
 #    if: ${{ needs.decide.outputs.py == 'true' }}
 #
 #    steps:

@@ -27,8 +27,8 @@ def db_path(root_dir):
 
 
 @fixture()
-def dist(root_dir):
-    return root_dir.parent / "dist"
+def version_file():
+    return Path(__file__).parent.parent / "handshake" / ".version"
 
 
 @fixture()
