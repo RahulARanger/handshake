@@ -26,8 +26,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
-    name: decides which job to run based on the file changes
+      py: ${{ steps.filter.outputs.py }}
 
+    name: decides which job to run based on the file changes
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -36,7 +37,6 @@ jobs:
           filters: |
             dashboard:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
-              - '**/release.yml'
               - '.github/scripts/fetch-dashboard-version.sh'
             py:
                 - 'handshake/**'
@@ -135,7 +135,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
 
-      - name: Publish
+      - name: Publish handshakes to PYPI
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
