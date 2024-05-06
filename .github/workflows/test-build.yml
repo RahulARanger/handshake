@@ -34,7 +34,6 @@ jobs:
             filters: |
               dashboard:
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
-                - '**/test-build.yml'
               py:
                 - 'handshake/**'
                 - '**/test-build.yml'
@@ -90,7 +89,7 @@ jobs:
           run: |
             bash ./.github/scripts/build-sqlite.sh
 
-        - name: Set up Python 3.11
+        - name: Set up Python 3.11 & 3.12
           uses: actions/setup-python@v5
           with:
             python-version: |
