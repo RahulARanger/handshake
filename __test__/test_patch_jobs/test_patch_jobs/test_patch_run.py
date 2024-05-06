@@ -49,9 +49,10 @@ class TestPatchRunJob:
         test = await session.test
 
         await attach_config(test.testID, avoidParentSuitesInCount=True)
+        check_for = str(pathlib.Path("inside-1") / "spec-1.js")
 
         parent_suite = await create_suite(
-            session_id, file="inside-1/spec-1.js"
+            session_id, file=check_for
         )  # this should not be counted in summary
 
         _, suites = await create_hierarchy(
@@ -59,9 +60,9 @@ class TestPatchRunJob:
             parent_suite.suiteID,
             test.testID,
             suite_files=[
-                "inside-1/spec-1.js",
-                "inside-1/spec-1.js",
-                "inside-1/spec-1.js",
+                check_for,
+                check_for,
+                check_for,
             ],
         )
         await register_patch_test_run(test.testID)
@@ -79,9 +80,10 @@ class TestPatchRunJob:
         assert record.suiteSummary["passed"] == 0
         assert record.suiteSummary["failed"] == 3
         assert record.suiteSummary["skipped"] == 0
-        assert "inside-1\\spec-1.js" in record.specStructure
+
+        assert check_for in record.specStructure
         assert (
-            pathlib.Path(record.specStructure["inside-1\\spec-1.js"]["current"])
+            pathlib.Path(record.specStructure[check_for]["current"])
             == pathlib.Path("inside-1") / "spec-1.js"
         )
 

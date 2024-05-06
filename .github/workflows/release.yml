@@ -140,3 +140,16 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
         run: poetry build && poetry publish
+
+      - name: Post Release Update common-handshakes
+        env:
+          ASSETS: ${{ steps.release.outputs.assets }}
+        run: bash ./.github/scripts/release-server-tag.sh
+
+      - name: commiting the changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        id: post-release
+        with:
+          ref: ${{ github.head_ref }}
+          commit_message: Bump Handshake Dashboard Version
+          file_pattern: 'handshake-nodejs-reporters/packages/common-handshakes/.version'
