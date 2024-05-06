@@ -101,7 +101,7 @@ jobs:
           file_pattern: '**/.version'
 
   release-handshakes:
-    needs: [decide, release]
+    needs: [decide, release-dashboard]
     name: releases handshakes to pypi
     runs-on: 'ubuntu-latest'
 
