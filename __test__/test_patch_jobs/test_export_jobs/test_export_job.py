@@ -15,8 +15,10 @@ from handshake.services.SchedularService.register import (
     register_patch_suite,
 )
 from subprocess import run, PIPE, TimeoutExpired
+from pytest import mark
 
 
+@mark.usefixtures("clean_close")
 class TestMinimalExport:
     async def test_with_export_disabled(self, root_dir):
         scheduler = Scheduler(root_dir)
@@ -43,6 +45,7 @@ class TestMinimalExport:
         ).read_text() == "{}"
 
 
+@mark.usefixtures("clean_close")
 class TestExportsWithRuns:
     async def test_with_a_single_run(
         self,
@@ -366,6 +369,7 @@ class TestExportsWithRuns:
         assert len(for_this_project) == 2
 
 
+@mark.usefixtures("clean_close")
 async def test_patch_interruption(
     helper_create_test_run, root_dir, report_dir, zipped_build
 ):

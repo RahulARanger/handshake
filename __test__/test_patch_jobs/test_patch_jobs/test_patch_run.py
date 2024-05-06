@@ -1,6 +1,10 @@
 import pathlib
 from pytest import mark
-from handshake.services.DBService.models import RunBase, TaskBase, TestLogBase
+from handshake.services.DBService.models import (
+    RunBase,
+    TaskBase,
+    TestLogBase,
+)
 from subprocess import run
 from handshake.services.DBService.models.enums import Status, LogType
 from handshake.services.SchedularService.modifySuites import patchTestSuite
@@ -45,9 +49,10 @@ class TestPatchRunJob:
         test = await session.test
 
         await attach_config(test.testID, avoidParentSuitesInCount=True)
+        check_for = str(pathlib.Path("inside-1") / "spec-1.js")
 
         parent_suite = await create_suite(
-            session_id, file="inside-1/spec-1.js"
+            session_id, file=check_for
         )  # this should not be counted in summary
 
         _, suites = await create_hierarchy(
@@ -55,9 +60,9 @@ class TestPatchRunJob:
             parent_suite.suiteID,
             test.testID,
             suite_files=[
-                "spec-1.js",
-                "inside-1/spec-2.js",
-                "inside-1/inside-2/spec-2.js",
+                check_for,
+                check_for,
+                check_for,
             ],
         )
         await register_patch_test_run(test.testID)
@@ -75,12 +80,12 @@ class TestPatchRunJob:
         assert record.suiteSummary["passed"] == 0
         assert record.suiteSummary["failed"] == 3
         assert record.suiteSummary["skipped"] == 0
-        assert "spec-1.js" in record.specStructure
-        assert "inside-1" in record.specStructure
-        assert pathlib.Path(
-            record.specStructure["inside-1"]["current"]
-        ) == pathlib.Path("inside-1")
-        assert pathlib.Path(record.specStructure["inside-1"]["current"])
+
+        assert check_for in record.specStructure
+        assert (
+            pathlib.Path(record.specStructure[check_for]["current"])
+            == pathlib.Path("inside-1") / "spec-1.js"
+        )
 
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session

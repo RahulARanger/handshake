@@ -23,6 +23,7 @@ jobs:
       runs-on: ubuntu-latest
       outputs:
         dashboard: ${{ steps.filter.outputs.dashboard }}
+        py: ${{ steps.filter.outputs.py }}
       name: decides which job to run based on the file changes
 
       steps:
@@ -70,3 +71,50 @@ jobs:
         - name: Building Dashboard
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npm run build
+
+#    test-handshakes:
+#      needs: decide
+#      name: check if the py-build for handshake is stable
+#      runs-on: ${{ matrix.os }}
+#      if: ${{ needs.decide.outputs.py == 'true' }}
+#
+#      strategy:
+#        matrix:
+#          os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
+#
+#      steps:
+#        - uses: actions/checkout@v4
+#
+#        - name: If in ubuntu, Install sqlite3 3.45.0
+#          if: ${{ matrix.os == 'ubuntu-latest' }}
+#          run: |
+#            bash ./.github/scripts/build-sqlite.sh
+#
+#        - name: Set up Python 3.11
+#          uses: actions/setup-python@v5
+#          with:
+#            python-version: |
+#              3.11
+#              3.12
+#
+#        - name: Set up venv
+#          run: |
+#            python -m venv venv
+#
+#        - name: Activate venv if not Windows
+#          if: ${{ matrix.os != 'windows-latest' }}
+#          run: |
+#            source ./venv/bin/activate
+#
+#        - name: Activate venv if Windows
+#          if: ${{ matrix.os == 'windows-latest' }}
+#          run: ./venv/scripts/activate
+#
+#        - name: Install dependencies
+#          run: |
+#            python -m pip install --upgrade pip
+#            pip install poetry nox
+#            poetry install
+#
+#        - name: Regression Test
+#          run: nox -s test
