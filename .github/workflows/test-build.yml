@@ -24,8 +24,9 @@ jobs:
       outputs:
         dashboard: ${{ steps.filter.outputs.dashboard }}
         py: ${{ steps.filter.outputs.py }}
-      name: decides which job to run based on the file changes
+        common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
 
+      name: decides which job to run based on the file changes
       steps:
         - uses: actions/checkout@v4
         - uses: dorny/paths-filter@v3
@@ -39,6 +40,8 @@ jobs:
                 - "poetry.toml"
                 - "pyproject.toml"
                 - "poetry.lock"
+              common_nodejs_reporters:
+                - 'handshake-nodejs-reporters/packages/common-handshakes/**'
 
     test-dashboard:
       needs: decide
@@ -69,7 +72,6 @@ jobs:
         - name: Building Dashboard
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npm run build
-
     test-handshakes:
       needs: decide
       name: check if the py-build for handshake is stable
@@ -116,3 +118,24 @@ jobs:
 
         - name: Regression Test
           run: nox -s test
+    test-common-nodejs-reporters:
+      needs: [decide, test-dashboard, test-handshakes]
+      name: test the common-nodejs-reporters build
+      runs-on: "macos-latest"
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Use Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20.9.0
+
+        - name: Installing node packages
+          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
+          run: npm install && npm run build
+
+        - name: conduct tests
+          working-directory: ./handshake-nodejs-reporters
+          run: npm run test
