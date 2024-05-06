@@ -118,10 +118,12 @@ jobs:
 
         - name: Regression Test
           run: nox -s test
+
     test-common-nodejs-reporters:
       needs: [decide, test-dashboard, test-handshakes]
       name: test the common-nodejs-reporters build
       runs-on: "macos-latest"
+      if: ${{ !failure() && needs.decide.outputs.common_nodejs_reporters == 'true' }}
 
       steps:
         - name: Checkout code
