@@ -28,7 +28,7 @@ jobs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
       py: ${{ steps.filter.outputs.py }}
 
-    name: decides which job to run based on the file changes
+    name: Decides which jobs to trigger
     steps:
       - uses: actions/checkout@v4
       - uses: dorny/paths-filter@v3
@@ -47,7 +47,7 @@ jobs:
                 - '.github/scripts/build-sqlite.sh'
 
   release:
-    name: bundling the dashboard-build
+    name: Builds and Release Dashboard Static Build
     needs: decide
     runs-on: 'ubuntu-latest'
     permissions: write-all
