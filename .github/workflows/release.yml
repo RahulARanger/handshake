@@ -36,8 +36,8 @@ jobs:
         with:
           filters: |
             dashboard:
-              - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
-              - '.github/scripts/fetch-dashboard-version.sh'
+              - 'handshake-nodejs-reporters/packages/handshake-dashboard/package.json'
+              - '**/release.yml'
             py:
                 - 'handshake/**'
                 - '**/release.yml'
@@ -101,55 +101,55 @@ jobs:
           commit_message: Bump Handshake Dashboard Version
           file_pattern: '*.version'
 
-  test-py:
-    needs: decide
-    name: check if the py-build for handshake is stable
-    runs-on: 'ubuntu-latest'
-    if: ${{ needs.decide.outputs.py == 'true' }}
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
-        with:
-          python-version: |
-            3.11
-            3.12
-
-      - name: Set up venv
-        run: |
-          python -m venv venv
-
-      - name: Activate venv if not Windows
-        if: ${{ matrix.os != 'windows-latest' }}
-        run: | 
-          source ./venv/bin/activate
-
-      - name: Activate venv if Windows
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: ./venv/scripts/activate
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install poetry
-
-      - name: Publish handshakes to PYPI
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
-        run: poetry build && poetry publish
-
-      - name: Post Release Update common-handshakes
-        env:
-          ASSETS: ${{ steps.release.outputs.assets }}
-        run: bash ./.github/scripts/release-server-tag.sh
-
-      - name: commiting the changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        id: post-release
-        with:
-          ref: ${{ github.head_ref }}
-          commit_message: Bump Handshake Dashboard Version
-          file_pattern: 'handshake-nodejs-reporters/packages/common-handshakes/.version'
+#  release-handshakes:
+#    needs: decide
+#    name: releases handshakes to pypi
+#    runs-on: 'ubuntu-latest'
+#    if: ${{ needs.decide.outputs.py == 'true' }}
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Set up Python 3.11
+#        uses: actions/setup-python@v5
+#        with:
+#          python-version: |
+#            3.11
+#            3.12
+#
+#      - name: Set up venv
+#        run: |
+#          python -m venv venv
+#
+#      - name: Activate venv if not Windows
+#        if: ${{ matrix.os != 'windows-latest' }}
+#        run: | 
+#          source ./venv/bin/activate
+#
+#      - name: Activate venv if Windows
+#        if: ${{ matrix.os == 'windows-latest' }}
+#        run: ./venv/scripts/activate
+#
+#      - name: Install dependencies
+#        run: |
+#          python -m pip install --upgrade pip
+#          pip install poetry
+#
+#      - name: Publish handshakes to PYPI
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+#        run: poetry build && poetry publish
+#
+#      - name: Post Release Update common-handshakes
+#        env:
+#          ASSETS: ${{ steps.release.outputs.assets }}
+#        run: bash ./.github/scripts/release-server-tag.sh
+#
+#      - name: commiting the changes
+#        uses: stefanzweifel/git-auto-commit-action@v5
+#        id: post-release
+#        with:
+#          ref: ${{ github.head_ref }}
+#          commit_message: Bump Handshake Dashboard Version
+#          file_pattern: 'handshake-nodejs-reporters/packages/common-handshakes/.version'

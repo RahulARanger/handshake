@@ -43,6 +43,7 @@ async def clean_close(db_path, init_db, root_dir, report_dir, zipped_build):
             headers=dict(accept="application/vnd.github+json"),
         )
     )
+    print("DOWNLOADING...")
 
     urlretrieve(
         loads(release_info.read().decode("utf-8"))[0]["assets"][0][
