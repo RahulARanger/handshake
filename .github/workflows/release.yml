@@ -39,6 +39,9 @@ jobs:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/package.json'
             py:
                 - "poetry.toml"
+            common_nodejs_reporters:
+                - 'handshake-nodejs-reporters/packages/common-handshakes/**'
+                - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/**'
 
   release-dashboard:
     name: Builds and Release Dashboard Static Build
@@ -145,3 +148,44 @@ jobs:
         with:
           commit_message: Bump Handshake Dashboard Version
           file_pattern: '**/.version'
+
+  release-common-handshake-reporters:
+    needs: [ decide, release-dashboard, release-handshakes ]
+    name: releases handshakes to pypi
+    runs-on: 'ubuntu-latest'
+    permissions: write-all
+
+    # if (dashboard-build and py-build) has not failed (if triggered) then only run this job (if needed)
+    if: ${{ !failure() && needs.decide.outputs.common_nodejs_reporters == 'true' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.9.0
+
+      - name: Setup Turbo Repo.
+        working-directory: ./handshake-nodejs-reporters
+        run:
+          npm install && npm run build
+
+      - name: skip job if no changesets
+        working-directory: ./handshake-nodejs-reporters
+        run: npx changeset status
+
+      - name: publish packages
+        working-directory: ./handshake-nodejs-reporters
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm run publish
+
+      - name: commiting the changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        id: post-release
+        with:
+          commit_message: Bump Handshake Dashboard Version
+          file_pattern: 'handshake-nodejs-reporters/packages/**/CHANGELOG.md handshake-nodejs-reporters/.changeset/*.md'
