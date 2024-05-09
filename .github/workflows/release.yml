@@ -151,7 +151,7 @@ jobs:
 
   release-common-handshake-reporters:
     needs: [ decide, release-dashboard, release-handshakes ]
-    name: releases handshakes to pypi
+    name: releases common handshake node reporters to npm
     runs-on: 'ubuntu-latest'
     permissions: write-all
 
