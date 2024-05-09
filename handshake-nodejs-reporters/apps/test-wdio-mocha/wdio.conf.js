@@ -32,7 +32,7 @@ const metaConfig = {
         ui: 'bdd',
         timeout: 60000,
         grep: "(version|login)",
-        invert: !Boolean(process.env.SANITY)
+        invert: Boolean(process.env.SANITY)
     },
     beforeTest: async function () {
         await browser.takeScreenshot();
@@ -42,12 +42,10 @@ const metaConfig = {
     }
 }
 
-const root = dirname(dirname(dirname(process.cwd())))
 export const config = attachReporter(metaConfig, {
     resultsFolderName: "TestResults",
-    port: 6969,
+    port: 6966,
     requestsTimeout: 360e3,
-    root,
     addScreenshots: true,
     testConfig: { projectName: process.env.SANITY ? 'sanity-test-wdio-mocha' : 'test-wdio-mocha' },
     logLevel: "error",

@@ -13,9 +13,9 @@ dist/*
 
 results
 test-results/*
-TestResults/*
+**/TestResults/*
 SanityResults/*
-TestReports/*
+**/TestReports/*
 
 jest-init-tests
 test-jest-reports
