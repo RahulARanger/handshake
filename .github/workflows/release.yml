@@ -40,8 +40,8 @@ jobs:
             py:
                 - "poetry.toml"
             common_nodejs_reporters:
-                - 'handshake-nodejs-reporters/packages/common-handshakes/**'
-                - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/**'
+                - 'handshake-nodejs-reporters/packages/common-handshakes/package.json'
+                - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/package.json'
 
   release-dashboard:
     name: Builds and Release Dashboard Static Build
