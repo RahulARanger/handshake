@@ -96,6 +96,7 @@ describe('Verifying the handshake-server helper class', () => {
         await instance.generateReport(results, root, reports, 1e3);
         expect(false).toBe(true);
       } catch (err) {
+        instance.logger.warn(err);
         expect(err.message?.includes('ETIMEDOUT')).toBe(true);
       }
     });
