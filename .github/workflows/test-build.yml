@@ -47,7 +47,7 @@ jobs:
               wdio_reporter:
                 - '**/test-build.yml' 
                 - 'handshake-nodejs-reporters/apps/test-wdio-*'
-                - 'handshake-nodejs-reporters/packages/wdio-handshake=reporter/**'
+                - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/**'
 
     test-dashboard:
       needs: decide

@@ -93,10 +93,11 @@ describe('Verifying the handshake-server helper class', () => {
 
     test('verifying the export generation but cancelled due to timeout error', async () => {
       try {
-        await instance.generateReport(results, root, reports, 1e3);
+        await instance.generateReport(results, root, reports, 6e2);
         expect(false).toBe(true);
       } catch (err) {
         instance.logger.warn(err);
+        expect(err.type).not.toBe('JestAssertionError');
         expect(err.message?.includes('ETIMEDOUT')).toBe(true);
       }
     });
