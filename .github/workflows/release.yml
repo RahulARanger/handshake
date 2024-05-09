@@ -27,6 +27,7 @@ jobs:
     outputs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
       py: ${{ steps.filter.outputs.py }}
+      common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
 
     name: Decides which jobs to trigger
     steps:
