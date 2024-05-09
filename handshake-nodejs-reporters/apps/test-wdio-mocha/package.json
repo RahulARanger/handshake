@@ -6,7 +6,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"test:sample": "cross-env SANITY=true npx wdio run ./wdio.conf.js"
+		"test:sample": "cross-env SANITY=true npx wdio run ./wdio.conf.js",
+		"test": "npx wdio run ./wdio.conf.js"
 	},
 	"author": "",
 	"license": "ISC",

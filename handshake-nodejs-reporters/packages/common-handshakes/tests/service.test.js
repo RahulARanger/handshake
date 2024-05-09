@@ -62,7 +62,7 @@ describe('Verifying the handshake-server helper class', () => {
         framework: 'jest-tests',
         exitCode: 0,
         fileRetries: 1,
-        tags: ['@test', '*.spec.js'],
+        tags: [{ name: '@test', label: 'test tag' }, { name: '*.spec.js', label: 'spec tag' }],
         platformName: 'windows',
       });
       expect(resp).not.toBeUndefined();
@@ -93,9 +93,11 @@ describe('Verifying the handshake-server helper class', () => {
 
     test('verifying the export generation but cancelled due to timeout error', async () => {
       try {
-        await instance.generateReport(results, root, reports, 1e3);
+        await instance.generateReport(results, root, reports, 6e2);
         expect(false).toBe(true);
       } catch (err) {
+        instance.logger.warn(err);
+        expect(err.type).not.toBe('JestAssertionError');
         expect(err.message?.includes('ETIMEDOUT')).toBe(true);
       }
     });

@@ -4,7 +4,8 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"test:sample": "cross-env SANITY=true npx wdio run ./wdio.conf.ts --cucumberOpts.tags=\"@sample\""
+		"test:sample": "cross-env SANITY=true npx wdio run ./wdio.conf.ts --cucumberOpts.tags=\"@sample\"",
+		"test": "npx wdio run ./wdio.conf.ts --cucumberOpts.tags=\"@sample\""
 	},
 	"author": "",
 	"license": "ISC",

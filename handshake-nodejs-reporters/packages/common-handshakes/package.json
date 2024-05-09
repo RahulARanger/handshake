@@ -1,22 +1,26 @@
 {
 	"name": "common-handshakes",
+	"description": "common-package used by some of the custom reporters written for node frameworks to share the results with handshake server",
 	"version": "0.5.0",
 	"private": false,
+	"author": "RahulARanger <saihanumarahul66@gmail.com>",
 	"type": "module",
 	"license": "MIT",
 	"types": "./dist/index.d.ts",
 	"readme": "../../README.md",
-	"description": "does a handshake with the server, shares the desired results with it.",
 	"exports": {
 		".": {
 			"default": "./dist/index.js"
 		},
 		"./node.json": "./node.json"
 	},
+	"bugs": {
+		"url": "https://github.com/RahulARanger/handshake/issues"
+	},
+	"homepage": "https://github.com/RahulARanger/handshake",
 	"scripts": {
 		"lint": "eslint src/**",
 		"test": "npx jest --detectOpenHandles",
-		"sanity": "npm run test",
 		"build": "npm run lint && rimraf -g ./dist && tsup src/index.ts --format esm --dts",
 		"install": "node post-install.js"
 	},
@@ -25,22 +29,22 @@
 		"cross-env": "^7.0.3",
 		"p-queue": "^8.0.1",
 		"pino": "^9.0.0",
-		"superagent": "^9.0.1",
+		"superagent": "~9.0.2",
 		"tsup": "^8.0.2",
 		"shell-quote": "^1.8.1"
 	},
 	"devDependencies": {
-		"@babel/core": "^7.24.4",
-		"@babel/preset-env": "^7.24.4",
+		"@babel/core": "^7.24.5",
+		"@babel/preset-env": "^7.24.5",
 		"@babel/preset-typescript": "^7.24.1",
 		"@jest/globals": "^29.7.0",
 		"@tsconfig/node18": "^18.2.4",
 		"@types/async-lock": "^1.4.2",
 		"@types/jest": "^29.5.12",
 		"@types/mocha": "^10.0.6",
-		"@types/node": "^20.12.7",
+		"@types/node": "^20.12.11",
 		"@types/shell-quote": "^1.7.5",
-		"@types/superagent": "^8.1.6",
+		"@types/superagent": "^8.1.7",
 		"@types/supertest": "^6.0.2",
 		"babel-jest": "^29.7.0",
 		"babel-plugin-transform-import-meta": "^2.2.1",

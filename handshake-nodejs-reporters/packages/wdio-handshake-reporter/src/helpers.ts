@@ -7,7 +7,7 @@ import { currentReporter } from './contacts';
 
 export function attachReporter(
   config: Options.Testrunner,
-  options: ReporterOptions & HandshakeServiceOptions,
+  options: ReporterOptions & HandshakeServiceOptions & { root ?: string },
 ): Options.Testrunner {
   if (options.disabled) return config;
   checkVersion();

@@ -24,8 +24,10 @@ jobs:
       outputs:
         dashboard: ${{ steps.filter.outputs.dashboard }}
         py: ${{ steps.filter.outputs.py }}
-      name: decides which job to run based on the file changes
+        common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
+        wdio_reporter: ${{ steps.filter.outputs.wdio_reporter }}
 
+      name: decides which job to run based on the file changes
       steps:
         - uses: actions/checkout@v4
         - uses: dorny/paths-filter@v3
@@ -36,10 +38,16 @@ jobs:
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
               py:
                 - 'handshake/**'
-                - '**/test-build.yml'
                 - "poetry.toml"
                 - "pyproject.toml"
                 - "poetry.lock"
+              common_nodejs_reporters:
+                - '**/test-build.yml' 
+                - 'handshake-nodejs-reporters/packages/common-handshakes/**'
+              wdio_reporter:
+                - '**/test-build.yml' 
+                - 'handshake-nodejs-reporters/apps/test-wdio-*'
+                - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/**'
 
     test-dashboard:
       needs: decide
@@ -117,3 +125,63 @@ jobs:
 
         - name: Regression Test
           run: nox -s test
+
+    test-common-nodejs-reporters:
+      needs: [decide, test-dashboard, test-handshakes]
+      name: test the common-nodejs-reporters build
+      runs-on: "windows-latest"
+      if: ${{ !failure() && ( needs.decide.outputs.common_nodejs_reporters == 'true' || needs.decide.outputs.wdio_reporter == 'true' ) }}
+
+      steps:
+        - name: Checkout code
+          uses: actions/checkout@v4
+
+        - name: Use Node.js
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20.9.0
+
+        - name: Set up Python 3.11
+          uses: actions/setup-python@v5
+          with:
+            python-version: |
+              3.11
+
+        - name: Set up venv
+          run: |
+            python -m venv venv
+
+        - name: Install dependencies
+          # please note, nox is not installed, here.
+          run: |
+            python -m pip install --upgrade pip
+            pip install poetry
+            poetry install
+
+        - name: Activate venv
+          run: ./venv/scripts/activate
+
+        - name: Setup Turbo Repo.
+          working-directory: ./handshake-nodejs-reporters
+          run:
+            npm install
+
+        - name: Installing node packages for common-handshakes
+          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
+          if: ${{ needs.decide.outputs.common_nodejs_reporters == 'true' }}
+          run: npm install && npm run build
+
+        - name: conduct tests
+          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
+          if: ${{ needs.decide.outputs.common_nodejs_reporters == 'true' }}
+          run: npm run test
+
+        - name: Installing node packages for wdio-handshake-reporter
+          working-directory: ./handshake-nodejs-reporters/packages/wdio-handshake-reporter
+          if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
+          run: npm install && npm run build
+
+        - name: conduct tests
+          working-directory: ./handshake-nodejs-reporters
+          if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
+          run: npm run test-wdio
