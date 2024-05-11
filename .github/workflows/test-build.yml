@@ -42,8 +42,10 @@ jobs:
                 - "pyproject.toml"
                 - "poetry.lock"
               common_nodejs_reporters:
+                - "**/test-build.yml"
                 - 'handshake-nodejs-reporters/packages/common-handshakes/**'
               wdio_reporter:
+                - "**/test-build.yml"
                 - 'handshake-nodejs-reporters/apps/test-wdio-*'
                 - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/**'
 
@@ -166,12 +168,13 @@ jobs:
 
         - name: Installing node packages for common-handshakes
           working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
-          if: ${{ needs.decide.outputs.common_nodejs_reporters == 'true' }}
+          # NOTE: common-handshakes build is always required
           run: npm install && npm run build
 
         - name: conduct tests
           working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
           if: ${{ needs.decide.outputs.common_nodejs_reporters == 'true' }}
+          # NOTE: common-handshakes tests alone can be triggered if required
           run: npm run test
 
         - name: Installing node packages for wdio-handshake-reporter
