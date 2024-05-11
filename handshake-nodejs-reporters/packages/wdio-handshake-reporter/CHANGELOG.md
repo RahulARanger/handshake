@@ -1,5 +1,16 @@
 # wdio-graspit-reporter
 
+## 0.6.0
+
+### Minor Changes
+
+- 8ca16b1: follow new approach for exporting and building results with handshake-server 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [8ca16b1]
+  - common-handshakes@0.6.0
+
 ## 0.5.0
 
 ### Minor Changes
