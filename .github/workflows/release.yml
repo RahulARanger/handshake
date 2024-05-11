@@ -46,7 +46,6 @@ jobs:
                 - 'handshake-nodejs-reporters/packages/common-handshakes/package.json'
                 - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/package.json'
             storybook:
-                - '**/release.yml' 
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
 
   release-dashboard:
