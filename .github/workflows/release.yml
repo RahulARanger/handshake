@@ -171,6 +171,8 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.9.0
+          cache: 'npm'
+          cache-dependency-path: handshake-nodejs-reporters/package-lock.json
 
       - name: Setup Turbo Repo.
         working-directory: ./handshake-nodejs-reporters
@@ -208,14 +210,21 @@ jobs:
 
   host-storybook:
     needs: [ decide, release-dashboard, release-handshakes, release-common-handshake-reporters ]
-    name: run past release
+    name: deploy-storybook
     runs-on: 'ubuntu-latest'
     permissions:
-      contents: write
+      contents: read
+      pages: write
+      id-token: write
+
     if: ${{ !failure() && needs.decide.outputs.storybook == 'true' }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
+    concurrency:
+      group: "pages"
+      cancel-in-progress: false
 
     steps:
       - uses: actions/checkout@v4
@@ -230,7 +239,7 @@ jobs:
 
       - name: Installing node packages
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+        run: npm install
 
       - name: Building storybook
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
