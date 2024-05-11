@@ -22,12 +22,14 @@ permissions:
     contents: write
 
 jobs:
+
   decide:
     runs-on: ubuntu-latest
     outputs:
       dashboard: ${{ steps.filter.outputs.dashboard }}
       py: ${{ steps.filter.outputs.py }}
       common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
+      storybook: ${{ steps.filter.outputs.storybook}}
 
     name: Decides which jobs to trigger
     steps:
@@ -44,6 +46,8 @@ jobs:
                 - '**/release.yml' 
                 - 'handshake-nodejs-reporters/packages/common-handshakes/package.json'
                 - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/package.json'
+            storybook:
+                - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
 
   release-dashboard:
     name: Builds and Release Dashboard Static Build
@@ -78,7 +82,7 @@ jobs:
 
       - name: create pre-release
         uses: softprops/action-gh-release@v2
-        id: release
+        id: pre-release
         with:
           files: dashboard.tar.bz2
           body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
@@ -178,6 +182,16 @@ jobs:
         working-directory: ./handshake-nodejs-reporters
         run: npx changeset status
 
+      - name: Create .npmrc file
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        working-directory: ./handshake-nodejs-reporters
+        run: |
+          cat << EOF > "$HOME/.npmrc"
+            email=saihanumarahul66@gmail.com
+            //registry.npmjs.org/:_authToken=$NPM_TOKEN
+          EOF
+
       - name: publish packages
         working-directory: ./handshake-nodejs-reporters
         env:
@@ -191,3 +205,31 @@ jobs:
         with:
           commit_message: Bump Handshake Dashboard Version
           file_pattern: 'handshake-nodejs-reporters/packages/**/CHANGELOG.md handshake-nodejs-reporters/.changeset/*.md'
+
+  post-release:
+    needs: [ decide, release-dashboard, release-handshakes, release-common-handshake-reporters ]
+    name: run past release
+    runs-on: 'ubuntu-latest'
+    permissions: write-all
+    if: ${{ !failure() && needs.decide.outputs.dashboard == 'true' }}
+
+    steps:
+      - name: fetch dashboard-version
+        id: version
+        run: bash .github/scripts/fetch-dashboard-version.sh
+
+      - name: update pre-release to release
+        uses: softprops/action-gh-release@v2
+        id: release
+        with:
+          prerelease: false
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          generate_release_notes: true
+
+#  host-storybook:
+#    needs: [ decide, release-dashboard, release-handshakes, release-common-handshake-reporters ]
+#    name: run past release
+#    runs-on: 'ubuntu-latest'
+#    permissions: write-all
+#    if: ${{ !failure() && needs.decide.outputs.storybook == 'true' }}
+#

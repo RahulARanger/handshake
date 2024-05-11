@@ -42,10 +42,8 @@ jobs:
                 - "pyproject.toml"
                 - "poetry.lock"
               common_nodejs_reporters:
-                - "**/test-build.yml"
                 - 'handshake-nodejs-reporters/packages/common-handshakes/**'
               wdio_reporter:
-                - "**/test-build.yml"
                 - 'handshake-nodejs-reporters/apps/test-wdio-*'
                 - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/**'
 
