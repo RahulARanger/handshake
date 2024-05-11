@@ -43,10 +43,10 @@ jobs:
             py:
                 - "poetry.toml"
             common_nodejs_reporters:
-                - '**/release.yml' 
                 - 'handshake-nodejs-reporters/packages/common-handshakes/package.json'
                 - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/package.json'
             storybook:
+                - '**/release.yml' 
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
 
   release-dashboard:
@@ -86,7 +86,6 @@ jobs:
         with:
           files: dashboard.tar.bz2
           body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
-          prerelease: true
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: "Handshake v${{ steps.version.outputs.VERSION }}"
           generate_release_notes: true
@@ -206,30 +205,42 @@ jobs:
           commit_message: Bump Handshake Dashboard Version
           file_pattern: 'handshake-nodejs-reporters/packages/**/CHANGELOG.md handshake-nodejs-reporters/.changeset/*.md'
 
-  post-release:
+
+  host-storybook:
     needs: [ decide, release-dashboard, release-handshakes, release-common-handshake-reporters ]
     name: run past release
     runs-on: 'ubuntu-latest'
-    permissions: write-all
-    if: ${{ !failure() && needs.decide.outputs.dashboard == 'true' }}
+    permissions:
+      contents: write
+    if: ${{ !failure() && needs.decide.outputs.storybook == 'true' }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
-      - name: fetch dashboard-version
-        id: version
-        run: bash .github/scripts/fetch-dashboard-version.sh
+      - uses: actions/checkout@v4
 
-      - name: update pre-release to release
-        uses: softprops/action-gh-release@v2
-        id: release
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
         with:
-          prerelease: false
-          tag_name: ${{ steps.version.outputs.VERSION }}
-          generate_release_notes: true
+          node-version: 20.9.0
 
-#  host-storybook:
-#    needs: [ decide, release-dashboard, release-handshakes, release-common-handshake-reporters ]
-#    name: run past release
-#    runs-on: 'ubuntu-latest'
-#    permissions: write-all
-#    if: ${{ !failure() && needs.decide.outputs.storybook == 'true' }}
-#
+      - name: Installing node packages
+        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+
+      - name: Building storybook
+        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        run: npm run build-storybook --quiet
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./handshake-nodejs-reporters/packages/handshake-dashboard/storybook-static
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
