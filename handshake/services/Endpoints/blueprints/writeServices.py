@@ -26,6 +26,9 @@ async def handle_response(request: Request, response: JSONResponse):
     return JSONResponse(body=payload, status=response.status)
 
 
+# NOTE: depreciated
+
+
 @writeServices.put("/addAttachmentForEntity", error_format="json")
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = AddAttachmentForEntity.model_validate(request.json)

@@ -30,10 +30,16 @@ from handshake.services.SchedularService.constants import (
     EXPORT_RUNS_PAGE_FILE_NAME,
     EXPORT_OVERVIEW_PAGE,
     EXPORT_ALL_SUITES,
+    EXPORT_SUITE_PAGE_FILE_NAME,
+    EXPORT_SUITE_TESTS_PAGE,
+    EXPORT_TEST_ASSERTIONS,
+    EXPORT_TEST_ENTITY_ATTACHMENTS,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
 from handshake.services.SchedularService.handleTestResults import delete_test_attachment
+from handshake.services.DBService.models.attachmentBase import AssertBase
+from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.handlePending import patch_jobs
 from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
@@ -345,6 +351,7 @@ WHERE rb.ended <> '' order by rb.started;
                 "passed",
                 "failed",
                 "standing",
+                "tests",
                 "skipped",
                 "duration",
                 "file",
@@ -373,7 +380,91 @@ WHERE rb.ended <> '' order by rb.started;
         await to_thread(
             self.save_all_suites_query,
             run_id,
-            json.dumps(all_suites),
+            all_suites,
+        )
+
+        await gather(
+            *[
+                self.export_suite(run_id, str(suite))
+                for suite in await SuiteBase.filter(
+                    Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE)
+                ).values_list("suiteID", flat=True)
+            ]
+        )
+
+    async def export_suite(self, run_id: str, suite_id: str):
+        tests = await (
+            SuiteBase.filter(Q(parent=suite_id) & Q(suiteType=SuiteType.TEST))
+            .order_by("started")
+            .prefetch_related("rollup")
+            .annotate(
+                numberOfErrors=RawSQL("json_array_length(errors)"),
+                id=RawSQL("suiteID"),
+                s=RawSQL("suitebase.started"),
+                e=RawSQL("suitebase.ended"),
+                error=RawSQL("errors ->> '[0]'"),
+                assertions=RawSQL(
+                    "(select count(ab.entity_id) from assertbase ab where ab.entity_id=suitebase.suiteID)"
+                ),
+            )
+            .values(
+                "title",
+                "standing",
+                "assertions",
+                "duration",
+                "file",
+                "retried",
+                "tags",
+                "description",
+                "errors",
+                "error",
+                "numberOfErrors",
+                suiteID="id",
+                started="s",
+                ended="e",
+                hooks="session__hooks",
+                rollup_passed="rollup__passed",
+                rollup_failed="rollup__failed",
+                rollup_skipped="rollup__skipped",
+                rollup_tests="rollup__tests",
+            )
+        )
+
+        assertions = (
+            await AssertBase.filter(entity__parent=suite_id)
+            .annotate(id=RawSQL("entity_id"))
+            .all()
+            .values("title", "message", "interval", "passed", "wait", entity_id="id")
+        )
+
+        written = (
+            await StaticBase.filter(entity__parent=suite_id)
+            .annotate(
+                id=RawSQL("entity_id"),
+                title=RawSQL("attachmentValue ->> 'title'"),
+                file=RawSQL("attachmentValue ->> 'value'"),
+            )
+            .all()
+            .values("type", "title", "description", "file", entity_id="id")
+        )
+
+        await to_thread(
+            self.save_tests_query,
+            run_id,
+            suite_id,
+            json.dumps(tests),
+        )
+        await to_thread(
+            self.save_test_assertions_query,
+            run_id,
+            suite_id,
+            json.dumps(assertions),
+        )
+        await to_thread(
+            self.save_test_entity_attachments_query,
+            run_id,
+            suite_id,
+            json.dumps(dict(written=written)),
         )
 
     def export_files(self):
@@ -397,5 +488,25 @@ WHERE rb.ended <> '' order by rb.started;
     def save_overview_query(self, testID: str, feed: str):
         (self.import_dir / testID / EXPORT_OVERVIEW_PAGE).write_text(feed)
 
-    def save_all_suites_query(self, testID: str, feed: str):
-        (self.import_dir / testID / EXPORT_ALL_SUITES).write_text(feed)
+    def save_all_suites_query(self, testID: str, feed: dict):
+        (self.import_dir / testID / EXPORT_ALL_SUITES).write_text(json.dumps(feed))
+        for suite in feed:
+            suite_id = suite["suiteID"]
+            (self.import_dir / testID / suite_id).mkdir(exist_ok=True)
+            self.save_suite_query(testID, suite_id, json.dumps(suite))
+
+    def save_suite_query(self, testID: str, suiteID: str, feed: str):
+        (self.import_dir / testID / suiteID / EXPORT_SUITE_PAGE_FILE_NAME).write_text(
+            feed
+        )
+
+    def save_tests_query(self, testID: str, suiteID: str, feed: str):
+        (self.import_dir / testID / suiteID / EXPORT_SUITE_TESTS_PAGE).write_text(feed)
+
+    def save_test_assertions_query(self, testID: str, suiteID: str, feed: str):
+        (self.import_dir / testID / suiteID / EXPORT_TEST_ASSERTIONS).write_text(feed)
+
+    def save_test_entity_attachments_query(self, testID: str, suiteID: str, feed: str):
+        (
+            self.import_dir / testID / suiteID / EXPORT_TEST_ENTITY_ATTACHMENTS
+        ).write_text(feed)
