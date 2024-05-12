@@ -2,7 +2,9 @@ import {
     Button,
     Center,
     Group,
+    HoverCard,
     Modal,
+    Skeleton,
     Stack,
     Text,
     Tooltip,
@@ -10,6 +12,7 @@ import {
 import {
     jsonFeedAboutTestRun,
     jsonFeedForListOfSuites,
+    suiteDetailedPage,
 } from 'components/links';
 import { TimeRange } from 'components/timings/time-range';
 import dayjs from 'dayjs';
@@ -42,10 +45,13 @@ import TestEntityStatus, {
 import CountUpNumber from 'components/counter';
 import { useDisclosure } from '@mantine/hooks';
 import ErrorCard from './error-card';
+import RedirectToTestEntity from './redirect-to-detailed-test-entity';
+import { useRouter } from 'next/router';
 
 export default function ListOfSuits(properties: {
     testID?: string;
 }): ReactNode {
+    const router = useRouter();
     const {
         data: run,
         isLoading: runFeedLoading,
@@ -154,53 +160,83 @@ export default function ListOfSuits(properties: {
                             headerCellClass: GridStyles.cell,
                             renderCell: ({ row, rowIdx, tabIndex }) => {
                                 return (
-                                    <Group
-                                        wrap="nowrap"
-                                        style={{ width: '100%' }}
-                                        key={rowIdx}
-                                        align="flex-start"
-                                        justify="flex-start"
-                                    >
-                                        {row.hasChildSuite || !row.Parent ? (
-                                            <></>
-                                        ) : (
-                                            <IconTrendingDown2
-                                                color="gray"
-                                                size={18}
-                                                strokeWidth={2.5}
-                                            />
-                                        )}
-                                        <Tooltip
-                                            label={row.Title}
-                                            color="orange"
-                                        >
-                                            {row.hasChildSuite ? (
-                                                <Button
-                                                    tabIndex={tabIndex}
-                                                    color="gray.4"
-                                                    pl={1}
-                                                    variant="subtle"
-                                                    size="sm"
-                                                    fw="normal"
-                                                    onClick={() =>
-                                                        row.hasChildSuite &&
-                                                        setParsedSuites(
-                                                            addRowsToSuiteStructure(
-                                                                parsedSuites,
-                                                                row.Id,
-                                                            ),
-                                                        )
-                                                    }
-                                                >
-                                                    {row.Title}
-                                                </Button>
-                                            ) : (
-                                                <Text size="sm" color="gray.4">
+                                    <HoverCard width={280} shadow="md">
+                                        <HoverCard.Target>
+                                            <Group
+                                                wrap="nowrap"
+                                                style={{ width: '100%' }}
+                                                key={rowIdx}
+                                                align="flex-start"
+                                                justify="flex-start"
+                                            >
+                                                {row.hasChildSuite ||
+                                                !row.Parent ? (
+                                                    <></>
+                                                ) : (
+                                                    <IconTrendingDown2
+                                                        color="gray"
+                                                        size={18}
+                                                        strokeWidth={2.5}
+                                                    />
+                                                )}
+
+                                                {row.hasChildSuite ? (
+                                                    <Button
+                                                        tabIndex={tabIndex}
+                                                        color="gray.4"
+                                                        pl={1}
+                                                        variant="subtle"
+                                                        size="sm"
+                                                        fw="normal"
+                                                        onClick={() =>
+                                                            row.hasChildSuite &&
+                                                            setParsedSuites(
+                                                                addRowsToSuiteStructure(
+                                                                    parsedSuites,
+                                                                    row.Id,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        {row.Title}
+                                                    </Button>
+                                                ) : (
+                                                    <Text size="sm" c="gray.4">
+                                                        {row.Title}
+                                                    </Text>
+                                                )}
+                                            </Group>
+                                        </HoverCard.Target>
+                                        <HoverCard.Dropdown>
+                                            <Group
+                                                wrap="nowrap"
+                                                align="center"
+                                                justify="space-between"
+                                            >
+                                                <Text size="sm">
                                                     {row.Title}
                                                 </Text>
-                                            )}
-                                        </Tooltip>
-                                    </Group>
+                                                <RedirectToTestEntity
+                                                    testID={
+                                                        properties.testID ?? ''
+                                                    }
+                                                    suiteID={row.Id}
+                                                    redirectTo={(_url) =>
+                                                        router.push(_url)
+                                                    }
+                                                />
+                                            </Group>
+                                            <Text
+                                                size="xs"
+                                                fs="italic"
+                                                c="dimmed"
+                                                mt={5}
+                                            >
+                                                you can also double click to
+                                                quickly redirect
+                                            </Text>
+                                        </HoverCard.Dropdown>
+                                    </HoverCard>
                                 );
                             },
                         },
@@ -209,7 +245,7 @@ export default function ListOfSuits(properties: {
                             name: 'File',
                             width: 150,
                             resizable: true,
-                            cellClass: GridStyles.cell,
+                            cellClass: clsx(GridStyles.GCell, GridStyles.cell),
                             headerCellClass: GridStyles.cell,
                             renderGroupCell: ({ groupKey, tabIndex }) => (
                                 <Tooltip
@@ -225,7 +261,8 @@ export default function ListOfSuits(properties: {
                                             width: '100%',
                                         }}
                                         p="sm"
-                                        color="violet"
+                                        color="gray"
+                                        td="underline"
                                         variant="subtle"
                                     >
                                         {(groupKey as string).slice(
@@ -509,6 +546,9 @@ export default function ListOfSuits(properties: {
                 }}
                 groupBy={['File']}
                 rowGrouper={rowGrouper}
+                renderers={{
+                    noRowsFallback: <Skeleton h={300} w={'98vw'} animate />,
+                }}
                 expandedGroupIds={expandedGroupIds}
                 onExpandedGroupIdsChange={setExpandedGroupIds}
                 onCellClick={(cell) => {
@@ -531,6 +571,19 @@ export default function ListOfSuits(properties: {
                                 title: `"${cell.row.Title.slice(0, 30) + (cell.row.Title.length > 10 ? '...' : '')}" ran on ${cell.row.entityName}`,
                             }));
                             open();
+                            break;
+                        }
+                    }
+                }}
+                onCellDoubleClick={(cell) => {
+                    switch (cell.column.key) {
+                        case 'Title': {
+                            router.push(
+                                suiteDetailedPage(
+                                    properties.testID ?? '',
+                                    cell.row.Id,
+                                ),
+                            );
                             break;
                         }
                     }

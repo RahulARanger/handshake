@@ -18,6 +18,7 @@ export default function RunPageContent(properties: {
     testID?: string;
     children: ReactNode;
     where: TestRunTab;
+    isSuiteDetailedView?: boolean;
     avoidScrollWindow?: boolean;
 }): ReactNode {
     const {
@@ -49,28 +50,33 @@ export default function RunPageContent(properties: {
                         where={properties.where}
                         toLoad={toLoad}
                         testID={run?.Id}
+                        isSuiteDetailedView={properties.isSuiteDetailedView}
                     />
                     <Group align="flex-end">
-                        <Tabs
-                            onChange={(value) =>
-                                redirectToRightPageForTestRun(
-                                    router,
-                                    run?.Id as string,
-                                    value as TestRunTab,
-                                )
-                            }
-                            variant="outline"
-                            defaultValue={properties.where}
-                        >
-                            <Tabs.List>
-                                <Tabs.Tab value={'Overview' as TestRunTab}>
-                                    Overview
-                                </Tabs.Tab>
-                                <Tabs.Tab value={'Suites' as TestRunTab}>
-                                    Suites
-                                </Tabs.Tab>
-                            </Tabs.List>
-                        </Tabs>
+                        {properties.isSuiteDetailedView ? (
+                            <></>
+                        ) : (
+                            <Tabs
+                                onChange={(value) =>
+                                    redirectToRightPageForTestRun(
+                                        router,
+                                        run?.Id as string,
+                                        value as TestRunTab,
+                                    )
+                                }
+                                variant="outline"
+                                defaultValue={properties.where}
+                            >
+                                <Tabs.List>
+                                    <Tabs.Tab value={'Overview' as TestRunTab}>
+                                        Overview
+                                    </Tabs.Tab>
+                                    <Tabs.Tab value={'Suites' as TestRunTab}>
+                                        Suites
+                                    </Tabs.Tab>
+                                </Tabs.List>
+                            </Tabs>
+                        )}
                         {toLoad ? (
                             <Skeleton
                                 animate

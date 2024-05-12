@@ -4,7 +4,6 @@ import {
     Card,
     Group,
     rem,
-    RingProgress,
     ActionIcon,
     Select,
     Skeleton,
@@ -47,6 +46,7 @@ import PlatformEntity, {
     DetailedPlatformVersions,
 } from 'components/about-test-entities/platform-entity';
 import { useDisclosure } from '@mantine/hooks';
+import TestStatusRing from './test-status-ring';
 
 dayjs.extend(duration);
 
@@ -258,16 +258,11 @@ export default function OverviewCard(properties: {
         }, [projects, run, showTests]);
 
     const [hovered, setHovered] = useState<undefined | number>();
-    const reset = () => setHovered(undefined);
-
     const toLoad =
         run === undefined ||
         loadingProjects ||
         fetchProjectsError !== undefined;
     run === undefined || projects === undefined;
-
-    const colors = ['green', 'red', 'yellow'];
-    const tips = ['Passed', 'Failed', 'Skipped'];
 
     const totalEntity = (showTests ? run?.Tests : run?.Suites) as number;
     const rateValues = (showTests ? run?.Rate : run?.SuitesSummary) as number[];
@@ -435,61 +430,15 @@ export default function OverviewCard(properties: {
                         <Grid columns={2}>
                             <Grid.Col span={0.8} pt={rem('5%')}>
                                 <Card.Section>
-                                    {toLoad ? (
-                                        <Skeleton
-                                            circle
-                                            height={205}
-                                            animate
-                                            m="lg"
-                                            color="orange"
-                                        />
-                                    ) : (
-                                        <RingProgress
-                                            size={250}
-                                            label={
-                                                <Text
-                                                    size="sm"
-                                                    ta="center"
-                                                    px="xs"
-                                                    style={{
-                                                        pointerEvents: 'none',
-                                                    }}
-                                                    c={colors[hovered ?? 0]}
-                                                >
-                                                    <b>{`${Number(((rateValues[hovered ?? 0] / totalEntity) * 1e2).toFixed(2))}% `}</b>
-                                                    <sub>
-                                                        [
-                                                        {
-                                                            rateValues[
-                                                                hovered ?? 0
-                                                            ]
-                                                        }
-                                                        ]
-                                                    </sub>
-                                                    {` of ${showTests ? 'Tests' : 'Suites'} have ${tips[hovered ?? 0]}.`}
-                                                </Text>
-                                            }
-                                            thickness={25}
-                                            onMouseLeave={() =>
-                                                setHovered(undefined)
-                                            }
-                                            sections={rateValues.map(
-                                                (value, index) => ({
-                                                    value:
-                                                        (value / totalEntity) *
-                                                        100,
-                                                    color: colors[index],
-                                                    tooltip: tips[index],
-                                                    onMouseEnter: () =>
-                                                        setHovered(index),
-                                                    onMouseLeave: reset,
-                                                    style: {
-                                                        cursor: 'pointer',
-                                                    },
-                                                }),
-                                            )}
-                                        />
-                                    )}
+                                    <TestStatusRing
+                                        labelText={
+                                            showTests ? 'Tests' : 'Suites'
+                                        }
+                                        rateValues={rateValues}
+                                        totalEntity={totalEntity}
+                                        onHovered={setHovered}
+                                        toLoad={toLoad}
+                                    />
                                 </Card.Section>
                             </Grid.Col>
                             <Grid.Col span={1.1} pt={rem('5%')} pl={3}>
@@ -724,7 +673,11 @@ export default function OverviewCard(properties: {
                         </Grid>
                     </Card.Section>
 
-                    <Card.Section withBorder p="md">
+                    <Card.Section
+                        mt={passedCounts.length > 1 ? -15 : -25}
+                        withBorder
+                        p="md"
+                    >
                         <NotedValues testRunRecord={run} />
                     </Card.Section>
                 </Stack>

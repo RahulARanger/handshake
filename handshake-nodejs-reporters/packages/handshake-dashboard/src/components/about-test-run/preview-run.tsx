@@ -282,8 +282,10 @@ export default function PreviewTestRun(properties: {
             >
                 <Group align="baseline" wrap="nowrap">
                     {(run?.Tags ?? [])?.map((tag) => (
-                        <Tooltip key={tag.name} label={tag.label}>
-                            <Badge size="sm">{tag.name}</Badge>
+                        <Tooltip key={tag.name} label={tag.label} color="cyan">
+                            <Badge size="sm" variant="light" color="cyan.9">
+                                {tag.name}
+                            </Badge>
                         </Tooltip>
                     ))}
                 </Group>

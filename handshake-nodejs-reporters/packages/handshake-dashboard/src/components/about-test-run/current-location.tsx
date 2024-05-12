@@ -33,13 +33,18 @@ export function redirectToRightPageForTestRun(
     }
 }
 
-export function testRunTabDescription(text: TestRunTab) {
+export function testRunTabDescription(
+    text: TestRunTab,
+    isSuiteDetailedView?: boolean,
+) {
     switch (text) {
         case 'Overview': {
             return 'an Overview of your Test Run';
         }
         case 'Suites': {
-            return 'Grid of your Test Suites';
+            return isSuiteDetailedView
+                ? 'Suite Detailed View'
+                : 'Grid of your Test Suites';
         }
         default: {
             return '';
@@ -52,6 +57,7 @@ export default function CurrentLocation(properties: {
     where: TestRunTab;
     toLoad?: boolean;
     testID?: string;
+    isSuiteDetailedView?: boolean;
 }): ReactNode {
     const toLoad = Boolean(properties.toLoad);
     const router = useRouter();
@@ -104,8 +110,18 @@ export default function CurrentLocation(properties: {
                         </Menu.Item>
                     </MenuDropdown>
                 </Menu>
+                {properties.isSuiteDetailedView ? (
+                    <Text size="sm" mb={-4}>
+                        Suite
+                    </Text>
+                ) : undefined}
             </Breadcrumbs>
-            <Text size="xs">{testRunTabDescription(properties.where)}</Text>
+            <Text size="xs" mb={-9}>
+                {testRunTabDescription(
+                    properties.where,
+                    properties.isSuiteDetailedView,
+                )}
+            </Text>
         </Group>
     );
 }
