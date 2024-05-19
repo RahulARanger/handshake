@@ -85,6 +85,7 @@ export default function CurrentLocation(properties: {
                     </Menu.Target>
                     <MenuDropdown>
                         <Menu.Item
+                            disabled={!properties.testID}
                             leftSection={<IconRipple size=".9rem" />}
                             onClick={() =>
                                 redirectToRightPageForTestRun(
@@ -98,6 +99,7 @@ export default function CurrentLocation(properties: {
                         </Menu.Item>
                         <Menu.Item
                             leftSection={<IconGrid4x4 size=".9rem" />}
+                            disabled={!properties.testID}
                             onClick={() =>
                                 redirectToRightPageForTestRun(
                                     router,

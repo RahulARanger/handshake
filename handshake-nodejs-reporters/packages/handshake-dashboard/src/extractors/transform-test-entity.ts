@@ -1,11 +1,14 @@
 import dayjs from 'dayjs';
-import type { ParsedSuiteRecord } from 'types/parsed-records';
-import type { SuiteRecordDetails } from 'types/test-entity-related';
+import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
+import type {
+    SuiteRecordDetails,
+    TestRecordDetails,
+} from 'types/test-entity-related';
 import Convert from 'ansi-to-html';
 import { findIndex } from 'lodash-es';
 import type { possibleEntityNames } from 'types/session-records';
 
-export default function transformTestEntity(
+export default function transformSuiteEntity(
     testEntity: SuiteRecordDetails,
     totalTestsInATestRun: number,
     convert: Convert,
@@ -47,6 +50,37 @@ export default function transformTestEntity(
             ((testEntity.rollup_tests / totalTestsInATestRun) * 1e2).toFixed(2),
         ),
         hasChildSuite: Boolean(testEntity.hasChildSuite),
+        NextSuite: testEntity.nextSuite,
+        PrevSuite: testEntity.prevSuite,
+    };
+}
+
+export function transformTestEntity(
+    testEntity: TestRecordDetails,
+    convert: Convert,
+): ParsedTestRecord {
+    const errors = testEntity.errors.map((error) => {
+        error.message = convert.toHtml(error.message).trim();
+        error.stack = convert.toHtml(error.stack).trim();
+        return error;
+    });
+    return {
+        Started: dayjs(testEntity.started),
+        Ended: dayjs(testEntity.ended),
+        Title: testEntity.title.trim(),
+        Desc: testEntity.description.trim(),
+        Id: testEntity.suiteID,
+        Status: testEntity.standing,
+        Rate: [testEntity.passed, testEntity.failed, testEntity.skipped],
+        Duration: dayjs.duration({ milliseconds: testEntity.duration }),
+        Tests: testEntity.tests,
+        errors,
+        error: errors[0],
+        numberOfErrors: testEntity.numberOfErrors,
+        Parent: testEntity.parent,
+        Tags: testEntity.tags,
+        type: testEntity.suiteType,
+        numberOfAssertions: testEntity.assertions,
     };
 }
 

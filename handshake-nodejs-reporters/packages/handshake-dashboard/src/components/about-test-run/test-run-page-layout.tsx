@@ -1,5 +1,11 @@
-import { AppShell, ScrollAreaAutosize, Skeleton } from '@mantine/core';
-import { Group, Tabs } from '@mantine/core';
+import {
+    AppShell,
+    ScrollAreaAutosize,
+    Skeleton,
+    Text,
+    Group,
+    Tabs,
+} from '@mantine/core';
 import RelativeDate from 'components/timings/relative-date';
 import type { ReactNode } from 'react';
 import React, { useMemo } from 'react';
@@ -10,15 +16,16 @@ import CurrentLocation, {
 import dayjs from 'dayjs';
 import { useRouter } from 'next/router';
 import transformTestRunRecord from 'extractors/transform-run-record';
-import { jsonFeedAboutTestRun } from 'components/links';
+import { jsonFeedAboutTestRun, jsonFeedForSuite } from 'components/links';
 import useSWRImmutable from 'swr/immutable';
 import type { TestRunRecord } from 'types/test-run-records';
+import type { SuiteRecordDetails } from 'types/test-entity-related';
 
 export default function RunPageContent(properties: {
     testID?: string;
     children: ReactNode;
     where: TestRunTab;
-    isSuiteDetailedView?: boolean;
+    inSuiteOf?: string;
     avoidScrollWindow?: boolean;
 }): ReactNode {
     const {
@@ -37,9 +44,31 @@ export default function RunPageContent(properties: {
         [rawRun],
     );
 
+    const {
+        data: aboutSuite,
+        isLoading: loadingSuiteInfo,
+        error: errorWhileFetchingSuiteDetails,
+    } = useSWRImmutable<SuiteRecordDetails>(
+        properties.testID && properties.inSuiteOf
+            ? jsonFeedForSuite(properties.testID, properties.inSuiteOf)
+            : undefined,
+        () =>
+            fetch(
+                jsonFeedForSuite(
+                    properties.testID as string,
+                    properties.inSuiteOf as string,
+                ),
+            ).then(async (response) => response.json()),
+    );
+
     const router = useRouter();
 
-    const toLoad = isLoading || !properties.testID || error !== undefined;
+    const toLoad =
+        loadingSuiteInfo ||
+        isLoading ||
+        !properties.testID ||
+        error !== undefined ||
+        errorWhileFetchingSuiteDetails !== undefined;
 
     return (
         <AppShell header={{ height: 50 }}>
@@ -50,14 +79,17 @@ export default function RunPageContent(properties: {
                         where={properties.where}
                         toLoad={toLoad}
                         testID={run?.Id}
-                        isSuiteDetailedView={properties.isSuiteDetailedView}
+                        isSuiteDetailedView={Boolean(properties.inSuiteOf)}
                     />
                     <Group align="flex-end">
-                        {properties.isSuiteDetailedView ? (
-                            <></>
+                        {aboutSuite ? (
+                            <Text size="xs" fs="italic">
+                                {aboutSuite.title}
+                            </Text>
                         ) : (
                             <Tabs
                                 onChange={(value) =>
+                                    !toLoad &&
                                     redirectToRightPageForTestRun(
                                         router,
                                         run?.Id as string,
@@ -68,10 +100,16 @@ export default function RunPageContent(properties: {
                                 defaultValue={properties.where}
                             >
                                 <Tabs.List>
-                                    <Tabs.Tab value={'Overview' as TestRunTab}>
+                                    <Tabs.Tab
+                                        value={'Overview' as TestRunTab}
+                                        disabled={toLoad}
+                                    >
                                         Overview
                                     </Tabs.Tab>
-                                    <Tabs.Tab value={'Suites' as TestRunTab}>
+                                    <Tabs.Tab
+                                        value={'Suites' as TestRunTab}
+                                        disabled={toLoad}
+                                    >
                                         Suites
                                     </Tabs.Tab>
                                 </Tabs.List>

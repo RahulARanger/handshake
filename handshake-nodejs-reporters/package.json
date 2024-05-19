@@ -14,7 +14,7 @@
 		"sanity": "turbo run sanity --concurrency=1 --continue",
 		"test": "npm run build && turbo run test --concurrency=1 --continue",
 		"test-wdio": "turbo run test --continue --filter=test-wdio-*",
-		"test-wdio-force": "turbo run test --continue --filter=test-wdio-* --force",
+		"test-wdio-force": "npx cross-env LOCAL=true turbo run test --continue --filter=test-wdio-* --force",
 		"lint": "turbo run lint",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
 		"release": "npx changeset publish",
@@ -25,7 +25,7 @@
 		"verify-sanity": "cd apps/test-export && npm run verify-sanity"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.27.1",
+		"@changesets/cli": "^2.27.2",
 		"@typescript-eslint/eslint-plugin": "^7.2.0",
 		"@typescript-eslint/parser": "^7.2.0",
 		"eslint": "^8.57.0",
@@ -33,7 +33,7 @@
 		"eslint-config-airbnb-typescript": "^18.0.0",
 		"eslint-plugin-unicorn": "^51.0.1",
 		"prettier": "^3.2.5",
-		"rimraf": "^5.0.5",
+		"rimraf": "^5.0.7",
 		"tsconfig": "7.0.0",
 		"tsup": "^8.0.2",
 		"turbo": "^1.13.3"

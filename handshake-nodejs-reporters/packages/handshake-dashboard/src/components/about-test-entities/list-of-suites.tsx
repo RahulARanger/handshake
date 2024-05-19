@@ -17,7 +17,7 @@ import {
 import { TimeRange } from 'components/timings/time-range';
 import dayjs from 'dayjs';
 import type { RowRecord } from 'extractors/transform-test-entity';
-import transformTestEntity, {
+import transformSuiteEntity, {
     addRowsToSuiteStructure,
     spawnConverterForAnsiToHTML,
     topLevelSuites,
@@ -79,7 +79,7 @@ export default function ListOfSuits(properties: {
         return (data ?? [])
             .filter((suite) => suite.standing !== 'RETRIED')
             .map((suite) =>
-                transformTestEntity(suite, run?.tests ?? 0, converter),
+                transformSuiteEntity(suite, run?.tests ?? 0, converter),
             );
     }, [run?.tests, data]);
 
@@ -160,7 +160,11 @@ export default function ListOfSuits(properties: {
                             headerCellClass: GridStyles.cell,
                             renderCell: ({ row, rowIdx, tabIndex }) => {
                                 return (
-                                    <HoverCard width={280} shadow="md">
+                                    <HoverCard
+                                        width={280}
+                                        shadow="md"
+                                        openDelay={500}
+                                    >
                                         <HoverCard.Target>
                                             <Group
                                                 wrap="nowrap"
@@ -250,7 +254,8 @@ export default function ListOfSuits(properties: {
                             renderGroupCell: ({ groupKey, tabIndex }) => (
                                 <Tooltip
                                     label={groupKey as string}
-                                    color="violet"
+                                    color="indigo"
+                                    openDelay={500}
                                 >
                                     <Button
                                         size="sm"

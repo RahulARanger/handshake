@@ -186,6 +186,7 @@ function PreviewTestSuites(properties: {
                             showTime
                             key={rowIdx}
                             height={45}
+                            relativeAlias="Test Run Start"
                         />
                     ),
                     cellClass: GridStyles.cell,

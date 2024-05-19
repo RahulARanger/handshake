@@ -80,4 +80,3 @@ from attachmentbase where type = 'DESC' and entity_id in CURRENT_ENTITIES;
 CREATE TEMP TABLE RETRIES AS 
 	select key, value as test, tests, length, suite_id from 
   	retriedbase join json_each(tests) where suite_id in CURRENT_ENTITIES;
- 

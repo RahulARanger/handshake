@@ -44,11 +44,18 @@ export interface SuiteRecordDetails
     hooks: number;
     simplified: string;
     numberOfAssertions?: number;
+    nextSuite?: string;
+    prevSuite?: string;
 }
 
-export interface TestRecordDetails extends RecurringFields {
-    broken: boolean;
-    error: string;
+export interface TestRecordDetails extends RecurringFields, SimpleSuiteDetails {
+    // broken: boolean;
+    rollup_passed: number;
+    rollup_failed: number;
+    rollup_skipped: number;
+    rollup_tests: number;
+    hooks: number;
+    assertions: number;
 }
 
 export interface Tag {
@@ -64,11 +71,19 @@ export interface AssertionRecord {
     message: string;
 }
 
-export interface RetriedRecord {
+export interface RetriedRawRecord {
     suite_id: string;
     tests: string; // history
     length: number; // length of history
-    test: string; // suite at any point of history
+    suite: string; // suite at any point of history
+    key: number; // 0 - index of that test in history
+}
+
+export interface RetriedRecord {
+    suite_id: string;
+    tests: string[]; // history
+    length: number; // length of history
+    suite: string; // suite at any point of history
     key: number; // 0 - index of that test in history
 }
 

@@ -1,3 +1,5 @@
+// TODO: minimize foot print
+
 export function runsPage() {
     return '/RUNS';
 }
@@ -46,4 +48,16 @@ export function jsonFeedForSuite(testID: string, suiteID: string) {
     return process.env.IS_DEV
         ? `/api/Import/Runs/${testID}/${suiteID}/suite.json`
         : `/Import/${testID}/${suiteID}/suite.json`;
+}
+
+export function jsonFeedForTests(testID: string, suiteID: string) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/tests.json`
+        : `/Import/${testID}/${suiteID}/tests.json`;
+}
+
+export function jsonFeedForRetryMap(testID: string, suiteID: string) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/retries.json`
+        : `/Import/${testID}/${suiteID}/retries.json`;
 }
