@@ -5,9 +5,9 @@ import type {
 } from 'types/session-records';
 import type { Duration } from 'dayjs/plugin/duration';
 import type {
-    Assertion,
+    // Assertion,
     ErrorRecord,
-    ImageRecord,
+    // ImageRecord,
     SimpleSuiteDetails,
     Tag,
 } from './test-entity-related';
@@ -43,7 +43,6 @@ export interface DetailedTestRecord extends BasicDetails {
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     RollupValues: [number, number, number];
-    totalRollupValue: number;
     Contribution: number;
     File: string;
     entityName: possibleEntityNames;
@@ -53,6 +52,7 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
     Tags: Tag[];
     PrevSuite?: string;
     NextSuite?: string;
+    hasChildSuite: boolean;
 }
 
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
@@ -61,6 +61,7 @@ export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
     error: ErrorRecord;
     Tags: Tag[];
     numberOfAssertions: number;
+    hasExpanded?: boolean;
     // Images: ImageRecord[];
     // Assertions: Assertion[];
     // _UseFilterForTitle: string;

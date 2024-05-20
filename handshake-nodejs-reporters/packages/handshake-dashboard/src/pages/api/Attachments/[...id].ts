@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { createReadStream } from 'node:fs';
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
@@ -17,11 +17,12 @@ export default async function handler(
 
     const filePath = join(
         process.env.TEST_RESULTS ?? '',
-        'Import',
+        'Attachments',
         ...(id as string[]),
     );
 
-    const value = JSON.parse(readFileSync(filePath, { encoding: 'utf8' }));
+    // const value = JSON.parse(readFileSync(filePath, { encoding: 'utf8' }));
     await sleep;
-    response.status(200).json(value);
+    response.status(200);
+    createReadStream(filePath).pipe(response);
 }

@@ -3,7 +3,7 @@ import { Badge, Group } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { ParsedSuiteRecord } from 'types/parsed-records';
 
-export function numberToOrdinal(num: number) {
+export function numberToOrdinal(number_: number) {
     const note = {
         zero: '',
         one: 'st',
@@ -13,7 +13,8 @@ export function numberToOrdinal(num: number) {
         many: 'th',
     };
     return (
-        num + note[new Intl.PluralRules('en', { type: 'ordinal' }).select(num)]
+        number_ +
+        note[new Intl.PluralRules('en', { type: 'ordinal' }).select(number_)]
     );
 }
 

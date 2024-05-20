@@ -26,10 +26,10 @@ export interface SimpleSuiteDetails {
     numberOfErrors: number;
     Parent: string;
     type: suiteType;
+    totalRollupValue: number;
     Desc: string;
     errors: ErrorRecord[];
     error: ErrorRecord;
-    hasChildSuite: boolean;
 }
 
 export interface SuiteRecordDetails
@@ -39,6 +39,7 @@ export interface SuiteRecordDetails
     rollup_failed: number;
     rollup_skipped: number;
     rollup_tests: number;
+    hasChildSuite: boolean;
     entityName: string;
     entityVersion: string;
     hooks: number;
@@ -88,10 +89,12 @@ export interface RetriedRecord {
 }
 
 export interface ImageRecord {
-    path: string;
+    file: string;
     title: string;
     entity_id: string;
     description?: string;
+    type: string;
+    url: string;
 }
 
 export interface ErrorRecord {
@@ -107,4 +110,8 @@ export interface Assertion {
     interval: number;
     message?: string;
     title: string;
+}
+
+export interface EntityLevelAttachments {
+    written: Record<string, ImageRecord[]>;
 }

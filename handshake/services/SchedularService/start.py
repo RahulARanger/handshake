@@ -432,6 +432,7 @@ WHERE rb.ended <> '' order by rb.started;
                 "file",
                 "retried",
                 "tags",
+                "suiteType",
                 "description",
                 "errors",
                 "error",
@@ -454,6 +455,7 @@ WHERE rb.ended <> '' order by rb.started;
             .values("title", "message", "interval", "passed", "wait", entity_id="id")
         )
 
+        written_records = {}
         written = (
             await StaticBase.filter(entity__parent=suite_id)
             .annotate(
@@ -464,6 +466,11 @@ WHERE rb.ended <> '' order by rb.started;
             .all()
             .values("type", "title", "description", "file", entity_id="id")
         )
+
+        for record in written:
+            records = written_records.get(record["entity_id"], [])
+            records.append(record)
+            written_records[record["entity_id"]] = records
 
         retried_map = {}
 
@@ -498,7 +505,7 @@ WHERE rb.ended <> '' order by rb.started;
             EXPORT_TEST_ENTITY_ATTACHMENTS,
             run_id,
             suite_id,
-            json.dumps(dict(written=written)),
+            json.dumps(dict(written=written_records)),
         )
 
         await to_thread(

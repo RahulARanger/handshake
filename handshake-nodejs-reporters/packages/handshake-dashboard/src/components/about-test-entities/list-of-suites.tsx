@@ -3,9 +3,7 @@ import {
     Center,
     Group,
     HoverCard,
-    Modal,
     Skeleton,
-    Stack,
     Text,
     Tooltip,
 } from '@mantine/core';
@@ -44,7 +42,7 @@ import TestEntityStatus, {
 } from './test-entity-status';
 import CountUpNumber from 'components/counter';
 import { useDisclosure } from '@mantine/hooks';
-import ErrorCard from './error-card';
+import { ErrorsToShow } from './error-card';
 import RedirectToTestEntity from './redirect-to-detailed-test-entity';
 import { useRouter } from 'next/router';
 
@@ -115,9 +113,9 @@ export default function ListOfSuits(properties: {
                 columns={
                     [
                         {
-                            key: 'Status',
+                            key: 'Status-',
                             name: 'Status',
-                            width: 55,
+                            width: 52,
                             headerCellClass: GridStyles.cell,
                             renderGroupCell: (rows) => {
                                 return (
@@ -150,6 +148,29 @@ export default function ListOfSuits(properties: {
                             ),
                             cellClass: GridStyles.cell,
                             summaryCellClass: GridStyles.cell,
+                        },
+                        {
+                            key: 'Id',
+                            name: 'Expand',
+                            width: 58,
+                            headerCellClass: GridStyles.cell,
+                            renderCell: ({ row }) => (
+                                <Center
+                                    style={{
+                                        width: '100%',
+                                    }}
+                                >
+                                    <RedirectToTestEntity
+                                        testID={properties.testID ?? ''}
+                                        suiteID={row.Id}
+                                        redirectTo={(_url) => router.push(_url)}
+                                    />
+                                </Center>
+                            ),
+                            cellClass: clsx(
+                                GridStyles.FHCell,
+                                GridStyles.clickable,
+                            ),
                         },
                         {
                             key: 'Title',
@@ -371,6 +392,7 @@ export default function ListOfSuits(properties: {
                                     renderCell: ({ row, rowIdx }) => {
                                         return (
                                             <CountUpNumber
+                                                smallWhenZero
                                                 endNumber={row.numberOfErrors}
                                                 style={{
                                                     textDecoration:
@@ -381,12 +403,15 @@ export default function ListOfSuits(properties: {
                                                         ? 'pointer'
                                                         : '',
                                                 }}
+                                                size="sm"
                                                 key={rowIdx}
                                             />
                                         );
                                     },
                                     renderGroupCell: (rows) => (
                                         <CountUpNumber
+                                            size="sm"
+                                            smallWhenZero
                                             endNumber={sumBy(
                                                 topLevelSuites(rows.childRows),
                                                 'numberOfErrors',
@@ -454,6 +479,7 @@ export default function ListOfSuits(properties: {
                                         <CountUpNumber
                                             endNumber={row.Contribution}
                                             suffix="%"
+                                            size="xs"
                                             decimalPoints={2}
                                         />
                                     ),
@@ -578,6 +604,15 @@ export default function ListOfSuits(properties: {
                             open();
                             break;
                         }
+                        case 'Id': {
+                            router.push(
+                                suiteDetailedPage(
+                                    properties.testID ?? '',
+                                    cell.row.Id,
+                                ),
+                            );
+                            break;
+                        }
                     }
                 }}
                 onCellDoubleClick={(cell) => {
@@ -594,22 +629,14 @@ export default function ListOfSuits(properties: {
                     }
                 }}
             />
-            <Modal
+            <ErrorsToShow
                 opened={opened && errorsToShow.length > 0}
                 onClose={() => {
                     close();
                     setErrorsToShow(() => []);
                 }}
-                title={`Errors (${errorsToShow.length})`}
-                centered
-                size="lg"
-            >
-                <Stack p="sm">
-                    {errorsToShow.map((error, index) => (
-                        <ErrorCard error={error} key={index} />
-                    ))}
-                </Stack>
-            </Modal>
+                errorsToShow={errorsToShow}
+            />
             <DetailedPlatformVersions
                 title={groupedRowsByFile.title}
                 records={groupedRowsByFile.records}

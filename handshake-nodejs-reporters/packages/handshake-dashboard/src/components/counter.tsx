@@ -9,11 +9,12 @@ export default function CountUpNumber(properties: {
     prefix?: string;
     decimalPoints?: number;
     style?: CSSProperties;
+    smallWhenZero?: boolean;
     suffix?: string;
     cn?: string;
     size?: TextProps['size'];
 }): ReactNode {
-    const fontSize = `var(--text-fz, var(--mantine-font-size-${properties.size ?? 'md'}))`;
+    const fontSize = `var(--text-fz, var(--mantine-font-size-${properties.size ?? (properties.smallWhenZero && properties.endNumber === 0 ? 'xs' : 'sm')}))`;
     return (
         <CountUp
             end={properties.endNumber}
