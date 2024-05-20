@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.6.1
+
+### Patch Changes
+
+- 47daa14: feat: completed suite detailed view
+
 ## 0.6.0
 
 ### Minor Changes
