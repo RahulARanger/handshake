@@ -34,9 +34,9 @@ def version(session):
     note_file = root / "handshake" / "__init__.py"
     note_file.write_text(f'__version__ = "{version_text}"\n')
 
-    target_node.write_text(
-        dumps(dict(**loads(target_node.read_text()), version=version_text))
-    )
+    prev = dict(**loads(target_node.read_text()))
+    prev.pop("version")
+    target_node.write_text(dumps(dict(**prev, version=version_text)))
 
 
 @nox.session(python=["3.11", "3.12"])
