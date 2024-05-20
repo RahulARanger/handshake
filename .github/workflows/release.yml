@@ -79,11 +79,11 @@ jobs:
         id: version
         run: bash .github/scripts/fetch-dashboard-version.sh
 
-      - name: create pre-release
+      - name: create release
         uses: softprops/action-gh-release@v2
-        id: pre-release
+        id: release
         with:
-          files: dashboard.tar.bz2
+          files: dashboard.tar.bzs2
           body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: "Handshake v${{ steps.version.outputs.VERSION }}"
