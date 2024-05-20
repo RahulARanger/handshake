@@ -2,19 +2,20 @@ import {
     Button,
     Center,
     Group,
-    Modal,
-    Stack,
+    HoverCard,
+    Skeleton,
     Text,
     Tooltip,
 } from '@mantine/core';
 import {
     jsonFeedAboutTestRun,
     jsonFeedForListOfSuites,
+    suiteDetailedPage,
 } from 'components/links';
 import { TimeRange } from 'components/timings/time-range';
 import dayjs from 'dayjs';
 import type { RowRecord } from 'extractors/transform-test-entity';
-import transformTestEntity, {
+import transformSuiteEntity, {
     addRowsToSuiteStructure,
     spawnConverterForAnsiToHTML,
     topLevelSuites,
@@ -41,11 +42,14 @@ import TestEntityStatus, {
 } from './test-entity-status';
 import CountUpNumber from 'components/counter';
 import { useDisclosure } from '@mantine/hooks';
-import ErrorCard from './error-card';
+import { ErrorsToShow } from './error-card';
+import RedirectToTestEntity from './redirect-to-detailed-test-entity';
+import { useRouter } from 'next/router';
 
 export default function ListOfSuits(properties: {
     testID?: string;
 }): ReactNode {
+    const router = useRouter();
     const {
         data: run,
         isLoading: runFeedLoading,
@@ -73,7 +77,7 @@ export default function ListOfSuits(properties: {
         return (data ?? [])
             .filter((suite) => suite.standing !== 'RETRIED')
             .map((suite) =>
-                transformTestEntity(suite, run?.tests ?? 0, converter),
+                transformSuiteEntity(suite, run?.tests ?? 0, converter),
             );
     }, [run?.tests, data]);
 
@@ -109,9 +113,9 @@ export default function ListOfSuits(properties: {
                 columns={
                     [
                         {
-                            key: 'Status',
+                            key: 'Status-',
                             name: 'Status',
-                            width: 55,
+                            width: 52,
                             headerCellClass: GridStyles.cell,
                             renderGroupCell: (rows) => {
                                 return (
@@ -146,6 +150,29 @@ export default function ListOfSuits(properties: {
                             summaryCellClass: GridStyles.cell,
                         },
                         {
+                            key: 'Id',
+                            name: 'Expand',
+                            width: 58,
+                            headerCellClass: GridStyles.cell,
+                            renderCell: ({ row }) => (
+                                <Center
+                                    style={{
+                                        width: '100%',
+                                    }}
+                                >
+                                    <RedirectToTestEntity
+                                        testID={properties.testID ?? ''}
+                                        suiteID={row.Id}
+                                        redirectTo={(_url) => router.push(_url)}
+                                    />
+                                </Center>
+                            ),
+                            cellClass: clsx(
+                                GridStyles.FHCell,
+                                GridStyles.clickable,
+                            ),
+                        },
+                        {
                             key: 'Title',
                             name: 'Title',
                             resizable: true,
@@ -154,53 +181,87 @@ export default function ListOfSuits(properties: {
                             headerCellClass: GridStyles.cell,
                             renderCell: ({ row, rowIdx, tabIndex }) => {
                                 return (
-                                    <Group
-                                        wrap="nowrap"
-                                        style={{ width: '100%' }}
-                                        key={rowIdx}
-                                        align="flex-start"
-                                        justify="flex-start"
+                                    <HoverCard
+                                        width={280}
+                                        shadow="md"
+                                        openDelay={500}
                                     >
-                                        {row.hasChildSuite || !row.Parent ? (
-                                            <></>
-                                        ) : (
-                                            <IconTrendingDown2
-                                                color="gray"
-                                                size={18}
-                                                strokeWidth={2.5}
-                                            />
-                                        )}
-                                        <Tooltip
-                                            label={row.Title}
-                                            color="orange"
-                                        >
-                                            {row.hasChildSuite ? (
-                                                <Button
-                                                    tabIndex={tabIndex}
-                                                    color="gray.4"
-                                                    pl={1}
-                                                    variant="subtle"
-                                                    size="sm"
-                                                    fw="normal"
-                                                    onClick={() =>
-                                                        row.hasChildSuite &&
-                                                        setParsedSuites(
-                                                            addRowsToSuiteStructure(
-                                                                parsedSuites,
-                                                                row.Id,
-                                                            ),
-                                                        )
-                                                    }
-                                                >
-                                                    {row.Title}
-                                                </Button>
-                                            ) : (
-                                                <Text size="sm" color="gray.4">
+                                        <HoverCard.Target>
+                                            <Group
+                                                wrap="nowrap"
+                                                style={{ width: '100%' }}
+                                                key={rowIdx}
+                                                align="flex-start"
+                                                justify="flex-start"
+                                            >
+                                                {row.hasChildSuite ||
+                                                !row.Parent ? (
+                                                    <></>
+                                                ) : (
+                                                    <IconTrendingDown2
+                                                        color="gray"
+                                                        size={18}
+                                                        strokeWidth={2.5}
+                                                    />
+                                                )}
+
+                                                {row.hasChildSuite ? (
+                                                    <Button
+                                                        tabIndex={tabIndex}
+                                                        color="gray.4"
+                                                        pl={1}
+                                                        variant="subtle"
+                                                        size="sm"
+                                                        fw="normal"
+                                                        onClick={() =>
+                                                            row.hasChildSuite &&
+                                                            setParsedSuites(
+                                                                addRowsToSuiteStructure(
+                                                                    parsedSuites,
+                                                                    row.Id,
+                                                                ),
+                                                            )
+                                                        }
+                                                    >
+                                                        {row.Title}
+                                                    </Button>
+                                                ) : (
+                                                    <Text size="sm" c="gray.4">
+                                                        {row.Title}
+                                                    </Text>
+                                                )}
+                                            </Group>
+                                        </HoverCard.Target>
+                                        <HoverCard.Dropdown>
+                                            <Group
+                                                wrap="nowrap"
+                                                align="center"
+                                                justify="space-between"
+                                            >
+                                                <Text size="sm">
                                                     {row.Title}
                                                 </Text>
-                                            )}
-                                        </Tooltip>
-                                    </Group>
+                                                <RedirectToTestEntity
+                                                    testID={
+                                                        properties.testID ?? ''
+                                                    }
+                                                    suiteID={row.Id}
+                                                    redirectTo={(_url) =>
+                                                        router.push(_url)
+                                                    }
+                                                />
+                                            </Group>
+                                            <Text
+                                                size="xs"
+                                                fs="italic"
+                                                c="dimmed"
+                                                mt={5}
+                                            >
+                                                you can also double click to
+                                                quickly redirect
+                                            </Text>
+                                        </HoverCard.Dropdown>
+                                    </HoverCard>
                                 );
                             },
                         },
@@ -209,12 +270,13 @@ export default function ListOfSuits(properties: {
                             name: 'File',
                             width: 150,
                             resizable: true,
-                            cellClass: GridStyles.cell,
+                            cellClass: clsx(GridStyles.GCell, GridStyles.cell),
                             headerCellClass: GridStyles.cell,
                             renderGroupCell: ({ groupKey, tabIndex }) => (
                                 <Tooltip
                                     label={groupKey as string}
-                                    color="violet"
+                                    color="indigo"
+                                    openDelay={500}
                                 >
                                     <Button
                                         size="sm"
@@ -225,7 +287,8 @@ export default function ListOfSuits(properties: {
                                             width: '100%',
                                         }}
                                         p="sm"
-                                        color="violet"
+                                        color="gray"
+                                        td="underline"
                                         variant="subtle"
                                     >
                                         {(groupKey as string).slice(
@@ -329,6 +392,7 @@ export default function ListOfSuits(properties: {
                                     renderCell: ({ row, rowIdx }) => {
                                         return (
                                             <CountUpNumber
+                                                smallWhenZero
                                                 endNumber={row.numberOfErrors}
                                                 style={{
                                                     textDecoration:
@@ -339,12 +403,15 @@ export default function ListOfSuits(properties: {
                                                         ? 'pointer'
                                                         : '',
                                                 }}
+                                                size="sm"
                                                 key={rowIdx}
                                             />
                                         );
                                     },
                                     renderGroupCell: (rows) => (
                                         <CountUpNumber
+                                            size="sm"
+                                            smallWhenZero
                                             endNumber={sumBy(
                                                 topLevelSuites(rows.childRows),
                                                 'numberOfErrors',
@@ -412,6 +479,7 @@ export default function ListOfSuits(properties: {
                                         <CountUpNumber
                                             endNumber={row.Contribution}
                                             suffix="%"
+                                            size="xs"
                                             decimalPoints={2}
                                         />
                                     ),
@@ -509,6 +577,9 @@ export default function ListOfSuits(properties: {
                 }}
                 groupBy={['File']}
                 rowGrouper={rowGrouper}
+                renderers={{
+                    noRowsFallback: <Skeleton h={300} w={'98vw'} animate />,
+                }}
                 expandedGroupIds={expandedGroupIds}
                 onExpandedGroupIdsChange={setExpandedGroupIds}
                 onCellClick={(cell) => {
@@ -533,25 +604,39 @@ export default function ListOfSuits(properties: {
                             open();
                             break;
                         }
+                        case 'Id': {
+                            router.push(
+                                suiteDetailedPage(
+                                    properties.testID ?? '',
+                                    cell.row.Id,
+                                ),
+                            );
+                            break;
+                        }
+                    }
+                }}
+                onCellDoubleClick={(cell) => {
+                    switch (cell.column.key) {
+                        case 'Title': {
+                            router.push(
+                                suiteDetailedPage(
+                                    properties.testID ?? '',
+                                    cell.row.Id,
+                                ),
+                            );
+                            break;
+                        }
                     }
                 }}
             />
-            <Modal
+            <ErrorsToShow
                 opened={opened && errorsToShow.length > 0}
                 onClose={() => {
                     close();
                     setErrorsToShow(() => []);
                 }}
-                title={`Errors (${errorsToShow.length})`}
-                centered
-                size="lg"
-            >
-                <Stack p="sm">
-                    {errorsToShow.map((error, index) => (
-                        <ErrorCard error={error} key={index} />
-                    ))}
-                </Stack>
-            </Modal>
+                errorsToShow={errorsToShow}
+            />
             <DetailedPlatformVersions
                 title={groupedRowsByFile.title}
                 records={groupedRowsByFile.records}

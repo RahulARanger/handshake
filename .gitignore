@@ -75,3 +75,4 @@ dashboard.zip
 *.sarif
 TestExportBase
 TestExportedReports
+!.env.sample

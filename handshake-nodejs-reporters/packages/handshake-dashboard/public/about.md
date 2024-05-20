@@ -23,7 +23,6 @@ below are the things I would like to implement sooner or later, once this is don
 -   [ ] add gradients in the background of charts, board, etc.. in dashboard
 -   [ ] support showing retried suites
 -   [ ] prepare the custom reporter for `jest`
--   [ ] work on timeline and enable it in dashboard
 -   [ ] Work on documentation
 -   [ ] add gradients in the dashboard
 -   [ ] Support for `mocha`
@@ -33,7 +32,7 @@ below are the things I would like to implement sooner or later, once this is don
 ## Completed
 
 -   [x] Prepare the server to listen on reports
--   [x] patch the test reports using scheduler
+-   [x] process the test reports using scheduler
 -   [x] Decide the structure of the dashboard
 -   [x] store the results
 -   [x] unit tests for the server and scheduled jobs

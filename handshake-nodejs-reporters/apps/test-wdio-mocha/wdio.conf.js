@@ -43,7 +43,7 @@ const metaConfig = {
 }
 
 export const config = attachReporter(metaConfig, {
-    resultsFolderName: "TestResults",
+    resultsFolderName: process.env.LOCAL ? '../../../TestResults' : "TestResults",
     port: 6966,
     requestsTimeout: 360e3,
     addScreenshots: true,

@@ -1,3 +1,5 @@
+// TODO: minimize foot print
+
 export function runsPage() {
     return '/RUNS';
 }
@@ -8,6 +10,10 @@ export function testRunPage(testID: string) {
 
 export function suitesPage(testID: string) {
     return `/RUNS/Suites?testID=${testID}`;
+}
+
+export function suiteDetailedPage(testID: string, suiteID: string) {
+    return `/RUNS/Suites/Suite?testID=${testID}&suiteID=${suiteID}`;
 }
 
 export function jsonFeedForRunsPage() {
@@ -36,4 +42,37 @@ export function jsonFeedForListOfSuites(testID: string) {
     return process.env.IS_DEV
         ? `/api/Import/Runs/${testID}/suites.json`
         : `/Import/${testID}/suites.json`;
+}
+
+export function jsonFeedForSuite(testID: string, suiteID: string) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/suite.json`
+        : `/Import/${testID}/${suiteID}/suite.json`;
+}
+
+export function jsonFeedForTests(testID: string, suiteID: string) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/tests.json`
+        : `/Import/${testID}/${suiteID}/tests.json`;
+}
+
+export function jsonFeedForEntityLevelAttachments(
+    testID: string,
+    suiteID: string,
+) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/entity-attachments.json`
+        : `/Import/${testID}/${suiteID}/entity-attachments.json`;
+}
+
+export function jsonFeedForRetryMap(testID: string, suiteID: string) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/retries.json`
+        : `/Import/${testID}/${suiteID}/retries.json`;
+}
+
+export function redirectForAttachment(testID: string, file: string) {
+    return process.env.IS_DEV
+        ? `/api/Attachments/${testID}/${file}`
+        : `/Attachments/${testID}/${file}`;
 }

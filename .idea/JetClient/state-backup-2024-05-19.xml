@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JetClientState">
+    <option name="folders">
+      <list>
+        <folderState>
+          <option name="id" value="60399d0a-25d4-45e6-9cea-9cbf82d04f03" />
+          <option name="name" value="Test" />
+          <option name="requests">
+            <list>
+              <requestState>
+                <option name="id" value="41897564-fd19-428a-9521-894c9e096a59" />
+                <option name="method" value="POST" />
+                <option name="name" value="Start" />
+                <option name="url" value="http://127.0.0.1:6978/bye" />
+              </requestState>
+            </list>
+          </option>
+          <option name="sortWeight" value="1000000" />
+          <option name="syncProperties">
+            <synchronizationPropertiesState>
+              <option name="folderPath" value="C:\Users\Rahul\Documents\Hosted Experiments\Handshake\.jetclient" />
+            </synchronizationPropertiesState>
+          </option>
+        </folderState>
+      </list>
+    </option>
+    <option name="id" value="2e6f3355-94fe-4fea-bf31-66a64fef3ffc" />
+  </component>
+</project>

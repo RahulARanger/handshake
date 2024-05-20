@@ -13,7 +13,6 @@ from tortoise.fields import (
     ForeignKeyRelation,
     TextField,
 )
-from tortoise.contrib.pydantic import pydantic_model_creator
 from handshake.services.DBService.models.enums import Status, SuiteType, LogType
 
 

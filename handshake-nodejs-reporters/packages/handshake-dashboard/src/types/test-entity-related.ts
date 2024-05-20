@@ -26,10 +26,10 @@ export interface SimpleSuiteDetails {
     numberOfErrors: number;
     Parent: string;
     type: suiteType;
+    totalRollupValue: number;
     Desc: string;
     errors: ErrorRecord[];
     error: ErrorRecord;
-    hasChildSuite: boolean;
 }
 
 export interface SuiteRecordDetails
@@ -39,16 +39,24 @@ export interface SuiteRecordDetails
     rollup_failed: number;
     rollup_skipped: number;
     rollup_tests: number;
+    hasChildSuite: boolean;
     entityName: string;
     entityVersion: string;
     hooks: number;
     simplified: string;
     numberOfAssertions?: number;
+    nextSuite?: string;
+    prevSuite?: string;
 }
 
-export interface TestRecordDetails extends RecurringFields {
-    broken: boolean;
-    error: string;
+export interface TestRecordDetails extends RecurringFields, SimpleSuiteDetails {
+    // broken: boolean;
+    rollup_passed: number;
+    rollup_failed: number;
+    rollup_skipped: number;
+    rollup_tests: number;
+    hooks: number;
+    assertions: number;
 }
 
 export interface Tag {
@@ -64,19 +72,29 @@ export interface AssertionRecord {
     message: string;
 }
 
-export interface RetriedRecord {
+export interface RetriedRawRecord {
     suite_id: string;
     tests: string; // history
     length: number; // length of history
-    test: string; // suite at any point of history
+    suite: string; // suite at any point of history
+    key: number; // 0 - index of that test in history
+}
+
+export interface RetriedRecord {
+    suite_id: string;
+    tests: string[]; // history
+    length: number; // length of history
+    suite: string; // suite at any point of history
     key: number; // 0 - index of that test in history
 }
 
 export interface ImageRecord {
-    path: string;
+    file: string;
     title: string;
     entity_id: string;
     description?: string;
+    type: string;
+    url: string;
 }
 
 export interface ErrorRecord {
@@ -92,4 +110,8 @@ export interface Assertion {
     interval: number;
     message?: string;
     title: string;
+}
+
+export interface EntityLevelAttachments {
+    written: Record<string, ImageRecord[]>;
 }

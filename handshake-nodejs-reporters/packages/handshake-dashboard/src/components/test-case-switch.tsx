@@ -8,6 +8,8 @@ interface SwitchTestCasesProperties {
     size?: SwitchProps['size'];
     prefix?: string;
     trackWidth?: number;
+    replaceTestLabel?: string;
+    replaceSuiteLabel?: string;
 }
 
 export default function SwitchTestCases(properties: SwitchTestCasesProperties) {
@@ -19,11 +21,12 @@ export default function SwitchTestCases(properties: SwitchTestCasesProperties) {
                 track: { width: rem(properties.trackWidth ?? 58) },
                 trackLabel: { fontSize: rem(9.6), paddingInline: rem(10) },
             }}
-            onLabel={prefix + 'Tests'}
-            offLabel={prefix + 'Suites'}
+            onLabel={prefix + (properties.replaceTestLabel ?? 'Tests')}
+            offLabel={prefix + (properties.replaceSuiteLabel ?? 'Suites')}
             defaultChecked={properties.isDefaultTestCases}
             onChange={(event) =>
-                properties.onChange!(event.currentTarget.checked)
+                properties.onChange &&
+                properties.onChange(event.currentTarget.checked)
             }
             size={properties.size}
         />

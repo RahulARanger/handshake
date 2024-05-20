@@ -1,6 +1,11 @@
 import type { TooltipProps } from '@mantine/core';
 import { Tooltip } from '@mantine/core';
-import { IconCheck, IconFlagPause, IconX } from '@tabler/icons-react';
+import {
+    IconCheck,
+    IconFlagPause,
+    IconRefreshDot,
+    IconX,
+} from '@tabler/icons-react';
 import React, { type ReactNode } from 'react';
 import type { statusOfEntity } from 'types/session-records';
 
@@ -51,7 +56,7 @@ export default function TestStatusIcon(properties: {
             icon = (
                 <IconFlagPause
                     color="var(--mantine-color-yellow-filled)"
-                    stroke={3}
+                    stroke={1.5}
                 />
             );
             break;
@@ -59,9 +64,9 @@ export default function TestStatusIcon(properties: {
 
         case 'RETRIED': {
             icon = (
-                <IconFlagPause
-                    color="var(--mantine-color-yellow-filled)"
-                    stroke={3}
+                <IconRefreshDot
+                    color="var(--mantine-color-orange-filled)"
+                    stroke={1.5}
                 />
             );
             break;

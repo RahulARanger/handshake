@@ -30,10 +30,17 @@ from handshake.services.SchedularService.constants import (
     EXPORT_RUNS_PAGE_FILE_NAME,
     EXPORT_OVERVIEW_PAGE,
     EXPORT_ALL_SUITES,
+    EXPORT_SUITE_PAGE_FILE_NAME,
+    EXPORT_SUITE_TESTS_PAGE,
+    EXPORT_TEST_ASSERTIONS,
+    EXPORT_TEST_ENTITY_ATTACHMENTS,
+    EXPORT_SUITE_RETRIED_MAP,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
 from handshake.services.SchedularService.handleTestResults import delete_test_attachment
+from handshake.services.DBService.models.attachmentBase import AssertBase
+from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.handlePending import patch_jobs
 from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
@@ -250,7 +257,8 @@ WHERE rb.ended <> '' order by rb.started;
 
                 exporter.create_task(
                     to_thread(
-                        self.save_run_query,
+                        self.save_test_run_level_files,
+                        EXPORT_RUN_PAGE_FILE_NAME,
                         str(test_run.testID),
                         json.dumps(run),
                     ),
@@ -312,7 +320,8 @@ WHERE rb.ended <> '' order by rb.started;
         )
 
         await to_thread(
-            self.save_overview_query,
+            self.save_test_run_level_files,
+            EXPORT_OVERVIEW_PAGE,
             run_id,
             json.dumps(
                 dict(
@@ -335,6 +344,18 @@ WHERE rb.ended <> '' order by rb.started;
                 s=RawSQL("suitebase.started"),
                 e=RawSQL("suitebase.ended"),
                 error=RawSQL("errors ->> '[0]'"),
+                nextSuite=RawSQL(
+                    "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
+                    " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
+                    " and suitebase.started <= sb.started and sb.suiteID <> suitebase.suiteID"
+                    " and 'suitebase__session'.'test_id' = ssb.test_id order by sb.started)"
+                ),
+                prevSuite=RawSQL(
+                    "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
+                    " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
+                    " and suitebase.started >= sb.started and sb.suiteID <> suitebase.suiteID"
+                    " and 'suitebase__session'.'test_id' = ssb.test_id order by sb.started)"
+                ),
                 hasChildSuite=RawSQL(
                     "(select count(*) from suitebase sb where sb.parent=suitebase.suiteID "
                     "and sb.suiteType='SUITE' LIMIT 1)"
@@ -345,6 +366,7 @@ WHERE rb.ended <> '' order by rb.started;
                 "passed",
                 "failed",
                 "standing",
+                "tests",
                 "skipped",
                 "duration",
                 "file",
@@ -355,6 +377,8 @@ WHERE rb.ended <> '' order by rb.started;
                 "error",
                 "numberOfErrors",
                 "hasChildSuite",
+                "nextSuite",
+                "prevSuite",
                 suiteID="id",
                 parent="p_id",
                 started="s",
@@ -373,7 +397,123 @@ WHERE rb.ended <> '' order by rb.started;
         await to_thread(
             self.save_all_suites_query,
             run_id,
-            json.dumps(all_suites),
+            all_suites,
+        )
+
+        await gather(
+            *[
+                self.export_suite(run_id, str(suite))
+                for suite in await SuiteBase.filter(
+                    Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE)
+                ).values_list("suiteID", flat=True)
+            ]
+        )
+
+    async def export_suite(self, run_id: str, suite_id: str):
+        tests = await (
+            SuiteBase.filter(Q(parent=suite_id))
+            .order_by("started")
+            .prefetch_related("rollup")
+            .annotate(
+                numberOfErrors=RawSQL("json_array_length(errors)"),
+                id=RawSQL("suiteID"),
+                s=RawSQL("suitebase.started"),
+                e=RawSQL("suitebase.ended"),
+                error=RawSQL("errors ->> '[0]'"),
+                assertions=RawSQL(
+                    "(select count(ab.entity_id) from assertbase ab where ab.entity_id=suitebase.suiteID)"
+                ),
+            )
+            .values(
+                "title",
+                "standing",
+                "assertions",
+                "duration",
+                "file",
+                "retried",
+                "tags",
+                "suiteType",
+                "description",
+                "errors",
+                "error",
+                "numberOfErrors",
+                suiteID="id",
+                started="s",
+                ended="e",
+                hooks="session__hooks",
+                rollup_passed="rollup__passed",
+                rollup_failed="rollup__failed",
+                rollup_skipped="rollup__skipped",
+                rollup_tests="rollup__tests",
+            )
+        )
+
+        assertions = (
+            await AssertBase.filter(entity__parent=suite_id)
+            .annotate(id=RawSQL("entity_id"))
+            .all()
+            .values("title", "message", "interval", "passed", "wait", entity_id="id")
+        )
+
+        written_records = {}
+        written = (
+            await StaticBase.filter(entity__parent=suite_id)
+            .annotate(
+                id=RawSQL("entity_id"),
+                title=RawSQL("attachmentValue ->> 'title'"),
+                file=RawSQL("attachmentValue ->> 'value'"),
+            )
+            .all()
+            .values("type", "title", "description", "file", entity_id="id")
+        )
+
+        for record in written:
+            records = written_records.get(record["entity_id"], [])
+            records.append(record)
+            written_records[record["entity_id"]] = records
+
+        retried_map = {}
+
+        _, rows = await connections.get("default").execute_query(
+            "select key, value as suite, rb.tests, length, suite_id"
+            " from retriedbase rb join json_each(rb.tests)"
+            " join suitebase sb on suite = sb.suiteID"
+            " join sessionbase ssb on ssb.sessionID = sb.session_id"
+            " where ssb.test_id = ?",
+            (run_id,),
+        )
+
+        for row in rows:
+            retried_map[row["suite"]] = dict(row)
+
+        await to_thread(
+            self.save_under_suite_folder,
+            EXPORT_SUITE_TESTS_PAGE,
+            run_id,
+            suite_id,
+            json.dumps(tests),
+        )
+        await to_thread(
+            self.save_under_suite_folder,
+            EXPORT_TEST_ASSERTIONS,
+            run_id,
+            suite_id,
+            json.dumps(assertions),
+        )
+        await to_thread(
+            self.save_under_suite_folder,
+            EXPORT_TEST_ENTITY_ATTACHMENTS,
+            run_id,
+            suite_id,
+            json.dumps(dict(written=written_records)),
+        )
+
+        await to_thread(
+            self.save_under_suite_folder,
+            EXPORT_SUITE_RETRIED_MAP,
+            run_id,
+            suite_id,
+            json.dumps(retried_map),
         )
 
     def export_files(self):
@@ -391,11 +531,19 @@ WHERE rb.ended <> '' order by rb.started;
         (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)
         (self.import_dir / EXPORT_PROJECTS_FILE_NAME).write_text(projectsFeed)
 
-    def save_run_query(self, testID: str, feed: str):
-        (self.import_dir / testID / EXPORT_RUN_PAGE_FILE_NAME).write_text(feed)
+    def save_test_run_level_files(self, file_name: str, testID: str, feed: str):
+        (self.import_dir / testID / file_name).write_text(feed)
 
-    def save_overview_query(self, testID: str, feed: str):
-        (self.import_dir / testID / EXPORT_OVERVIEW_PAGE).write_text(feed)
+    def save_all_suites_query(self, testID: str, feed: dict):
+        (self.import_dir / testID / EXPORT_ALL_SUITES).write_text(json.dumps(feed))
+        for suite in feed:
+            suite_id = suite["suiteID"]
+            (self.import_dir / testID / suite_id).mkdir(exist_ok=True)
+            self.save_under_suite_folder(
+                EXPORT_SUITE_PAGE_FILE_NAME, testID, suite_id, json.dumps(suite)
+            )
 
-    def save_all_suites_query(self, testID: str, feed: str):
-        (self.import_dir / testID / EXPORT_ALL_SUITES).write_text(feed)
+    def save_under_suite_folder(
+        self, file_name: str, testID: str, suiteID: str, feed: str
+    ):
+        (self.import_dir / testID / suiteID / file_name).write_text(feed)

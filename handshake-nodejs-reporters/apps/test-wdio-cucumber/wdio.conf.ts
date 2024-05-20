@@ -351,12 +351,14 @@ const options: Options.Testrunner = {
 };
 
 export const config = attachReporter(options, {
-	resultsFolderName: "TestResults",
+	resultsFolderName: process.env.LOCAL
+		? "../../../TestResults"
+		: "TestResults",
 	port: 6969,
 	addScreenshots: true,
 	testConfig: {
 		projectName: process.env.SANITY
 			? "sanity-test-wdio-cucumber"
-			: "test-wdio-mocha",
+			: "test-wdio-cucumber",
 	},
 });
