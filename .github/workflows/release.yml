@@ -204,7 +204,7 @@ jobs:
         id: post-release
         with:
           commit_message: Bump Handshake Dashboard Version
-          file_pattern: 'handshake-nodejs-reporters/packages/**/*.md handshake-nodejs-reporters/packages/**/*.json'
+          file_pattern: 'handshake-nodejs-reporters/**/*.md handshake-nodejs-reporters/**/*.json'
 
 
   host-storybook:
