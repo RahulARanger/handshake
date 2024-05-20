@@ -250,7 +250,6 @@ export default function OverviewCard(properties: {
         retriedMapRecord?.tests[retriedMapRecord?.key - 1];
     const nextRetriedRecord =
         retriedMapRecord?.tests[retriedMapRecord?.key + 1];
-    const hasRetries = previousRetriedRecord || nextRetriedRecord;
 
     return (
         <Stack
@@ -278,28 +277,26 @@ export default function OverviewCard(properties: {
                                 />
                                 <Group wrap="nowrap" gap="xs" align="center">
                                     {[
-                                        hasRetries
-                                            ? {
-                                                  title: 'Prev. Retried Suite',
-                                                  icon: (
-                                                      <IconChevronsLeft
-                                                          style={{
-                                                              width: rem(16),
-                                                              height: rem(16),
-                                                          }}
-                                                          stroke={1.5}
-                                                      />
-                                                  ),
-                                                  url:
-                                                      properties.testID &&
-                                                      previousRetriedRecord
-                                                          ? suiteDetailedPage(
-                                                                properties.testID,
-                                                                previousRetriedRecord,
-                                                            )
-                                                          : '',
-                                              }
-                                            : undefined,
+                                        {
+                                            title: 'Prev. Retried Suite',
+                                            icon: (
+                                                <IconChevronsLeft
+                                                    style={{
+                                                        width: rem(16),
+                                                        height: rem(16),
+                                                    }}
+                                                    stroke={1.5}
+                                                />
+                                            ),
+                                            url:
+                                                properties.testID &&
+                                                previousRetriedRecord
+                                                    ? suiteDetailedPage(
+                                                          properties.testID,
+                                                          previousRetriedRecord,
+                                                      )
+                                                    : '',
+                                        },
                                         {
                                             title: 'Previous Suite',
                                             icon: (
@@ -360,28 +357,26 @@ export default function OverviewCard(properties: {
                                                       )
                                                     : '',
                                         },
-                                        hasRetries
-                                            ? {
-                                                  title: 'Next Retried Suite',
-                                                  icon: (
-                                                      <IconChevronsRight
-                                                          style={{
-                                                              width: rem(16),
-                                                              height: rem(16),
-                                                          }}
-                                                          stroke={1.5}
-                                                      />
-                                                  ),
-                                                  url:
-                                                      properties.testID &&
-                                                      nextRetriedRecord
-                                                          ? suiteDetailedPage(
-                                                                properties.testID,
-                                                                nextRetriedRecord,
-                                                            )
-                                                          : '',
-                                              }
-                                            : undefined,
+                                        {
+                                            title: 'Next Retried Suite',
+                                            icon: (
+                                                <IconChevronsRight
+                                                    style={{
+                                                        width: rem(16),
+                                                        height: rem(16),
+                                                    }}
+                                                    stroke={1.5}
+                                                />
+                                            ),
+                                            url:
+                                                properties.testID &&
+                                                nextRetriedRecord
+                                                    ? suiteDetailedPage(
+                                                          properties.testID,
+                                                          nextRetriedRecord,
+                                                      )
+                                                    : '',
+                                        },
                                     ]
                                         .filter((x) => x !== undefined)
                                         .map(({ icon, title, url }) => (

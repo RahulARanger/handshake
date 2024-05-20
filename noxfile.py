@@ -1,7 +1,7 @@
 import nox
 import pathlib
 import tomllib
-from json import dumps
+from json import dumps, loads
 from pathlib import Path
 from shutil import make_archive
 
@@ -34,7 +34,9 @@ def version(session):
     note_file = root / "handshake" / "__init__.py"
     note_file.write_text(f'__version__ = "{version_text}"\n')
 
-    target_node.write_text(dumps(dict(version=version_text)))
+    target_node.write_text(
+        dumps(dict(**loads(target_node.read_text()), version=version_text))
+    )
 
 
 @nox.session(python=["3.11", "3.12"])
