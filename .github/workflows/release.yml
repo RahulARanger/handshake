@@ -41,7 +41,7 @@ jobs:
             dashboard:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/package.json'
             py:
-                - "poetry.toml"
+                - pyproject.toml
             common_nodejs_reporters:
                 - 'handshake-nodejs-reporters/packages/common-handshakes/package.json'
                 - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/package.json'
