@@ -20,7 +20,7 @@ describe('verifying sanitizer', () => {
   });
 });
 
-test('verifying the version mis-match test', async () => {
+test('verifying the version match test', async () => {
   const { version } = JSON.parse(readFileSync(join(dirname(__dirname), '.version').toString()));
-  expect(checkVersion('handshake')).toEqual([version, version, true]);
+  expect(checkVersion('handshake')).toEqual(version);
 });

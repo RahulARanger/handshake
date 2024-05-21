@@ -49,4 +49,5 @@ export const config = attachReporter(metaConfig, {
     addScreenshots: true,
     testConfig: { projectName: process.env.SANITY ? 'sanity-test-wdio-mocha' : 'test-wdio-mocha' },
     logLevel: "error",
+    exportOutDir: "TestReports"
 });

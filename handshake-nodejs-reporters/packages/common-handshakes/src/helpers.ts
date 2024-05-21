@@ -27,7 +27,8 @@ export function checkVersion(exePath?: string) {
     : dirname(fileURLToPath(import.meta.url)));
 
   const expected = JSON.parse(readFileSync(join(currentDir, '.version'), 'utf-8'))?.version ?? '';
-  return [expected, observedVersion, expected === observedVersion];
+  if (expected !== observedVersion) throw new Error(`Expected version for handshake is v${expected} but got v${observedVersion}`);
+  return expected;
 }
 
 export function dashboardBuild(): string {
