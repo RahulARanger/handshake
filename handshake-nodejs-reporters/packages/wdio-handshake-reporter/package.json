@@ -2,9 +2,11 @@
 	"name": "wdio-handshake-reporter",
 	"version": "0.6.1",
 	"types": "./dist/index.d.ts",
+	"module":"./dist/index.js",
 	"exports": {
 		"default": "./dist/index.js",
-		"import": "./dist/index.js"
+		"import": "./dist/index.js",
+		"types": "./dist/index.d.ts"
 	},
 	"type": "module",
 	"private": false,

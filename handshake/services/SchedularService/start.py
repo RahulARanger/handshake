@@ -5,7 +5,7 @@ from handshake.services.DBService.lifecycle import (
     db_path,
     close_connection,
 )
-from shutil import rmtree
+from shutil import rmtree, copytree
 from tarfile import open
 from pathlib import Path
 from typing import Optional
@@ -526,6 +526,11 @@ WHERE rb.ended <> '' order by rb.started;
 
         with open(self.dashboard_build, "r:bz2") as tar_file:
             tar_file.extractall(self.export_dir)
+
+        copytree(
+            self.db_path.parent / writtenAttachmentFolderName,
+            self.export_dir / writtenAttachmentFolderName,
+        )
 
     def save_runs_query(self, feed: str, projectsFeed: str):
         (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)

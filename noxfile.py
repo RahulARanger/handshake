@@ -3,7 +3,7 @@ import pathlib
 import tomllib
 from json import dumps, loads
 from pathlib import Path
-from shutil import make_archive
+from shutil import make_archive, move
 
 
 @nox.session
@@ -60,9 +60,17 @@ def zip_results(session):
         " through dashboard build-pipeline"
     )
 
-    expected_here = Path.cwd() / "dashboard.zip"
+    expected_here = Path.cwd() / "dashboard.tar.bz2"
     if expected_here.exists():
         expected_here.unlink()
-    assert expected_here == dashboard.parent / "dashboard.zip"
+    assert expected_here == dashboard.parent / "dashboard.tar.bz2"
 
-    make_archive("dashboard", "zip", dashboard)
+    make_archive("dashboard", "bztar", dashboard)
+    move(
+        expected_here,
+        expected_here.parent
+        / "handshake-nodejs-reporters"
+        / "packages"
+        / "common-handshakes"
+        / "dashboard.tar.bz2",
+    )
