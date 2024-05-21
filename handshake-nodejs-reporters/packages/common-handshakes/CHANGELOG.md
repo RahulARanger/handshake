@@ -1,5 +1,12 @@
 # common-handshakes
 
+## 0.6.2
+
+### Patch Changes
+
+- dca0a81: fix; wdio-handshake-reportere import and fix; export
+- 47daa14: feat: completed suite detailed view
+
 ## 0.6.1
 
 ### Patch Changes

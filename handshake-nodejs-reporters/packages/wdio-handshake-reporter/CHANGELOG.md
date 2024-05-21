@@ -1,5 +1,15 @@
 # wdio-graspit-reporter
 
+## 0.6.2
+
+### Patch Changes
+
+- dca0a81: fix; wdio-handshake-reportere import and fix; export
+- 47daa14: feat: completed suite detailed view
+- Updated dependencies [dca0a81]
+- Updated dependencies [47daa14]
+  - common-handshakes@0.6.2
+
 ## 0.6.1
 
 ### Patch Changes

@@ -1,8 +1,8 @@
 {
 	"name": "wdio-handshake-reporter",
-	"version": "0.6.1",
+	"version": "0.6.2",
 	"types": "./dist/index.d.ts",
-	"module":"./dist/index.js",
+	"module": "./dist/index.js",
 	"exports": {
 		"default": "./dist/index.js",
 		"import": "./dist/index.js",
@@ -20,7 +20,7 @@
 	"dependencies": {
 		"@wdio/reporter": "^8.36.1",
 		"@wdio/types": "^8.36.1",
-		"common-handshakes": "0.6.1",
+		"common-handshakes": "0.6.2",
 		"pino": "^9.1.0",
 		"superagent": "^9.0.2"
 	},
