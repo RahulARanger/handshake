@@ -19,6 +19,7 @@ import type { ImageRecord } from 'types/test-entity-related';
 export interface PreviewImageFeed {
     images: ImageRecord[];
     index: number;
+    title: string;
 }
 
 export default function ImageCarousel(properties: {
@@ -59,6 +60,7 @@ export default function ImageCarousel(properties: {
                                 properties.onExpand({
                                     images: properties.images,
                                     index,
+                                    title: '',
                                 })
                             }
                         >
@@ -108,15 +110,14 @@ export function NoAttachmentsAdded() {
 
 export function ShowImage(properties: {
     onClose: () => void;
-    feed?: { images: ImageRecord[]; index: number };
+    feed?: PreviewImageFeed;
 }): ReactNode {
-    const image = properties.feed?.images?.at(properties.feed.index);
     return (
         <Modal
             onClose={properties.onClose}
             opened={properties.feed !== undefined}
             size="lg"
-            title={image?.title ?? ''}
+            title={properties.feed?.title}
             radius={'md'}
             lockScroll
         >

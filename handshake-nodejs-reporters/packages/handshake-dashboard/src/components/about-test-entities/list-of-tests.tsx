@@ -98,7 +98,12 @@ function DetailedTestView(properties: {
                                 <ImageCarousel
                                     height={160}
                                     images={writtenAttachments}
-                                    onExpand={properties.setImagePreview}
+                                    onExpand={(_) =>
+                                        properties.setImagePreview({
+                                            ..._,
+                                            title: `Images attached for test: ${properties.test.Title}`,
+                                        })
+                                    }
                                 />
                             ) : (
                                 <NoAttachmentsAdded />
