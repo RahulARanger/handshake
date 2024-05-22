@@ -1,27 +1,80 @@
 import { Carousel } from '@mantine/carousel';
 import type { ImageProps } from '@mantine/core';
-import { Card, Center, Image, Paper, Text } from '@mantine/core';
+import {
+    ActionIcon,
+    Card,
+    Center,
+    Image,
+    Modal,
+    Paper,
+    rem,
+    Text,
+    Tooltip,
+} from '@mantine/core';
+import { IconMaximize } from '@tabler/icons-react';
+import type { ReactNode } from 'react';
 import React from 'react';
 import type { ImageRecord } from 'types/test-entity-related';
 
-export default function ImageCarousel(properties: {
-    height: ImageProps['h'];
+export interface PreviewImageFeed {
     images: ImageRecord[];
+    index: number;
+    title: string;
+}
+
+export default function ImageCarousel(properties: {
+    height?: ImageProps['h'];
+    index?: number;
+    images: ImageRecord[];
+    onExpand?: (_: PreviewImageFeed) => undefined;
 }) {
-    const slides = properties.images.map((image) => (
+    const slides = properties.images.map((image, index) => (
         <Carousel.Slide key={image.url}>
             <Card withBorder shadow="lg" mx="xs" radius="md">
-                <Card.Section withBorder p="sm">
-                    <Text size="sm">{image.title}</Text>
-                </Card.Section>
-                <Card.Section p="sm">
+                <Tooltip label={image.description}>
+                    <Card.Section withBorder p="sm">
+                        <Text size="sm">{image.title}</Text>
+                    </Card.Section>
+                </Tooltip>
+                <Card.Section p="sm" withBorder={!properties.onExpand}>
                     <Image
                         radius="md"
                         src={image.url}
                         w="100%"
+                        p={0}
                         h={properties.height}
+                        alt={image?.description}
                         fallbackSrc="https://placehold.co/600x400?text=Attachment"
                     />
+                    {properties.onExpand ? (
+                        <ActionIcon
+                            variant="white"
+                            size="sm"
+                            style={{
+                                position: 'absolute',
+                                right: '9px',
+                                top: '52px',
+                            }}
+                            onClick={() =>
+                                properties.onExpand &&
+                                properties.onExpand({
+                                    images: properties.images,
+                                    index,
+                                    title: '',
+                                })
+                            }
+                        >
+                            <IconMaximize
+                                style={{
+                                    width: rem(16),
+                                    height: rem(16),
+                                }}
+                                stroke={2.5}
+                            />
+                        </ActionIcon>
+                    ) : (
+                        <></>
+                    )}
                 </Card.Section>
             </Card>
         </Carousel.Slide>
@@ -31,7 +84,12 @@ export default function ImageCarousel(properties: {
         <Carousel
             align="start"
             withIndicators
-            slideSize={Math.min(properties.images.length, 3)}
+            slideSize={
+                properties.onExpand
+                    ? Math.min(properties.images.length, 3)
+                    : '100%'
+            }
+            initialSlide={properties.index ?? 0}
         >
             {slides}
         </Carousel>
@@ -47,5 +105,26 @@ export function NoAttachmentsAdded() {
                 </Text>
             </Center>
         </Paper>
+    );
+}
+
+export function ShowImage(properties: {
+    onClose: () => void;
+    feed?: PreviewImageFeed;
+}): ReactNode {
+    return (
+        <Modal
+            onClose={properties.onClose}
+            opened={properties.feed !== undefined}
+            size="lg"
+            title={properties.feed?.title}
+            radius={'md'}
+            lockScroll
+        >
+            <ImageCarousel
+                images={properties.feed?.images ?? []}
+                index={properties.feed?.index}
+            />
+        </Modal>
     );
 }
