@@ -42,9 +42,6 @@ jobs:
               - 'handshake-nodejs-reporters/packages/handshake-dashboard/package.json'
             py:
                 - pyproject.toml
-            common_nodejs_reporters:
-                - 'handshake-nodejs-reporters/packages/common-handshakes/package.json'
-                - 'handshake-nodejs-reporters/packages/wdio-handshake-reporter/package.json'
             storybook:
                 - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
 
@@ -160,7 +157,7 @@ jobs:
     permissions: write-all
 
     # if (dashboard-build and py-build) has not failed (if triggered) then only run this job (if needed)
-    if: ${{ !failure() && needs.decide.outputs.common_nodejs_reporters == 'true' }}
+    if: ${{ !failure() }}
 
     steps:
       - name: Checkout code
