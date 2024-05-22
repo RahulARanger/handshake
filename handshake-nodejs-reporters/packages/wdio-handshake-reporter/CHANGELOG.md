@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.6.3
+
+### Patch Changes
+
+- f60e819: feat: support preview images
+- Updated dependencies [f60e819]
+  - common-handshakes@0.6.3
+
 ## 0.6.2
 
 ### Patch Changes

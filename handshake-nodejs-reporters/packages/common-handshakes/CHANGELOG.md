@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.6.3
+
+### Patch Changes
+
+- f60e819: feat: support preview images
+
 ## 0.6.2
 
 ### Patch Changes
