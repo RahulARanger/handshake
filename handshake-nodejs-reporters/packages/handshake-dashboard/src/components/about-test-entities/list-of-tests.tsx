@@ -44,12 +44,14 @@ import { ErrorStack, ErrorsToShow } from './error-card';
 import dayjs from 'dayjs';
 import { IconCaretRightFilled } from '@tabler/icons-react';
 import type { ParsedTestRecord } from 'types/parsed-records';
-import ImageCarousel, { NoAttachmentsAdded } from './image-carousel';
+import type { PreviewImageFeed } from './image-carousel';
+import ImageCarousel, { NoAttachmentsAdded, ShowImage } from './image-carousel';
 
 function DetailedTestView(properties: {
     testID?: string;
     suiteID?: string;
     test: ParsedTestRecord;
+    setImagePreview: (feed: PreviewImageFeed) => undefined;
 }): ReactNode {
     const idForExpandedItem = properties.test.Id.slice(0, -1);
     const { data, isLoading } = useSWRImmutable<EntityLevelAttachments>(
@@ -82,7 +84,7 @@ function DetailedTestView(properties: {
     const toLoad = isLoading || writtenAttachments === undefined;
 
     return toLoad ? (
-        <Skeleton h={300} animate w={'100%'} />
+        <Skeleton h={330} animate w={'100%'} />
     ) : (
         <Card withBorder shadow="xl" p="sm" m="xs">
             <Stack gap={0}>
@@ -91,21 +93,22 @@ function DetailedTestView(properties: {
                 </Card.Section>
                 <Card.Section withBorder p="sm">
                     <Grid>
-                        <Grid.Col span={6} h={250}>
+                        <Grid.Col span={6} h={240}>
                             {writtenAttachments.length > 0 ? (
                                 <ImageCarousel
                                     height={160}
                                     images={writtenAttachments}
+                                    onExpand={properties.setImagePreview}
                                 />
                             ) : (
                                 <NoAttachmentsAdded />
                             )}
                         </Grid.Col>
                         <Grid.Col span={6}>
-                            <ScrollAreaAutosize h={250}>
+                            <ScrollAreaAutosize h={240}>
                                 <ErrorStack
                                     errors={properties.test.errors}
-                                    h={235}
+                                    h={226}
                                 />
                             </ScrollAreaAutosize>
                         </Grid.Col>
@@ -158,6 +161,9 @@ export default function ListOfTests(properties: {
 
     const router = useRouter();
     const [errorsToShow, setErrorsToShow] = useState<ErrorRecord[]>([]);
+    const [imagePreview, setImagePreview] = useState<
+        PreviewImageFeed | undefined
+    >();
 
     function onRowsChange(
         rows: ParsedTestRecord[],
@@ -202,6 +208,11 @@ export default function ListOfTests(properties: {
                                         testID={properties.testID}
                                         suiteID={properties.suiteID}
                                         test={row}
+                                        setImagePreview={
+                                            setImagePreview as (
+                                                feed: PreviewImageFeed,
+                                            ) => undefined
+                                        }
                                     />
                                 );
                             return (
@@ -435,6 +446,10 @@ export default function ListOfTests(properties: {
                     setErrorsToShow(() => []);
                 }}
                 errorsToShow={errorsToShow}
+            />
+            <ShowImage
+                feed={imagePreview}
+                onClose={() => setImagePreview(undefined)}
             />
         </>
     );
