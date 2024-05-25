@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.6.4
+
+### Patch Changes
+
+- 5a5eff5: feat: add shake cli
+
 ## 0.6.3
 
 ### Patch Changes

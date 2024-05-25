@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.6.4
+
+### Patch Changes
+
+- 5a5eff5: feat: add shake cli
+- Updated dependencies [5a5eff5]
+  - common-handshakes@0.6.4
+
 ## 0.6.3
 
 ### Patch Changes
