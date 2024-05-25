@@ -8,6 +8,8 @@ import { fileURLToPath } from 'url';
 import { spawnSync } from 'child_process';
 import superagent from 'superagent';
 
+export const dashboardBuildFile = join(dirname(dirname(fileURLToPath(import.meta.url))), 'dashboard.tar.bz2');
+
 export function getHandshakeVersionFromServer() {
   try {
     const output = spawnSync('handshake', ['v'], { shell: true });
@@ -42,30 +44,32 @@ export function validateConnection(installIfRequired) {
   const versionMeta = handshakeVersion();
 
   let isSame = false;
-  const required = getHandshakeVersionFromServer();
-  const hasConnected = required !== '';
+  const found = getHandshakeVersionFromServer();
+  const hasConnected = found !== '';
 
   if (hasConnected) {
-    isSame = required === versionMeta.version;
+    isSame = found === versionMeta.version;
   }
 
   if (isSame) {
     console.log(chalk.green('+ We are at the required version, No changes are required for handshake (python build)'));
   } else if (hasConnected) {
     let failedToInstall = true;
-    if (installIfRequired) failedToInstall = !installLatestVersion(required);
+    console.log(
+      chalk.yellow(`+ Found the version: v${found} but we need ${versionMeta.version}`),
+    );
+    if (installIfRequired) failedToInstall = !installLatestVersion(found);
     if (failedToInstall) {
       console.log(
-        chalk.yellow(`+ Please run the command \`pip install handshakes==${required}\``),
+        chalk.yellow(`+ Please run the command: \`pip install handshakes==${found}\``),
       );
     }
   } else {
-    console.log(chalk.yellow('+ Please setup python venv and then Requested to install handshake ') + chalk.italic('(python build)') + chalk.bold(` of ${required}`));
+    console.log(chalk.yellow('+ Please setup python venv and then Requested to install handshake ') + chalk.italic('(python build)') + chalk.bold(` of v${versionMeta.version}`));
   }
 }
 
 export default async function spawnInstallation() {
-  const currentDir = dirname(dirname(fileURLToPath(import.meta.url)));
   const versionMeta = handshakeVersion();
 
   validateConnection();
@@ -73,11 +77,10 @@ export default async function spawnInstallation() {
   const dashboardBuild = versionMeta[0].browser_download_url;
   console.log(chalk.blue(`+ Downloading dashboard build from ${dashboardBuild}...`));
 
-  const target = join(currentDir, 'dashboard.tar.bz2');
-  if (existsSync(target)) {
-    rmSync(target);
+  if (existsSync(dashboardBuildFile)) {
+    rmSync(dashboardBuildFile);
   }
-  const stream = createWriteStream(target);
+  const stream = createWriteStream(dashboardBuildFile);
   const request = superagent.get(dashboardBuild);
 
   await new Promise((resolve, reject) => {
@@ -93,7 +96,7 @@ export default async function spawnInstallation() {
       }
     });
   }).catch((err) => {
-    console.error(chalk.red(`Failed to download the build from ${target}, Please raise an issues in Handshake repo. refer this error: ${err} for reference.`));
+    console.error(chalk.red(`Failed to download the build from ${dashboardBuildFile}, Please raise an issues in Handshake repo. refer this error: ${err} for reference.`));
     // TODO: allow user to execute a command to manually install the build
     // console.error(chalk.blue("Please execute the command: "))})
   });

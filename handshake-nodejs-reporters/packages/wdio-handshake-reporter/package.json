@@ -18,9 +18,9 @@
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm --dts"
 	},
 	"dependencies": {
-		"@wdio/reporter": "^8.36.1",
-		"@wdio/types": "^8.36.1",
-		"common-handshakes": "0.6.2",
+		"@wdio/reporter": "^8.38.0",
+		"@wdio/types": "^8.37.0",
+		"common-handshakes": "0.6.3",
 		"pino": "^9.1.0",
 		"superagent": "^9.0.2"
 	},
@@ -30,9 +30,9 @@
 		"@types/superagent": "^8.1.7",
 		"jest": "^29.7.0",
 		"@jest/globals": "^29.7.0",
-		"@babel/core": "^7.24.5",
-		"@babel/preset-env": "^7.24.5",
-		"@babel/preset-typescript": "^7.24.1",
+		"@babel/core": "^7.24.6",
+		"@babel/preset-env": "^7.24.6",
+		"@babel/preset-typescript": "^7.24.6",
 		"babel-jest": "^29.7.0",
 		"babel-plugin-transform-import-meta": "^2.2.1"
 	}

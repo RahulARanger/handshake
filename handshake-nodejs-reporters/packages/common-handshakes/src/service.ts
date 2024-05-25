@@ -236,7 +236,7 @@ export class ServiceDialPad extends DialPad {
 
     const waitFor = timeout ?? 180e3;
 
-    // manual feeding
+    // manual feeding "$r" / "$out" / "$b"
     [1, 3, 5].forEach((index) => { command[index] = inQuotes(command[index]); });
 
     const waitingForTheScheduler = new Error(
