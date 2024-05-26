@@ -1,15 +1,19 @@
-import platform
 import subprocess
 from typing import Optional
 from pytest import fixture, mark
 from pathlib import Path
 from handshake.services.DBService.shared import db_path as shared_db_path
 from tortoise.connection import connections
-from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from handshake.services.DBService.lifecycle import (
+    init_tortoise_orm,
+    close_connection,
+    DB_VERSION,
+)
 from handshake.services.DBService.models import RunBase, SessionBase, ConfigBase
 from datetime import datetime, timedelta, UTC
 from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.migrator import revert_step_back, OLDEST_VERSION
 
 pytestmark = mark.asyncio
 
@@ -36,14 +40,17 @@ def init_db(root_dir):
     return lambda: subprocess.call(f'handshake config "{root_dir}"', shell=True)
 
 
-async def get_connection(scripts, v=5):
+async def get_connection(db_path, v=5):
     connection = connections.get("default")
 
-    # assuming we are at v7
-    if v < 7:
-        await connection.execute_script((scripts / "revert-v7.sql").read_text())
-    if v < 6:
-        await connection.execute_script((scripts / "revert-v6.sql").read_text())
+    if v > DB_VERSION:
+        # for testing purposes only.
+        await connection.execute_script(
+            f'UPDATE configbase SET value = {v + 1} WHERE key = "VERSION"'
+        )
+    # assuming we are at DB_VERSION
+    for revert in reversed(range(v + 1, DB_VERSION + 1)):
+        revert_step_back(revert, db_path)
 
     return connection
 

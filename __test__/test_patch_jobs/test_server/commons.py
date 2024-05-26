@@ -16,5 +16,5 @@ async def set_config(
     _session = await session
     app.config.TEST_ID = str((await _session.test).testID)
     if db_path:
-        app.shared_ctx.ROOT = Array("c", str.encode(str(db_path)))
+        app.shared_ctx.ROOT = Array("c", str.encode(str(db_path.parent)))
     return _session

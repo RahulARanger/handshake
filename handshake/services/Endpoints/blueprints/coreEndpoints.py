@@ -18,13 +18,18 @@ from handshake.services.DBService.models.static_base import (
     AttachmentBase,
     AttachmentType,
 )
+from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.attachmentBase import AssertBase
-from handshake.services.DBService.models.enums import Status, SuiteType
+from handshake.services.DBService.models.enums import (
+    Status,
+    SuiteType,
+)
 from handshake.services.DBService.models.static_base import StaticBase
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
+from typing import List
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_patch_suite
@@ -49,6 +54,12 @@ async def handle_response(request: Request, response: JSONResponse):
 
 
 @service.put("/registerSession")
+@definition(
+    summary="Registers a Session",
+    description="Registers a session with state datetime on the currently running Test Run.",
+    tag="register",
+    body={"application/json": RegisterSession.model_json_schema()},
+)
 async def register_session(request: Request) -> HTTPResponse:
     try:
         session = RegisterSession.model_validate(request.json)
@@ -64,6 +75,12 @@ async def register_session(request: Request) -> HTTPResponse:
 
 
 @service.put("/registerSuite")
+@definition(
+    summary="Registers a Suite under a session",
+    description="Registers a suite/test with provided meta details of suite/test and session id",
+    tag="register",
+    body={"application/json": RegisterSuite},
+)
 async def register_suite(request: Request) -> HTTPResponse:
     suite = RegisterSuite.model_validate(request.json)
     suite_record = await SuiteBase.create(**suite.model_dump())
@@ -73,6 +90,13 @@ async def register_suite(request: Request) -> HTTPResponse:
 
 
 @service.put("/updateSuite", error_format="json")
+@definition(
+    summary="Updates the suite past the test suite's execution",
+    description="Once the Test suite/test gets executed, through this endpoint "
+    "we would updates its status and timings on the registered suite/test",
+    tag="update",
+    body={"application/json": MarkSuite.model_json_schema()},
+)
 async def updateSuite(request: Request) -> HTTPResponse:
     suite = MarkSuite.model_validate(request.json)
 
@@ -103,6 +127,13 @@ async def updateSuite(request: Request) -> HTTPResponse:
 
 
 @service.put("/updateSession", error_format="json")
+@definition(
+    summary="Updates the session past the test session's execution",
+    description="Once the Test session gets executed, through this endpoint "
+    "we would updates its status and timings on the registered session",
+    tag="update",
+    body={"application/json": MarkSession.model_json_schema()},
+)
 async def update_session(request: Request) -> HTTPResponse:
     session = MarkSession.model_validate(request.json)
     test_session = await SessionBase.filter(sessionID=session.sessionID).first()
@@ -116,6 +147,13 @@ async def update_session(request: Request) -> HTTPResponse:
 
 
 @service.put("/addAttachmentsForEntities")
+@definition(
+    summary="adds multiple attachments to the specified entities",
+    description="provide the list of attachments (assertion/link/description) as mentioned in the body, "
+    "and attachments would be inserted in their respective tables",
+    tag="add",
+    body={"application/json": List[AddAttachmentForEntity]},
+)
 async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     attachments = []
     note = []
@@ -200,6 +238,12 @@ async def update_run_config(request: Request) -> HTTPResponse:
 
 
 @service.put("/registerAWrittenAttachment", error_format="json")
+@definition(
+    summary="Attach an Images to the specified entity",
+    description="Writes an attachment inside of our Attachments folder, and attaches it with the specified entity",
+    tag="add",
+    body={"application/json": WrittenAttachmentForEntity},
+)
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = WrittenAttachmentForEntity.model_validate(request.json)
     record = await StaticBase.create(
@@ -216,5 +260,11 @@ async def saveImage(request: Request) -> HTTPResponse:
     await record.save()
     # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
     return text(
-        str(attachment_folder(db_path()) / get_test_id() / file_name), status=201
+        str(
+            attachment_folder(db_path())
+            / get_test_id()
+            / str(attachment.entityID)
+            / file_name
+        ),
+        status=201,
     )

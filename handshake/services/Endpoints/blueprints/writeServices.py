@@ -12,6 +12,7 @@ from handshake.services.DBService.models.static_base import (
 )
 from handshake.services.SchedularService.constants import writtenAttachmentFolderName
 from handshake.services.Endpoints.blueprints.utils import extractPayload, attachWarn
+from handshake.services.Endpoints.define_api import definition
 
 writeServices = Blueprint("WriteService", url_prefix="/write")
 
@@ -26,10 +27,14 @@ async def handle_response(request: Request, response: JSONResponse):
     return JSONResponse(body=payload, status=response.status)
 
 
-# NOTE: depreciated
-
-
 @writeServices.put("/addAttachmentForEntity", error_format="json")
+@definition(
+    summary="adds an image to the specified entity",
+    description="saves an image and then attaches it to a specified entity",
+    tag="add",
+    deprecated=True,
+    body={"application/json": AddAttachmentForEntity},
+)
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = AddAttachmentForEntity.model_validate(request.json)
 

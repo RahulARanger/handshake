@@ -1,4 +1,8 @@
-from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.models.enums import (
+    ConfigKeys,
+    MigrationStatus,
+    MigrationTrigger,
+)
 from tortoise.fields import IntField
 from handshake.services.DBService.models.result_base import RunBase
 from tortoise.models import Model
@@ -10,6 +14,7 @@ from tortoise.fields import (
     UUIDField,
     BooleanField,
     JSONField,
+    DatetimeField,
 )
 
 
@@ -60,3 +65,28 @@ class TestConfigBase(Model):
         null=False,
         description="comma separated list of tags (used by framework) to filter the spec files",
     )
+
+
+class MigrationBase(Model):
+    modified = DatetimeField(auto_now=True)  # use modified timestamp
+    fromVersion = IntField(
+        null=False,
+        default=0,
+        description="migrated from",
+    )
+    toVersion = IntField(
+        null=False,
+        default=0,
+        description="migrated to",
+    )
+    status = CharEnumField(
+        MigrationStatus,
+        description="status of the migration",
+        default=MigrationStatus.PENDING,
+    )
+    trigger = CharEnumField(
+        MigrationTrigger,
+        description="status of the migration",
+        default=MigrationTrigger.AUTOMATIC,
+    )
+    error = TextField(null=True, default="", description="Error if any")

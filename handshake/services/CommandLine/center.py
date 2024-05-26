@@ -1,7 +1,6 @@
 from handshake.services.CommandLine._init import (
     handle_cli,
     general_but_optional_requirement,
-    version_option,
     observed_version,
     break_if_mismatch,
 )
@@ -122,17 +121,25 @@ def run_app(
 )
 @argument("STATIC_PATH", nargs=1, required=False, type=Path(exists=True, dir_okay=True))
 @option(
+    "-h",
+    "--host",
+    default="localhost",
+    show_default=True,
+    help="Host for the reports to be displayed at",
+    type=str,
+)
+@option(
     "-p",
     "--port",
     default=8000,
     show_default=True,
-    help="Port for the service to connect to",
+    help="At this port you reports would be displayed",
     type=int,
 )
 def display(
-    version: Union[bool, str] = False,
     static_path: Union[str, P_Path] = "TestReports",
     port: int = 8000,
+    host: str = "localhost",
 ):
     if static_path:
         static_path = P_Path(static_path)
@@ -143,7 +150,7 @@ def display(
     loader = AppLoader(factory=partial(feed_static_provider, static_path))
     _app = loader.load()
     _app.prepare(
-        host="127.0.0.1",
+        host=host,
         port=port,
         access_log=False,
         motd_display=dict(version=__version__),

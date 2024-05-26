@@ -1,8 +1,8 @@
 from pytest import mark
-from handshake.services.DBService.models import (
-    StaticBase,
-)
+from handshake.services.DBService.models import StaticBase
+from handshake.services.DBService.lifecycle import attachment_folder
 from __test__.test_patch_jobs.test_server.commons import set_config
+
 from pathlib import Path
 
 
@@ -25,9 +25,13 @@ class TestSaveEndpoints:
         )
         assert response.status == 201
         path = Path(response.text)
-        assert path
-        assert str(session.test_id) in str(path)
-        assert str(path).endswith(path.name)
+        assert (
+            attachment_folder(db_path)
+            / str(session.test_id)
+            / str(suite.suiteID)
+            / path.name
+            == path
+        )
         saved = await StaticBase.filter(attachmentID=path.stem).first()
         assert saved.attachmentValue["value"] == path.name
         assert saved.attachmentValue["title"] == "sample"

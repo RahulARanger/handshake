@@ -1,26 +1,58 @@
-import typing
+import datetime
 from sqlite3 import connect
-from handshake.services.DBService import DB_VERSION
+from handshake.services.DBService import DB_VERSION, OLDEST_VERSION
 from handshake.services.DBService.models.enums import ConfigKeys
+from handshake.services.DBService.models.config_base import (
+    MigrationStatus,
+    MigrationTrigger,
+)
 from sqlite3.dbapi2 import Connection
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Union, Literal
 from pathlib import Path
 from loguru import logger
 
 
+def log_migration(
+    connection: Connection,
+    from_version: int,
+    to_version: int,
+    trigger: MigrationTrigger,
+    passed: bool,
+    error: Optional[Exception] = None,
+):
+    connection.execute(
+        "INSERT INTO migrationbase(fromVersion, toVersion, modified, trigger, status, error) VALUES(?,?,?,?,?,?)",
+        (
+            from_version,
+            to_version,
+            datetime.datetime.now(tz=datetime.UTC).isoformat(),
+            trigger,
+            MigrationStatus.PASSED if passed else MigrationStatus.FAILED,
+            repr(error) if error else "",
+        ),
+    )
+
+
 def check_version(
-    path: Path = None, connection: Optional[Connection] = None
-) -> Tuple[bool, Connection, bool, Optional[int]]:
-    connection = connection if connection else connect(path)
+    connection: Optional[Connection] = None, path: Optional[Path] = None
+) -> Tuple[bool, bool, Union[Literal[False], int]]:
     query = f"select value from configbase where key = '{ConfigKeys.version}'"
-    result = connection.execute(query).fetchone()
+
+    close_connection = not connection
+    connection = connection if connection else connect(path)
+
+    try:
+        result = connection.execute(query).fetchone()
+    finally:
+        close_connection and connection.close()
 
     version_stored = False
     migration_required = False
 
     if not result:
         logger.warning(
-            f"Could not find the version, Please raise this as an issue or re-run after deleting the folder at: {path}."
+            f"Could not find the version inside the configbase which is not expected!,"
+            f" Please raise this as an issue."
         )
     else:
         version_stored = result if not result else int(result[0])
@@ -35,85 +67,114 @@ def check_version(
             DB_VERSION,
         )
     return (
-        migration_required,
-        connection,
-        version_stored < DB_VERSION,
-        version_stored,
+        migration_required,  # migration is required or now
+        version_stored < DB_VERSION,  # bump version or not
+        version_stored,  # what was the version stored
     )
 
 
-# returns True if it requires further migration
-def migrate(
-    connection: Optional[Connection] = None, db_path: Optional[Path] = None
-) -> typing.Tuple[bool, bool]:  # further migration required, migration was done
-    if not connection:
-        connection = connect(db_path)
-
-    try:
-        is_required, connection, bump_if_required, version_stored = check_version(
-            connection=connection
-        )
-
-        if not is_required:
-            logger.info("Already migrated to required version")
-            return False, False
-
-        if not bump_if_required:
-            logger.error(
-                "You have more recent version of database, v{}. but we can only support: v{}. "
-                "Hence requesting you to update your reporter, to support this version.",
-                # "use your backup database inside the collection_path.",
-                version_stored,
-                DB_VERSION,
-            )
-            return False, False
-
-        script = Path(__file__).parent / "scripts" / f"bump-v{version_stored}.sql"
-        logger.info("Executing {} to migrate from v{}", script.name, version_stored)
-        connection.executescript(script.read_text())
-    finally:
-        if db_path:
-            connection.commit()
-            connection.close()
-
-    return (version_stored + 1) < DB_VERSION, version_stored < DB_VERSION
-
-
-def migration(path: Path):
-    migration_was_conducted = False
+def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> bool:
     if not path.exists():
         logger.info("Migration check is not required, as the db does not exist.")
-        return
-
+        return False
     connection = connect(path)
+    stored_version = False
     try:
-        backup_file = "backup_results.db"
+        is_required, bump_required, stored_version = check_version(connection)
 
-        while True:
-            first_time = not migration_was_conducted
-            further_required, migration_was_conducted = migrate(connection)
-            if migration_was_conducted and first_time:
-                backup_path = path.parent / backup_file
-                backup_path.unlink(missing_ok=True)
-                backup = connect(backup_path)
-                logger.info(
-                    "Before migration, Taking a backup and storing it in {}",
-                    backup_path,
-                )
-                connection.backup(backup)
-                backup.close()
-            if not migration_was_conducted:
-                migration_was_conducted = True
+        if not is_required:
+            logger.info("Already migrated to required version.")
+            return False
+        if not stored_version:
+            return False
+
+        for version_to_bump in range(stored_version, DB_VERSION):
+            script = Path(__file__).parent / "scripts" / f"bump-v{version_to_bump}.sql"
+            logger.info(
+                "Executing {} to migrate from v{} to v{}",
+                script.name,
+                version_to_bump,
+                version_to_bump + 1,
+            )
+            connection.executescript(script.read_text())
+            if do_once:
+                # this is only for testing purposes
                 break
+        log_migration(
+            connection,
+            stored_version,
+            (stored_version + 1) if do_once else DB_VERSION,
+            trigger,
+            True,
+        )
+        connection.commit()
+        logger.info("Migrated to latest version v{}!", DB_VERSION)
+        return True
+    except Exception as error:
+        logger.error("Failed to execute migration script, due to {}", error)
+        connection.rollback()
+        logger.warning(
+            "Changes made are rolled back you are now in v{}. Please raise an issue regarding this.",
+            stored_version,
+        )
+        stored_version and log_migration(
+            connection,
+            stored_version,
+            (stored_version + 1) if do_once else DB_VERSION,
+            trigger,
+            False,
+            error,
+        )
+        connection.commit()
+        return False
+    finally:
+        connection.close()
 
-        if migration_was_conducted:
-            (path.parent / backup_file).unlink(missing_ok=True)
-            connection.commit()
-            logger.info("Migrated to latest version!")
+
+def revert_step_back(
+    to_revert: int,
+    db_path: Path,
+):
+    # we do not recommend calling this function unless it is needed
+
+    logger.warning(
+        "Please note we would reverting from version: v{} to v{}",
+        to_revert,
+        to_revert - 1,
+    )
+    script = Path(__file__).parent / "scripts" / f"revert-v{to_revert}.sql"
+    if not script.exists():
+        if to_revert <= OLDEST_VERSION:
+            logger.error(
+                "we didn't find a revert script: {}. you are in the older version of handshakes",
+                script.name,
+            )
+        else:
+            logger.error(
+                "we didn't find a revert script: {}. you are already in the older version of db",
+                script.name,
+            )
+        logger.error("NOTE: you are now in the version: v{}", to_revert)
+        return False
+
+    connection = connect(db_path)
+    try:
+        connection.executescript(script.read_text())
+        log_migration(connection, to_revert, to_revert - 1, MigrationTrigger.CLI, True)
+        connection.commit()
+        logger.info("Done!, you are now at: v{}", to_revert - 1)
 
     except Exception as error:
-        logger.error(f"Failed to execute migration script, due to {error}")
-        return True
+        logger.error(f"Failed to execute reversion script, due to {error}")
+        logger.warning(
+            "Changes are now rolled back, Please raise an issue regarding this. you are still in v{}",
+            to_revert,
+        )
+        connection.rollback()
+        log_migration(
+            connection, to_revert, to_revert - 1, MigrationTrigger.CLI, False, error
+        )
+        connection.commit()
     finally:
         connection.close()
 
