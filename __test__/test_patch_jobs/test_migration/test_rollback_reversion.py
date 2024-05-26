@@ -1,0 +1,46 @@
+from handshake.services.DBService.models import (
+    ConfigBase,
+)
+from handshake.services.DBService.models.enums import (
+    ConfigKeys,
+    MigrationStatus,
+    MigrationTrigger,
+)
+from handshake.services.DBService.migrator import OLDEST_VERSION, revert_step_back
+from pathlib import Path
+from __test__.test_patch_jobs.test_migration.test_scripts import assert_migration
+from pytest import fixture
+
+
+@fixture()
+def root_dir():
+    return Path(__file__).parent.parent.parent.parent / "TestMigrationRollback"
+
+
+async def test_rollback_revert(get_vth_connection, db_path, root_dir):
+    # we would be causing an error while executing the reversion
+    # testing to see if the changes are committed or not (expectation: rollback)
+    connection = await get_vth_connection(db_path, OLDEST_VERSION)
+    await connection.execute_query(
+        "drop table taskbase;",
+    )
+    # we will run the wrong reversion script and see what would happen 😈
+
+    # we are in the oldest version: v5, but we are trying to revert v6
+    assert not revert_step_back(
+        OLDEST_VERSION + 1,
+        db_path,
+    ), "it should have rolled back"
+
+    version = await ConfigBase.filter(key=ConfigKeys.version).first()
+    assert (
+        int(version.value) == OLDEST_VERSION
+    )  # no changes were made apart from corruption I did
+
+    record = await assert_migration(
+        OLDEST_VERSION + 1,
+        OLDEST_VERSION,
+        MigrationStatus.FAILED,
+        MigrationTrigger.CLI,
+    )
+    assert "no such table: taskbase" in record.error

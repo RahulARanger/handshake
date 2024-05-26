@@ -100,15 +100,17 @@ def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> 
             if do_once:
                 # this is only for testing purposes
                 break
+        to_version = (stored_version + 1) if do_once else DB_VERSION
+
         log_migration(
             connection,
             stored_version,
-            (stored_version + 1) if do_once else DB_VERSION,
+            to_version,
             trigger,
             True,
         )
         connection.commit()
-        logger.info("Migrated to latest version v{}!", DB_VERSION)
+        logger.info("Migrated to latest version v{}!", to_version)
         return True
     except Exception as error:
         logger.error("Failed to execute migration script, due to {}", error)
@@ -138,7 +140,7 @@ def revert_step_back(
     # we do not recommend calling this function unless it is needed
 
     logger.warning(
-        "Please note we would reverting from version: v{} to v{}",
+        "Please note we would be reverting from version: v{} to v{}",
         to_revert,
         to_revert - 1,
     )

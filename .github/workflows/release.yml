@@ -194,7 +194,7 @@ jobs:
       pages: write
       id-token: write
 
-    if: ${{ !failure() && inputs.release_nodejs_based_reporters }}
+    if: ${{ !failure() && inputs.build_dashboard }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
