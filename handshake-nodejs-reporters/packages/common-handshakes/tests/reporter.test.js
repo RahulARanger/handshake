@@ -1,7 +1,7 @@
 const {
   describe, test, expect, beforeAll, afterAll,
 } = require('@jest/globals');
-const { join, dirname } = require('path');
+const { join, dirname, basename } = require('path');
 const { ReporterDialPad, ServiceDialPad, acceptableDateString } = require('../dist/index');
 const {
   resetDir, results, root, uuidRegex,
@@ -125,17 +125,28 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     test('verifying the png attachment', async () => {
       const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
       const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['test-0-1'], 'sample-description');
-      const expectedTestID = dirname(testAttachment);
+
+      expect(reporter.misFire).toBe(0);
+      const expectedTestID = dirname(dirname(testAttachment));
+
+      // should be stored under the attachment folder
+      expect(dirname(expectedTestID)).toBe(join(results, 'Attachments'));
+      // and then entity level folder (after test run level)
+      expect(basename(dirname(testAttachment))).toBe(reporter.idMapped['test-0-1']);
+
       // expect(existsSync(testAttachment)).toBe(true);
       // commented because the file has not saved yet (async-write)
-      expect(dirname(dirname(testAttachment))).toBe(join(results, 'Attachments'));
-      expect(reporter.misFire).toBe(0);
 
       const suiteAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['suite-0']);
       // expect(existsSync(suiteAttachment)).toBe(true);
-      expect(dirname(dirname(suiteAttachment))).toBe(join(results, 'Attachments'));
+      // commented because the file has not saved yet (async-write)
 
-      expect(expectedTestID).toBe(dirname(suiteAttachment));
+      // should be stored under the attachment folder
+      expect(dirname(expectedTestID)).toBe(join(results, 'Attachments'));
+      // and then entity level folder (after test run level)
+      expect(basename(dirname(suiteAttachment))).toBe(reporter.idMapped['suite-0']);
+
+      expect(expectedTestID).toBe(dirname(dirname(suiteAttachment)));
       expect(reporter.misFire).toBe(0);
     });
   });

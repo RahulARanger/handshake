@@ -71,8 +71,12 @@ export function jsonFeedForRetryMap(testID: string, suiteID: string) {
         : `/Import/${testID}/${suiteID}/retries.json`;
 }
 
-export function redirectForAttachment(testID: string, file: string) {
+export function redirectForAttachment(
+    testID: string,
+    entity_id: string,
+    file: string,
+) {
     return process.env.IS_DEV
-        ? `/api/Attachments/${testID}/${file}`
-        : `/Attachments/${testID}/${file}`;
+        ? `/api/Attachments/${testID}/${entity_id}/${file}`
+        : `/Attachments/${testID}/${entity_id}/${file}`;
 }

@@ -277,11 +277,17 @@ export class ReporterDialPad extends DialPad {
             { path: result.text, for: 'registered attachment' },
           );
 
-          const attachmentFolderForTestRun = dirname(expectedFilePath);
+          const attachmentFolderForTestRun = dirname(dirname(expectedFilePath));
           if (!existsSync(attachmentFolderForTestRun)) {
             mkdirSync(attachmentFolderForTestRun);
             // we are supposed to ensure the folders for the test runs
           }
+          const attachmentFolderForEntity = dirname(expectedFilePath);
+          if (!existsSync(attachmentFolderForEntity)) {
+            mkdirSync(attachmentFolderForEntity);
+            // we are supposed to ensure the folders for the test entities
+          }
+
           await writeFile(
             expectedFilePath,
             value as string,

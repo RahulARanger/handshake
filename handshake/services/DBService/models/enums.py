@@ -1,11 +1,23 @@
 from enum import StrEnum
+from typing import Tuple
+
+
+class MigrationStatus(StrEnum):
+    PASSED = "PASSED"
+    PENDING = "PENDING"
+    FAILED = "FAILED"
+
+
+class MigrationTrigger(StrEnum):
+    AUTOMATIC = "AUTO"
+    CLI = "CLI"
 
 
 class Status(StrEnum):
     PASSED = "PASSED"
-    SKIPPED = "SKIPPED"
-    FAILED = "FAILED"
     PENDING = "PENDING"
+    FAILED = "FAILED"
+    SKIPPED = "SKIPPED"
     YET_TO_CALCULATE = (
         "YET_TO_CALC"  # needs to be updated by our server to either passed or failed
     )

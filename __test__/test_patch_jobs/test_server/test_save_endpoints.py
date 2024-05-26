@@ -1,6 +1,5 @@
 import datetime
 import json
-from typing import Coroutine, Any
 from pytest import mark
 from handshake.services.DBService.models import (
     RunBase,

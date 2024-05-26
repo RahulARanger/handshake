@@ -11,7 +11,12 @@ from click import (
     Path as C_Path,
 )
 from handshake import __version__
-from handshake.services.DBService.migrator import check_version, migration, DB_VERSION
+from handshake.services.DBService.migrator import (
+    check_version,
+    migration,
+    DB_VERSION,
+    MigrationTrigger,
+)
 from handshake.services.SchedularService.start import Scheduler
 from handshake.services.SchedularService.handleTestResults import (
     setConfig,
@@ -79,7 +84,7 @@ def break_if_mismatch(expected: str) -> bool:
 @general_requirement
 @handle_cli.command()
 def db_version(collection_path):
-    return check_version(db_path(collection_path))
+    return check_version(path=db_path(collection_path))
 
 
 @handle_cli.command(
@@ -100,7 +105,7 @@ def check_sqlite():
     "automatically whenever we run patch or run-app command",
 )
 def migrate(collection_path: str):
-    return migration(db_path(collection_path))
+    return migration(db_path(collection_path), MigrationTrigger.CLI)
 
 
 @handle_cli.command(

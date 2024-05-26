@@ -175,6 +175,6 @@ export function transformWrittenRecords(
 ) {
     return records.map((record) => ({
         ...record,
-        url: redirectForAttachment(testID, record.file),
+        url: redirectForAttachment(testID, record.entity_id, record.file),
     }));
 }

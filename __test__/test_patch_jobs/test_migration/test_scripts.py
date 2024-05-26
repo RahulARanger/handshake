@@ -1,15 +1,22 @@
 import sqlite3
-
 import tortoise
 from handshake.services.DBService.models import (
     ConfigBase,
-    SessionBase,
-    AssertBase,
     TestLogBase,
     TaskBase,
+    MigrationBase,
 )
-from handshake.services.DBService.models.enums import ConfigKeys
-from handshake.services.DBService.migrator import migrate
+from handshake.services.DBService.models.enums import (
+    ConfigKeys,
+    MigrationStatus,
+    MigrationTrigger,
+)
+from handshake.services.DBService.migrator import (
+    migration,
+    DB_VERSION,
+    OLDEST_VERSION,
+    revert_step_back,
+)
 from subprocess import run, PIPE
 
 
@@ -22,6 +29,15 @@ async def assertEntityNameType(connection, expected):
             found = True
             assert row["type"] == expected
     assert found, "entityName not found"
+
+
+async def assert_migration(fromVersion, toVersion, status, trigger):
+    record = await MigrationBase.all().order_by("-modified").first()
+    assert record.fromVersion == fromVersion, dict(record)
+    assert record.toVersion == toVersion, dict(record)
+    assert record.status == status, dict(record)
+    assert record.trigger == trigger, dict(record)
+    return record
 
 
 class TestMigrationScripts:
@@ -41,7 +57,7 @@ class TestMigrationScripts:
     async def test_bump_v5(
         self, sample_test_session, create_suite, get_vth_connection, scripts, db_path
     ):
-        await get_vth_connection(scripts, 5)
+        await get_vth_connection(db_path, 5)
 
         session = await sample_test_session
         test_run = await session.test
@@ -68,10 +84,9 @@ class TestMigrationScripts:
         # you cannot use this because processed col is not there yet.
         # await register_patch_suite(suite.suiteID, test_run.testID)
 
-        assert migrate(None, db_path) == (
-            True,
-            True,
-        ), "we still have further migration to go"
+        assert migration(db_path, do_once=True), "we still have further migration to go"
+
+        await assert_migration(5, 6, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
 
         assert (await TaskBase.filter(ticketID=suite.suiteID).first()).picked == 0
         # new column: processed, is added.
@@ -80,11 +95,11 @@ class TestMigrationScripts:
     async def test_bump_v6(
         self, get_vth_connection, scripts, db_path, sample_test_session
     ):
-        await get_vth_connection(scripts, 6)
-        assert migrate(None, db_path) == (
-            False,
-            True,
+        await get_vth_connection(db_path, 6)
+        assert migration(
+            db_path, do_once=True
         ), "it should now be in the latest version"
+        await assert_migration(6, 7, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
 
         # relies on init_job to complete the migration
         record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
@@ -93,13 +108,83 @@ class TestMigrationScripts:
         logs = await TestLogBase.all().values("dropped")
         assert len(logs) >= 0
 
+    # say you are in v8 and have reverted your python build to older version which uses v7
+    # question: how does migrate function work ?
+
     async def test_version_command(self, root_dir):
         result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)
         assert result.returncode == 0
         assert "Currently at: v7." in result.stderr.decode()
 
-    async def test_migration_command(self, get_vth_connection, root_dir, scripts):
-        await get_vth_connection(scripts, 3)
+    async def test_migration_command(
+        self, get_vth_connection, root_dir, scripts, db_path
+    ):
+        await get_vth_connection(db_path, OLDEST_VERSION)
         result = run(f'handshake migrate "{root_dir}"', shell=True, stderr=PIPE)
+        await assert_migration(
+            OLDEST_VERSION, DB_VERSION, MigrationStatus.PASSED, MigrationTrigger.CLI
+        )
         assert result.returncode == 0
-        assert "Migrated to latest version!" in result.stderr.decode()
+        assert f"Migrated to latest version v{DB_VERSION}!" in result.stderr.decode()
+
+    async def test_revert_step_back(self, get_vth_connection, db_path):
+        await get_vth_connection(db_path, 7)
+        version = await ConfigBase.filter(key=ConfigKeys.version).first()
+        assert int(version.value) == 7
+        revert_step_back(7, db_path)
+        await assert_migration(7, 6, MigrationStatus.PASSED, MigrationTrigger.CLI)
+        version = await ConfigBase.filter(key=ConfigKeys.version).first()
+        assert int(version.value) == 6
+
+
+async def test_rollback_revert(get_vth_connection, db_path, root_dir):
+    # we would be causing an error while executing the reversion
+    # testing to see if the changes are committed or not (expectation: rollback)
+    connection = await get_vth_connection(db_path, OLDEST_VERSION)
+    await connection.execute_query(
+        "drop table taskbase;",
+    )
+    # we will run the wrong reversion script and see what would happen 😈
+
+    # we are in the oldest version: v5, but we are trying to revert v6
+    assert not revert_step_back(
+        OLDEST_VERSION + 1,
+        db_path,
+    ), "it should have rolled back"
+
+    version = await ConfigBase.filter(key=ConfigKeys.version).first()
+    assert (
+        int(version.value) == OLDEST_VERSION
+    )  # no changes were made apart from corruption I did
+
+    record = await assert_migration(
+        OLDEST_VERSION + 1,
+        OLDEST_VERSION,
+        MigrationStatus.FAILED,
+        MigrationTrigger.CLI,
+    )
+    assert "no such table: taskbase" in record.error
+
+
+async def test_rollback_migration(get_vth_connection, db_path, root_dir):
+    # we would be causing an error while executing the migration
+    # testing to see if the changes are committed or not (expectation: rollback)
+    connection = await get_vth_connection(db_path, OLDEST_VERSION)
+    await connection.execute_query(
+        "drop table taskbase;",
+    )
+    # we corrupt the database and see what would happen 😈
+
+    assert not migration(
+        db_path,
+    ), "it should have rolled back"
+
+    version = await ConfigBase.filter(key=ConfigKeys.version).first()
+    assert (
+        int(version.value) == OLDEST_VERSION
+    )  # no changes were made apart from corruption I did
+
+    record = await assert_migration(
+        OLDEST_VERSION, DB_VERSION, MigrationStatus.FAILED, MigrationTrigger.AUTOMATIC
+    )
+    assert "no such table: taskbase" in record.error

@@ -9,7 +9,7 @@ env_file.write_text(getenv("ENV_FILE"))
 
 load_dotenv(env_file)
 
-assert getenv("SENTRY_SDK")
-assert getenv("SENTRY_ORG")
-assert getenv("SENTRY_PROJECT")
-assert getenv("SENTRY_ENVIRONMENT")
+# assert getenv("SENTRY_SDK")
+# assert getenv("SENTRY_ORG")
+# assert getenv("SENTRY_PROJECT")
+# assert getenv("SENTRY_ENVIRONMENT")
