@@ -4,19 +4,19 @@ on:
   workflow_dispatch:
     inputs:
       build_dashboard:
-        description: 'deploy dashboard'
+        description: 'deploy dashboard & storybook'
         required: false
         type: boolean
         default: false
 
       build_python_handshakes:
-        description: 'deploy handshakes'
+        description: 'deploy handshake py-build'
         required: false
         type: boolean
         default: false
 
       release_nodejs_based_reporters:
-        description: 'deploy custom reporters - node'
+        description: 'deploy custom-reporters-node'
         required: false
         type: boolean
         default: false
