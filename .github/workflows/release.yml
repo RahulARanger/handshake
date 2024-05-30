@@ -76,7 +76,7 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v5
         id: post-release
         with:
-          commit_message: Bump Handshake Dashboard Version
+          commit_message: Bump dashboard version in common-handshake's .version file
           file_pattern: '**/.version'
 
   release-handshakes:
@@ -107,7 +107,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install poetry
+          pip install poetry nox
 
       - name: Build Package
         run: poetry build
@@ -119,16 +119,14 @@ jobs:
           poetry config pypi-token.pypi $PYPI_TOKEN
           poetry publish
 
-      - name: Post Release Update common-handshakes
-        env:
-          ASSETS: ${{ steps.release.outputs.assets }}
-        run: bash ./.github/scripts/release-server-tag.sh
+      - name: Post Release, Update common-handshakes
+        run: nox -s save_version
 
       - name: commiting the changes
         uses: stefanzweifel/git-auto-commit-action@v5
         id: post-release
         with:
-          commit_message: Bump Handshake Dashboard Version
+          commit_message: Bump handshakes version in common-handshake's .version file
           file_pattern: '**/.version'
 
   release-common-handshake-reporters:
