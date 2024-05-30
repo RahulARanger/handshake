@@ -182,7 +182,7 @@ jobs:
           if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
           run: npm install && npm run build
 
-        - name: conduct tests
+        - name: conduct e2e tests
           working-directory: ./handshake-nodejs-reporters
           if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
           continue-on-error: true
