@@ -14,7 +14,7 @@ from pytest import fixture
 
 @fixture()
 def root_dir():
-    return Path(__file__).parent.parent.parent.parent / "TestMigrationRollback"
+    return Path(__file__).parent.parent.parent.parent / "TestReversionRollback"
 
 
 async def test_rollback_revert(get_vth_connection, db_path, root_dir):
@@ -26,7 +26,7 @@ async def test_rollback_revert(get_vth_connection, db_path, root_dir):
     )
     # we will run the wrong reversion script and see what would happen 😈
 
-    # we are in the oldest version: v5, but we are trying to revert v6
+    # oldest version: v5, but we are trying to revert v6 to v5
     assert not revert_step_back(
         OLDEST_VERSION + 1,
         db_path,

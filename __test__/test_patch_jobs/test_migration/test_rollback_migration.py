@@ -18,7 +18,7 @@ from pytest import fixture
 
 @fixture()
 def root_dir():
-    return Path(__file__).parent.parent.parent.parent / "TestReversionRollback"
+    return Path(__file__).parent.parent.parent.parent / "TestMigrationRollback"
 
 
 async def test_rollback_migration(get_vth_connection, db_path, root_dir):

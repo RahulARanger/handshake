@@ -32,7 +32,7 @@ async def assertEntityNameType(connection, expected):
 
 
 async def assert_migration(fromVersion, toVersion, status, trigger):
-    record = await MigrationBase.all().order_by("-modified").first()
+    record = await MigrationBase.all().order_by("-id").first()
     assert record.fromVersion == fromVersion, dict(record)
     assert record.toVersion == toVersion, dict(record)
     assert record.status == status, dict(record)
