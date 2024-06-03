@@ -64,7 +64,7 @@ export default class HandshakeReporter extends ReporterContacts {
           ? { name: tag, label: 'tag' }
           : {
             name: tag.name,
-            label: tag?.location ? `${file}-${tag?.location.line}:${tag?.location.column}` : `${file}:${JSON.stringify(tag)}`,
+            label: 'Feature file tag',
           }),
       )?.filter((tag) => tag) || [],
       started,
