@@ -48,6 +48,11 @@ class LogType(StrEnum):
     INFO = "INFO"
 
 
+class LogDisplayType(StrEnum):
+    SEPARATE = "SEPARATE"
+    TOGETHER = "TOGETHER"
+
+
 class PrunedRecords(StrEnum):
     RUN = "RUN"
 

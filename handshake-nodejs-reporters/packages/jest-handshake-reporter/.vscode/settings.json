@@ -3,5 +3,7 @@
 	"editor.codeActionsOnSave": {
 		"source.fixAll.eslint": "explicit"
 	},
-	"eslint.validate": ["javascript"]
+	"eslint.validate": ["javascript"],
+	"jestrunner.configPath": "jest.config.cjs",
+	"jestrunner.jestCommand": "npx jest"
 }

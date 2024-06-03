@@ -1,3 +1,17 @@
+import { Level } from 'pino';
+
 export default interface HandshakeJestReporterOptions {
-  port: number;
+  root?: string;
+  resultsFolderName: string;
+  testConfig: {
+    projectName: string;
+    avoidParentSuitesInCount?: boolean;
+  };
+  port?: number;
+  requestsTimeout?: number;
+  logLevel?:Level;
+  disabled?: boolean;
+  reportGenerationTimeout?:number;
+  workers?:number;
+  exportOutDir?: string;
 }

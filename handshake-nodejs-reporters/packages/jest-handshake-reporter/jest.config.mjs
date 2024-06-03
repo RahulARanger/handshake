@@ -107,7 +107,7 @@ const config = {
   // projects: undefined,
 
   // Use this configuration option to add custom reporters to Jest
-  reporters: ['default', '<rootDir>/dist/index.mjs'],
+  reporters: ['default', ['<rootDir>/dist/index.mjs', { logLevel: 'error', resultsFolderName: 'TestResults', testConfig: { projectName: 'test-jest-reporter' } }]],
 
   // Automatically reset mock state before every test
   // resetMocks: false,
