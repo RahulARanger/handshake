@@ -2,13 +2,10 @@ from handshake.services.SchedularService.completeTestRun import (
     simplify_file_paths,
     fetch_key_from_status,
 )
-from handshake.services.DBService.models.config_base import ConfigKeys, ConfigBase
 from handshake.services.SchedularService.modifySuites import Status
 from pathlib import Path
 from tempfile import mkdtemp
-from shutil import rmtree, which
-from subprocess import run
-from pytest import mark
+from shutil import rmtree
 
 
 class TestSimplifyPathTree:
@@ -145,24 +142,3 @@ def test_status_from_values():
     assert fetch_key_from_status(2, 2, 2) == Status.FAILED
     assert fetch_key_from_status(2, 0, 2) == Status.PASSED
     assert fetch_key_from_status(0, 0, 2) == Status.SKIPPED
-
-
-@mark.usefixtures("clean_close")
-class TestSetConfigCommand:
-    async def test_set_config_with_one_para(self, root_dir, force=None, max_runs=3):
-        if force is None:
-            result = run(
-                f'handshake config "{root_dir}" -mr {max_runs}',
-                cwd=root_dir,
-                shell=True,
-            )
-        else:
-            result = run(
-                [force, "config", str(root_dir), "-mr", f"{max_runs}"],
-                cwd=root_dir,
-            )
-        assert result.returncode == 0
-        config_record = await ConfigBase.filter(
-            key=ConfigKeys.maxRunsPerProject
-        ).first()
-        assert int(config_record.value) == max_runs

@@ -6,6 +6,7 @@ from handshake.services.DBService.models import (
     TaskBase,
     MigrationBase,
 )
+from .conftest import get_version, get_config_value
 from handshake.services.DBService.models.enums import (
     ConfigKeys,
     MigrationStatus,
@@ -45,15 +46,6 @@ class TestMigrationScripts:
         assert int(sqlite3.sqlite_version_info[0]) >= 3
         assert int(sqlite3.sqlite_version_info[1]) >= 38
 
-    async def test_default_config(self, root_dir):
-        assert (root_dir / "config.json").exists()
-        for required in (
-            ConfigKeys.version,
-            ConfigKeys.maxRunsPerProject,
-            ConfigKeys.reset_test_run,
-        ):
-            assert ConfigBase.exists(key=required)
-
     async def test_bump_v5(
         self, sample_test_session, create_suite, get_vth_connection, scripts, db_path
     ):
@@ -63,8 +55,7 @@ class TestMigrationScripts:
         test_run = await session.test
 
         # based on the previous test we are now in version: 5
-        version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 5
+        assert int(await get_version()) == 5
 
         script = scripts / "bump-v5.sql"
         assert script.exists()
@@ -102,11 +93,30 @@ class TestMigrationScripts:
         await assert_migration(6, 7, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
 
         # relies on init_job to complete the migration
-        record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
-        assert record.value == "1"
+        assert (await get_config_value(ConfigKeys.reset_test_run)) == "1"
 
         logs = await TestLogBase.all().values("dropped")
         assert len(logs) >= 0
+
+    async def test_bump_v7(
+        self, get_vth_connection, scripts, db_path, sample_test_session
+    ):
+        await get_vth_connection(db_path, 7)
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(7, 8, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
+
+        assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == "8"
+
+        assert (await ConfigBase.filter(key=ConfigKeys.version).first()).readonly
+        assert (
+            await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
+        ).readonly
+        assert (await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()).readonly
+        assert not (
+            await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()
+        ).readonly
 
     # say you are in v8 and have reverted your python build to older version which uses v7
     # question: how does migrate function work ?
@@ -114,7 +124,7 @@ class TestMigrationScripts:
     async def test_version_command(self, root_dir):
         result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)
         assert result.returncode == 0
-        assert "Currently at: v7." in result.stderr.decode()
+        assert f"Currently at: v{DB_VERSION}." in result.stderr.decode()
 
     async def test_migration_command(
         self, get_vth_connection, root_dir, scripts, db_path
@@ -129,9 +139,7 @@ class TestMigrationScripts:
 
     async def test_revert_step_back(self, get_vth_connection, db_path):
         await get_vth_connection(db_path, 7)
-        version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 7
+        assert (await get_version()) == "7"
         revert_step_back(7, db_path)
         await assert_migration(7, 6, MigrationStatus.PASSED, MigrationTrigger.CLI)
-        version = await ConfigBase.filter(key=ConfigKeys.version).first()
-        assert int(version.value) == 6
+        assert (await get_version()) == "6"

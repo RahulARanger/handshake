@@ -67,6 +67,7 @@ handshake-nodejs-reporters/packages/handshake-dashboard/public/antd.min.css
 handshake-nodejs-reporters/packages/handshake-dashboard/analyze/*
 TestMigrationRollback
 TestReversionRollback
+TestResultsConfig
 BackUpTestReports
 TestMigration
 handshake/dashboard/
@@ -78,3 +79,5 @@ dashboard.zip
 TestExportBase
 TestExportedReports
 !.env.sample
+
+**/handshake.json

@@ -1,6 +1,4 @@
-from handshake.services.DBService.models import (
-    ConfigBase,
-)
+from .conftest import get_version
 from handshake.services.DBService.models.enums import (
     ConfigKeys,
     MigrationStatus,
@@ -32,9 +30,9 @@ async def test_rollback_revert(get_vth_connection, db_path, root_dir):
         db_path,
     ), "it should have rolled back"
 
-    version = await ConfigBase.filter(key=ConfigKeys.version).first()
+    # we cannot query configbase from orm as there is a schema mismatch with the older versions
     assert (
-        int(version.value) == OLDEST_VERSION
+        int(await get_version()) == OLDEST_VERSION
     )  # no changes were made apart from corruption I did
 
     record = await assert_migration(
