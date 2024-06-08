@@ -11,10 +11,11 @@ def root_dir():
     return Path(__file__).parent.parent / "TestResultsConfig"
 
 
-def test_default_config_file(root_dir):
+async def test_default_config_file(root_dir):
     target = root_dir / "handshake.json"
     target.unlink(missing_ok=True)
     assert not target.exists()
+    await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).delete()
     run(
         f'handshake config "{root_dir}"',
         cwd=root_dir,
@@ -22,7 +23,7 @@ def test_default_config_file(root_dir):
     )
     assert target.exists()
     loaded = loads(target.read_text())
-    assert loaded[ConfigKeys.maxRunsPerProject] == "6"
+    assert loaded[ConfigKeys.maxRunsPerProject] == "10"
     assert len(loaded.keys()) == 1
 
 
