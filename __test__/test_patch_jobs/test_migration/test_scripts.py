@@ -139,7 +139,7 @@ class TestMigrationScripts:
 
     async def test_revert_step_back(self, get_vth_connection, db_path):
         await get_vth_connection(db_path, 7)
-        assert (await get_version()) == 7
+        assert (await get_version()) == "7"
         revert_step_back(7, db_path)
         await assert_migration(7, 6, MigrationStatus.PASSED, MigrationTrigger.CLI)
-        assert (await get_version()) == 7
+        assert (await get_version()) == "6"
