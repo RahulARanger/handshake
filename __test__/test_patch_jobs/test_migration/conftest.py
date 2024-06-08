@@ -7,6 +7,8 @@ from __test__.conftest import testNames
 from handshake.services.DBService.shared import db_path as shared_db_path
 from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
 from handshake.services.DBService.models import RunBase
+from handshake.services.DBService.models.enums import ConfigKeys
+from tortoise import connections
 
 
 @fixture()
@@ -39,3 +41,15 @@ async def clean_close(db_path, init_db, root_dir):
 
     if root_dir.exists():
         shutil.rmtree(root_dir)
+
+
+async def get_config_value(key):
+    return (
+        await connections.get("default").execute_query(
+            "SELECT value from configbase where key = ?", (key,)
+        )
+    )[1][0]["value"]
+
+
+async def get_version():
+    return await get_config_value(ConfigKeys.version)

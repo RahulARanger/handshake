@@ -4,6 +4,7 @@ from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     db_path,
     close_connection,
+    attachment_folder,
 )
 from shutil import rmtree, copytree
 from tarfile import open
@@ -38,7 +39,6 @@ from handshake.services.SchedularService.constants import (
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.pruneTasks import pruneTasks
-from handshake.services.SchedularService.handleTestResults import delete_test_attachment
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.handlePending import patch_jobs
@@ -46,6 +46,7 @@ from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
     SuiteSummary,
 )
+from handshake.services.DBService.lifecycle import TestConfigManager
 
 
 class Scheduler:
@@ -99,12 +100,17 @@ class Scheduler:
             .limit(will_be_deleted)
             .values_list("testID", flat=True)
         )
-        attachment_folder = self.db_path.parent / writtenAttachmentFolderName
         await gather(
             RunBase.filter(Q(testID__in=to_delete_runs)).delete(),
             *(
-                to_thread(delete_test_attachment, test_id, attachment_folder)
+                to_thread(
+                    rmtree,
+                    attachment_folder(self.db_path, test_id),
+                    ignore_errors=False,
+                    onerror=None,
+                )
                 for test_id in to_delete_runs
+                if attachment_folder(self.db_path, test_id).exists()
             ),
         )
 

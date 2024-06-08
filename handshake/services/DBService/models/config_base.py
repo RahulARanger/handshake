@@ -23,6 +23,9 @@ class ConfigBase(Model):
         ConfigKeys, pk=True, null=False, description="Type of job we would like to run"
     )
     value = TextField(null=False, description="Handling type is up to us")
+    readonly = BooleanField(
+        null=False, description="is it readonly field", default=True
+    )
 
 
 class ExportBase(Model):
