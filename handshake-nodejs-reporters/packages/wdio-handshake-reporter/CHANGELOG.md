@@ -1,5 +1,19 @@
 # wdio-graspit-reporter
 
+## 0.6.6
+
+### Patch Changes
+
+- 7164473: fix: make sure tags are not unique for every retried suite
+
+## 0.6.5
+
+### Patch Changes
+
+- f76de3f: fix: attachment path and chore: package updates
+- Updated dependencies [f76de3f]
+  - common-handshakes@0.6.5
+
 ## 0.6.4
 
 ### Patch Changes
