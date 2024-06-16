@@ -1,7 +1,7 @@
 {
 	"name": "common-handshakes",
 	"description": "common-package used by some of the custom reporters written for node frameworks to share the results with handshake server",
-	"version": "0.6.5",
+	"version": "0.6.7",
 	"private": false,
 	"author": "RahulARanger <saihanumarahul66@gmail.com>",
 	"type": "module",
