@@ -18,10 +18,10 @@
 		"build": "rimraf -g ./dist && tsup src/index.ts --format esm --dts"
 	},
 	"dependencies": {
-		"@wdio/reporter": "^8.38.0",
-		"@wdio/types": "^8.37.0",
-		"common-handshakes": "0.6.5",
-		"pino": "^9.1.0",
+		"@wdio/reporter": "^8.38.2",
+		"@wdio/types": "^8.38.2",
+		"common-handshakes": "0.6.7",
+		"pino": "^9.2.0",
 		"superagent": "^9.0.2"
 	},
 	"devDependencies": {
