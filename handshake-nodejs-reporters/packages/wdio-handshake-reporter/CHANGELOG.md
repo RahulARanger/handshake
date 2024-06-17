@@ -1,5 +1,11 @@
 # wdio-graspit-reporter
 
+## 0.6.6
+
+### Patch Changes
+
+- 7164473: fix: make sure tags are not unique for every retried suite
+
 ## 0.6.5
 
 ### Patch Changes
