@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.6.7
+
+### Patch Changes
+
+- abf9eea: bump python build of handshake to 0.4.1
+- Updated dependencies [abf9eea]
+  - common-handshakes@0.6.7
+
 ## 0.6.6
 
 ### Patch Changes
