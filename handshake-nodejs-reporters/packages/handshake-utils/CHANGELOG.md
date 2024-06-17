@@ -1,5 +1,11 @@
 # handshake-utils
 
+## 0.5.1
+
+### Patch Changes
+
+- eb44a84: fix: version mapping between internals
+
 ## 0.5.0
 
 ### Minor Changes
