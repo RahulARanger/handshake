@@ -3,11 +3,12 @@ import {
     Badge,
     Card,
     Center,
-    Grid,
+    Divider,
     rem,
     ScrollAreaAutosize,
     Skeleton,
     Stack,
+    Tabs,
     Text,
 } from '@mantine/core';
 import type { RowsChangeData } from 'react-data-grid';
@@ -42,7 +43,12 @@ import { useRouter } from 'next/router';
 import clsx from 'clsx';
 import { ErrorStack, ErrorsToShow } from './error-card';
 import dayjs from 'dayjs';
-import { IconCaretRightFilled } from '@tabler/icons-react';
+import {
+    IconCaretRightFilled,
+    IconPhoto,
+    IconTestPipe,
+    IconX,
+} from '@tabler/icons-react';
 import type { ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
 import ImageCarousel, { NoAttachmentsAdded, ShowImage } from './image-carousel';
@@ -82,6 +88,8 @@ function DetailedTestView(properties: {
         [properties.testID, data?.written, idForExpandedItem],
     );
     const toLoad = isLoading || writtenAttachments === undefined;
+    const iconStyle = { width: rem(12), height: rem(12) };
+    const height = 240;
 
     return toLoad ? (
         <Skeleton h={330} animate w={'100%'} />
@@ -92,8 +100,52 @@ function DetailedTestView(properties: {
                     <Text size="sm">{properties.test.Title}</Text>
                 </Card.Section>
                 <Card.Section withBorder p="sm">
-                    <Grid>
-                        <Grid.Col span={6} h={240}>
+                    <Tabs
+                        variant="pills"
+                        defaultValue={'images'}
+                        h={'100%'}
+                        orientation="vertical"
+                    >
+                        <Tabs.List justify="flex-start">
+                            <Tabs.Tab
+                                value="images"
+                                leftSection={<IconPhoto style={iconStyle} />}
+                                rightSection={
+                                    <Badge
+                                        color="blue"
+                                        size="sm"
+                                        variant="light"
+                                    >
+                                        {writtenAttachments?.length ?? 0}
+                                    </Badge>
+                                }
+                            >
+                                Images
+                            </Tabs.Tab>
+                            <Tabs.Tab
+                                value="assertions"
+                                leftSection={<IconTestPipe style={iconStyle} />}
+                            >
+                                Assertions
+                            </Tabs.Tab>
+                            <Tabs.Tab
+                                value="errors"
+                                leftSection={<IconX style={iconStyle} />}
+                                rightSection={
+                                    <Badge
+                                        color="red"
+                                        size="sm"
+                                        variant="light"
+                                    >
+                                        {properties.test.errors?.length ?? 0}
+                                    </Badge>
+                                }
+                            >
+                                Errors
+                            </Tabs.Tab>
+                        </Tabs.List>
+                        <Divider mx={6} orientation="vertical" />
+                        <Tabs.Panel value="images" h={height}>
                             {writtenAttachments.length > 0 ? (
                                 <ImageCarousel
                                     height={160}
@@ -108,16 +160,13 @@ function DetailedTestView(properties: {
                             ) : (
                                 <NoAttachmentsAdded />
                             )}
-                        </Grid.Col>
-                        <Grid.Col span={6}>
-                            <ScrollAreaAutosize h={240}>
-                                <ErrorStack
-                                    errors={properties.test.errors}
-                                    h={226}
-                                />
+                        </Tabs.Panel>
+                        <Tabs.Panel value="errors" h={height}>
+                            <ScrollAreaAutosize h={height}>
+                                <ErrorStack errors={properties.test.errors} />
                             </ScrollAreaAutosize>
-                        </Grid.Col>
-                    </Grid>
+                        </Tabs.Panel>
+                    </Tabs>
                 </Card.Section>
             </Stack>
         </Card>

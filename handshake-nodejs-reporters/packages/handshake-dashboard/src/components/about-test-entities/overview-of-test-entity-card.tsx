@@ -43,7 +43,7 @@ import dayjs from 'dayjs';
 import CountUpNumber from 'components/counter';
 import TestStatusIcon from 'components/about-test-run/test-status';
 import SwitchTestCases from 'components/test-case-switch';
-import ErrorCard from './error-card';
+import { ErrorStack } from './error-card';
 import PlatformEntity from './platform-entity';
 import {
     IconChevronLeft,
@@ -158,11 +158,7 @@ export function OverviewTabs(properties: {
                 />
             </Tabs.Panel>
             <Tabs.Panel value="errors">
-                <Stack p="sm">
-                    {properties.suite?.errors.map((error, index) => (
-                        <ErrorCard error={error} key={index} />
-                    ))}
-                </Stack>
+                <ErrorStack errors={properties.suite?.errors} />
             </Tabs.Panel>
         </Tabs>
     ) : (

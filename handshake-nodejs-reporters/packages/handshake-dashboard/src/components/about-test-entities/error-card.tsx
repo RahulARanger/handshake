@@ -2,7 +2,6 @@ import type { ModalProps, PaperProps } from '@mantine/core';
 import {
     ActionIcon,
     Card,
-    Center,
     Collapse,
     Group,
     Modal,
@@ -16,6 +15,7 @@ import { IconCaretDownFilled } from '@tabler/icons-react';
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { ErrorRecord } from 'types/test-entity-related';
+import { EmptyScreen } from './image-carousel';
 
 export function ErrorsToShow(properties: {
     errorsToShow: ErrorRecord[];
@@ -46,13 +46,7 @@ export function ErrorStack(properties: {
             ))}
         </Stack>
     ) : (
-        <Paper h={properties.h ?? '100%'} withBorder shadow="xl">
-            <Center h={'100%'}>
-                <Text size="sm" c="green">
-                    No Errors
-                </Text>
-            </Center>
-        </Paper>
+        <EmptyScreen c="green" message="No Errors" h={properties.h} />
     );
 }
 
