@@ -1,6 +1,7 @@
 ---
 "wdio-handshake-reporter": patch
 "common-handshakes": patch
+"handshake-utils": patch
 ---
 
-fix: attachment path and chore: package updates
+fix: version mapping between internals

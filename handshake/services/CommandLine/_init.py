@@ -9,26 +9,23 @@ from click import (
     pass_context,
     Context,
     Path as C_Path,
+    confirm,
 )
+from tortoise import run_async
 from handshake import __version__
 from handshake.services.DBService.migrator import (
     check_version,
     migration,
+    revert_step_back,
     DB_VERSION,
     MigrationTrigger,
 )
 from handshake.services.SchedularService.start import Scheduler
-from handshake.services.SchedularService.handleTestResults import (
-    setConfig,
-)
 from loguru import logger
-import json
-from handshake.services.DBService.lifecycle import config_file, close_connection
+from handshake.services.DBService.lifecycle import close_connection, init_tortoise_orm
 from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
-from handshake.services.DBService.models.config_base import ConfigKeys
-from tortoise import run_async
 from asyncio import run
 
 
@@ -106,6 +103,20 @@ def check_sqlite():
 )
 def migrate(collection_path: str):
     return migration(db_path(collection_path), MigrationTrigger.CLI)
+
+
+@general_requirement
+@handle_cli.command(
+    short_help="To revert db's version one step back. USE IT WITH CAUTION",
+    help="you might need to use this if you are planning to use previous version python build."
+    " Make sure to understand why this command is useful and how it would impact."
+    " After this command, if db version was in v8 it would not be in v7",
+)
+def step_back(collection_path: str):
+    path_to_refer = db_path(collection_path)
+    from_version = (check_version(path=path_to_refer))[-1]
+    if confirm(f"Do you want revert from v{from_version} to v{from_version - 1}"):
+        return revert_step_back(from_version, path_to_refer)
 
 
 @handle_cli.command(
@@ -191,30 +202,23 @@ def v():
 
 
 @handle_cli.command(
-    short_help="Quick Config for test collection",
-    help="configures few values which is used while processing your reports., ignore the options if not required for "
-    "update",
+    short_help="configures TestResults folder with the provided folder name at your cwd",
+    help="""
+Configures TestResults folder with the provided folder name at your cwd. 
+Example: handshake config TestResults, at your cwd: x,\n
+then it creates x -> TestResults -> TeStReSuLtS.sb and x -> TestResults -> Attachments
+and x -> handshakes.json
+    """,
 )
 @general_but_optional_requirement
-@option(
-    "--max_runs",
-    "-mr",
-    default=-1,
-    help="Max. Number of runs to keep. NOTE: should be >1",
-)
-def config(collection_path, max_runs):
+def config(collection_path):
     saved_db_path = db_path(collection_path)
 
     set_default_first = not Path(collection_path).exists()
     if set_default_first:
         Path(collection_path).mkdir(exist_ok=True)
 
-    feed_from = config_file(saved_db_path)
-    feed = dict() if not feed_from.exists() else json.loads(feed_from.read_text())
-    if max_runs > 1:
-        feed[ConfigKeys.maxRunsPerProject] = max_runs
-
-    run_async(setConfig(saved_db_path, feed, set_default_first))
+    run_async(init_tortoise_orm(saved_db_path, True))
 
 
 @handle_cli.group(

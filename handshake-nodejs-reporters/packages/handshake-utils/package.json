@@ -23,10 +23,10 @@
 	"license": "MIT",
 	"dependencies": {
 		"@tsconfig/node20": "^20.1.4",
-		"@types/react": "18.3.1",
+		"@types/react": "18.3.3",
 		"@types/react-dom": "18.3.0",
 		"cross-env": "^7.0.3",
-		"tslib": "^2.6.2",
+		"tslib": "^2.6.3",
 		"typescript": "^5.4.5"
 	}
 }

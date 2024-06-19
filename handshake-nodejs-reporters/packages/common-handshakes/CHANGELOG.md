@@ -1,5 +1,17 @@
 # common-handshakes
 
+## 0.6.7
+
+### Patch Changes
+
+- abf9eea: bump python build of handshake to 0.4.1
+
+## 0.6.5
+
+### Patch Changes
+
+- f76de3f: fix: attachment path and chore: package updates
+
 ## 0.6.4
 
 ### Patch Changes
