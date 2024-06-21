@@ -12,6 +12,7 @@ import {
   RegisterTestEntity,
   Assertion,
   Attachment,
+  UpdateTestRun,
 } from './payload';
 import { acceptableDateString } from './helpers';
 
@@ -62,6 +63,13 @@ export class ReporterDialPad extends DialPad {
   }
 
   /**
+   * url for registering parent entities
+   */
+  get registerParentSuites(): string {
+    return `${this.saveUrl}/registerParentEntities`;
+  }
+
+  /**
    * url for updating a suite
    */
   get updateSuite(): string {
@@ -91,6 +99,13 @@ export class ReporterDialPad extends DialPad {
   }
 
   /**
+   * for Updating the test run with the exact information provided by the test framework
+   */
+  get updateTestRunURL(): string {
+    return `${this.saveUrl}/updateTestRun`;
+  }
+
+  /**
    * This is the place where we would be sending the test results to the handshake-server.
    *
    *
@@ -113,6 +128,7 @@ export class ReporterDialPad extends DialPad {
     payload?: object,
     callThisInside?: () => object,
     storeIn?: string,
+    saveHere?: (_: string) => void,
   ) {
     if (this.disabled) return;
 
@@ -144,6 +160,7 @@ export class ReporterDialPad extends DialPad {
 
           this.idMapped[storeIn] = String(text);
         }
+        if (saveHere) saveHere(String(text));
       })
       .catch((err) => {
         this.misFire += 1;
@@ -166,10 +183,11 @@ export class ReporterDialPad extends DialPad {
     payload?: object,
     storeIn?: string,
     callThisInside?: () => object,
+    saveHere?: (_: string) => void,
   ) {
     if (this.disabled) return undefined;
     const job = await this.pipeQueue.add(
-      () => this.office(contact, payload, callThisInside, storeIn),
+      () => this.office(contact, payload, callThisInside, storeIn, saveHere),
     );
 
     if (this.pipeQueue.size) this.logger.info({ for: 'queueSize', size: this.pipeQueue.size });
@@ -210,6 +228,19 @@ export class ReporterDialPad extends DialPad {
     );
   }
 
+  registerParentHierarchy(
+    parentEntities: () => Array<RegisterTestEntity | string>,
+    toSaveBy: (_: string) => void,
+  ) {
+    return this.registerOrUpdateSomething(
+      this.registerParentSuites,
+      undefined,
+      undefined,
+      parentEntities,
+      toSaveBy,
+    );
+  }
+
   /**
    * updates a test entity [suite/test/hook]
    * @param payload payload for updating test entity
@@ -246,6 +277,15 @@ export class ReporterDialPad extends DialPad {
       undefined,
       undefined,
       payload,
+    );
+  }
+
+  updateTestRun(payload: UpdateTestRun) {
+    return this.registerOrUpdateSomething(
+      this.updateTestRunURL,
+      undefined,
+      undefined,
+      () => payload,
     );
   }
 
@@ -378,5 +418,11 @@ export class ReporterDialPad extends DialPad {
       title,
       description,
     });
+  }
+
+  async completeJobs() {
+    this.logger.info({ message: 'waiting for the jobs to be completed', for: 'pipeQueue' });
+    await this.pipeQueue.onIdle();
+    this.logger.info({ message: 'jobs are now completed', for: 'pipeQueue' });
   }
 }

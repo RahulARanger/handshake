@@ -16,9 +16,8 @@ export interface RegisterTestEntity {
   description: string;
   file: string;
   tags: Tag[];
-  started: string;
+  started: Date;
   suiteType: SuiteType;
-  parent: string;
   session_id: string;
   retried: number;
 }
@@ -28,11 +27,11 @@ export interface MarkTestEntity {
   suiteID: string;
   errors: Error[];
   standing: Standing;
-  ended: string;
+  ended: Date;
 }
 
 export interface MarkTestSession {
-  ended: string;
+  ended: Date;
   duration: number;
   sessionID: string;
   passed: number;
@@ -70,4 +69,8 @@ export interface Attachment {
   description?:string;
   value:string | Assertion;
   type: 'DESC' | 'LINK' | 'PNG' | 'ASSERT'
+}
+
+export interface UpdateTestRun {
+  started: Date;
 }

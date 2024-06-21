@@ -3,7 +3,7 @@ const {
 } = require('@jest/globals');
 
 describe('Simple Scenario for intro. with the ', () => {
-  test('Simple Test', () => {
+  test('Simple Test with no assertions', () => {
     console.log('Simple LOG');
     console.log('with some args', 1, 2, false, 'this one too');
   });
@@ -15,6 +15,17 @@ describe('Simple Scenario for intro. with the ', () => {
   });
 });
 
-test('outside of the suite', async () => {
+describe('Simple Scenario for intro. with the ', () => {
+  test('Simple Test with no assertions', () => {
+    console.log('Simple LOG');
+    console.log('with some args', 1, 2, false, 'this one too');
+  });
+});
+
+test('test outside of the suite', async () => {
+  expect(1 + 1).toBe(2);
+});
+
+test('test outside of the suite', async () => {
   expect(1 + 1).toBe(2);
 });

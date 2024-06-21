@@ -98,3 +98,7 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     fileRetries: Optional[int] = 0
     avoidParentSuitesInCount: Optional[bool] = False
     tags: List[Tag]
+
+
+class PydanticModalForTestRunUpdate(CommonRegisterCols):
+    ...

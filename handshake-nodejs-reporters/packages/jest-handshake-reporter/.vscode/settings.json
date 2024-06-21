@@ -5,5 +5,6 @@
 	},
 	"eslint.validate": ["javascript"],
 	"jestrunner.configPath": "jest.config.cjs",
-	"jestrunner.jestCommand": "npx jest"
+	"jestrunner.jestCommand": "npx jest",
+	"python.defaultInterpreterPath": "../../../../venv/Scripts/python.exe"
 }
