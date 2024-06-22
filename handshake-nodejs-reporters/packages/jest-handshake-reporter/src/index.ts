@@ -9,8 +9,10 @@ import {
   TestResult,
   TestContext,
   TestCaseResult,
+  BaseReporter,
 } from '@jest/reporters';
 import {
+  acceptableDateString,
   frameworksUsedString, RegisterTestEntity, ReporterDialPad, ServiceDialPad,
   Standing,
   SuiteType,
@@ -38,9 +40,11 @@ export default class HandshakeJestReporter implements Reporter {
 
   resultsDir: string;
 
-  private trackingEntities: Map<string, LeafEntity> = new Map();
+  private trackSuites: Map<string, LeafEntity> = new Map();
 
   private trackParentStatus: Map<string, Set<string>> = new Map();
+
+  private trackEntities: string[] = [];
 
   constructor(globalConfig: Config.GlobalConfig, options?: any) {
     this.globalConfig = globalConfig;
@@ -89,19 +93,19 @@ export default class HandshakeJestReporter implements Reporter {
   }
 
   async onTestFileStart(test: Test): Promise<void> {
-    this.trackingEntities.set(test.path, new Map());
+    this.trackSuites.set(test.path, new Map());
 
     await this.reporterSupport.registerTestSession(
       {
-        started: new Date(),
+        started: acceptableDateString(new Date()),
         retried: 0,
       },
     );
   }
 
   async onTestCaseStart(test: Test, testCaseStartInfo: { ancestorTitles: Array<string>; fullName: string; mode: void | 'skip' | 'only' | 'todo'; title: string; startedAt?: number | null; }) {
-    const currentFile = this.trackingEntities.get(test.path) as LeafEntity;
-    const started = new Date(testCaseStartInfo.startedAt ?? 0);
+    const currentFile = this.trackSuites.get(test.path) as LeafEntity;
+    const started = acceptableDateString(new Date(testCaseStartInfo.startedAt ?? 0));
     let store = '';
     let callApi = false;
     const ancestors: string[] = [];
@@ -109,6 +113,7 @@ export default class HandshakeJestReporter implements Reporter {
     for (let index = 0; index <= testCaseStartInfo.ancestorTitles.length; index += 1) {
       store += (store ? joinConstant : '') + testCaseStartInfo.ancestorTitles[index];
       ancestors.push(store);
+      this.trackEntities.push(store);
       if (currentFile?.get(store)) {
         currentFile.get(store) as string;
       } else {
@@ -138,7 +143,7 @@ export default class HandshakeJestReporter implements Reporter {
             description: store,
             retried: 0,
             file: test.path,
-            session_id: this.reporterSupport.idMapped.session ?? '',
+            session_id: this.reporterSupport.sessionId,
             suiteType: 'SUITE',
             tags: [],
             parent,
@@ -151,12 +156,13 @@ export default class HandshakeJestReporter implements Reporter {
       });
     }
 
+    this.trackEntities.push(testCaseStartInfo.fullName);
     await this.reporterSupport.registerTestEntity(
       testIDText,
       () => ({
         description: testCaseStartInfo.fullName,
         file: test.path,
-        session_id: this.reporterSupport.idMapped.session ?? '',
+        session_id: this.reporterSupport.sessionId,
         suiteType: 'TEST' as SuiteType,
         retried: 0,
         started,
@@ -169,7 +175,7 @@ export default class HandshakeJestReporter implements Reporter {
 
   async onTestCaseResult(test: Test, testCaseResult: TestCaseResult): Promise<void> {
     // TODO: Explore the cases for status: "pending" "todo" "focused"
-    console.log(test, testCaseResult);
+    console.log(this.trackEntities);
   }
 
   async onTestFileResult(
@@ -181,7 +187,7 @@ export default class HandshakeJestReporter implements Reporter {
 
     await this.reporterSupport.completeJobs();
     // we clear the mappings after completion of the jobs
-    this.trackingEntities.delete(test.path);
+    this.trackSuites.delete(test.path);
     this.trackParentStatus.clear();
 
     const skippedTests = aggregatedResult.numTotalTests
@@ -190,7 +196,7 @@ export default class HandshakeJestReporter implements Reporter {
 
     await this.reporterSupport.updateTestSession(
       () => ({
-        sessionID: this.reporterSupport.idMapped.session ?? '',
+        sessionID: this.reporterSupport.sessionId,
         duration: test.duration ?? 0,
         passed: aggregatedResult.numPassedTests,
         failed: aggregatedResult.numFailedTests,
@@ -200,7 +206,7 @@ export default class HandshakeJestReporter implements Reporter {
         entityVersion: process.versions.node,
         simplified: process.version,
         tests: aggregatedResult.numTotalTests,
-        ended: new Date(testResult.perfStats.end),
+        ended: acceptableDateString(new Date(testResult.perfStats.end)),
       }),
     );
   }

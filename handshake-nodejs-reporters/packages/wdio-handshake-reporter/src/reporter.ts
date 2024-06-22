@@ -246,6 +246,6 @@ export default class HandshakeReporter extends ReporterContacts {
   }
 
   get isSynchronised(): boolean {
-    return this.supporter.jobsForIdleState === 0;
+    return this.supporter.queueSize === 0;
   }
 }

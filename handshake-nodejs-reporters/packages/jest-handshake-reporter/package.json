@@ -3,7 +3,7 @@
   "version": "0.6.6",
   "description": "Handshake Custom Reporter for jest test framework",
   "types": "./dist/index.d.ts",
-  "private": false,
+  "private": true,
   "module": "./dist/index.js",
   "exports": {
     "default": "./dist/index.js",
