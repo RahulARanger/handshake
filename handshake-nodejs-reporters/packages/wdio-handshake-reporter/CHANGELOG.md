@@ -1,5 +1,13 @@
 # wdio-graspit-reporter
 
+## 0.6.8
+
+### Patch Changes
+
+- eb44a84: fix: version mapping between internals
+- Updated dependencies [eb44a84]
+  - common-handshakes@0.6.8
+
 ## 0.6.7
 
 ### Patch Changes
