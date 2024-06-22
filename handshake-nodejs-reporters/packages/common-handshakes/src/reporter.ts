@@ -12,9 +12,7 @@ import {
   RegisterTestEntity,
   Assertion,
   Attachment,
-  UpdateTestRun,
 } from './payload';
-import { acceptableDateString } from './helpers';
 
 // eslint-disable-next-line import/prefer-default-export
 export class ReporterDialPad extends DialPad {
@@ -116,6 +114,14 @@ export class ReporterDialPad extends DialPad {
     return this.idMapped.get(key);
   }
 
+  addJob(job: () => void): Promise<void> {
+    return this.pipeQueue.add(job);
+  }
+
+  get queueSize(): number {
+    return this.pipeQueue.size;
+  }
+
   /**
    * This is the place where we would be sending the test results to the handshake-server.
    *
@@ -169,7 +175,7 @@ export class ReporterDialPad extends DialPad {
             from: 'office', resp: text, contact, for: 'store', where: storeIn,
           });
 
-          this.idMapped.set(storeIn, String(text));
+          this.saveInMap(storeIn, String(text));
         }
         if (saveHere) saveHere(String(text));
       })
@@ -187,17 +193,17 @@ export class ReporterDialPad extends DialPad {
  * @param payload feed
  * @param storeIn stores the results in the provided key
  * @param callThisInside get the payload once it is getting processing
- * @returns
+ * @returns {Promise<void> | undefined} https://github.com/sindresorhus/p-queue?tab=readme-ov-file#idle
  */
-  async registerOrUpdateSomething(
+  registerOrUpdateSomething(
     contact: string,
     payload?: object,
     storeIn?: string,
     callThisInside?: () => object,
     saveHere?: (_: string) => void,
-  ) {
+  ): Promise<void> | undefined {
     if (this.disabled) return undefined;
-    const job = await this.pipeQueue.add(
+    const job = this.pipeQueue.add(
       () => this.office(contact, payload, callThisInside, storeIn, saveHere),
     );
 
@@ -211,13 +217,9 @@ export class ReporterDialPad extends DialPad {
    * @returns
    */
   registerTestSession(sessionPayload: RegisterSession) {
-    const modifiedPayload = {
-      ...sessionPayload,
-      started: acceptableDateString(sessionPayload.started),
-    };
     return this.registerOrUpdateSomething(
       this.registerSession,
-      modifiedPayload,
+      sessionPayload,
       'session',
     );
   }
@@ -288,15 +290,6 @@ export class ReporterDialPad extends DialPad {
       undefined,
       undefined,
       payload,
-    );
-  }
-
-  updateTestRun(payload: UpdateTestRun) {
-    return this.registerOrUpdateSomething(
-      this.updateTestRunURL,
-      undefined,
-      undefined,
-      () => payload,
     );
   }
 

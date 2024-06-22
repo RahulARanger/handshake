@@ -36,14 +36,14 @@ export default class ReporterContacts extends WDIOReporter {
   }
 
   get currentTestID(): string {
-    return this.supporter.idMapped[this.currentTest?.uid ?? ''];
+    return this.supporter.getFromMap(this.currentTest?.uid ?? '') ?? '';
   }
 
   get currentSuiteID(): string {
     const suites = this.currentSuites.map((suite) => suite.uid).reverse();
-    return this.supporter.idMapped[
-      suites.find((suite) => this.supporter.idMapped[suite]) ?? ''
-    ];
+    return this.supporter.getFromMap(
+      suites.find((suite) => this.supporter.getFromMap(suite)) ?? '',
+    ) ?? '';
   }
 
   currentEntity(for_suite?: boolean): string {

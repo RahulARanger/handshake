@@ -3,7 +3,9 @@ import type {
   RunnerStats, SuiteStats, TestStats,
 } from '@wdio/reporter';
 import {
-  MarkTestEntity, MarkTestSession, RegisterTestEntity, Standing, SuiteType, sanitizePaths,
+  MarkTestEntity, MarkTestSession,
+  RegisterTestEntity, Standing,
+  SuiteType, acceptableDateString, sanitizePaths,
 } from 'common-handshakes';
 import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
@@ -22,17 +24,17 @@ export default class HandshakeReporter extends ReporterContacts {
 
   fetchParent(suiteOrTest: SuiteStats | TestStats, snapshot: number): string {
     const expectedParent = suiteOrTest.parent ?? '';
-    const fetchedParent = this.supporter.idMapped[
-      (this.suites[expectedParent] as SuiteStats | undefined)?.uid ?? ''
-    ] as string | undefined;
+    const fetchedParent = this.supporter.getFromMap(
+      (this.suites[expectedParent] as SuiteStats | undefined)?.uid ?? '',
+    );
 
     return (
       fetchedParent
-      || this.supporter.idMapped[
+      || this.supporter.getFromMap(
         this.currentSuites.at(
           this.expectedIndex(snapshot, suiteOrTest.uid.includes('suite') ? -2 : -1),
-        )?.uid ?? ''
-      ]
+        )?.uid ?? '',
+      )
       || ''
     );
   }
@@ -53,8 +55,6 @@ export default class HandshakeReporter extends ReporterContacts {
     const {
       title, file, tags, description,
     } = suiteOrTest as SuiteStats;
-    const started = suiteOrTest.start.toISOString();
-
     const payload = {
       title,
       description: description ?? '',
@@ -67,10 +67,10 @@ export default class HandshakeReporter extends ReporterContacts {
             label: 'Feature file tag',
           }),
       )?.filter((tag) => tag) || [],
-      started,
+      started: acceptableDateString(suiteOrTest.start),
       suiteType: type,
       parent: this.fetchParent(suiteOrTest, snapshot),
-      session_id: this.supporter.idMapped.session ?? '',
+      session_id: this.supporter.sessionId,
       retried: this.runnerStat?.retry ?? 0,
     };
     return payload;
@@ -89,9 +89,9 @@ export default class HandshakeReporter extends ReporterContacts {
     const { errors, error, state: entityState } = suiteOrTest as TestStats;
     const state = entityState as undefined | string;
 
-    const ended = suiteOrTest.end
-      ? suiteOrTest.end.toISOString()
-      : new Date().toISOString();
+    const ended = acceptableDateString(suiteOrTest.end
+      ? suiteOrTest.end
+      : new Date());
 
     const standing = (
       (suiteOrTest.type === 'test' ? state : 'YET_TO_CALC') || 'PENDING'
@@ -101,7 +101,7 @@ export default class HandshakeReporter extends ReporterContacts {
 
     const payload = {
       duration,
-      suiteID: this.supporter.idMapped[suiteOrTest.uid],
+      suiteID: this.supporter.getFromMap(suiteOrTest.uid) ?? '',
       ended,
       standing,
       errors: errors?.length ? errors : ifNotErrors,
@@ -119,7 +119,7 @@ export default class HandshakeReporter extends ReporterContacts {
 
     this.supporter.registerTestSession(
       {
-        started: this.runnerStat?.start ?? new Date(),
+        started: acceptableDateString(this.runnerStat?.start ?? new Date()),
         retried: this.runnerStat?.retry ?? 0,
       },
     );
@@ -177,14 +177,14 @@ export default class HandshakeReporter extends ReporterContacts {
     // so we register before marking it
     const note = this.currentSuites.length;
 
-    this.supporter.pipeQueue.add(() => {
-      if (this.supporter.idMapped[test.uid]) { return this.markTestCompletion(test); }
+    this.supporter.addJob(() => {
+      if (this.supporter.getFromMap(test.uid)) { return this.markTestCompletion(test); }
       this.addTest(test, note);
       return this.markTestCompletion(test);
     });
   }
 
-  onRunnerEnd(runnerStats: RunnerStats): void {
+  async onRunnerEnd(runnerStats: RunnerStats): Promise<void> {
     if (this.skipTestRun) {
       return;
     }
@@ -195,7 +195,7 @@ export default class HandshakeReporter extends ReporterContacts {
     const payload: MarkTestSession = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
       duration: runnerStats.duration,
-      sessionID: this.supporter.idMapped.session ?? '',
+      sessionID: this.supporter.sessionId,
       passed: this.counts.passes,
       failed: this.counts.failures,
       skipped: this.counts.skipping,
@@ -206,6 +206,8 @@ export default class HandshakeReporter extends ReporterContacts {
       simplified: runnerStats.sanitizedCapabilities,
     };
     this.supporter.updateTestSession(() => payload);
+
+    await this.supporter.completeJobs();
   }
 
   async onAfterCommand(commandArgs: AfterCommandArgs): Promise<void> {
@@ -220,7 +222,7 @@ export default class HandshakeReporter extends ReporterContacts {
       await this.supporter.attachScreenshot(
         `Screenshot: ${attachedTest.title}`,
         commandArgs.result?.value ?? '',
-        this.supporter.idMapped[attachedTest.uid],
+        this.supporter.getFromMap(attachedTest.uid) ?? '',
         attachedTest.fullTitle,
       );
     }
@@ -244,6 +246,6 @@ export default class HandshakeReporter extends ReporterContacts {
   }
 
   get isSynchronised(): boolean {
-    return this.supporter.pipeQueue.size === 0;
+    return this.supporter.jobsForIdleState === 0;
   }
 }
