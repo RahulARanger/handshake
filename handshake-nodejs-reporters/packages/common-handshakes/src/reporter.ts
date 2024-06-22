@@ -16,18 +16,17 @@ import {
 } from './payload';
 import { acceptableDateString } from './helpers';
 
-export type IdMappedType = Record<string, string> & { session?: string };
-
+// eslint-disable-next-line import/prefer-default-export
 export class ReporterDialPad extends DialPad {
-  idMapped: IdMappedType = {};
+  private idMapped: Map<string, string> = new Map();
 
   misFire: number = 0;
 
-  pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
+  private pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
 
-  requests: Attachment[] = [];
+  private requests: Attachment[] = [];
 
-  logger: Logger;
+  private logger: Logger;
 
   /**
    * this is where we would feed your test results to the handshake-server
@@ -105,6 +104,18 @@ export class ReporterDialPad extends DialPad {
     return `${this.saveUrl}/updateTestRun`;
   }
 
+  get sessionId(): string {
+    return this.idMapped.get('session') ?? '';
+  }
+
+  saveInMap(key: string, value: string) {
+    return this.idMapped.set(key, value);
+  }
+
+  getFromMap(key: string): string | undefined {
+    return this.idMapped.get(key);
+  }
+
   /**
    * This is the place where we would be sending the test results to the handshake-server.
    *
@@ -158,7 +169,7 @@ export class ReporterDialPad extends DialPad {
             from: 'office', resp: text, contact, for: 'store', where: storeIn,
           });
 
-          this.idMapped[storeIn] = String(text);
+          this.idMapped.set(storeIn, String(text));
         }
         if (saveHere) saveHere(String(text));
       })
@@ -328,7 +339,7 @@ export class ReporterDialPad extends DialPad {
             // we are supposed to ensure the folders for the test entities
           }
 
-          await writeFile(
+          writeFile(
             expectedFilePath,
             value as string,
             { encoding: 'base64' },
