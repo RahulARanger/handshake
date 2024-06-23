@@ -50,7 +50,7 @@
         "dayjs": "^1.11.11",
         "embla-carousel-autoplay": "^8.1.5",
         "embla-carousel-react": "^8.1.5",
-        "handshake-utils": "0.5.1",
+        "handshake-utils": "0.6.0",
         "lodash-es": "^4.17.21",
         "next": "14.2.4",
         "postcss": "^8.4.38",

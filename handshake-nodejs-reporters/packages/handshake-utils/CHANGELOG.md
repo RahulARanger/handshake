@@ -1,5 +1,11 @@
 # handshake-utils
 
+## 0.6.0
+
+### Minor Changes
+
+- cb8500d: refractor common-handshakes and wdio-handshake-reporter [no-visible-changes]
+
 ## 0.5.1
 
 ### Patch Changes
