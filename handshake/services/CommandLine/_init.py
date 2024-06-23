@@ -11,6 +11,7 @@ from click import (
     Path as C_Path,
     confirm,
 )
+from shutil import make_archive, move, unpack_archive
 from tortoise import run_async
 from handshake import __version__
 from handshake.services.DBService.migrator import (
@@ -142,14 +143,6 @@ def step_back(collection_path: str):
     is_flag=True,
 )
 @general_requirement
-# TODO: Support the max runs feature, allows user to only export certain number of test runs
-# @option(
-#     "-mr",
-#     "--max-runs",
-#     type=int,
-#     default=100,
-#     help="Asks Sanic to set the use max. number of workers",
-# )
 @option(
     "--build",
     "-b",
@@ -192,6 +185,54 @@ def patch(
     except (KeyboardInterrupt, SystemExit):
         logger.warning("Scheduler terminated explicitly...")
         run(close_connection())
+
+
+@handle_cli.command(
+    short_help="zips TestResults into one single ",
+    help="takes in multiple zipped test results and merges them into one "
+    "Please note: we would be migrating the provided database before migrating into one single result folder",
+)
+@general_requirement
+@option(
+    "--out",
+    "-o",
+    help="Saves the zipped file in this path",
+    type=C_Path(file_okay=True, writable=True, exists=False),
+    required=False,
+)
+def zip_results(collection_path, out):
+    collection = Path(collection_path)
+    output_folder = Path(out if out else "")
+    secho(f"compressing {collection}", fg="blue")
+    make_archive(collection.stem, "bztar", collection)
+    file_name = collection.stem + ".tar.bz2"
+    if not (output_folder / file_name).exists():
+        move(file_name, output_folder)
+    secho(f"Done, located at {output_folder / file_name}", fg="green")
+
+
+@handle_cli.command(
+    short_help="extracts zipped (.bz2) TestResults into a provided folder",
+    help="extracts "
+    "Please note: we would be migrating the provided database before migrating into one single result folder",
+)
+@argument(
+    "file",
+    type=C_Path(file_okay=True, readable=True, exists=True),
+    required=True,
+)
+@option(
+    "--out",
+    "-o",
+    help="Extract into this folder",
+    type=C_Path(dir_okay=True, writable=True),
+    required=False,
+)
+def extract_results(file, out):
+    output_folder = Path(out if out else Path(Path(file).stem).stem)
+    secho(f"de-compressing {file}", fg="blue")
+    unpack_archive(file, output_folder, "bztar")
+    secho(f"Done, located at {output_folder}", fg="green")
 
 
 @handle_cli.command(
