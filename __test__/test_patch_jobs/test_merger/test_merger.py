@@ -65,7 +65,7 @@ class TestMerger:
         ):
             assert (await db.all().count()) + (
                 await db.all(using_db=first_connection).count()
-            ) == await db.all(using_db=second_connection).count()
+            ) == await db.all(using_db=second_connection).count(), repr(db)
 
         # Verifying the merging of the suitebase
 

@@ -9,7 +9,7 @@ from .result_base import (
 from .config_base import ConfigBase, TestConfigBase, MigrationBase
 from .static_base import AttachmentBase, StaticBase
 from .dynamic_base import TaskBase
-from .attachmentBase import AssertBase, EntityLogBase
+from .attachmentBase import AssertBase
 
 __all__ = [
     SessionBase,
@@ -25,5 +25,4 @@ __all__ = [
     RetriedBase,
     AssertBase,
     TestLogBase,
-    EntityLogBase,
 ]

@@ -23,7 +23,11 @@ class Merger:
         if set_default_first:
             Path(output_folder).mkdir(exist_ok=True)
 
-        run_async(init_tortoise_orm(self.output_db_path, True, close_it=True))
+        run_async(
+            init_tortoise_orm(
+                self.output_db_path, True, init_script=True, close_it=True
+            )
+        )
 
     def start(self, to_merge: Tuple[str]):
         with ThreadPoolExecutor(max_workers=6) as merger:

@@ -282,7 +282,7 @@ def config(collection_path):
     if set_default_first:
         Path(collection_path).mkdir(exist_ok=True)
 
-    run_async(init_tortoise_orm(saved_db_path, True, close_it=True))
+    run_async(init_tortoise_orm(saved_db_path, True, close_it=True, init_script=True))
 
 
 @handle_cli.group(

@@ -33,6 +33,7 @@ async def init_tortoise_orm(
     force_db_path: Optional[Union[Path, str]] = None,
     migrate: bool = False,
     close_it: bool = False,
+    init_script: bool = False,
 ):
     chosen = force_db_path if force_db_path else db_path()
     # migrator is called here
@@ -48,7 +49,7 @@ async def init_tortoise_orm(
     await Tortoise.generate_schemas()
 
     test = TestConfigManager(chosen)
-    await test.sync()
+    await test.sync(init_script)
 
     if close_it:
         await close_connection()
@@ -67,15 +68,16 @@ class TestConfigManager:
         self.db_path = test_result_db
         attachment_folder(self.db_path).mkdir(exist_ok=True)
 
-    async def sync(self):
-        await connections.get("default").execute_script(
-            f"""
+    async def sync(self, init_script: bool = False):
+        if init_script:
+            await connections.get("default").execute_script(
+                f"""
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('MAX_RUNS_PER_PROJECT', '10', '0');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '', '1');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('VERSION', '{DB_VERSION}', '1');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
             """,
-        )
+            )
         if not self.path.exists():
             logger.debug(
                 "missing handshakes.json, creating one at {}", self.path.parent

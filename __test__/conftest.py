@@ -13,7 +13,8 @@ from handshake.services.DBService.models import RunBase, SessionBase, ConfigBase
 from datetime import datetime, timedelta, UTC
 from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.models.enums import ConfigKeys
-from handshake.services.DBService.migrator import revert_step_back, OLDEST_VERSION
+from handshake.services.DBService.migrator import revert_step_back
+from shutil import rmtree
 
 pytestmark = mark.asyncio
 
@@ -84,6 +85,8 @@ async def clean_close(db_path, init_db):
     # deleting sample test runs
     await RunBase.filter(projectName__icontains=testNames).all().delete()
     await close_connection()
+
+    rmtree(db_path.parent)
 
 
 async def sample_test_run(postfix: Optional[str] = "", connection=None):

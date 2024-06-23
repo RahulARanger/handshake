@@ -123,6 +123,18 @@ class TestMigrationScripts:
             await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()
         ).readonly
 
+    async def test_bump_v8(
+        self, get_vth_connection, scripts, db_path, sample_test_session
+    ):
+        await get_vth_connection(db_path, 8)
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(8, 9, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
+
+        assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == "9"
+        # nothing much here we are just dropping table: "ExportBase" it was used long before v3
+
     # say you are in v8 and have reverted your python build to older version which uses v7
     # question: how does migrate function work ?
 
