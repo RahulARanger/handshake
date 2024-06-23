@@ -5,10 +5,10 @@ from pytest import fixture
 from pathlib import Path
 from __test__.conftest import testNames
 from handshake.services.DBService.shared import db_path as shared_db_path
-from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
+from handshake.services.DBService.lifecycle import models, close_connection
 from handshake.services.DBService.models import RunBase
 from handshake.services.DBService.models.enums import ConfigKeys
-from tortoise import connections
+from tortoise import connections, Tortoise
 
 
 @fixture()
@@ -33,7 +33,9 @@ def root_dir_3():
 
 @fixture(autouse=True)
 async def cleanup(root_dir_1, root_dir_2, root_dir_3, get_db_path, init_db):
-    for _ in (root_dir_1, root_dir_2, root_dir_3):
+    dir_s = (root_dir_1, root_dir_2, root_dir_3)
+
+    for _ in dir_s:
         if _.exists():
             shutil.rmtree(_)
 
@@ -44,10 +46,26 @@ async def cleanup(root_dir_1, root_dir_2, root_dir_3, get_db_path, init_db):
         if not path.exists():
             init_db(_)
 
+    await Tortoise.init(
+        {
+            "connections": {
+                _.stem: {
+                    "engine": "tortoise.backends.sqlite",
+                    "credentials": {"file_path": get_db_path(_)},
+                }
+                for _ in dir_s
+            },
+            "apps": {
+                "models": {"models": models, "default_connection": "default"},
+            },
+        }
+    )
+    await Tortoise.generate_schemas()
+
     yield
     time.sleep(1)
     await close_connection()
 
-    for _ in (root_dir_1, root_dir_2, root_dir_3):
+    for _ in dir_s:
         if _.exists():
             shutil.rmtree(_)

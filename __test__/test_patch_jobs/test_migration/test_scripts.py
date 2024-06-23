@@ -47,7 +47,12 @@ class TestMigrationScripts:
         assert int(sqlite3.sqlite_version_info[1]) >= 38
 
     async def test_bump_v5(
-        self, sample_test_session, create_suite, get_vth_connection, scripts, db_path
+        self,
+        sample_test_session,
+        create_suite,
+        get_vth_connection,
+        scripts,
+        db_path,
     ):
         await get_vth_connection(db_path, 5)
 

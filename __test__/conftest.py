@@ -86,13 +86,14 @@ async def clean_close(db_path, init_db):
     await close_connection()
 
 
-async def sample_test_run(postfix: Optional[str] = ""):
+async def sample_test_run(postfix: Optional[str] = "", connection=None):
     noted = datetime.now(UTC)
     return await RunBase.create(
         projectName=testNames + postfix,
         started=noted,
         ended=noted + timedelta(minutes=10),
         duration=timedelta(minutes=10).total_seconds() * 1000,
+        using_db=connection,
     )
 
 
@@ -112,17 +113,29 @@ def helper_set_db_config():
     return attach_db_config
 
 
+async def create_test_and_session(postfix="", connection=None):
+    return await test_session(
+        (await sample_test_run(postfix, connection)).testID, connection
+    )
+
+
+@fixture()
+def helper_to_create_test_and_session():
+    return create_test_and_session
+
+
 @fixture()
 async def sample_test_session(helper_create_test_run):
     return await test_session((await helper_create_test_run()).testID)
 
 
-async def test_session(test_id: str):
+async def test_session(test_id: str, connection=None):
     started = datetime.now(UTC)
     return await SessionBase.create(
         started=started,
         test_id=test_id,
         ended=started + timedelta(milliseconds=24),
+        using_db=connection,
     )
 
 

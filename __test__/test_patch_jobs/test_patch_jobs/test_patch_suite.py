@@ -187,7 +187,11 @@ class TestPatchSuiteJob:
         assert await patchTestSuite(parent_suite.suiteID, test_id)
 
     async def test_retried_suite_match(
-        self, sample_test_session, create_suite, create_tests, attach_config
+        self,
+        sample_test_session,
+        create_suite,
+        create_tests,
+        attach_config,
     ):
         session = await sample_test_session
         session_id = session.sessionID
@@ -333,7 +337,10 @@ class TestPatchSuiteScheduler:
     ):
         tester = TestPatchSuiteJob()
         suite_id, parent_id = await tester.test_rollup_values(
-            sample_test_session, create_suite, create_tests, return_created=True
+            sample_test_session,
+            create_suite,
+            create_tests,
+            return_created=True,
         )
         await patch_jobs()
 

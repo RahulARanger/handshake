@@ -28,15 +28,6 @@ class ConfigBase(Model):
     )
 
 
-class ExportBase(Model):
-    ticketID = UUIDField(pk=True)
-    maxTestRuns = IntField(
-        null=True,
-        default=10,
-        description="Number of test runs to export [recent ones are picked]",
-    )
-
-
 class TestConfigBase(Model):
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
         "models.RunBase", related_name="runs", to_field="testID"

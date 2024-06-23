@@ -22,6 +22,7 @@ async def helper_create_suite(
     retried=0,
     started=datetime.datetime.now(),
     file: str = "test-1.js",
+    connection=None,
 ):
     extras = {standing.lower(): 1} if is_test else {}
     error = [] if standing != Status.FAILED else [{"message": "sample-error"}]
@@ -38,16 +39,25 @@ async def helper_create_suite(
         tests=1,
         retried=retried,
         errors=error,
+        using_db=connection,
         **extras,
     )
 
 
-async def helper_create_all_types_of_tests(session_id: str, parent: str, retried=0):
+async def helper_create_all_types_of_tests(
+    session_id: str, parent: str, retried=0, connection=None
+):
     for test in range(3):
         for _ in (Status.PASSED, Status.FAILED, Status.SKIPPED):
             await sleep(0.002)
             await helper_create_suite(
-                session_id, f"test-{test}-{_}", parent, True, _, retried=retried
+                session_id,
+                f"test-{test}-{_}",
+                parent,
+                True,
+                _,
+                retried=retried,
+                connection=connection,
             )
 
 
@@ -56,20 +66,27 @@ async def helper_create_session_with_hierarchy_with_no_retries(
     suite_files=("test-1.js", "test-2.js", "test-3.js"),
     parent_suite: str = "",
     started=datetime.datetime.now(),
+    connection=None,
 ):
     to_return = []
 
     # 3 suites with each suite having 9 tests with 3 in failed, 2 passed, 3 skipped
     for thing in suite_files:
-        session = await helper_create_session(test_id)
+        session = await helper_create_session(test_id, connection=connection)
         suite = await helper_create_suite(
-            session.sessionID, parent_suite, started=started, file=thing
+            session.sessionID,
+            parent_suite,
+            started=started,
+            file=thing,
+            connection=connection,
         )
         to_return.append(str(session.sessionID))
-        await helper_create_all_types_of_tests(session.sessionID, suite.suiteID)
+        await helper_create_all_types_of_tests(
+            session.sessionID, suite.suiteID, connection=connection
+        )
         await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await session.save()
-        await register_patch_suite(suite.suiteID, test_id)
+        await register_patch_suite(suite.suiteID, test_id, connection=connection)
 
     return to_return
 
@@ -123,7 +140,7 @@ async def helper_create_normal_suites(
 
 
 async def helper_create_test_config(
-    test_id: str, file_retries=0, avoidParentSuitesInCount=False
+    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None
 ):
     await TestConfigBase.create(
         fileRetries=file_retries,
@@ -133,6 +150,7 @@ async def helper_create_test_config(
         maxInstances=1,
         avoidParentSuitesInCount=avoidParentSuitesInCount,
         test_id=test_id,
+        using_db=connection,
     )
 
 
@@ -155,7 +173,7 @@ async def helper_create_assertion(entity_id: str, title: str, passed: bool):
     )
 
 
-async def helper_create_session(test_id: str, entityName="sample"):
+async def helper_create_session(test_id: str, entityName="sample", connection=None):
     await sleep(0.0025)
     started = datetime.datetime.now(datetime.UTC)
     return await SessionBase.create(
@@ -163,6 +181,7 @@ async def helper_create_session(test_id: str, entityName="sample"):
         entityName=entityName,
         test_id=test_id,
         ended=started + datetime.timedelta(milliseconds=24),
+        using_db=connection,
     )
 
 

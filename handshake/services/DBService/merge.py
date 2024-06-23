@@ -31,19 +31,31 @@ class Merger:
                 merger.submit(self.merge_with, Path(collection), merger)
 
     def merge_with(self, zipped_results: Path, executor: ThreadPoolExecutor):
-        logger.info("merging {}", zipped_results)
+        logger.info("started merging with {}...", zipped_results.stem)
         with TemporaryDirectory() as temp_results:
-            logger.debug("unpacking {} into {}", zipped_results, temp_results)
-            unpack_archive(zipped_results, temp_results, "bztar")
-
-            logger.debug("migrating {}", db_path(temp_results))
-            migration(db_path(temp_results))
-
-            logger.debug(
-                "merging {} into {}", db_path(temp_results), self.output_db_path
-            )
+            temp_folder = Path(temp_results)
             try:
-                self.merge(db_path(temp_results))
+                if zipped_results.is_file():
+                    logger.debug("unpacking {} into {}", zipped_results, temp_folder)
+                    unpack_archive(zipped_results, temp_folder, "bztar")
+                    logger.debug(
+                        "checking for possible migration for {}", db_path(temp_folder)
+                    )
+                else:
+                    logger.debug(
+                        "copying provided folder {} to a temp folder", zipped_results
+                    )
+                    temp_folder /= zipped_results.name
+                    copytree(zipped_results, temp_folder)
+                    logger.debug("{} is now copied to {}", zipped_results, temp_folder)
+                    logger.warning("running migrator on {}", db_path(temp_folder))
+
+                migration(db_path(temp_folder))
+                logger.debug(
+                    "merging {} into {}", db_path(temp_folder), self.output_db_path
+                )
+
+                self.merge(db_path(temp_folder))
             except Exception as error:
                 logger.exception(
                     "Failed to merge {} with {}. due to {}",
@@ -54,7 +66,7 @@ class Merger:
                 return
 
             dest = attachment_folder(self.output_db_path)
-            for test_run in attachment_folder(db_path(temp_results)).iterdir():
+            for test_run in attachment_folder(db_path(temp_folder)).iterdir():
                 if test_run.is_dir():
                     executor.submit(copytree, test_run, dest)
                 else:
