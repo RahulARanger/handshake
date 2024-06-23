@@ -37,7 +37,9 @@ def version_file():
 
 @fixture()
 def init_db(root_dir):
-    return lambda: subprocess.call(f'handshake config "{root_dir}"', shell=True)
+    return lambda x=None: subprocess.call(
+        f'handshake config "{x if x else root_dir}"', shell=True
+    )
 
 
 async def get_connection(db_path, v=5):

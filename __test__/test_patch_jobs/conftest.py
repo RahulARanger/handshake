@@ -1,5 +1,4 @@
 import json
-
 from pytest import fixture
 from handshake.services.DBService.models import (
     SuiteBase,
@@ -8,6 +7,7 @@ from handshake.services.DBService.models import (
     AttachmentBase,
 )
 from handshake.services.DBService.models.enums import SuiteType, Status, AttachmentType
+from handshake.services.DBService.shared import db_path as shared_db_path
 from handshake.services.SchedularService.register import register_patch_suite
 import datetime
 from asyncio import sleep
@@ -89,7 +89,7 @@ async def helper_create_normal_suites(
     for index in range(3):
         suite = await helper_create_suite(
             session_id,
-            f"suite-parent-{index + 1}",
+            f"suite-{index + 1}",
             parent_suite,
             retried=retried,
             file=suite_files[index],
@@ -107,7 +107,7 @@ async def helper_create_normal_suites(
                 suiteType=SuiteType.TEST,
                 started=started.isoformat(),
                 ended=started + datetime.timedelta(milliseconds=2),
-                title="suite-parent",
+                title=f"test-{index + 1}-{test + 1}",
                 standing=Status.FAILED,
                 file=suite_files[index],
                 parent=suites[-1],
@@ -199,3 +199,8 @@ def create_session():
 @fixture
 def create_session_with_hierarchy_with_no_retries():
     return helper_create_session_with_hierarchy_with_no_retries
+
+
+@fixture()
+def get_db_path():
+    return lambda x: shared_db_path(x)
