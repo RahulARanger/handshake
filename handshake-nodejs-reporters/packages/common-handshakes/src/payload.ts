@@ -1,6 +1,6 @@
 export interface RegisterSession {
   retried: number;
-  started: Date;
+  started: string;
 }
 
 export type SuiteType = 'SUITE' | 'TEST';
@@ -18,7 +18,6 @@ export interface RegisterTestEntity {
   tags: Tag[];
   started: string;
   suiteType: SuiteType;
-  parent: string;
   session_id: string;
   retried: number;
 }
@@ -70,4 +69,8 @@ export interface Attachment {
   description?:string;
   value:string | Assertion;
   type: 'DESC' | 'LINK' | 'PNG' | 'ASSERT'
+}
+
+export interface UpdateTestRun {
+  started: string;
 }

@@ -7,10 +7,12 @@ from handshake.services.DBService.models import (
     AssertBase,
     TestConfigBase,
     TestLogBase,
+    SuiteBase,
 )
 from handshake.services.DBService.models.enums import LogType, AttachmentType
 from sanic import Sanic
 from __test__.test_patch_jobs.test_server.commons import set_config
+from tortoise.expressions import Q
 
 
 @mark.usefixtures("sample_test_session")
@@ -36,6 +38,78 @@ class TestAttachmentEndpoints:
             "/save/addAttachmentsForEntities", json=payload
         )
         assert response.status == 201
+
+    async def test_bulk_registration_of_parent_suites(
+        self, app, client, sample_test_session, create_suite
+    ):
+        session = await set_config(app, sample_test_session)
+
+        payloads = [
+            dict(
+                started=datetime.datetime.now().isoformat(),
+                title="sample-suite-1",
+                retried=0,
+                description="sample-description",
+                suiteType="SUITE",
+                session_id=str(session.sessionID),
+                file="./test.py",
+                parent="",
+                tags=[],
+            ),
+            dict(
+                started=datetime.datetime.now().isoformat(),
+                title="sample-suite-2",
+                retried=0,
+                description="sample-description",
+                suiteType="SUITE",
+                session_id=str(session.sessionID),
+                file="./test.py",
+                parent="",
+                tags=[],
+            ),
+        ]
+        request, response = await client.put(
+            "/save/registerParentEntities", json=payloads
+        )
+
+        assert response.status == 201
+        resp = response.json
+
+        root_parent = await SuiteBase.filter(suiteID=resp[0]).first()
+        assert root_parent.title == "sample-suite-1"
+        assert root_parent.parent == ""
+
+        child_suite = await SuiteBase.filter(suiteID=resp[1]).first()
+        assert child_suite.title == "sample-suite-2"
+        assert str(child_suite.parent) == str(root_parent.suiteID)
+
+        payloads = [
+            str(child_suite.suiteID),
+            dict(
+                started=datetime.datetime.now().isoformat(),
+                title="sample-suite-3",
+                retried=0,
+                description="sample-description",
+                suiteType="SUITE",
+                session_id=str(session.sessionID),
+                file="./test.py",
+                parent="",
+                tags=[],
+            ),
+        ]
+        request, response = await client.put(
+            "/save/registerParentEntities", json=payloads
+        )
+        assert response.status == 201
+        resp = response.json
+
+        child_suite = await SuiteBase.filter(suiteID=resp[0]).first()
+        assert child_suite.title == "sample-suite-2"
+        assert str(child_suite.parent) == str(root_parent.suiteID)
+
+        child_suite_2 = await SuiteBase.filter(suiteID=resp[1]).first()
+        assert child_suite_2.title == "sample-suite-3"
+        assert str(child_suite_2.parent) == str(child_suite.suiteID)
 
     async def test_bulk_attachments_with_errors(
         self, app, client, sample_test_session, create_suite

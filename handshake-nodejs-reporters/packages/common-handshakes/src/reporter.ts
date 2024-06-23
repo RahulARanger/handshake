@@ -13,20 +13,18 @@ import {
   Assertion,
   Attachment,
 } from './payload';
-import { acceptableDateString } from './helpers';
 
-export type IdMappedType = Record<string, string> & { session?: string };
-
+// eslint-disable-next-line import/prefer-default-export
 export class ReporterDialPad extends DialPad {
-  idMapped: IdMappedType = {};
+  private idMapped: Map<string, string> = new Map();
 
   misFire: number = 0;
 
-  pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
+  private pipeQueue: PQueue<PriorityQueue, QueueAddOptions>;
 
-  requests: Attachment[] = [];
+  private requests: Attachment[] = [];
 
-  logger: Logger;
+  private logger: Logger;
 
   /**
    * this is where we would feed your test results to the handshake-server
@@ -62,6 +60,13 @@ export class ReporterDialPad extends DialPad {
   }
 
   /**
+   * url for registering parent entities
+   */
+  get registerParentSuites(): string {
+    return `${this.saveUrl}/registerParentEntities`;
+  }
+
+  /**
    * url for updating a suite
    */
   get updateSuite(): string {
@@ -91,6 +96,33 @@ export class ReporterDialPad extends DialPad {
   }
 
   /**
+   * for Updating the test run with the exact information provided by the test framework
+   */
+  get updateTestRunURL(): string {
+    return `${this.saveUrl}/updateTestRun`;
+  }
+
+  get sessionId(): string {
+    return this.idMapped.get('session') ?? '';
+  }
+
+  saveInMap(key: string, value: string) {
+    return this.idMapped.set(key, value);
+  }
+
+  getFromMap(key: string): string | undefined {
+    return this.idMapped.get(key);
+  }
+
+  addJob(job: () => void): Promise<void> {
+    return this.pipeQueue.add(job);
+  }
+
+  get queueSize(): number {
+    return this.pipeQueue.size;
+  }
+
+  /**
    * This is the place where we would be sending the test results to the handshake-server.
    *
    *
@@ -113,6 +145,7 @@ export class ReporterDialPad extends DialPad {
     payload?: object,
     callThisInside?: () => object,
     storeIn?: string,
+    saveHere?: (_: string) => void,
   ) {
     if (this.disabled) return;
 
@@ -142,8 +175,9 @@ export class ReporterDialPad extends DialPad {
             from: 'office', resp: text, contact, for: 'store', where: storeIn,
           });
 
-          this.idMapped[storeIn] = String(text);
+          this.saveInMap(storeIn, String(text));
         }
+        if (saveHere) saveHere(String(text));
       })
       .catch((err) => {
         this.misFire += 1;
@@ -159,17 +193,18 @@ export class ReporterDialPad extends DialPad {
  * @param payload feed
  * @param storeIn stores the results in the provided key
  * @param callThisInside get the payload once it is getting processing
- * @returns
+ * @returns {Promise<void> | undefined} https://github.com/sindresorhus/p-queue?tab=readme-ov-file#idle
  */
-  async registerOrUpdateSomething(
+  registerOrUpdateSomething(
     contact: string,
     payload?: object,
     storeIn?: string,
     callThisInside?: () => object,
-  ) {
+    saveHere?: (_: string) => void,
+  ): Promise<void> | undefined {
     if (this.disabled) return undefined;
-    const job = await this.pipeQueue.add(
-      () => this.office(contact, payload, callThisInside, storeIn),
+    const job = this.pipeQueue.add(
+      () => this.office(contact, payload, callThisInside, storeIn, saveHere),
     );
 
     if (this.pipeQueue.size) this.logger.info({ for: 'queueSize', size: this.pipeQueue.size });
@@ -182,13 +217,9 @@ export class ReporterDialPad extends DialPad {
    * @returns
    */
   registerTestSession(sessionPayload: RegisterSession) {
-    const modifiedPayload = {
-      ...sessionPayload,
-      started: acceptableDateString(sessionPayload.started),
-    };
     return this.registerOrUpdateSomething(
       this.registerSession,
-      modifiedPayload,
+      sessionPayload,
       'session',
     );
   }
@@ -207,6 +238,19 @@ export class ReporterDialPad extends DialPad {
       undefined,
       entityID,
       payload,
+    );
+  }
+
+  registerParentHierarchy(
+    parentEntities: () => Array<RegisterTestEntity | string>,
+    toSaveBy: (_: string) => void,
+  ) {
+    return this.registerOrUpdateSomething(
+      this.registerParentSuites,
+      undefined,
+      undefined,
+      parentEntities,
+      toSaveBy,
     );
   }
 
@@ -288,7 +332,7 @@ export class ReporterDialPad extends DialPad {
             // we are supposed to ensure the folders for the test entities
           }
 
-          await writeFile(
+          writeFile(
             expectedFilePath,
             value as string,
             { encoding: 'base64' },
@@ -378,5 +422,11 @@ export class ReporterDialPad extends DialPad {
       title,
       description,
     });
+  }
+
+  async completeJobs() {
+    this.logger.info({ message: 'waiting for the jobs to be completed', for: 'pipeQueue' });
+    await this.pipeQueue.onIdle();
+    this.logger.info({ message: 'jobs are now completed', for: 'pipeQueue' });
   }
 }
