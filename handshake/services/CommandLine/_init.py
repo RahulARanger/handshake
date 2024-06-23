@@ -24,6 +24,7 @@ from handshake.services.DBService.migrator import (
 from handshake.services.SchedularService.start import Scheduler
 from loguru import logger
 from handshake.services.DBService.lifecycle import close_connection, init_tortoise_orm
+from handshake.services.DBService.merge import Merger
 from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
@@ -236,6 +237,28 @@ def extract_results(file, out):
 
 
 @handle_cli.command(
+    short_help="extracts zipped (.bz2) TestResults into a provided folder",
+    help="extracts "
+    "Please note: we would be migrating the provided database before migrating into one single result folder",
+)
+@argument(
+    "output",
+    type=C_Path(dir_okay=True, writable=True, exists=False),
+    required=True,
+)
+@option(
+    "-m",
+    "--merge-with",
+    required=True,
+    multiple=True,
+    help="provide the compressed path of the results folder",
+)
+def merge(output, merge_with):
+    merger = Merger(output)
+    merger.start(merge_with)
+
+
+@handle_cli.command(
     help="returns the version of the handshake", short_help="example: 1.0.0"
 )
 def v():
@@ -259,7 +282,7 @@ def config(collection_path):
     if set_default_first:
         Path(collection_path).mkdir(exist_ok=True)
 
-    run_async(init_tortoise_orm(saved_db_path, True))
+    run_async(init_tortoise_orm(saved_db_path, True, close_it=True))
 
 
 @handle_cli.group(

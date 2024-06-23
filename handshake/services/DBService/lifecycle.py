@@ -23,8 +23,16 @@ def attachment_folder(provided_db_path: Path, *args):
     return to_path
 
 
+async def close_connection():
+    await connections.close_all()
+    # waiting for the logs to be sent or saved
+    await logger.complete()
+
+
 async def init_tortoise_orm(
-    force_db_path: Optional[Union[Path, str]] = None, migrate: bool = False
+    force_db_path: Optional[Union[Path, str]] = None,
+    migrate: bool = False,
+    close_it: bool = False,
 ):
     chosen = force_db_path if force_db_path else db_path()
     # migrator is called here
@@ -42,16 +50,13 @@ async def init_tortoise_orm(
     test = TestConfigManager(chosen)
     await test.sync()
 
+    if close_it:
+        await close_connection()
+
 
 async def create_run(projectName: str) -> str:
     test_id = str((await RunBase.create(projectName=projectName)).testID)
     return test_id
-
-
-async def close_connection():
-    await connections.close_all()
-    # waiting for the logs to be sent or saved
-    await logger.complete()
 
 
 class TestConfigManager:
