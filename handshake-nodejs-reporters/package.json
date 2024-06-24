@@ -38,5 +38,15 @@
 		"tsconfig": "7.0.0",
 		"tsup": "^8.1.0",
 		"turbo": "^2.0.4"
-	}
+	},
+	"description": "List of packages to build nodejs-reporters for handshake",
+	"keywords": [
+		"Handshake",
+		"nodejs",
+		"custom-reporter",
+		"automation",
+		"test-automation"
+	],
+	"author": "RahulARanger <saihanumarahul66@gmail.com>",
+	"license": "MIT"	
 }

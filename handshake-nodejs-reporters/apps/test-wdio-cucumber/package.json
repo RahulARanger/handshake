@@ -1,5 +1,5 @@
 {
-	"name": "@handshake/test-wdio-cucumber",
+	"name": "@hand-shakes/test-wdio-cucumber",
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
@@ -20,6 +20,6 @@
 	"dependencies": {
 		"@wdio/cli": "^8.39.0",
 		"@wdio/mocha-framework": "8.39.0",
-		"@handshake/wdio-handshake-reporter": "workspace:*"
+		"@hand-shakes/wdio-handshake-reporter": "workspace:*"
 	}
 }

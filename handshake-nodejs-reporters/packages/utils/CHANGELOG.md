@@ -1,5 +1,11 @@
 # handshake-utils
 
+## 0.8.0
+
+### Minor Changes
+
+- ebdc7ae: packages are available under "@handshake/" and we are now using pnpm instead of npm
+
 ## 0.6.0
 
 ### Minor Changes

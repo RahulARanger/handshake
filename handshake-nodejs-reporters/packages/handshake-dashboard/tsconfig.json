@@ -1,5 +1,5 @@
 {
-    "extends": "@handshake/utils/tsconfig.ui.json",
+    "extends": "@hand-shakes/utils/tsconfig.ui.json",
     "compilerOptions": {
         "baseUrl": "./src",
         "skipLibCheck": true
