@@ -176,19 +176,19 @@ jobs:
             //registry.npmjs.org/:_authToken=$NPM_TOKEN
           EOF
 
-      - name: commiting the changes
-        uses: stefanzweifel/git-auto-commit-action@v5
-        id: post-release
-        with:
-          commit_message: Bump Handshake Dashboard Version
-          file_pattern: 'handshake-nodejs-reporters/**/*.md handshake-nodejs-reporters/**/*.json'
-
       - name: publish packages
         working-directory: ./handshake-nodejs-reporters
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: pnpm publish
+
+      - name: commiting the changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        id: post-release
+        with:
+          commit_message: Bump Handshake Dashboard Version
+          file_pattern: 'handshake-nodejs-reporters/**/*.md handshake-nodejs-reporters/**/*.json'
 
 
   host-storybook:
