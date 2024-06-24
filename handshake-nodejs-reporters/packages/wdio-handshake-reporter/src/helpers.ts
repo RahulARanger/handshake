@@ -3,6 +3,7 @@ import { AfterCommandArgs, BeforeCommandArgs } from "@wdio/reporter";
 import { Assertion, checkVersion } from "@hand-shakes/common-handshakes";
 import { HandshakeServiceOptions, ReporterOptions } from "./types";
 import HandshakeService from "./service";
+import HandshakeReporter from "./reporter"
 import { currentReporter } from "./contacts";
 
 export function attachReporter(
@@ -19,7 +20,7 @@ export function attachReporter(
 	toModify.services = toModify.services || [];
 
 	toModify.reporters.push([
-		"handshake",
+		HandshakeReporter,
 		{
 			port,
 			addScreenshots: options.addScreenshots || false,
