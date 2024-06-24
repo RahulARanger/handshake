@@ -94,6 +94,8 @@ async def register_suite(request: Request) -> HTTPResponse:
     return text(str(suite_record.suiteID), status=201)
 
 
+# NOTE: this API was made specifically to support a registering describeBlocks
+# NOTE: Planning to depreciate this in near future.
 @service.put("/registerParentEntities")
 @definition(
     summary="Registers a set of parent suites starting from root hierarchy",
@@ -269,6 +271,7 @@ async def update_run_config(request: Request) -> HTTPResponse:
     return text("provided config was saved successfully.", status=200)
 
 
+# TODO: incomplete
 @service.put("/updateTestRun")
 async def update_test_run(request: Request) -> HTTPResponse:
     about_run = PydanticModalForTestRunUpdate.model_validate(request.json)

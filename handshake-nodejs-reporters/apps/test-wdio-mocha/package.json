@@ -1,5 +1,5 @@
 {
-	"name": "@handshake/test-wdio-mocha",
+	"name": "@hand-shakes/test-wdio-mocha",
 	"version": "1.0.0",
 	"description": "",
 	"main": "babel.config.js",
@@ -19,7 +19,7 @@
 		"@wdio/spec-reporter": "^8.39.0",
 		"ts-node": "^10.9.2",
 		"typescript": "^5.5.2",
-		"@handshake/wdio-handshake-reporter": "workspace:*"
+		"@hand-shakes/wdio-handshake-reporter": "workspace:*"
 	},
 	"devDependencies": {
 		"cross-env": "^7.0.3"

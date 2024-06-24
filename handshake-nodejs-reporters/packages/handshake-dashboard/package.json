@@ -1,5 +1,5 @@
 {
-    "name": "@handshake/handshake-dashboard",
+    "name": "@hand-shakes/handshake-dashboard",
     "version": "0.6.5",
     "license": "MIT",
     "private": "true",
@@ -17,7 +17,7 @@
     },
     "dependencies": {
         "@chromatic-com/storybook": "^1.5.0",
-        "@handshake/utils": "workspace:*",
+        "@hand-shakes/utils": "workspace:*",
         "@mantine/carousel": "^7.10.2",
         "@mantine/charts": "^7.10.2",
         "@mantine/core": "^7.10.2",

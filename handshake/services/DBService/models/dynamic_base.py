@@ -39,14 +39,3 @@ class TaskBase(Model):
         default=False,
         description="True if the task is processed or completed",
     )
-
-
-class PrunedBase:
-    prunedID = CharField(
-        max_length=36, description="possibly uuid of length 36 that was pruned"
-    )
-    reason = TextField(description="Reason for its existence here")
-    details = JSONField(
-        null=True, default={}, description="If any details were required"
-    )
-    type = CharEnumField(PrunedRecords, null=False)

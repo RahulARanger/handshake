@@ -47,7 +47,7 @@ importers:
 
   apps/test-wdio-cucumber:
     dependencies:
-      '@handshake/wdio-handshake-reporter':
+      '@hand-shakes/wdio-handshake-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-handshake-reporter
       '@wdio/cli':
@@ -75,7 +75,7 @@ importers:
 
   apps/test-wdio-mocha:
     dependencies:
-      '@handshake/wdio-handshake-reporter':
+      '@hand-shakes/wdio-handshake-reporter':
         specifier: workspace:*
         version: link:../../packages/wdio-handshake-reporter
       '@wdio/cli':
@@ -188,7 +188,7 @@ importers:
       '@chromatic-com/storybook':
         specifier: ^1.5.0
         version: 1.5.0(react@18.3.1)
-      '@handshake/utils':
+      '@hand-shakes/utils':
         specifier: workspace:*
         version: link:../utils
       '@mantine/carousel':
@@ -372,7 +372,7 @@ importers:
 
   packages/jest-handshake-reporter:
     dependencies:
-      '@handshake/common-handshakes':
+      '@hand-shakes/common-handshakes':
         specifier: workspace:*
         version: link:../common-handshakes
       '@jest/reporters':
@@ -445,7 +445,7 @@ importers:
 
   packages/wdio-handshake-reporter:
     dependencies:
-      '@handshake/common-handshakes':
+      '@hand-shakes/common-handshakes':
         specifier: workspace:*
         version: link:../common-handshakes
       '@wdio/reporter':

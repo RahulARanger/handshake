@@ -27,7 +27,7 @@ import { menuTabs } from 'types/ui-constants';
 import { useRouter } from 'next/router';
 import TestEntities from 'components/core/test-entities';
 import Head from 'next/head';
-import { TEXT } from '@handshake/utils';
+import { TEXT } from '@hand-shakes/utils';
 import type DetailedPageParameters from 'types/redirection-parameters';
 
 export async function getStaticProps(prepareProperties: {

@@ -1,22 +1,39 @@
 import type {
   AfterCommandArgs,
-  RunnerStats, SuiteStats, TestStats,
+  BeforeCommandArgs,
+  RunnerStats,
+  SuiteStats,
+  TestStats,
 } from '@wdio/reporter';
 import {
-  MarkTestEntity, MarkTestSession,
-  RegisterTestEntity, Standing,
-  SuiteType, acceptableDateString, sanitizePaths,
-} from '@handshake/common-handshakes';
+  MarkTestEntity,
+  MarkTestSession,
+  RegisterTestEntity,
+  Standing,
+  SuiteType,
+  acceptableDateString,
+  sanitizePaths,
+} from '@hand-shakes/common-handshakes';
 import ReporterContacts from './contacts';
-import { isScreenShot } from './helpers';
 
+// Thanks to https://github.com/webdriverio/webdriverio/blob/a8ae7be72d0c58c7afa7ff085d9c4f41c9aea724/packages/wdio-allure-reporter/src/utils.ts#L153
+export function isScreenShot(
+  command: BeforeCommandArgs | AfterCommandArgs,
+): boolean {
+  const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/;
+
+  return (
+    (command.endpoint && isScrenshotEndpoint.test(command.endpoint))
+|| command.command === 'takeScreenshot'
+  );
+}
 export default class HandshakeReporter extends ReporterContacts {
   /**
-   * gets the relative suite from the current suite id
-   * @param snapshotIndex index of the current suite when observed previously in this.currentSuites
-   * @param index from the current suite id fetch this index [optional, default: 0]
-   * @returns
-   */
+ * gets the relative suite from the current suite id
+ * @param snapshotIndex index of the current suite when observed previously in this.currentSuites
+ * @param index from the current suite id fetch this index [optional, default: 0]
+ * @returns
+ */
   expectedIndex(snapshotIndex: number, index: number) {
     // assumed requestFromEnd < 0
     return -(this.currentSuites.length - snapshotIndex) + index;
@@ -29,24 +46,26 @@ export default class HandshakeReporter extends ReporterContacts {
     );
 
     return (
-      fetchedParent
-      || this.supporter.getFromMap(
+      fetchedParent || this.supporter.getFromMap(
         this.currentSuites.at(
-          this.expectedIndex(snapshot, suiteOrTest.uid.includes('suite') ? -2 : -1),
+          this.expectedIndex(
+            snapshot,
+            suiteOrTest.uid.includes('suite') ? -2 : -1,
+          ),
         )?.uid ?? '',
       )
-      || ''
+|| ''
     );
   }
 
   /**
-   * extracts the payload for registering a test entity [hook/test/suite]
-   * @param suiteOrTest suite object or test object
-   * @param type is it suite or test
-   * @param snapshot at the time of its invocation (or adding the request)
-   * what were the number of suites
-   * @returns
-   */
+* extracts the payload for registering a test entity [hook/test/suite]
+ * @param suiteOrTest suite object or test object
+ * @param type is it suite or test
+ * @param snapshot at the time of its invocation (or adding the request)
+ * what were the number of suites
+ * @returns
+ */
   extractRegistrationPayloadForTestEntity(
     suiteOrTest: SuiteStats | TestStats,
     type: SuiteType,
@@ -58,15 +77,15 @@ export default class HandshakeReporter extends ReporterContacts {
     const payload = {
       title,
       description: description ?? '',
-      file: sanitizePaths([file || this.currentSuites.at(this.expectedIndex(snapshot, -1))?.file || '']).at(0) ?? '',
-      tags: tags?.map(
-        (tag: any) => (typeof tag === 'string'
-          ? { name: tag, label: 'tag' }
-          : {
-            name: tag.name,
-            label: 'Feature file tag',
-          }),
-      )?.filter((tag) => tag) || [],
+      file: sanitizePaths([
+        file || this.currentSuites.at(this.expectedIndex(snapshot, -1))?.file || '',
+      ]).at(0) ?? '',
+      tags: tags?.map((tag: any) => (typeof tag === 'string' ? { name: tag, label: 'tag' }
+        : {
+          name: tag.name,
+          label: 'Feature file tag',
+        }))
+        ?.filter((tag) => tag) || [],
       started: acceptableDateString(suiteOrTest.start),
       suiteType: type,
       parent: this.fetchParent(suiteOrTest, snapshot),
@@ -78,10 +97,10 @@ export default class HandshakeReporter extends ReporterContacts {
 
   // eslint-disable-next-line class-methods-use-this
   /**
-   * extracts the payload from the test entity for updating its values.
-   * @param suiteOrTest test entity to update
-   * @returns
-   */
+ * extracts the payload from the test entity for updating its values.
+ * @param suiteOrTest test entity to update
+* @returns
+ */
   extractRequiredForEntityCompletion(
     suiteOrTest: SuiteStats | TestStats,
   ): MarkTestEntity {
@@ -89,9 +108,9 @@ export default class HandshakeReporter extends ReporterContacts {
     const { errors, error, state: entityState } = suiteOrTest as TestStats;
     const state = entityState as undefined | string;
 
-    const ended = acceptableDateString(suiteOrTest.end
-      ? suiteOrTest.end
-      : new Date());
+    const ended = acceptableDateString(
+      suiteOrTest.end ? suiteOrTest.end : new Date(),
+    );
 
     const standing = (
       (suiteOrTest.type === 'test' ? state : 'YET_TO_CALC') || 'PENDING'
@@ -113,36 +132,39 @@ export default class HandshakeReporter extends ReporterContacts {
   onRunnerStart(runnerStats: RunnerStats): void {
     if (!runnerStats.sessionId) {
       this.skipTestRun = true;
-      this.logger.warn({ for: 'skipping tests', in: this.currentSpec ?? this.specs });
+      this.logger.warn({
+        for: 'skipping tests',
+        in: this.currentSpec ?? this.specs,
+      });
       return;
     }
 
-    this.supporter.registerTestSession(
-      {
-        started: acceptableDateString(this.runnerStat?.start ?? new Date()),
-        retried: this.runnerStat?.retry ?? 0,
-      },
-    );
+    this.supporter.registerTestSession({
+      started: acceptableDateString(this.runnerStat?.start ?? new Date()),
+      retried: this.runnerStat?.retry ?? 0,
+    });
   }
 
   onSuiteStart(suite: SuiteStats): void {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.registerTestEntity(
-      suite.uid,
-      () => this.extractRegistrationPayloadForTestEntity(suite, 'SUITE', this.currentSuites.length),
-    );
+    this.supporter.registerTestEntity(suite.uid, () => this.extractRegistrationPayloadForTestEntity(
+      suite,
+      'SUITE',
+      this.currentSuites.length,
+    ));
   }
 
-  addTest(test: TestStats, note?:number): void {
+  addTest(test: TestStats, note?: number): void {
     if (this.skipTestRun) {
       return;
     }
-    this.supporter.registerTestEntity(
-      test.uid,
-      () => this.extractRegistrationPayloadForTestEntity(test, 'TEST', note ?? this.currentSuites.length),
-    );
+    this.supporter.registerTestEntity(test.uid, () => this.extractRegistrationPayloadForTestEntity(
+      test,
+      'TEST',
+      note ?? this.currentSuites.length,
+    ));
   }
 
   onSuiteEnd(suite: SuiteStats): void {
@@ -178,7 +200,9 @@ export default class HandshakeReporter extends ReporterContacts {
     const note = this.currentSuites.length;
 
     this.supporter.addJob(() => {
-      if (this.supporter.getFromMap(test.uid)) { return this.markTestCompletion(test); }
+      if (this.supporter.getFromMap(test.uid)) {
+        return this.markTestCompletion(test);
+      }
       this.addTest(test, note);
       return this.markTestCompletion(test);
     });
@@ -189,8 +213,7 @@ export default class HandshakeReporter extends ReporterContacts {
       return;
     }
 
-    const caps = this.runnerStat
-      ?.capabilities as WebdriverIO.Capabilities;
+    const caps = this.runnerStat?.capabilities as WebdriverIO.Capabilities;
 
     const payload: MarkTestSession = {
       ended: runnerStats.end?.toISOString() ?? new Date().toISOString(),
@@ -228,12 +251,12 @@ export default class HandshakeReporter extends ReporterContacts {
     }
   }
 
-  async onAfterAssertion(
-    assertionArgs: {
-      matcherName: string, expectedValue: any,
-      options: { wait: number, interval: number },
-      result: { pass: boolean, message: () => string } },
-  ) {
+  async onAfterAssertion(assertionArgs: {
+    matcherName: string;
+    expectedValue: any;
+    options: { wait: number; interval: number };
+    result: { pass: boolean; message: () => string };
+  }) {
     await this.supporter.addAssertion(
       assertionArgs.matcherName,
       {
