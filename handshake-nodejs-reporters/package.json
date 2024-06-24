@@ -19,7 +19,7 @@
 		"lint": "turbo run lint",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
 		"release": "npx changeset publish",
-		"publish-packages": "turbo run build lint && changeset version && changeset publish",
+		"publish-packages": "turbo run build lint --filter=*wdio-handshake-reporter --filter=*common-handshakes && changeset version && changeset publish",
 		"export": "handshake export ../TestResults --out ../TestReports",
 		"export-sanity-results": "handshake export ../SanityResults --out ../TestReports",
 		"display": "handshake display ../TestReports",

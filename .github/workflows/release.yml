@@ -160,7 +160,7 @@ jobs:
       - name: Setup Turbo Repo.
         working-directory: ./handshake-nodejs-reporters
         run:
-          pnpm install && pnpm build
+          pnpm install
 
       - name: skip job if no changesets
         working-directory: ./handshake-nodejs-reporters
