@@ -1,5 +1,33 @@
 # wdio-graspit-reporter
 
+## 0.8.1
+
+### Patch Changes
+
+- 128884e: adding a reporter class in webdriverio in helper function
+
+## 0.8.0
+
+### Minor Changes
+
+- ebdc7ae: packages are available under "@handshake/" and we are now using pnpm instead of npm
+
+### Patch Changes
+
+- Updated dependencies [ebdc7ae]
+  - @hand-shakes/common-handshakes@0.8.0
+
+## 0.7.0
+
+### Minor Changes
+
+- cb8500d: refractor common-handshakes and wdio-handshake-reporter [no-visible-changes]
+
+### Patch Changes
+
+- Updated dependencies [cb8500d]
+  - common-handshakes@0.7.0
+
 ## 0.6.8
 
 ### Patch Changes

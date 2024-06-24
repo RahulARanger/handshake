@@ -40,14 +40,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20.9.0
+          cache: 'pnpm'
+          cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
 
       - name: Installing node packages
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+        run: pnpm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
 
       - name: Building Dashboard
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: npm run build
+        run: pnpm build
 
       - name: Zipping the dashboard export
         working-directory: dashboard
@@ -142,38 +144,38 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20.9.0
-          cache: 'npm'
-          cache-dependency-path: handshake-nodejs-reporters/package-lock.json
+          cache: 'pnpm'
+          cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
 
       - name: Setup Turbo Repo.
         working-directory: ./handshake-nodejs-reporters
         run:
-          npm install && npm run build
+          pnpm install
 
       - name: skip job if no changesets
         working-directory: ./handshake-nodejs-reporters
         run: npx changeset status
 
       - name: Create .npmrc file
-        env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         working-directory: ./handshake-nodejs-reporters
-        run: |
-          cat << EOF > "$HOME/.npmrc"
-            email=saihanumarahul66@gmail.com
-            //registry.npmjs.org/:_authToken=$NPM_TOKEN
-          EOF
+        run: echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
 
       - name: publish packages
         working-directory: ./handshake-nodejs-reporters
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm run publish
+        run: pnpm publish-packages
 
       - name: commiting the changes
         uses: stefanzweifel/git-auto-commit-action@v5
@@ -214,11 +216,11 @@ jobs:
 
       - name: Installing node packages
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: npm install
+        run: pnpm install
 
       - name: Building storybook
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: npm run build-storybook --quiet
+        run: pnpm build-storybook --quiet
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

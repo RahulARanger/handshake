@@ -1,6 +1,6 @@
 import type { AnchorProps } from '@mantine/core';
 import { Anchor, Text } from '@mantine/core';
-import { TEXT } from 'handshake-utils';
+import { TEXT } from '@hand-shakes/utils';
 import type { ReactNode } from 'react';
 import React from 'react';
 

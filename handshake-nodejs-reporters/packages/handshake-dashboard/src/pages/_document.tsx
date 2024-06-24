@@ -1,4 +1,4 @@
-import { TEXT } from 'handshake-utils';
+import { TEXT } from '@hand-shakes/utils';
 import { Html, Head, Main, NextScript } from 'next/document';
 // import Script from 'next/script';
 import type { ReactNode } from 'react';

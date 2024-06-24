@@ -1,13 +1,13 @@
 import type { Options } from '@wdio/types';
-import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
-import { Assertion, checkVersion } from 'common-handshakes';
+import { Assertion, checkVersion } from '@hand-shakes/common-handshakes';
 import { HandshakeServiceOptions, ReporterOptions } from './types';
 import HandshakeService from './service';
+import HandshakeReporter from './reporter';
 import { currentReporter } from './contacts';
 
 export function attachReporter(
   config: Options.Testrunner,
-  options: ReporterOptions & HandshakeServiceOptions & { root ?: string },
+  options: ReporterOptions & HandshakeServiceOptions & { root?: string },
 ): Options.Testrunner {
   if (options.disabled) return config;
   checkVersion();
@@ -19,7 +19,7 @@ export function attachReporter(
   toModify.services = toModify.services || [];
 
   toModify.reporters.push([
-    'handshake',
+    HandshakeReporter,
     {
       port,
       addScreenshots: options.addScreenshots || false,
@@ -32,21 +32,27 @@ export function attachReporter(
   ]);
 
   toModify.services.push([
-    HandshakeService, {
+    HandshakeService,
+    {
       port,
       requestsTimeout: Math.max(
-        options.requestsTimeout ?? config.connectionRetryTimeout ?? 120e3,
+        options.requestsTimeout
+?? config.connectionRetryTimeout
+?? 120e3,
         120e3,
       ),
-      reportGenerationTimeout: Math.max(options.reportGenerationTimeout ?? 180e3, 180e3),
+      reportGenerationTimeout: Math.max(
+        options.reportGenerationTimeout ?? 180e3,
+        180e3,
+      ),
       root: options.root,
       workers: options.workers,
       resultsFolderName: options.resultsFolderName,
       logLevel: options.logLevel ?? config.logLevel ?? 'info',
       testConfig: {
         ...options.testConfig,
-        avoidParentSuitesInCount:
-          options.testConfig?.avoidParentSuitesInCount ?? config.framework === 'cucumber',
+        avoidParentSuitesInCount: options.testConfig?.avoidParentSuitesInCount
+?? config.framework === 'cucumber',
       },
       exportOutDir: options.exportOutDir,
     },
@@ -55,23 +61,20 @@ export function attachReporter(
   return toModify;
 }
 
-// Thanks to https://github.com/webdriverio/webdriverio/blob/a8ae7be72d0c58c7afa7ff085d9c4f41c9aea724/packages/wdio-allure-reporter/src/utils.ts#L153
-export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boolean {
-  const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/;
-
-  return (
-    (command.endpoint && isScrenshotEndpoint.test(command.endpoint))
-        || command.command === 'takeScreenshot'
-  );
-}
-
 export function skipIfRequired() {
   if (currentReporter == null || currentReporter?.skipTestRun) {
-    currentReporter?.logger.info({ note: 'skipping', what: 'test', why: 'as requested' });
+    currentReporter?.logger.info({
+      note: 'skipping',
+      what: 'test',
+      why: 'as requested',
+    });
     return true;
   }
   if (currentReporter.currentTestID == null) {
-    currentReporter?.logger.error({ why: 'no-test-id-found', so: 'skipping' });
+    currentReporter?.logger.error({
+      why: 'no-test-id-found',
+      so: 'skipping',
+    });
     return true;
   }
   return false;
@@ -80,7 +83,7 @@ export function skipIfRequired() {
 export async function attachScreenshot(
   title: string,
   content: string,
-  description?:string,
+  description?: string,
   is_suite?: boolean,
 ) {
   if (skipIfRequired()) {

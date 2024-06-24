@@ -15,7 +15,7 @@ import { Badge, Tooltip } from 'antd/lib';
 import { showOnly } from 'types/ui-constants';
 import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
 import { testStatusText } from 'components/core/TestEntity/extractors';
-import { LOCATORS } from 'handshake-utils';
+import { LOCATORS } from '@hand-shakes/utils';
 import type { possibleFrameworks } from 'types/test-run-records';
 import { Group } from 'antd/lib/avatar';
 

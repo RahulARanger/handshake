@@ -1,6 +1,3 @@
 {
-	"extends": "common-handshakes/node.json",
-	"compilerOptions": {
-		"types": ["@wdio/globals/types"]
-	},
+	"extends": "@hand-shakes/common-handshakes/node.json"
 }
