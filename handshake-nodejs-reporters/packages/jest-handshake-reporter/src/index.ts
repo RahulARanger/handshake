@@ -16,7 +16,7 @@ import {
   frameworksUsedString, RegisterTestEntity, ReporterDialPad, ServiceDialPad,
   Standing,
   SuiteType,
-} from 'common-handshakes';
+} from '@handshake/common-handshakes';
 import { existsSync, mkdirSync } from 'fs';
 import {
   basename, dirname, join, relative,

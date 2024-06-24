@@ -1,6 +1,6 @@
 {
-	"name": "handshake-utils",
-	"version": "0.6.0",
+	"name": "@handshake/utils",
+	"version": "0.7.0",
 	"description": "util required for the handshake packages, internally used",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",

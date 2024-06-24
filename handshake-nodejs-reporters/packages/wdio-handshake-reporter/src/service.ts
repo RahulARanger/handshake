@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync } from 'node:fs';
 import type { Options, Services } from '@wdio/types';
-import { frameworksUsedString } from 'common-handshakes';
+import { frameworksUsedString } from '@handshake/common-handshakes';
 import { ContactsForService } from './contacts';
 
 export default class HandshakeService

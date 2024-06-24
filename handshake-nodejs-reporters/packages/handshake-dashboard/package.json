@@ -1,5 +1,5 @@
 {
-    "name": "handshake-dashboard",
+    "name": "@handshake/handshake-dashboard",
     "version": "0.6.5",
     "license": "MIT",
     "private": "true",
@@ -17,6 +17,7 @@
     },
     "dependencies": {
         "@chromatic-com/storybook": "^1.5.0",
+        "@handshake/utils": "workspace:*",
         "@mantine/carousel": "^7.10.2",
         "@mantine/charts": "^7.10.2",
         "@mantine/core": "^7.10.2",
@@ -50,7 +51,6 @@
         "dayjs": "^1.11.11",
         "embla-carousel-autoplay": "^8.1.5",
         "embla-carousel-react": "^8.1.5",
-        "handshake-utils": "0.6.0",
         "lodash-es": "^4.17.21",
         "next": "14.2.4",
         "postcss": "^8.4.38",
@@ -59,7 +59,7 @@
         "prettier": "^3.3.2",
         "react": "^18.3.1",
         "react-countup": "^6.5.3",
-        "react-data-grid": "^7.0.0-beta.43",
+        "react-data-grid": "7.0.0-beta.44",
         "react-dom": "^18.3.1",
         "recharts": "^2.12.7",
         "storybook": "^8.1.10",
