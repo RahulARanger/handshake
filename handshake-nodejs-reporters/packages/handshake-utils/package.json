@@ -1,5 +1,5 @@
 {
-	"name": "handshake-utils",
+	"name": "@handshake/handshake-utils",
 	"version": "0.5.1",
 	"description": "util required for the handshake packages, internally used",
 	"main": "./dist/index.js",

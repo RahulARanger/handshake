@@ -1,5 +1,5 @@
 {
-	"name": "wdio-handshake-reporter",
+	"name": "@handshake/wdio-handshake-reporter",
 	"version": "0.6.8",
 	"types": "./dist/index.d.ts",
 	"module": "./dist/index.js",
@@ -20,7 +20,7 @@
 	"dependencies": {
 		"@wdio/reporter": "^8.39.0",
 		"@wdio/types": "^8.39.0",
-		"common-handshakes": "*",
+		"common-handshakes": "workspace:*",
 		"pino": "^9.2.0",
 		"superagent": "^9.0.2",
 		"typescript": "^5.5.2"

@@ -1,5 +1,5 @@
 {
-	"name": "jest-handshake-reporter",
+	"name": "@handshake/jest-handshake-reporter",
 	"version": "0.6.6",
 	"description": "Handshake Custom Reporter for jest test framework",
 	"types": "./dist/index.d.ts",
@@ -29,7 +29,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"@jest/reporters": "^29.7.0",
-		"common-handshakes": "*",
+		"common-handshakes": "workspace:*",
 		"pino": "^9.2.0",
 		"superagent": "^9.0.2",
 		"typescript": "^5.5.2"
