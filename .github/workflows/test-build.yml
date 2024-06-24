@@ -71,7 +71,7 @@ jobs:
 
         - name: Installing node packages
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-          run: pnpm install && npx playwright install --with-deps && pnpm install @swc/cli @swc/core wait-on concurrently http-server
+          run: pnpm install && pnpm install @swc/cli @swc/core wait-on concurrently http-server playwright && npx playwright install --with-deps
 
         - name: Building storybook
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
