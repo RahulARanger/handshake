@@ -6,7 +6,7 @@ import {
   MarkTestEntity, MarkTestSession,
   RegisterTestEntity, Standing,
   SuiteType, acceptableDateString, sanitizePaths,
-} from 'common-handshakes';
+} from '@handshake/common-handshakes';
 import ReporterContacts from './contacts';
 import { isScreenShot } from './helpers';
 

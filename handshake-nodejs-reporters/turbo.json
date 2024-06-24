@@ -16,6 +16,9 @@
 		},
 		"sanity": {
 			"persistent": false
+		},
+		"clean": {
+			"cache": false
 		}
 	}
 }

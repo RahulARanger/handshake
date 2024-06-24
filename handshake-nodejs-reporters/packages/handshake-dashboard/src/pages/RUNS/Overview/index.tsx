@@ -1,6 +1,6 @@
 import React, { useMemo, type ReactNode } from 'react';
 import Head from 'next/head';
-import { TEXT } from 'handshake-utils';
+import { TEXT } from '@handshake/utils';
 import { useRouter } from 'next/router';
 import RunPageContent from 'components/about-test-run/test-run-page-layout';
 import { Grid } from '@mantine/core';

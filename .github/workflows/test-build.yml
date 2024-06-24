@@ -138,8 +138,8 @@ jobs:
           uses: actions/setup-node@v4
           with:
             node-version: 20.9.0
-            cache: 'npm'
-            cache-dependency-path: handshake-nodejs-reporters/package-lock.json
+            cache: 'pnpm'
+            cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
 
         - name: Set up Python 3.11
           uses: actions/setup-python@v5
@@ -164,12 +164,11 @@ jobs:
         - name: Setup Turbo Repo.
           working-directory: ./handshake-nodejs-reporters
           run:
-            npm install
+            npm install -g pnpm && pnpm install
 
-        - name: Installing node packages for common-handshakes
-          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
-          # NOTE: common-handshakes build is always required
-          run: npm install && npm run build
+        - name: Building files
+          working-directory: ./handshake-nodejs-reporters
+          run: pnpm build
 
         - name: conduct tests
           working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
@@ -177,13 +176,8 @@ jobs:
           # NOTE: common-handshakes tests alone can be triggered if required
           run: npm run test
 
-        - name: Installing node packages for wdio-handshake-reporter
-          working-directory: ./handshake-nodejs-reporters/packages/wdio-handshake-reporter
-          if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
-          run: npm install && npm run build
-
         - name: conduct e2e tests
           working-directory: ./handshake-nodejs-reporters
           if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
           continue-on-error: true
-          run: npm run test-wdio
+          run: pnpm run test-wdio

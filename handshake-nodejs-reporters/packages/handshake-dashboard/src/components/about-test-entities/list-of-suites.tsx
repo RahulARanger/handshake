@@ -32,7 +32,7 @@ import PlatformEntity, { DetailedPlatformVersions } from './platform-entity';
 import type { ParsedSuiteRecord } from 'types/parsed-records';
 import { IconTrendingDown2 } from '@tabler/icons-react';
 import GridStyles from 'styles/data-table.module.css';
-import type { ColumnOrColumnGroup, Column } from 'react-data-grid';
+import type { ColumnOrColumnGroup } from 'react-data-grid';
 import { TreeDataGrid } from 'react-data-grid';
 import { pick, groupBy as rowGrouper, sumBy, uniqBy } from 'lodash-es';
 import clsx from 'clsx';
@@ -559,8 +559,9 @@ export default function ListOfSuits(properties: {
                             headerCellClass: GridStyles.cell,
                         },
                     ] as Array<
-                        Column<ParsedSuiteRecord, unknown> &
-                            ColumnOrColumnGroup<ParsedSuiteRecord, unknown>
+                        ColumnOrColumnGroup<NoInfer<RowRecord>, unknown> & {
+                            key: string;
+                        }
                     >
                 }
                 rows={parsedSuites}

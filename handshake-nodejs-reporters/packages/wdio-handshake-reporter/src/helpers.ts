@@ -1,6 +1,6 @@
 import type { Options } from '@wdio/types';
 import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
-import { Assertion, checkVersion } from 'common-handshakes';
+import { Assertion, checkVersion } from '@handshake/common-handshakes';
 import { HandshakeServiceOptions, ReporterOptions } from './types';
 import HandshakeService from './service';
 import { currentReporter } from './contacts';
