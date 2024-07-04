@@ -1,5 +1,23 @@
 # handshake-utils
 
+## 0.8.0
+
+### Minor Changes
+
+- ebdc7ae: packages are available under "@handshake/" and we are now using pnpm instead of npm
+
+## 0.6.0
+
+### Minor Changes
+
+- cb8500d: refractor common-handshakes and wdio-handshake-reporter [no-visible-changes]
+
+## 0.5.1
+
+### Patch Changes
+
+- eb44a84: fix: version mapping between internals
+
 ## 0.5.0
 
 ### Minor Changes

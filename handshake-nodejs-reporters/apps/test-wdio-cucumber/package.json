@@ -1,5 +1,5 @@
 {
-	"name": "test-wdio-cucumber",
+	"name": "@hand-shakes/test-wdio-cucumber",
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
@@ -11,15 +11,15 @@
 	"license": "ISC",
 	"description": "",
 	"devDependencies": {
-		"@wdio/cucumber-framework": "8.38.2",
-		"@wdio/local-runner": "^8.38.2",
-		"@wdio/spec-reporter": "^8.38.2",
+		"@wdio/cucumber-framework": "8.39.0",
+		"@wdio/local-runner": "^8.39.0",
+		"@wdio/spec-reporter": "^8.39.0",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.4.5"
+		"typescript": "^5.5.2"
 	},
 	"dependencies": {
-		"@wdio/cli": "^8.38.2",
-		"@wdio/mocha-framework": "8.38.2",
-		"wdio-handshake-reporter": "*"
+		"@wdio/cli": "^8.39.0",
+		"@wdio/mocha-framework": "8.39.0",
+		"@hand-shakes/wdio-handshake-reporter": "workspace:*"
 	}
 }

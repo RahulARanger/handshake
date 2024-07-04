@@ -55,27 +55,37 @@ jobs:
 
       steps:
         - uses: actions/checkout@v4
+
+        - uses: pnpm/action-setup@v4
+          name: Install pnpm
+          with:
+            version: 8
+            run_install: false
+
         - name: Use Node.js
           uses: actions/setup-node@v4
           with:
             node-version: 20.9.0
+            cache: 'pnpm'
+            cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
+
         - name: Installing node packages
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-          run: npm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+          run: pnpm install && pnpm install @swc/cli @swc/core wait-on concurrently http-server playwright && npx playwright install --with-deps
 
         - name: Building storybook
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-          run: npm run build-storybook --quiet
+          run: pnpm build-storybook --quiet
 
         - name: Conducting Component Tests
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
           run: npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
             "npx http-server storybook-static --port 6006 --silent" \
-            "npx wait-on tcp:6006 && npm run test"
+            "npx wait-on tcp:6006 && pnpm test"
 
         - name: Building Dashboard
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-          run: npm run build
+          run: pnpm build
 
     test-handshakes:
       needs: decide
@@ -134,12 +144,18 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v4
 
+        - uses: pnpm/action-setup@v4
+          name: Install pnpm
+          with:
+            version: 8
+            run_install: false
+
         - name: Use Node.js
           uses: actions/setup-node@v4
           with:
             node-version: 20.9.0
-            cache: 'npm'
-            cache-dependency-path: handshake-nodejs-reporters/package-lock.json
+            cache: 'pnpm'
+            cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
 
         - name: Set up Python 3.11
           uses: actions/setup-python@v5
@@ -164,12 +180,11 @@ jobs:
         - name: Setup Turbo Repo.
           working-directory: ./handshake-nodejs-reporters
           run:
-            npm install
+            pnpm install
 
-        - name: Installing node packages for common-handshakes
-          working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
-          # NOTE: common-handshakes build is always required
-          run: npm install && npm run build
+        - name: Building files
+          working-directory: ./handshake-nodejs-reporters
+          run: pnpm build
 
         - name: conduct tests
           working-directory: ./handshake-nodejs-reporters/packages/common-handshakes
@@ -177,13 +192,8 @@ jobs:
           # NOTE: common-handshakes tests alone can be triggered if required
           run: npm run test
 
-        - name: Installing node packages for wdio-handshake-reporter
-          working-directory: ./handshake-nodejs-reporters/packages/wdio-handshake-reporter
-          if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
-          run: npm install && npm run build
-
         - name: conduct e2e tests
           working-directory: ./handshake-nodejs-reporters
           if: ${{ needs.decide.outputs.wdio_reporter == 'true' }}
           continue-on-error: true
-          run: npm run test-wdio
+          run: pnpm run test-wdio

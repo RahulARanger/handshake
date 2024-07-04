@@ -1,6 +1,6 @@
 {
-	"name": "handshake-utils",
-	"version": "0.5.0",
+	"name": "@hand-shakes/utils",
+	"version": "0.8.0",
 	"description": "util required for the handshake packages, internally used",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -27,6 +27,6 @@
 		"@types/react-dom": "18.3.0",
 		"cross-env": "^7.0.3",
 		"tslib": "^2.6.3",
-		"typescript": "^5.4.5"
+		"typescript": "^5.5.2"
 	}
 }

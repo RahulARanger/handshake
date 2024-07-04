@@ -1,4 +1,8 @@
-from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
+from handshake.services.DBService.models.result_base import (
+    SessionBase,
+    SuiteBase,
+    RunBase,
+)
 from handshake.services.DBService.models.types import (
     RegisterSession,
     RegisterSuite,
@@ -6,6 +10,7 @@ from handshake.services.DBService.models.types import (
     MarkSession,
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
+    PydanticModalForTestRunUpdate,
     WrittenAttachmentForEntity,
 )
 from handshake.services.Endpoints.blueprints.utils import (
@@ -87,6 +92,33 @@ async def register_suite(request: Request) -> HTTPResponse:
     await suite_record.save()
 
     return text(str(suite_record.suiteID), status=201)
+
+
+@service.put("/registerParentEntities")
+@definition(
+    summary="Registers a set of parent suites starting from root hierarchy",
+    description="Registers set of parent suites with provided meta details of suites and session id",
+    tag="register",
+    body={"application/json": RegisterSuite},
+)
+async def register_parent_entities(request: Request) -> HTTPResponse:
+    prev_parent = ""
+    store = []
+    for _suite in request.json:
+        if isinstance(_suite, str):
+            prev_parent = _suite
+            store.append(prev_parent)
+            continue
+
+        suite = RegisterSuite.model_validate(_suite)
+        values = suite.model_dump()
+        values["parent"] = prev_parent
+        suite_record = await SuiteBase.create(**values)
+        prev_parent = str(suite_record.suiteID)
+        await suite_record.save()
+        store.append(prev_parent)
+
+    return JSONResponse(body=store, status=201)
 
 
 @service.put("/updateSuite", error_format="json")
@@ -235,6 +267,18 @@ async def update_run_config(request: Request) -> HTTPResponse:
     await config.save()
 
     return text("provided config was saved successfully.", status=200)
+
+
+@service.put("/updateTestRun")
+async def update_test_run(request: Request) -> HTTPResponse:
+    about_run = PydanticModalForTestRunUpdate.model_validate(request.json)
+    if not about_run:
+        return text("No changes were made.", status=400)
+
+    test = await RunBase.filter(testID=get_test_id()).first()
+    await test.update_from_dict(about_run.model_dump())
+    await test.save()
+    return text("test run was updated successfully.", status=200)
 
 
 @service.put("/registerAWrittenAttachment", error_format="json")

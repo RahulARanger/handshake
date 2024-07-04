@@ -1,6 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import WDIOReporter, { TestStats } from '@wdio/reporter';
-import { ReporterDialPad, ServiceDialPad } from 'common-handshakes';
+import { ReporterDialPad, ServiceDialPad } from '@hand-shakes/common-handshakes';
 import { join } from 'node:path';
 import pino, { Logger } from 'pino';
 import type { ReporterOptions, HandshakeServiceOptions } from './types';
@@ -36,14 +36,14 @@ export default class ReporterContacts extends WDIOReporter {
   }
 
   get currentTestID(): string {
-    return this.supporter.idMapped[this.currentTest?.uid ?? ''];
+    return this.supporter.getFromMap(this.currentTest?.uid ?? '') ?? '';
   }
 
   get currentSuiteID(): string {
     const suites = this.currentSuites.map((suite) => suite.uid).reverse();
-    return this.supporter.idMapped[
-      suites.find((suite) => this.supporter.idMapped[suite]) ?? ''
-    ];
+    return this.supporter.getFromMap(
+      suites.find((suite) => this.supporter.getFromMap(suite)) ?? '',
+    ) ?? '';
   }
 
   currentEntity(for_suite?: boolean): string {

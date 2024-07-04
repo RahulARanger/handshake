@@ -1,4 +1,4 @@
-import { TEXT } from 'handshake-utils';
+import { TEXT } from '@hand-shakes/utils';
 
 export const configTab = 'config';
 

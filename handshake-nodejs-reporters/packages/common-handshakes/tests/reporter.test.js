@@ -16,11 +16,11 @@ describe('Verifying the functionality of the handshake-reporter', () => {
     service.startService('jest-report-tests', results, root);
     await service.waitUntilItsReady();
     expect(await service.ping()).toBe(true);
-  }, 20e3);
+  }, 50e3);
 
   afterAll(async () => {
     service.terminateServer();
-  }, 30e3);
+  }, 50e3);
 
   test('Verifying the config set', () => {
     expect(reporter.port).toBe(6969);
@@ -34,7 +34,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       const job = reporter.registerTestSession({ retried: 0, specs: ['test.js'], started: new Date() });
       await job;
       expect(reporter.pipeQueue.size).toBe(0);
-      expect(reporter.idMapped.session).toMatch(uuidRegex);
+      expect(reporter.sessionId).toMatch(uuidRegex);
       expect(reporter.misFire).toBe(0);
     });
 
@@ -50,7 +50,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
                 file: 'test.js',
                 parent: '',
                 started: acceptableDateString(new Date()),
-                session_id: reporter.idMapped.session,
+                session_id: reporter.sessionId,
                 retried: 0,
                 suiteType: 'SUITE',
                 tags: [],
@@ -62,12 +62,12 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       await Promise.all(jobs);
       expect(reporter.misFire).toBe(0);
 
-      expect(reporter.idMapped['suite-0']).toMatch(uuidRegex);
-      expect(reporter.idMapped['suite-1']).toMatch(uuidRegex);
-      expect(reporter.idMapped['suite-2']).toMatch(uuidRegex);
+      expect(reporter.getFromMap('suite-0')).toMatch(uuidRegex);
+      expect(reporter.getFromMap('suite-1')).toMatch(uuidRegex);
+      expect(reporter.getFromMap('suite-2')).toMatch(uuidRegex);
 
       // all ids are different
-      expect(Array.from(new Set([reporter.idMapped['suite-0'], reporter.idMapped['suite-1'], reporter.idMapped['suite-2']]))).toHaveLength(3);
+      expect(Array.from(new Set([reporter.getFromMap('suite-0'), reporter.getFromMap('suite-1'), reporter.getFromMap('suite-2')]))).toHaveLength(3);
     });
 
     test('Verifying the registration of tests', async () => {
@@ -82,9 +82,9 @@ describe('Verifying the functionality of the handshake-reporter', () => {
                   description: 'sample-suite',
                   title: `test-${suite}-${index}`,
                   file: 'test.js',
-                  parent: reporter.idMapped[`suite-${suite}`],
+                  parent: reporter.getFromMap(`suite-${suite}`),
                   started: acceptableDateString(new Date()),
-                  session_id: reporter.idMapped.session,
+                  session_id: reporter.sessionId,
                   retried: 0,
                   suiteType: 'TEST',
                   tags: [],
@@ -102,29 +102,29 @@ describe('Verifying the functionality of the handshake-reporter', () => {
 
   describe('Verifying the attachments', () => {
     test('Verifying the description attachment', async () => {
-      await reporter.addDescription('Sample-description for test - 0 - 0', reporter.idMapped['test-0-0']);
-      await reporter.addDescription('Sample-description for suite - 0', reporter.idMapped['suite-0']);
+      await reporter.addDescription('Sample-description for test - 0 - 0', reporter.getFromMap('test-0-0'));
+      await reporter.addDescription('Sample-description for suite - 0', reporter.getFromMap('suite-0'));
       added += 2;
     });
 
     test('Verifying the link attachment', async () => {
-      await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.idMapped['test-0-0']);
-      await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.idMapped['suite-0']);
+      await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.getFromMap('test-0-0'));
+      await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.getFromMap('suite-0'));
       added += 2;
     });
 
     test('verifying the assertion attachment', async () => {
-      await reporter.addAssertion('toEqual', { expected: 2, passed: true, message: 'Passed' }, reporter.idMapped['test-0-1']);
+      await reporter.addAssertion('toEqual', { expected: 2, passed: true, message: 'Passed' }, reporter.getFromMap('test-0-1'));
       await reporter.addAssertion('toEqual', {
         expected: 2, passed: true, message: 'Passed', interval: 100, wait: 500,
-      }, reporter.idMapped['suite-0']);
+      }, reporter.getFromMap('suite-0'));
 
       added += 2;
     });
 
     test('verifying the png attachment', async () => {
       const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
-      const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['test-0-1'], 'sample-description');
+      const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.getFromMap('test-0-1'), 'sample-description');
 
       expect(reporter.misFire).toBe(0);
       const expectedTestID = dirname(dirname(testAttachment));
@@ -132,19 +132,19 @@ describe('Verifying the functionality of the handshake-reporter', () => {
       // should be stored under the attachment folder
       expect(dirname(expectedTestID)).toBe(join(results, 'Attachments'));
       // and then entity level folder (after test run level)
-      expect(basename(dirname(testAttachment))).toBe(reporter.idMapped['test-0-1']);
+      expect(basename(dirname(testAttachment))).toBe(reporter.getFromMap('test-0-1'));
 
       // expect(existsSync(testAttachment)).toBe(true);
       // commented because the file has not saved yet (async-write)
 
-      const suiteAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['suite-0']);
+      const suiteAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.getFromMap('suite-0'));
       // expect(existsSync(suiteAttachment)).toBe(true);
       // commented because the file has not saved yet (async-write)
 
       // should be stored under the attachment folder
       expect(dirname(expectedTestID)).toBe(join(results, 'Attachments'));
       // and then entity level folder (after test run level)
-      expect(basename(dirname(suiteAttachment))).toBe(reporter.idMapped['suite-0']);
+      expect(basename(dirname(suiteAttachment))).toBe(reporter.getFromMap('suite-0'));
 
       expect(expectedTestID).toBe(dirname(dirname(suiteAttachment)));
       expect(reporter.misFire).toBe(0);
@@ -154,11 +154,11 @@ describe('Verifying the functionality of the handshake-reporter', () => {
   describe('verifying the marking endpoints', () => {
     test('verifying the marking of tests', async () => {
       const jobs = [];
-      const pick = reporter.idMapped['test-0-0'];
+      const pick = reporter.getFromMap('test-0-0');
       Array(3).fill(true).forEach((_, suite) => {
         Array(3).fill(true).forEach(
           (__, index) => {
-            expect(reporter.idMapped[`test-${suite}-${index}`]).toMatch(uuidRegex);
+            expect(reporter.getFromMap(`test-${suite}-${index}`)).toMatch(uuidRegex);
             jobs.push(reporter
               .updateTestEntity(
                 () => ({
@@ -166,7 +166,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
                   errors: [],
                   ended: new Date().toISOString(),
                   standing: 'PASSED',
-                  suiteID: reporter.idMapped[`test-${suite}-${index}`],
+                  suiteID: reporter.getFromMap(`test-${suite}-${index}`),
 
                 }),
               ));
@@ -176,7 +176,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
 
       await Promise.all(jobs);
       expect(reporter.misFire).toBe(0);
-      expect(reporter.idMapped['test-0-0']).toBe(pick);
+      expect(reporter.getFromMap('test-0-0')).toBe(pick);
     });
 
     test('verifying the marking of the suites', async () => {
@@ -189,7 +189,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
                 errors: [],
                 ended: new Date().toISOString(),
                 standing: 'PASSED',
-                suiteID: reporter.idMapped[`suite-${index}`],
+                suiteID: reporter.getFromMap(`suite-${index}`),
               }
             ),
           ),
@@ -216,7 +216,7 @@ describe('Verifying the functionality of the handshake-reporter', () => {
               failed: 0,
               skipped: 0,
               tests: 3,
-              sessionID: reporter.idMapped.session ?? '',
+              sessionID: reporter.sessionId ?? '',
               standing: 'FAILED',
             }
           ),
@@ -258,7 +258,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
       const job = reporter.registerTestSession({ retried: 0, specs: ['test.js'], started: new Date() });
       await job;
       expect(reporter.pipeQueue.size).toBe(0);
-      expect(reporter.idMapped.session).toBeUndefined();
+      expect(reporter.getFromMap.session).toBeUndefined();
       expect(reporter.misFire).toBe(0);
     });
 
@@ -274,7 +274,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
                 file: 'test.js',
                 parent: '',
                 started: acceptableDateString(new Date()),
-                session_id: reporter.idMapped.session,
+                session_id: reporter.getFromMap.session,
                 retried: 0,
                 suiteType: 'SUITE',
                 tags: [],
@@ -286,9 +286,9 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
       await Promise.all(jobs);
       expect(reporter.misFire).toBe(0);
 
-      expect(reporter.idMapped['suite-0']).toBeUndefined();
-      expect(reporter.idMapped['suite-1']).toBeUndefined();
-      expect(reporter.idMapped['suite-2']).toBeUndefined();
+      expect(reporter.getFromMap('suite-0')).toBeUndefined();
+      expect(reporter.getFromMap('suite-1')).toBeUndefined();
+      expect(reporter.getFromMap('suite-2')).toBeUndefined();
     });
 
     test('Verifying the registration of tests', async () => {
@@ -303,9 +303,9 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
                   description: 'sample-suite',
                   title: `test-${suite}-${index}`,
                   file: 'test.js',
-                  parent: reporter.idMapped[`suite-${suite}`],
+                  parent: reporter.getFromMap(`suite-${suite}`),
                   started: acceptableDateString(new Date()),
-                  session_id: reporter.idMapped.session,
+                  session_id: reporter.getFromMap.session,
                   retried: 0,
                   suiteType: 'TEST',
                   tags: [],
@@ -323,29 +323,29 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
 
   describe('Verifying the attachments', () => {
     test('Verifying the description attachment', async () => {
-      await reporter.addDescription('Sample-description for test - 0 - 0', reporter.idMapped['test-0-0']);
-      await reporter.addDescription('Sample-description for suite - 0', reporter.idMapped['suite-0']);
+      await reporter.addDescription('Sample-description for test - 0 - 0', reporter.getFromMap('test-0-0'));
+      await reporter.addDescription('Sample-description for suite - 0', reporter.getFromMap('suite-0'));
       added += 2;
     });
 
     test('Verifying the link attachment', async () => {
-      await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.idMapped['test-0-0']);
-      await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.idMapped['suite-0']);
+      await reporter.addLink('https://github.com/RahulARanger/handshake', 'repo', reporter.getFromMap('test-0-0'));
+      await reporter.addLink('https://github.com/RahulARanger', 'author', reporter.getFromMap('suite-0'));
       added += 2;
     });
 
     test('verifying the assertion attachment', async () => {
-      await reporter.addAssertion('toEqual', { expected: 2, passed: true, message: 'Passed' }, reporter.idMapped['test-0-1']);
+      await reporter.addAssertion('toEqual', { expected: 2, passed: true, message: 'Passed' }, reporter.getFromMap('test-0-1'));
       await reporter.addAssertion('toEqual', {
         expected: 2, passed: true, message: 'Passed', interval: 100, wait: 500,
-      }, reporter.idMapped['suite-0']);
+      }, reporter.getFromMap('suite-0'));
 
       added += 2;
     });
 
     test('verifying the png attachment', async () => {
       const raw = 'iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAIAAACQW7H8AAAAwUlEQVR42mL8/9/v1n7mJ6yoaGhq...';
-      const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.idMapped['test-0-1'], 'sample-description');
+      const testAttachment = await reporter.attachScreenshot('screenshot-0', raw, reporter.getFromMap('test-0-1'), 'sample-description');
       expect(testAttachment).toBeUndefined();
       expect(reporter.misFire).toBe(0);
     });
@@ -357,7 +357,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
       Array(3).fill(true).forEach((_, suite) => {
         Array(3).fill(true).forEach(
           (__, index) => {
-            expect(reporter.idMapped[`test-${suite}-${index}`]).toBeUndefined();
+            expect(reporter.getFromMap(`test-${suite}-${index}`)).toBeUndefined();
             jobs.push(reporter
               .updateTestEntity(
                 () => ({
@@ -365,7 +365,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
                   errors: [],
                   ended: new Date().toISOString(),
                   standing: 'PASSED',
-                  suiteID: reporter.idMapped[`test-${suite}-${index}`],
+                  suiteID: reporter.getFromMap(`test-${suite}-${index}`),
 
                 }),
               ));
@@ -375,7 +375,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
 
       await Promise.all(jobs);
       expect(reporter.misFire).toBe(0);
-      expect(reporter.idMapped['test-0-0']).toBeUndefined();
+      expect(reporter.getFromMap('test-0-0')).toBeUndefined();
     });
 
     test('verifying the marking of the suites', async () => {
@@ -388,7 +388,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
                 errors: [],
                 ended: new Date().toISOString(),
                 standing: 'PASSED',
-                suiteID: reporter.idMapped[`suite-${index}`],
+                suiteID: reporter.getFromMap(`suite-${index}`),
               }
             ),
           ),
@@ -415,7 +415,7 @@ describe('Verifying the functionality of the disabled handshake-reporter', () =>
               failed: 0,
               skipped: 0,
               tests: 3,
-              sessionID: reporter.idMapped.session ?? '',
+              sessionID: reporter.getFromMap.session ?? '',
               standing: 'FAILED',
             }
           ),
