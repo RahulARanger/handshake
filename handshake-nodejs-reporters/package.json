@@ -26,18 +26,18 @@
 		"verify-sanity": "cd apps/test-export && npm run verify-sanity"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.27.6",
-		"@typescript-eslint/eslint-plugin": "^7.2.0",
-		"@typescript-eslint/parser": "^7.2.0",
-		"eslint": "^8.57.0",
-		"eslint-config-airbnb": "^19.0.4",
-		"eslint-config-airbnb-typescript": "^18.0.0",
-		"eslint-plugin-unicorn": "^51.0.1",
+		"@changesets/cli": "^2.27.7",
 		"prettier": "^3.3.2",
 		"rimraf": "^5.0.7",
 		"tsconfig": "7.0.0",
 		"tsup": "^8.1.0",
-		"turbo": "^2.0.4"
+		"turbo": "^2.0.6",
+		"eslint": "^8.57.0",
+		"eslint-config-airbnb": "^19.0.4",
+		"eslint-config-airbnb-typescript": "^18.0.0",
+		"eslint-plugin-unicorn": "^51.0.1",
+		"@typescript-eslint/eslint-plugin": "^7.2.0",
+		"@typescript-eslint/parser": "^7.2.0"
 	},
 	"description": "List of packages to build nodejs-reporters for handshake",
 	"keywords": [
@@ -48,5 +48,5 @@
 		"test-automation"
 	],
 	"author": "RahulARanger <saihanumarahul66@gmail.com>",
-	"license": "MIT"	
+	"license": "MIT"
 }

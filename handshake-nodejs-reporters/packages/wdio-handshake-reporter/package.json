@@ -23,7 +23,7 @@
 		"@hand-shakes/common-handshakes": "workspace:*",
 		"pino": "^9.2.0",
 		"superagent": "^9.0.2",
-		"typescript": "^5.5.2"
+		"typescript": "^5.5.3"
 	},
 	"devDependencies": {
 		"@babel/core": "^7.24.7",
@@ -31,7 +31,7 @@
 		"@babel/preset-typescript": "^7.24.7",
 		"@jest/globals": "^29.7.0",
 		"@types/async-lock": "^1.4.2",
-		"@types/node": "^20.14.8",
+		"@types/node": "^20.14.10",
 		"@types/superagent": "^8.1.7",
 		"babel-jest": "^29.7.0",
 		"babel-plugin-transform-import-meta": "^2.2.1",

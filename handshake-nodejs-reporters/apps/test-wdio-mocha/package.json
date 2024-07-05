@@ -7,18 +7,20 @@
 	"type": "module",
 	"scripts": {
 		"sanity": "cross-env SANITY=true npx wdio run ./wdio.conf.js",
-		"test": "npx wdio run ./wdio.conf.js"
+		"test": "pnpm wdio run ./wdio.conf.js",
+		"test:sample": "cross-env SANITY=true pnpm run test",
+		"test-data": "cross-env LOCAL=true pnpm run test"
 	},
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@wdio/cli": "^8.39.0",
+		"@wdio/cli": "^8.39.1",
 		"@wdio/cucumber-framework": "^8.39.0",
-		"@wdio/local-runner": "^8.39.0",
+		"@wdio/local-runner": "^8.39.1",
 		"@wdio/mocha-framework": "^8.39.0",
 		"@wdio/spec-reporter": "^8.39.0",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.5.2",
+		"typescript": "^5.5.3",
 		"@hand-shakes/wdio-handshake-reporter": "workspace:*"
 	},
 	"devDependencies": {
