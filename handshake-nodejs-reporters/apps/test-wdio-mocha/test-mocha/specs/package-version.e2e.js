@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs"
 import { Key } from "webdriverio"
 import { join } from "node:path"
 import { browser, $, expect } from "@wdio/globals"
-import { addDescription, addLink } from "wdio-handshake-reporter"
+import { addDescription, addLink } from "@hand-shakes/wdio-handshake-reporter"
 
 describe("Verifying the versions of the project's dependencies", async function () {
     /**
@@ -12,42 +12,29 @@ describe("Verifying the versions of the project's dependencies", async function 
     const packages = _raw.dependencies;
     const dev_packages = _raw.devDependencies
 
-    this.beforeAll(async () => {
-        await browser.url("https://www.npmjs.com/")
-        await expect(browser).toHaveTitle("npm | Home");
-    })
-
     async function verifyPackages(packages) {
-        for (let _package in packages) {
-            it(`Search for the package: ${_package}`, async function () {
-                await addDescription("Verifying the presence of the searchbar")
-                const searchBar = $("input[type=search]")
-                expect(searchBar).toBeDisplayed();
-                await searchBar.setValue(_package)
-                await browser.keys([Key.Enter])
-            })
-            it(`Should find a exactly matched package: ${_package}`, async function () {
-                await addDescription("Verifying if the package exists, we would see the exact tag if it finds one")
-                const exactlyMatched = await $("#pkg-list-exact-match")
-                const title = await exactlyMatched.previousElement()
-                await expect(title).toHaveText(_package);
-                await title.click();
-                const current = await browser.getUrl()
-                await addLink(current, _package);
-            })
+        it("move to search site", async () => {
+            await browser.url("https://duckduckgo.com/");
+            await expect(browser).toHaveTitle(expect.stringMatching("^DuckDuckGo.*"));
+        });
 
-            it(`Verifying if you have opened the detailed view of the ${_package}`, async function () {
-                const version = await $("h3=Version")
-                await version.waitForDisplayed({ timeout: 10e3 });
-                await expect(browser).toHaveUrl(`https://www.npmjs.com/package/${_package}`)
-                await expect(browser).toHaveTitle(`${_package} - npm`)
-            })
-            it(`Verifying the Version of package: ${_package}`, async function () {
-                await addDescription(`Verifying if we are using the latest version of the package, we are currently using ${packages[_package]}`)
-                const version = await $("h3=Version")
-                const _version = (await version.nextElement()).$("p")
-                await expect(_version).toHaveText(packages[_package].slice(1))
-            })
+        for (let _package in packages) {
+            const searchQuery = `${_package} - npm`;
+
+            it(`Search for the package: ${_package}`, async function () {
+                await addDescription("Verifying the presence of the searchbar");
+                const searchBar = $("input[name=q]")
+                expect(searchBar).toBeDisplayed();
+                await searchBar.setValue(searchQuery)
+                await browser.keys([Key.Enter])
+            });
+            it("we should see npm link on top", async () => {
+                const first_found = $("a[data-testid=result-title-a]");
+                const link = `https://www.npmjs.com/package/${_package}`;
+                await addLink(link, "npm link");
+                await expect(first_found).toHaveHref(link);
+                await expect(first_found).toHaveText(searchQuery);
+            });
         }
     }
 

@@ -90,6 +90,9 @@ importers:
       '@wdio/cucumber-framework':
         specifier: ^8.39.0
         version: 8.39.0
+      '@wdio/globals':
+        specifier: ^8.39.1
+        version: 8.39.1(typescript@5.5.3)
       '@wdio/local-runner':
         specifier: ^8.39.1
         version: 8.39.1(typescript@5.5.3)
@@ -105,6 +108,9 @@ importers:
       typescript:
         specifier: ^5.5.3
         version: 5.5.3
+      webdriverio:
+        specifier: ^8.39.1
+        version: 8.39.1(typescript@5.5.3)
     devDependencies:
       cross-env:
         specifier: ^7.0.3
