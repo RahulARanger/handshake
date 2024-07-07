@@ -4,7 +4,6 @@ import type { ImageProps, PaperProps, TextProps } from '@mantine/core';
 import {
     ActionIcon,
     Box,
-    Card,
     Center,
     Drawer,
     Group,
@@ -13,7 +12,6 @@ import {
     Paper,
     rem,
     Text,
-    Tooltip,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import { IconInfoCircle, IconMaximize } from '@tabler/icons-react';
@@ -42,48 +40,56 @@ export default function ImageCarousel(properties: {
                 w="100%"
                 p={0}
                 h={properties.height}
-                alt={image?.description}
-                fallbackSrc="https://placehold.co/600x400?text=Attachment"
+                alt={`Loading Image: ${image.title}...`}
+                fit={properties.onExpand ? 'cover' : 'contain'}
             />
         );
+
         return (
             <Carousel.Slide key={image.url}>
                 {properties.onExpand ? (
-                    <Card withBorder shadow="lg" mx="xs" radius="md">
-                        <Tooltip label={image.description}>
-                            <Card.Section withBorder p="sm">
-                                <Text size="sm">{image.title}</Text>
-                            </Card.Section>
-                        </Tooltip>
-                        <Card.Section p="sm" withBorder>
-                            {imageComp}
-                            <ActionIcon
-                                variant="white"
-                                size="sm"
+                    <Box>
+                        <Paper
+                            withBorder
+                            p="xs"
+                            style={{
+                                position: 'absolute',
+                                left: '3px',
+                                bottom: '-10px',
+                                zIndex: 4,
+                            }}
+                        >
+                            <Text size="sm" lineClamp={1}>
+                                {image.title}
+                            </Text>
+                        </Paper>
+                        {imageComp}
+                        <ActionIcon
+                            variant="light"
+                            size="sm"
+                            style={{
+                                position: 'absolute',
+                                right: '9px',
+                                top: '10px',
+                            }}
+                            onClick={() =>
+                                properties.onExpand &&
+                                properties.onExpand({
+                                    images: properties.images,
+                                    index,
+                                    title: '',
+                                })
+                            }
+                        >
+                            <IconMaximize
                                 style={{
-                                    position: 'absolute',
-                                    right: '9px',
-                                    top: '52px',
+                                    width: rem(16),
+                                    height: rem(16),
                                 }}
-                                onClick={() =>
-                                    properties.onExpand &&
-                                    properties.onExpand({
-                                        images: properties.images,
-                                        index,
-                                        title: '',
-                                    })
-                                }
-                            >
-                                <IconMaximize
-                                    style={{
-                                        width: rem(16),
-                                        height: rem(16),
-                                    }}
-                                    stroke={2.5}
-                                />
-                            </ActionIcon>
-                        </Card.Section>
-                    </Card>
+                                stroke={2.5}
+                            />
+                        </ActionIcon>
+                    </Box>
                 ) : (
                     <Box>{imageComp}</Box>
                 )}
@@ -94,12 +100,9 @@ export default function ImageCarousel(properties: {
     return (
         <Carousel
             align="start"
-            withIndicators
-            slideSize={
-                properties.onExpand
-                    ? Math.min(properties.images.length, 3)
-                    : '100%'
-            }
+            withIndicators={properties.images.length > 1}
+            withControls={properties.images.length > 1}
+            slideSize={properties.onExpand ? '50%' : '100%'}
             initialSlide={properties.index ?? 0}
             onSlideChange={properties.onChange}
         >
@@ -114,7 +117,14 @@ export function EmptyScreen(properties: {
     h?: PaperProps['h'];
 }) {
     return (
-        <Paper h={properties.h ?? '100%'} radius="sm" withBorder shadow="xl">
+        <Paper
+            h={properties.h ?? '100%'}
+            radius="sm"
+            withBorder
+            shadow="xl"
+            p="sm"
+            miw={400}
+        >
             <Center h={'100%'}>
                 <Text size="sm" c={properties.c}>
                     {properties.message}
@@ -124,11 +134,15 @@ export function EmptyScreen(properties: {
     );
 }
 
-export function NoAttachmentsAdded(properties: { h?: PaperProps['h'] }) {
+export function NoThingsWereAdded(properties: {
+    h?: PaperProps['h'];
+    message?: string;
+    c?: PaperProps['c'];
+}) {
     return (
         <EmptyScreen
-            c="yellow"
-            message="No Attachments were Added"
+            c={properties.c ?? 'yellow'}
+            message={properties.message ?? 'No Attachments were Added'}
             h={properties.h}
         />
     );

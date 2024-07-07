@@ -1,14 +1,12 @@
 import dayjs from 'dayjs';
 import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
 import type {
-    ImageRecord,
     SuiteRecordDetails,
     TestRecordDetails,
 } from 'types/test-entity-related';
 import Convert from 'ansi-to-html';
 import { findIndex } from 'lodash-es';
 import type { possibleEntityNames } from 'types/session-records';
-import { redirectForAttachment } from 'components/links';
 
 export default function transformSuiteEntity(
     testEntity: SuiteRecordDetails,
@@ -167,14 +165,4 @@ export function topLevelSuites(
     suites: RowRecord[] | readonly ParsedSuiteRecord[],
 ) {
     return suites.filter((suite) => !(suite as RowRecord).level);
-}
-
-export function transformWrittenRecords(
-    testID: string,
-    records: ImageRecord[],
-) {
-    return records.map((record) => ({
-        ...record,
-        url: redirectForAttachment(testID, record.entity_id, record.file),
-    }));
 }

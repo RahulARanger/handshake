@@ -168,12 +168,22 @@ def step_back(collection_path: str):
     show_default=True,
 )
 @option("--out", "-o", type=C_Path(dir_okay=True, writable=True), required=False)
+@option(
+    "--dev",
+    "-d",
+    required=False,
+    help="This is used only for testing purposes, please do not use this flag",
+    is_flag=True,
+    default=False,
+    show_default=False,
+)
 def patch(
     collection_path,
     log_file: str,
     reset: bool = False,
     build: str = None,
     out: str = None,
+    dev: bool = False,
     include=False,
 ):
     if log_file:
@@ -186,7 +196,7 @@ def patch(
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    scheduler = Scheduler(collection_path, out, reset, build, include)
+    scheduler = Scheduler(collection_path, out, reset, build, include, dev)
     try:
         run(scheduler.start())
     except (KeyboardInterrupt, SystemExit):

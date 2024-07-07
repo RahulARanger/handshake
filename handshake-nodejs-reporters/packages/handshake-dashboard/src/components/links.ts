@@ -65,18 +65,17 @@ export function jsonFeedForEntityLevelAttachments(
         : `/Import/${testID}/${suiteID}/entity-attachments.json`;
 }
 
+export function jsonFeedForEntityLevelAssertions(
+    testID: string,
+    suiteID: string,
+) {
+    return process.env.IS_DEV
+        ? `/api/Import/Runs/${testID}/${suiteID}/assertions.json`
+        : `/Import/${testID}/${suiteID}/assertions.json`;
+}
+
 export function jsonFeedForRetryMap(testID: string, suiteID: string) {
     return process.env.IS_DEV
         ? `/api/Import/Runs/${testID}/${suiteID}/retries.json`
         : `/Import/${testID}/${suiteID}/retries.json`;
-}
-
-export function redirectForAttachment(
-    testID: string,
-    entity_id: string,
-    file: string,
-) {
-    return process.env.IS_DEV
-        ? `/api/Attachments/${testID}/${entity_id}/${file}`
-        : `/Attachments/${testID}/${entity_id}/${file}`;
 }

@@ -1,19 +1,8 @@
-import {
-    ActionIcon,
-    Badge,
-    Card,
-    Center,
-    Divider,
-    rem,
-    ScrollAreaAutosize,
-    Skeleton,
-    Stack,
-    Tabs,
-    Text,
-} from '@mantine/core';
+import { ActionIcon, Badge, Center, rem, Skeleton } from '@mantine/core';
 import type { RowsChangeData } from 'react-data-grid';
 import DataGrid from 'react-data-grid';
 import {
+    jsonFeedForEntityLevelAssertions,
     jsonFeedForEntityLevelAttachments,
     jsonFeedForSuite,
     jsonFeedForTests,
@@ -22,13 +11,13 @@ import {
 import {
     spawnConverterForAnsiToHTML,
     transformTestEntity,
-    transformWrittenRecords,
 } from 'extractors/transform-test-entity';
 import React, { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import GridStyles from 'styles/data-table.module.css';
 import useSWRImmutable from 'swr/immutable';
 import type {
+    EntityLevelAssertions,
     EntityLevelAttachments,
     ErrorRecord,
     SuiteRecordDetails,
@@ -41,137 +30,13 @@ import CountUpNumber from 'components/counter';
 import RedirectToTestEntity from './redirect-to-detailed-test-entity';
 import { useRouter } from 'next/router';
 import clsx from 'clsx';
-import { ErrorStack, ErrorsToShow } from './error-card';
+import { ErrorsToShow } from './error-card';
 import dayjs from 'dayjs';
-import {
-    IconCaretRightFilled,
-    IconPhoto,
-    IconTestPipe,
-    IconX,
-} from '@tabler/icons-react';
+import { IconCaretRightFilled } from '@tabler/icons-react';
 import type { ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
-import ImageCarousel, { NoAttachmentsAdded, ShowImage } from './image-carousel';
-
-function DetailedTestView(properties: {
-    testID?: string;
-    suiteID?: string;
-    test: ParsedTestRecord;
-    setImagePreview: (feed: PreviewImageFeed) => undefined;
-}): ReactNode {
-    const idForExpandedItem = properties.test.Id.slice(0, -1);
-    const { data, isLoading } = useSWRImmutable<EntityLevelAttachments>(
-        properties.testID && properties.suiteID
-            ? jsonFeedForEntityLevelAttachments(
-                  properties.testID,
-                  properties.suiteID,
-              )
-            : undefined,
-        () =>
-            fetch(
-                jsonFeedForEntityLevelAttachments(
-                    properties.testID as string,
-                    properties.suiteID as string,
-                ),
-            ).then(async (response) => response.json()),
-    );
-    const writtenAttachments = useMemo(
-        () =>
-            properties.testID &&
-            data?.written &&
-            data.written[idForExpandedItem]
-                ? transformWrittenRecords(
-                      properties.testID,
-                      data.written[idForExpandedItem],
-                  )
-                : [],
-        [properties.testID, data?.written, idForExpandedItem],
-    );
-    const toLoad = isLoading || writtenAttachments === undefined;
-    const iconStyle = { width: rem(12), height: rem(12) };
-    const height = 240;
-
-    return toLoad ? (
-        <Skeleton h={330} animate w={'100%'} />
-    ) : (
-        <Card withBorder shadow="xl" p="sm" m="xs">
-            <Stack gap={0}>
-                <Card.Section withBorder p="sm">
-                    <Text size="sm">{properties.test.Title}</Text>
-                </Card.Section>
-                <Card.Section withBorder p="sm">
-                    <Tabs
-                        variant="pills"
-                        defaultValue={'images'}
-                        h={'100%'}
-                        orientation="vertical"
-                    >
-                        <Tabs.List justify="flex-start">
-                            <Tabs.Tab
-                                value="images"
-                                leftSection={<IconPhoto style={iconStyle} />}
-                                rightSection={
-                                    <Badge
-                                        color="blue"
-                                        size="sm"
-                                        variant="light"
-                                    >
-                                        {writtenAttachments?.length ?? 0}
-                                    </Badge>
-                                }
-                            >
-                                Images
-                            </Tabs.Tab>
-                            <Tabs.Tab
-                                value="assertions"
-                                leftSection={<IconTestPipe style={iconStyle} />}
-                            >
-                                Assertions
-                            </Tabs.Tab>
-                            <Tabs.Tab
-                                value="errors"
-                                leftSection={<IconX style={iconStyle} />}
-                                rightSection={
-                                    <Badge
-                                        color="red"
-                                        size="sm"
-                                        variant="light"
-                                    >
-                                        {properties.test.errors?.length ?? 0}
-                                    </Badge>
-                                }
-                            >
-                                Errors
-                            </Tabs.Tab>
-                        </Tabs.List>
-                        <Divider mx={6} orientation="vertical" />
-                        <Tabs.Panel value="images" h={height}>
-                            {writtenAttachments.length > 0 ? (
-                                <ImageCarousel
-                                    height={160}
-                                    images={writtenAttachments}
-                                    onExpand={(_) =>
-                                        properties.setImagePreview({
-                                            ..._,
-                                            title: `Images attached for test: ${properties.test.Title}`,
-                                        })
-                                    }
-                                />
-                            ) : (
-                                <NoAttachmentsAdded />
-                            )}
-                        </Tabs.Panel>
-                        <Tabs.Panel value="errors" h={height}>
-                            <ScrollAreaAutosize h={height}>
-                                <ErrorStack errors={properties.test.errors} />
-                            </ScrollAreaAutosize>
-                        </Tabs.Panel>
-                    </Tabs>
-                </Card.Section>
-            </Stack>
-        </Card>
-    );
-}
+import { ShowImage } from './image-carousel';
+import DetailedTestView from './detailed-test-view';
 
 export default function ListOfTests(properties: {
     testID?: string;
@@ -196,6 +61,43 @@ export default function ListOfTests(properties: {
         () =>
             fetch(
                 jsonFeedForSuite(
+                    properties.testID as string,
+                    properties.suiteID as string,
+                ),
+            ).then(async (response) => response.json()),
+    );
+    const {
+        data: writtenAttachmentsForSuites,
+        isLoading: simulateLoadingForAttachments,
+    } = useSWRImmutable<EntityLevelAttachments>(
+        properties.testID && properties.suiteID
+            ? jsonFeedForEntityLevelAttachments(
+                  properties.testID,
+                  properties.suiteID,
+              )
+            : undefined,
+        () =>
+            fetch(
+                jsonFeedForEntityLevelAttachments(
+                    properties.testID as string,
+                    properties.suiteID as string,
+                ),
+            ).then(async (response) => response.json()),
+    );
+
+    const {
+        data: assertionsAddedForThisSuite,
+        isLoading: simulateLoadingForAssertions,
+    } = useSWRImmutable<EntityLevelAssertions>(
+        properties.testID && properties.suiteID
+            ? jsonFeedForEntityLevelAssertions(
+                  properties.testID,
+                  properties.suiteID,
+              )
+            : undefined,
+        () =>
+            fetch(
+                jsonFeedForEntityLevelAssertions(
                     properties.testID as string,
                     properties.suiteID as string,
                 ),
@@ -256,16 +158,34 @@ export default function ListOfTests(properties: {
                             tabIndex,
                             onRowChange,
                         }) => {
+                            const entity_id = row.Id.slice(0, -1) ?? '';
                             if (row.hasExpanded === undefined)
                                 return (
                                     <DetailedTestView
                                         testID={properties.testID}
-                                        suiteID={properties.suiteID}
+                                        writtenAttachmentsForSuites={
+                                            writtenAttachmentsForSuites &&
+                                            writtenAttachmentsForSuites.written[
+                                                entity_id
+                                            ]
+                                        }
                                         test={row}
                                         setImagePreview={
                                             setImagePreview as (
                                                 feed: PreviewImageFeed,
                                             ) => undefined
+                                        }
+                                        attachmentsAreLoading={
+                                            simulateLoadingForAttachments
+                                        }
+                                        assertions={
+                                            assertionsAddedForThisSuite &&
+                                            assertionsAddedForThisSuite[
+                                                entity_id
+                                            ]
+                                        }
+                                        assertionsAreLoading={
+                                            simulateLoadingForAssertions
                                         }
                                     />
                                 );

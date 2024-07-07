@@ -37,6 +37,17 @@ files = [
 ]
 
 [[package]]
+name = "ansitohtml"
+version = "0.1.0"
+description = "package to convert ansi text to html"
+optional = false
+python-versions = "<4.0,>=3.11"
+files = [
+    {file = "ansitohtml-0.1.0-py3-none-any.whl", hash = "sha256:c4636305b5ed68aac6ae8b109af1fbddbf88c751d2bbc0481ac40188d38218f0"},
+    {file = "ansitohtml-0.1.0.tar.gz", hash = "sha256:886293215c930b754c9a71e514d3e49e50cc8503436426b55c8252a6b4633b3b"},
+]
+
+[[package]]
 name = "anyio"
 version = "4.4.0"
 description = "High level compatibility layer for multiple asynchronous event loop implementations"
@@ -1297,4 +1308,4 @@ excel-export = []
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.13"
-content-hash = "9447e4f068b2ba74367e7748609a699bee9a43009de70d1dce2b9e6823397c11"
+content-hash = "5309cff60a52687592cef1a2f7983193288d3b829ad8ae3c095bc3a853491006"
