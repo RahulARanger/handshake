@@ -1,25 +1,28 @@
 {
-	"name": "@handshake/test-wdio-cucumber",
+	"name": "@hand-shakes/test-wdio-cucumber",
 	"version": "1.0.0",
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"test:sample": "cross-env SANITY=true npx wdio run ./wdio.conf.ts --cucumberOpts.tags=\"@sample\"",
-		"test": "npx wdio run ./wdio.conf.ts --cucumberOpts.tags=\"@sample\""
+		"test": "pnpm wdio run ./wdio.conf.ts --cucumberOpts.tags=\"@sample\"",
+		"test:sample": "cross-env SANITY=true pnpm run test",
+		"test-data": "cross-env LOCAL=true pnpm run test"
 	},
 	"author": "",
 	"license": "ISC",
 	"description": "",
 	"devDependencies": {
 		"@wdio/cucumber-framework": "8.39.0",
-		"@wdio/local-runner": "^8.39.0",
+		"@wdio/local-runner": "^8.39.1",
 		"@wdio/spec-reporter": "^8.39.0",
+		"cross-env": "^7.0.3",
 		"ts-node": "^10.9.2",
-		"typescript": "^5.5.2"
+		"typescript": "^5.5.3"
 	},
 	"dependencies": {
-		"@wdio/cli": "^8.39.0",
-		"@wdio/mocha-framework": "8.39.0",
-		"@handshake/wdio-handshake-reporter": "workspace:*"
+		"@hand-shakes/wdio-handshake-reporter": "workspace:*",
+		"@wdio/cli": "^8.39.1",
+		"@wdio/globals": "^8.39.1",
+		"@wdio/mocha-framework": "8.39.0"
 	}
 }

@@ -1,13 +1,21 @@
 import type { Options } from '@wdio/types';
-import { AfterCommandArgs, BeforeCommandArgs } from '@wdio/reporter';
-import { Assertion, checkVersion } from '@handshake/common-handshakes';
-import { HandshakeServiceOptions, ReporterOptions } from './types';
+import { Assertion, checkVersion } from '@hand-shakes/common-handshakes';
+import { AttachReporterOptions } from './types';
 import HandshakeService from './service';
+import HandshakeReporter from './reporter';
 import { currentReporter } from './contacts';
+import skipIfRequired from './internals';
 
+/**
+ * adds handshake custom reporter and service. provide the WebdriverIO Configuration
+ * and required options to get started.
+ * @param config WebdriverIO configuration object
+ * @param options options to configure custom reporter and custom service
+ * @returns modified WebdriverIO Configuration
+ */
 export function attachReporter(
   config: Options.Testrunner,
-  options: ReporterOptions & HandshakeServiceOptions & { root ?: string },
+  options: AttachReporterOptions,
 ): Options.Testrunner {
   if (options.disabled) return config;
   checkVersion();
@@ -19,7 +27,7 @@ export function attachReporter(
   toModify.services = toModify.services || [];
 
   toModify.reporters.push([
-    'handshake',
+    HandshakeReporter,
     {
       port,
       addScreenshots: options.addScreenshots || false,
@@ -32,13 +40,19 @@ export function attachReporter(
   ]);
 
   toModify.services.push([
-    HandshakeService, {
+    HandshakeService,
+    {
       port,
       requestsTimeout: Math.max(
-        options.requestsTimeout ?? config.connectionRetryTimeout ?? 120e3,
+        options.requestsTimeout
+                    ?? config.connectionRetryTimeout
+                    ?? 120e3,
         120e3,
       ),
-      reportGenerationTimeout: Math.max(options.reportGenerationTimeout ?? 180e3, 180e3),
+      reportGenerationTimeout: Math.max(
+        options.reportGenerationTimeout ?? 180e3,
+        180e3,
+      ),
       root: options.root,
       workers: options.workers,
       resultsFolderName: options.resultsFolderName,
@@ -46,7 +60,8 @@ export function attachReporter(
       testConfig: {
         ...options.testConfig,
         avoidParentSuitesInCount:
-          options.testConfig?.avoidParentSuitesInCount ?? config.framework === 'cucumber',
+                    options.testConfig?.avoidParentSuitesInCount
+                    ?? config.framework === 'cucumber',
       },
       exportOutDir: options.exportOutDir,
     },
@@ -55,32 +70,18 @@ export function attachReporter(
   return toModify;
 }
 
-// Thanks to https://github.com/webdriverio/webdriverio/blob/a8ae7be72d0c58c7afa7ff085d9c4f41c9aea724/packages/wdio-allure-reporter/src/utils.ts#L153
-export function isScreenShot(command: BeforeCommandArgs | AfterCommandArgs): boolean {
-  const isScrenshotEndpoint = /\/session\/[^/]*(\/element\/[^/]*)?\/screenshot/;
-
-  return (
-    (command.endpoint && isScrenshotEndpoint.test(command.endpoint))
-        || command.command === 'takeScreenshot'
-  );
-}
-
-export function skipIfRequired() {
-  if (currentReporter == null || currentReporter?.skipTestRun) {
-    currentReporter?.logger.info({ note: 'skipping', what: 'test', why: 'as requested' });
-    return true;
-  }
-  if (currentReporter.currentTestID == null) {
-    currentReporter?.logger.error({ why: 'no-test-id-found', so: 'skipping' });
-    return true;
-  }
-  return false;
-}
-
+/**
+ * attaches custom screenshot to a current test case.
+ * @param title title of the screenshot
+ * @param content PNG content
+ * @param description description for the screenshot
+ * @param is_suite is it for suite ? so we take parent of the current test entity
+ * @returns
+ */
 export async function attachScreenshot(
   title: string,
   content: string,
-  description?:string,
+  description?: string,
   is_suite?: boolean,
 ) {
   if (skipIfRequired()) {
@@ -95,6 +96,12 @@ export async function attachScreenshot(
   );
 }
 
+/**
+ * adds a description or the paragraph about the test or suite
+ * @param content content to include in the description
+ * @param is_suite is it for suite ? so we take parent of the current test entity
+ * @returns
+ */
 export async function addDescription(content: string, is_suite?: boolean) {
   if (skipIfRequired()) {
     return;
@@ -106,6 +113,13 @@ export async function addDescription(content: string, is_suite?: boolean) {
   );
 }
 
+/**
+ * adds a link for reference for test or suite
+ * @param url as it says
+ * @param title title of the link
+ * @param is_suite is it for suite ? so we take parent of the current test entity
+ * @returns
+ */
 export async function addLink(url: string, title: string, is_suite?: boolean) {
   if (skipIfRequired()) {
     return;
@@ -118,6 +132,12 @@ export async function addLink(url: string, title: string, is_suite?: boolean) {
   );
 }
 
+/**
+ * adds the assertion for the current running test case
+ * @param title title of the assertion
+ * @param assertion assertion details
+ * @returns
+ */
 export async function addAssertion(title: string, assertion: Assertion) {
   if (skipIfRequired()) {
     return;

@@ -1,0 +1,4 @@
+.breakable {
+    overflow-wrap: break-word !important;
+    white-space: pre-wrap !important;
+}

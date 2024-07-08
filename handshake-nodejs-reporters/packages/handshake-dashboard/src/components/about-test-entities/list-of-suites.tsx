@@ -238,7 +238,7 @@ export default function ListOfSuits(properties: {
                                                 align="center"
                                                 justify="space-between"
                                             >
-                                                <Text size="sm">
+                                                <Text size="sm" lineClamp={6}>
                                                     {row.Title}
                                                 </Text>
                                                 <RedirectToTestEntity

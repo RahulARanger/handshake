@@ -1,6 +1,6 @@
 // eslint-disable-next-line max-classes-per-file
 import WDIOReporter, { TestStats } from '@wdio/reporter';
-import { ReporterDialPad, ServiceDialPad } from '@handshake/common-handshakes';
+import { ReporterDialPad, ServiceDialPad } from '@hand-shakes/common-handshakes';
 import { join } from 'node:path';
 import pino, { Logger } from 'pino';
 import type { ReporterOptions, HandshakeServiceOptions } from './types';
