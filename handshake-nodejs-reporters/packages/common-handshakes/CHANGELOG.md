@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.8.1
+
+### Patch Changes
+
+- 5267b80: refer 0.4.2 handshake python build and refer 0.7.0 dashboard build.
+
 ## 0.8.0
 
 ### Minor Changes
