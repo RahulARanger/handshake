@@ -73,7 +73,7 @@ export default function RunPageContent(properties: {
     return (
         <AppShell header={{ height: 50 }}>
             <AppShell.Header p="xs">
-                <Group justify="space-between" align="center">
+                <Group justify="space-between" align="center" wrap="nowrap">
                     <CurrentLocation
                         projectName={run?.projectName ?? ''}
                         where={properties.where}
@@ -81,9 +81,9 @@ export default function RunPageContent(properties: {
                         testID={run?.Id}
                         isSuiteDetailedView={Boolean(properties.inSuiteOf)}
                     />
-                    <Group align="flex-end">
+                    <Group align="flex-end" wrap="nowrap">
                         {aboutSuite ? (
-                            <Text size="xs" fs="italic">
+                            <Text size="xs" fs="italic" lineClamp={1} maw={400}>
                                 {aboutSuite.title}
                             </Text>
                         ) : (

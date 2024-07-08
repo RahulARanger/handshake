@@ -77,6 +77,7 @@ export function OverviewRow(properties: {
                     <TestStatusIcon status={suite.Status} />
                     <Text size="sm" c="dimmed">
                         {suite.Title}
+                        {/* truncation is not needed above it is as expected */}
                     </Text>
                 </Group>
                 <Group gap={8} align="baseline">
@@ -118,7 +119,7 @@ export function OverviewTabs(properties: {
     let defaultValue = 'errors';
 
     if ((properties.suite?.Desc?.length ?? 0) > 0) defaultValue = 'description';
-    if (errorsFound > 0) defaultValue = 'errors';
+    defaultValue = errorsFound > 0 ? 'errors' : 'description';
 
     return properties.suite ? (
         <Tabs defaultValue={defaultValue} style={{ height: '100%' }}>

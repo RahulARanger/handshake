@@ -8,6 +8,7 @@ import {
     Stack,
     Tabs,
     Text,
+    Tooltip,
 } from '@mantine/core';
 import React from 'react';
 import type { ReactNode } from 'react';
@@ -18,6 +19,7 @@ import type { ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
 import ImageCarousel, { NoThingsWereAdded } from './image-carousel';
 import Assertions from './assertions';
+import TextStyles from 'styles/text-styles.module.css';
 
 export default function DetailedTestView(properties: {
     testID?: string;
@@ -42,9 +44,16 @@ export default function DetailedTestView(properties: {
         <Card withBorder shadow="xl" p="sm" m="xs">
             <Stack gap={0}>
                 <Card.Section withBorder p="sm">
-                    <Text size="sm" px="xs">
-                        {properties.test.Title}
-                    </Text>
+                    <Tooltip label={properties.test.Title} color="orange">
+                        <Text
+                            size="sm"
+                            px="xs"
+                            className={TextStyles.breakable}
+                            lineClamp={1}
+                        >
+                            {properties.test.Title}
+                        </Text>
+                    </Tooltip>
                 </Card.Section>
                 <Card.Section withBorder p="sm">
                     <Tabs

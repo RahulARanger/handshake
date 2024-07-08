@@ -6,7 +6,6 @@ import {
     Group,
     Menu,
     MenuDropdown,
-    rem,
     Text,
 } from '@mantine/core';
 import { IconCaretDown, IconGrid4x4, IconRipple } from '@tabler/icons-react';
@@ -73,12 +72,12 @@ export default function CurrentLocation(properties: {
                 </Text>
                 <Menu trigger="click-hover">
                     <Menu.Target>
-                        <Text size="sm">
+                        <Text size="sm" mb={-4.5}>
                             {properties.where}
                             <sub>
                                 <IconCaretDown
                                     size=".55rem"
-                                    style={{ marginTop: rem(13) }}
+                                    style={{ marginTop: 3.5, marginLeft: 2 }}
                                 />
                             </sub>
                         </Text>
@@ -118,7 +117,7 @@ export default function CurrentLocation(properties: {
                     </Text>
                 ) : undefined}
             </Breadcrumbs>
-            <Text size="xs" mb={-9}>
+            <Text size="xs" mb={-9} ml={-3.5}>
                 {testRunTabDescription(
                     properties.where,
                     properties.isSuiteDetailedView,

@@ -333,7 +333,7 @@ export default function ListOfTests(properties: {
                         headerCellClass: GridStyles.cell,
                         renderCell: ({ row, rowIdx }) => {
                             return (
-                                <Center key={rowIdx}>
+                                <Center key={rowIdx} style={{ width: '100%' }}>
                                     <CountUpNumber
                                         size="sm"
                                         endNumber={
@@ -363,19 +363,26 @@ export default function ListOfTests(properties: {
                             ),
                         renderCell: ({ row, rowIdx }) => {
                             return (
-                                <CountUpNumber
-                                    endNumber={row.numberOfErrors}
-                                    size="sm"
+                                <Center
                                     style={{
-                                        textDecoration: row.numberOfErrors
-                                            ? 'underline'
-                                            : '',
-                                        cursor: row.numberOfErrors
-                                            ? 'pointer'
-                                            : '',
+                                        width: '100%',
+                                        textAlign: 'center',
                                     }}
-                                    key={rowIdx}
-                                />
+                                >
+                                    <CountUpNumber
+                                        endNumber={row.numberOfErrors}
+                                        size="sm"
+                                        style={{
+                                            textDecoration: row.numberOfErrors
+                                                ? 'underline'
+                                                : '',
+                                            cursor: row.numberOfErrors
+                                                ? 'pointer'
+                                                : '',
+                                        }}
+                                        key={rowIdx}
+                                    />
+                                </Center>
                             );
                         },
                     },

@@ -16,6 +16,7 @@ import { EmptyScreen } from './image-carousel';
 import { useDisclosure } from '@mantine/hooks';
 import { IconCaretDownFilled } from '@tabler/icons-react';
 import AssertionCardStyles from 'styles/assertion.module.css';
+import TextStyles from 'styles/text-styles.module.css';
 
 export default function Assertions(properties: {
     assertions: AssertionRecord[];
@@ -54,7 +55,9 @@ export function AssertionCard(properties: {
         >
             <Card.Section p="xs" withBorder={opened} onClick={toggle}>
                 <Group justify="space-between" wrap="nowrap">
-                    <Text size="sm">{properties.assertion.title}</Text>
+                    <Text size="sm" className={TextStyles.breakable}>
+                        {properties.assertion.title}
+                    </Text>
                     <ActionIcon size="xs" variant="light" onClick={toggle}>
                         <IconCaretDownFilled
                             style={{

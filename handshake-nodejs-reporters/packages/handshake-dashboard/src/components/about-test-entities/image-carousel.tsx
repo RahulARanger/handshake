@@ -161,17 +161,23 @@ export function ShowImage(properties: {
             onClose={properties.onClose}
             opened={properties.feed !== undefined}
             title={
-                <Group justify="space-between">
-                    {properties.feed?.title}
-                    <ActionIcon
-                        variant="default"
-                        onClick={opened ? close : open}
-                    >
-                        <IconInfoCircle
-                            style={{ width: rem(15), height: rem(15) }}
-                        />
-                    </ActionIcon>
-                </Group>
+                <Paper
+                    withBorder
+                    p="sm"
+                    style={{ position: 'absolute', bottom: '2px' }}
+                >
+                    <Group justify="space-between">
+                        {properties.feed?.title}
+                        <ActionIcon
+                            variant="default"
+                            onClick={opened ? close : open}
+                        >
+                            <IconInfoCircle
+                                style={{ width: rem(15), height: rem(15) }}
+                            />
+                        </ActionIcon>
+                    </Group>
+                </Paper>
             }
             radius={'md'}
             lockScroll
@@ -192,14 +198,17 @@ export function ShowImage(properties: {
                 opened={opened}
                 onClose={close}
                 position="bottom"
-                size={'15%'}
+                size={'20%'}
                 withOverlay={false}
                 shadow="xl"
                 title={
-                    <Text>
-                        {properties.feed?.images[pointToImage]?.description ??
-                            'No Description was Added here'}
-                    </Text>
+                    <Paper withBorder shadow="lg" p="sm" w={'100%'}>
+                        <Text>
+                            {properties.feed?.images[pointToImage]
+                                ?.description ??
+                                'No Description was Added here'}
+                        </Text>
+                    </Paper>
                 }
             />
         </Modal>
