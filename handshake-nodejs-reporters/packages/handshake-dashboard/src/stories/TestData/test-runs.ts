@@ -157,3 +157,10 @@ export const allPassed = generateTestRun({
 });
 
 export const mixed = generateTestRun({});
+
+export const randomTestProjects = (length: number) => {
+    const generator = new Chance();
+    return Array.from({ length })
+        .fill(true)
+        .map(() => generator.company());
+};

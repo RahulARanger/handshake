@@ -43,7 +43,7 @@ import dayjs from 'dayjs';
 import CountUpNumber from 'components/counter';
 import TestStatusIcon from 'components/about-test-run/test-status';
 import SwitchTestCases from 'components/test-case-switch';
-import ErrorCard from './error-card';
+import { ErrorStack } from './error-card';
 import PlatformEntity from './platform-entity';
 import {
     IconChevronLeft,
@@ -77,6 +77,7 @@ export function OverviewRow(properties: {
                     <TestStatusIcon status={suite.Status} />
                     <Text size="sm" c="dimmed">
                         {suite.Title}
+                        {/* truncation is not needed above it is as expected */}
                     </Text>
                 </Group>
                 <Group gap={8} align="baseline">
@@ -118,7 +119,7 @@ export function OverviewTabs(properties: {
     let defaultValue = 'errors';
 
     if ((properties.suite?.Desc?.length ?? 0) > 0) defaultValue = 'description';
-    if (errorsFound > 0) defaultValue = 'errors';
+    defaultValue = errorsFound > 0 ? 'errors' : 'description';
 
     return properties.suite ? (
         <Tabs defaultValue={defaultValue} style={{ height: '100%' }}>
@@ -158,11 +159,7 @@ export function OverviewTabs(properties: {
                 />
             </Tabs.Panel>
             <Tabs.Panel value="errors">
-                <Stack p="sm">
-                    {properties.suite?.errors.map((error, index) => (
-                        <ErrorCard error={error} key={index} />
-                    ))}
-                </Stack>
+                <ErrorStack errors={properties.suite?.errors} />
             </Tabs.Panel>
         </Tabs>
     ) : (

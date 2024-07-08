@@ -61,10 +61,15 @@ function indicateNumber(change: number, forceText?: string): string | number {
     return `${change > 0 ? '+' : ''}${forceText ?? change}`;
 }
 
-function getChange(values: number[], referFrom?: number): number {
+function getChange(
+    values: number[],
+    isRecentRun: boolean,
+    referFrom?: number,
+): number {
+    const referPrevious = referFrom !== undefined && isRecentRun;
     return (
-        (values?.at(referFrom === undefined ? -1 : referFrom) ?? 0) -
-        (values.at(referFrom === undefined ? -2 : -1) ?? 0)
+        (values?.at(referPrevious ? -1 : (referFrom as number)) ?? 0) -
+        (values.at(referPrevious ? -2 : -1) ?? 0)
     );
 }
 
@@ -268,23 +273,24 @@ export default function OverviewCard(properties: {
     const rateValues = (showTests ? run?.Rate : run?.SuitesSummary) as number[];
 
     const isRecentRun = run?.projectIndex === 0;
-    const relativeIndex = run?.projectIndex
-        ? -(run.projectIndex + 1)
-        : undefined;
+    const relativeIndex =
+        run?.projectIndex === undefined ? undefined : -(run.projectIndex + 1);
 
     const previousProject =
-        run?.projectIndex !== undefined && ids[run?.projectIndex + 1];
+        relativeIndex && relativeIndex < 0 && ids.at(relativeIndex - 1);
     const nextProject =
-        run?.projectIndex !== undefined && ids[run?.projectIndex - 1];
+        !isRecentRun && relativeIndex && ids.at(relativeIndex + 1);
 
     const improvedCount =
-        (rateValues && getChange(testCounts, relativeIndex)) ?? '--';
-    const improvedDuration = durations && getChange(durations, relativeIndex);
+        (rateValues && getChange(testCounts, isRecentRun, relativeIndex)) ??
+        '--';
+    const improvedDuration =
+        durations && getChange(durations, isRecentRun, relativeIndex);
 
     const improvedPassedCount =
-        passedCounts && getChange(passedCounts, relativeIndex);
+        passedCounts && getChange(passedCounts, isRecentRun, relativeIndex);
     const improvedFailedCount =
-        failedCounts && getChange(failedCounts, relativeIndex);
+        failedCounts && getChange(failedCounts, isRecentRun, relativeIndex);
     return (
         <ScrollAreaAutosize
             h={'calc(100vh - var(--app-shell-header-height, 0px))'}

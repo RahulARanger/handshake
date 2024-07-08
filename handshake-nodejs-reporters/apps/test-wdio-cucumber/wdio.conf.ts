@@ -1,5 +1,5 @@
 import type { Options } from "@wdio/types";
-import { attachReporter } from "wdio-handshake-reporter";
+import { attachReporter } from "@hand-shakes/wdio-handshake-reporter";
 
 const options: Options.Testrunner = {
 	//

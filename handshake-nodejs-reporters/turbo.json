@@ -19,6 +19,9 @@
 		},
 		"clean": {
 			"cache": false
+		},
+		"test-data": {
+			"cache": false
 		}
 	}
 }

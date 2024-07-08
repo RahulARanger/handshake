@@ -1,18 +1,8 @@
-import {
-    ActionIcon,
-    Badge,
-    Card,
-    Center,
-    Grid,
-    rem,
-    ScrollAreaAutosize,
-    Skeleton,
-    Stack,
-    Text,
-} from '@mantine/core';
+import { ActionIcon, Badge, Center, rem, Skeleton } from '@mantine/core';
 import type { RowsChangeData } from 'react-data-grid';
 import DataGrid from 'react-data-grid';
 import {
+    jsonFeedForEntityLevelAssertions,
     jsonFeedForEntityLevelAttachments,
     jsonFeedForSuite,
     jsonFeedForTests,
@@ -21,13 +11,13 @@ import {
 import {
     spawnConverterForAnsiToHTML,
     transformTestEntity,
-    transformWrittenRecords,
 } from 'extractors/transform-test-entity';
 import React, { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import GridStyles from 'styles/data-table.module.css';
 import useSWRImmutable from 'swr/immutable';
 import type {
+    EntityLevelAssertions,
     EntityLevelAttachments,
     ErrorRecord,
     SuiteRecordDetails,
@@ -40,89 +30,13 @@ import CountUpNumber from 'components/counter';
 import RedirectToTestEntity from './redirect-to-detailed-test-entity';
 import { useRouter } from 'next/router';
 import clsx from 'clsx';
-import { ErrorStack, ErrorsToShow } from './error-card';
+import { ErrorsToShow } from './error-card';
 import dayjs from 'dayjs';
 import { IconCaretRightFilled } from '@tabler/icons-react';
 import type { ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
-import ImageCarousel, { NoAttachmentsAdded, ShowImage } from './image-carousel';
-
-function DetailedTestView(properties: {
-    testID?: string;
-    suiteID?: string;
-    test: ParsedTestRecord;
-    setImagePreview: (feed: PreviewImageFeed) => undefined;
-}): ReactNode {
-    const idForExpandedItem = properties.test.Id.slice(0, -1);
-    const { data, isLoading } = useSWRImmutable<EntityLevelAttachments>(
-        properties.testID && properties.suiteID
-            ? jsonFeedForEntityLevelAttachments(
-                  properties.testID,
-                  properties.suiteID,
-              )
-            : undefined,
-        () =>
-            fetch(
-                jsonFeedForEntityLevelAttachments(
-                    properties.testID as string,
-                    properties.suiteID as string,
-                ),
-            ).then(async (response) => response.json()),
-    );
-    const writtenAttachments = useMemo(
-        () =>
-            properties.testID &&
-            data?.written &&
-            data.written[idForExpandedItem]
-                ? transformWrittenRecords(
-                      properties.testID,
-                      data.written[idForExpandedItem],
-                  )
-                : [],
-        [properties.testID, data?.written, idForExpandedItem],
-    );
-    const toLoad = isLoading || writtenAttachments === undefined;
-
-    return toLoad ? (
-        <Skeleton h={330} animate w={'100%'} />
-    ) : (
-        <Card withBorder shadow="xl" p="sm" m="xs">
-            <Stack gap={0}>
-                <Card.Section withBorder p="sm">
-                    <Text size="sm">{properties.test.Title}</Text>
-                </Card.Section>
-                <Card.Section withBorder p="sm">
-                    <Grid>
-                        <Grid.Col span={6} h={240}>
-                            {writtenAttachments.length > 0 ? (
-                                <ImageCarousel
-                                    height={160}
-                                    images={writtenAttachments}
-                                    onExpand={(_) =>
-                                        properties.setImagePreview({
-                                            ..._,
-                                            title: `Images attached for test: ${properties.test.Title}`,
-                                        })
-                                    }
-                                />
-                            ) : (
-                                <NoAttachmentsAdded />
-                            )}
-                        </Grid.Col>
-                        <Grid.Col span={6}>
-                            <ScrollAreaAutosize h={240}>
-                                <ErrorStack
-                                    errors={properties.test.errors}
-                                    h={226}
-                                />
-                            </ScrollAreaAutosize>
-                        </Grid.Col>
-                    </Grid>
-                </Card.Section>
-            </Stack>
-        </Card>
-    );
-}
+import { ShowImage } from './image-carousel';
+import DetailedTestView from './detailed-test-view';
 
 export default function ListOfTests(properties: {
     testID?: string;
@@ -147,6 +61,43 @@ export default function ListOfTests(properties: {
         () =>
             fetch(
                 jsonFeedForSuite(
+                    properties.testID as string,
+                    properties.suiteID as string,
+                ),
+            ).then(async (response) => response.json()),
+    );
+    const {
+        data: writtenAttachmentsForSuites,
+        isLoading: simulateLoadingForAttachments,
+    } = useSWRImmutable<EntityLevelAttachments>(
+        properties.testID && properties.suiteID
+            ? jsonFeedForEntityLevelAttachments(
+                  properties.testID,
+                  properties.suiteID,
+              )
+            : undefined,
+        () =>
+            fetch(
+                jsonFeedForEntityLevelAttachments(
+                    properties.testID as string,
+                    properties.suiteID as string,
+                ),
+            ).then(async (response) => response.json()),
+    );
+
+    const {
+        data: assertionsAddedForThisSuite,
+        isLoading: simulateLoadingForAssertions,
+    } = useSWRImmutable<EntityLevelAssertions>(
+        properties.testID && properties.suiteID
+            ? jsonFeedForEntityLevelAssertions(
+                  properties.testID,
+                  properties.suiteID,
+              )
+            : undefined,
+        () =>
+            fetch(
+                jsonFeedForEntityLevelAssertions(
                     properties.testID as string,
                     properties.suiteID as string,
                 ),
@@ -207,16 +158,34 @@ export default function ListOfTests(properties: {
                             tabIndex,
                             onRowChange,
                         }) => {
+                            const entity_id = row.Id.slice(0, -1) ?? '';
                             if (row.hasExpanded === undefined)
                                 return (
                                     <DetailedTestView
                                         testID={properties.testID}
-                                        suiteID={properties.suiteID}
+                                        writtenAttachmentsForSuites={
+                                            writtenAttachmentsForSuites &&
+                                            writtenAttachmentsForSuites.written[
+                                                entity_id
+                                            ]
+                                        }
                                         test={row}
                                         setImagePreview={
                                             setImagePreview as (
                                                 feed: PreviewImageFeed,
                                             ) => undefined
+                                        }
+                                        attachmentsAreLoading={
+                                            simulateLoadingForAttachments
+                                        }
+                                        assertions={
+                                            assertionsAddedForThisSuite &&
+                                            assertionsAddedForThisSuite[
+                                                entity_id
+                                            ]
+                                        }
+                                        assertionsAreLoading={
+                                            simulateLoadingForAssertions
                                         }
                                     />
                                 );
@@ -364,7 +333,7 @@ export default function ListOfTests(properties: {
                         headerCellClass: GridStyles.cell,
                         renderCell: ({ row, rowIdx }) => {
                             return (
-                                <Center key={rowIdx}>
+                                <Center key={rowIdx} style={{ width: '100%' }}>
                                     <CountUpNumber
                                         size="sm"
                                         endNumber={
@@ -394,19 +363,26 @@ export default function ListOfTests(properties: {
                             ),
                         renderCell: ({ row, rowIdx }) => {
                             return (
-                                <CountUpNumber
-                                    endNumber={row.numberOfErrors}
-                                    size="sm"
+                                <Center
                                     style={{
-                                        textDecoration: row.numberOfErrors
-                                            ? 'underline'
-                                            : '',
-                                        cursor: row.numberOfErrors
-                                            ? 'pointer'
-                                            : '',
+                                        width: '100%',
+                                        textAlign: 'center',
                                     }}
-                                    key={rowIdx}
-                                />
+                                >
+                                    <CountUpNumber
+                                        endNumber={row.numberOfErrors}
+                                        size="sm"
+                                        style={{
+                                            textDecoration: row.numberOfErrors
+                                                ? 'underline'
+                                                : '',
+                                            cursor: row.numberOfErrors
+                                                ? 'pointer'
+                                                : '',
+                                        }}
+                                        key={rowIdx}
+                                    />
+                                </Center>
                             );
                         },
                     },

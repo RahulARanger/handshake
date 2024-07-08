@@ -29,7 +29,7 @@ export interface SimpleSuiteDetails {
     totalRollupValue: number;
     Desc: string;
     errors: ErrorRecord[];
-    error: ErrorRecord;
+    error?: ErrorRecord;
 }
 
 export interface SuiteRecordDetails
@@ -103,15 +103,8 @@ export interface ErrorRecord {
     mailedFrom?: string[];
 }
 
-export interface Assertion {
-    entity_id: string;
-    passed: boolean;
-    wait: number;
-    interval: number;
-    message?: string;
-    title: string;
-}
-
 export interface EntityLevelAttachments {
     written: Record<string, ImageRecord[]>;
 }
+
+export type EntityLevelAssertions = Record<string, AssertionRecord[]>;
