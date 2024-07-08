@@ -66,10 +66,10 @@ function getChange(
     isRecentRun: boolean,
     referFrom?: number,
 ): number {
-    const referPrev = referFrom !== undefined && isRecentRun;
+    const referPrevious = referFrom !== undefined && isRecentRun;
     return (
-        (values?.at(referPrev ? -1 : (referFrom as number)) ?? 0) -
-        (values.at(referPrev ? -2 : -1) ?? 0)
+        (values?.at(referPrevious ? -1 : (referFrom as number)) ?? 0) -
+        (values.at(referPrevious ? -2 : -1) ?? 0)
     );
 }
 
