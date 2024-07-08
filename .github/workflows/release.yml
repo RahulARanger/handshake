@@ -51,7 +51,7 @@ jobs:
 
       - name: Installing node packages
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: pnpm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+        run: pnpm install
 
       - name: Building Dashboard
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
