@@ -12,6 +12,7 @@ from pathlib import Path
 from typing import Optional
 from loguru import logger
 from tortoise.expressions import Q, RawSQL
+from ANSIToHTML.parser import Parser
 from handshake.services.DBService.models.result_base import (
     RunBase,
     SuiteBase,
@@ -46,7 +47,6 @@ from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
     SuiteSummary,
 )
-from handshake.services.DBService.lifecycle import TestConfigManager
 
 
 class Scheduler:
@@ -59,12 +59,15 @@ class Scheduler:
         manual_reset: Optional[bool] = False,
         zipped_build: Optional[str] = None,
         include_build: Optional[bool] = False,
+        dev: Optional[bool] = False,
     ):
         self.export = out_dir is None
+        self.converter = Parser()
         self.dashboard_build = zipped_build
         self.export_dir = Path(out_dir) if out_dir and zipped_build else None
         self.db_path = db_path(root_dir)
         self.include_build = include_build
+        self.dev_run = dev
         self.import_dir = (
             self.db_path.parent / exportAttachmentFolderName
             if not self.export_dir
@@ -146,6 +149,9 @@ class Scheduler:
             )
 
         logger.info("Delete job is completed.")
+
+    def convert_from_ansi_to_html(self, refer_from: dict, key: str):
+        refer_from[key] = self.converter.parse(refer_from[key])
 
     async def init_jobs(self):
         await pruneTasks()
@@ -462,21 +468,34 @@ WHERE rb.ended <> '' order by rb.started;
         )
 
         written_records = {}
+        assertion_records = {}
         written = (
             await StaticBase.filter(entity__parent=suite_id)
             .annotate(
                 id=RawSQL("entity_id"),
                 title=RawSQL("attachmentValue ->> 'title'"),
                 file=RawSQL("attachmentValue ->> 'value'"),
+                url=RawSQL(
+                    f"'/api/Attachments' || '/{run_id}/' || entity_id || '/' || (attachmentValue ->> 'value')"
+                    if self.dev_run
+                    else f"'/Attachments' || '/{run_id}/' || entity_id || '/' || (attachmentValue ->> 'value')"
+                ),
             )
             .all()
-            .values("type", "title", "description", "file", entity_id="id")
+            .values("type", "title", "description", "file", "url", entity_id="id")
         )
 
-        for record in written:
-            records = written_records.get(record["entity_id"], [])
-            records.append(record)
-            written_records[record["entity_id"]] = records
+        for refer_from, save_in, for_records in zip(
+            (written, assertions),
+            (written_records, assertion_records),
+            ("written", "assertions"),
+        ):
+            for record in refer_from:
+                records = save_in.get(record["entity_id"], [])
+                records.append(record)
+                if for_records == "assertions":
+                    self.convert_from_ansi_to_html(record, "message")
+                save_in[record["entity_id"]] = records
 
         retried_map = {}
 
@@ -504,7 +523,7 @@ WHERE rb.ended <> '' order by rb.started;
             EXPORT_TEST_ASSERTIONS,
             run_id,
             suite_id,
-            json.dumps(assertions),
+            json.dumps(assertion_records),
         )
         await to_thread(
             self.save_under_suite_folder,

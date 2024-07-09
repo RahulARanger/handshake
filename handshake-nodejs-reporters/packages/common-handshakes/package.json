@@ -1,6 +1,6 @@
 {
 	"name": "@hand-shakes/common-handshakes",
-	"description": "common-package used by some of the custom reporters written for node frameworks to share the results with handshake server",
+	"description": "common-package used by custom reporters this package will have base classes and functions to support connection with the handshake server",
 	"version": "0.8.0",
 	"private": false,
 	"author": "RahulARanger <saihanumarahul66@gmail.com>",
@@ -12,10 +12,12 @@
 		".": {
 			"default": "./dist/index.js"
 		},
-		"./node.json": "./node.json"
+		"./node.json": "./node.json",
+		"./utils/handshake.js": "./utils/handshake.js"
 	},
 	"bugs": {
-		"url": "https://github.com/RahulARanger/handshake/issues"
+		"url": "https://github.com/RahulARanger/handshake/issues",
+		"email": "saihanumarahul66@gmail.com"
 	},
 	"homepage": "https://github.com/RahulARanger/handshake",
 	"scripts": {
@@ -43,7 +45,7 @@
 		"@types/async-lock": "^1.4.2",
 		"@types/jest": "^29.5.12",
 		"@types/mocha": "^10.0.7",
-		"@types/node": "^20.14.8",
+		"@types/node": "^20.14.10",
 		"@types/shell-quote": "^1.7.5",
 		"@types/superagent": "^8.1.7",
 		"@types/supertest": "^6.0.2",
@@ -52,9 +54,9 @@
 		"jest": "^29.7.0",
 		"rimraf": "^5.0.7",
 		"tsup": "^8.1.0",
-		"typescript": "^5.5.2"
+		"typescript": "^5.5.3"
 	},
 	"bin": {
-		"shake": "utils/handshake.js"
+		"shake": "./utils/handshake.js"
 	}
 }

@@ -1,5 +1,4 @@
-import { join, dirname } from 'node:path';
-import { attachReporter } from "wdio-handshake-reporter"
+import { attachReporter } from "@hand-shakes/wdio-handshake-reporter"
 
 // eslint-disable-next-line import/prefer-default-export
 const metaConfig = {

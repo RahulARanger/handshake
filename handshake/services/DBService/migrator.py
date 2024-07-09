@@ -34,7 +34,7 @@ def log_migration(
 
 
 def check_version(
-    connection: Optional[Connection] = None, path: Optional[Path] = None
+    connection: Optional[Connection] = None, path: Optional[Path] = None, is_auto=False
 ) -> Tuple[bool, bool, Union[Literal[False], int]]:
     query = f"select value from configbase where key = '{ConfigKeys.version}'"
 
@@ -62,7 +62,12 @@ def check_version(
             "INFO" if not migration_required else "WARNING",
             "Currently at: v{}."
             if not migration_required
-            else 'Found version: v{}. but required is v{}. Please execute: \n"handshake migrate [COLLECTION_PATH]"',
+            else "Found version: v{}. but required is v{}."
+            + (
+                ""
+                if is_auto or version_stored > DB_VERSION
+                else ' Please execute: \n"handshake migrate [COLLECTION_PATH]"'
+            ),
             result[0],
             DB_VERSION,
         )
@@ -80,12 +85,23 @@ def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> 
     connection = connect(path)
     stored_version = False
     try:
-        is_required, bump_required, stored_version = check_version(connection)
+        is_required, bump_required, stored_version = check_version(
+            connection, is_auto=trigger == MigrationTrigger.AUTOMATIC
+        )
 
         if not is_required:
             logger.info("Already migrated to required version.")
             return False
         if not stored_version:
+            return False
+        if not bump_required:
+            logger.error(
+                "Found a version v{}. but we can migrate till v{}. "
+                "Please check the python build version and accordingly "
+                'execute: "handshake step-back [COLLECTION_PATH]"',
+                stored_version,
+                DB_VERSION,
+            )
             return False
 
         for version_to_bump in range(stored_version, DB_VERSION):

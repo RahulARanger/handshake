@@ -58,7 +58,7 @@ export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
 export interface ParsedTestRecord extends BasicDetails, SimpleSuiteDetails {
     // isBroken: boolean;
     errors: ErrorRecord[];
-    error: ErrorRecord;
+    error?: ErrorRecord;
     Tags: Tag[];
     numberOfAssertions: number;
     hasExpanded?: boolean;

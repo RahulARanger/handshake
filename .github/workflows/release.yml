@@ -9,6 +9,12 @@ on:
         type: boolean
         default: false
 
+      deploy_storybook:
+        description: 'deploy storybook'
+        required: false
+        type: boolean
+        default: false
+
       build_python_handshakes:
         description: 'deploy handshake py-build'
         required: false
@@ -36,6 +42,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -45,7 +57,7 @@ jobs:
 
       - name: Installing node packages
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-        run: pnpm install && npx playwright install --with-deps && npm i @swc/cli @swc/core wait-on concurrently http-server
+        run: pnpm install
 
       - name: Building Dashboard
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
@@ -194,7 +206,7 @@ jobs:
       pages: write
       id-token: write
 
-    if: ${{ !failure() && inputs.build_dashboard }}
+    if: ${{ !failure() && (inputs.deploy_storybook || inputs.build_dashboard) }}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -205,6 +217,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
