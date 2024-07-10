@@ -11,7 +11,6 @@ from tortoise.fields import (
     ForeignKeyField,
     ForeignKeyRelation,
     TextField,
-    UUIDField,
     BooleanField,
     JSONField,
     DatetimeField,

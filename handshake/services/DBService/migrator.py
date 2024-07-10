@@ -86,7 +86,7 @@ def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> 
     stored_version = False
     try:
         is_required, bump_required, stored_version = check_version(
-            connection, is_auto=trigger == MigrationTrigger.AUTOMATIC
+            connection, is_auto=True
         )
 
         if not is_required:

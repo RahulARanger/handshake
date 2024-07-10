@@ -85,7 +85,7 @@ async def helper_create_session_with_hierarchy_with_no_retries(
             session.sessionID, suite.suiteID, connection=connection
         )
         await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
-        await session.save()
+        await session.save(using_db=connection)
         await register_patch_suite(suite.suiteID, test_id, connection=connection)
 
     return to_return

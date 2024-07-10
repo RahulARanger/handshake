@@ -116,7 +116,7 @@ def migrate(collection_path: str):
 )
 def step_back(collection_path: str):
     path_to_refer = db_path(collection_path)
-    from_version = (check_version(path=path_to_refer))[-1]
+    from_version = (check_version(path=path_to_refer, is_auto=True))[-1]
     if confirm(f"Do you want revert from v{from_version} to v{from_version - 1}"):
         return revert_step_back(from_version, path_to_refer)
 

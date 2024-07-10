@@ -11,9 +11,12 @@ async def register_patch_suite(suiteID: str, testID: str, connection=None) -> Ta
     )
 
 
-async def register_patch_test_run(testID: str) -> TaskBase:
+async def register_patch_test_run(testID: str, connection=None) -> TaskBase:
     return await TaskBase.create(
-        type=JobType.MODIFY_TEST_RUN, test_id=testID, ticketID=testID
+        type=JobType.MODIFY_TEST_RUN,
+        test_id=testID,
+        ticketID=testID,
+        using_db=connection,
     )
 
 
