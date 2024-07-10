@@ -39,7 +39,7 @@ def version_file():
 @fixture()
 def init_db(root_dir):
     return lambda x=None: subprocess.call(
-        f'handshake config "{x if x else root_dir}"', shell=True
+        f'handshake init "{x if x else root_dir}"', shell=True
     )
 
 

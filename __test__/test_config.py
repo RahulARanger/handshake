@@ -17,7 +17,7 @@ async def test_default_config_file(root_dir):
     assert not target.exists()
     await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).delete()
     run(
-        f'handshake config "{root_dir}"',
+        f'handshake init "{root_dir}"',
         cwd=root_dir,
         shell=True,
     )
@@ -31,7 +31,7 @@ async def test_import_from_handshake_file(root_dir):
     target = root_dir / "handshake.json"
     if not target.exists():
         run(
-            f'handshake config "{root_dir}"',
+            f'handshake init "{root_dir}"',
             cwd=root_dir,
             shell=True,
         )

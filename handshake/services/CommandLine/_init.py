@@ -38,8 +38,7 @@ from asyncio import run
 
 {'{:*^69}'.format(" Welcome to Handshake's CLI ")}
 
-Handshake simplifies the collection and processing of your test results. The Handshake CLI helps you to interact with 
-the stored results or with the server. so for each command it requires a <path> argument, representing the collection 
+Handshake simplifies the collection and processing of your test results. The Handshake CLI helps you to interact with the stored results or with the server. so for each command it requires a <path> argument, representing the collection 
 folder, a place where you could have the database or were planning to store the results [not the HTML files].
 
 [ROOT-DIR] >> [COLLECTION_NAME] (*we need this) >> TeStReSuLtS.db & [Attachments] (for getting this).
@@ -81,9 +80,13 @@ def break_if_mismatch(expected: str) -> bool:
 
 
 @general_requirement
-@handle_cli.command()
+@handle_cli.command(
+    short_help="Returns the version inside the TestResults",
+    help="it would be possible the server and stored results are in different version, "
+    "with this command you can clear that query and note if migration is required",
+)
 def db_version(collection_path):
-    return check_version(path=db_path(collection_path))
+    return check_version(path=db_path(collection_path), is_auto=True)
 
 
 @handle_cli.command(
@@ -199,9 +202,9 @@ def patch(
 
 
 @handle_cli.command(
-    short_help="zips TestResults into one single ",
-    help="takes in multiple zipped test results and merges them into one "
-    "Please note: we would be migrating the provided database before migrating into one single result folder",
+    short_help="zips your TestResults in a tar file",
+    help="zipping your TestResults in a single tar file with bz2 compression level."
+    " it stores only inside the provided TestResults folder but not the TestResults folder itself.",
 )
 @general_requirement
 @option(
@@ -224,8 +227,8 @@ def zip_results(collection_path, out):
 
 @handle_cli.command(
     short_help="extracts zipped (.bz2) TestResults into a provided folder",
-    help="extracts "
-    "Please note: we would be migrating the provided database before migrating into one single result folder",
+    help="extracts zipped TestResults into a provided folder. "
+    "we assume that the results were zipped in a tar file with bz2 compression",
 )
 @argument(
     "file",
@@ -235,7 +238,7 @@ def zip_results(collection_path, out):
 @option(
     "--out",
     "-o",
-    help="Extract into this folder",
+    help="Extracts results inside this folder",
     type=C_Path(dir_okay=True, writable=True),
     required=False,
 )
@@ -247,9 +250,10 @@ def extract_results(file, out):
 
 
 @handle_cli.command(
-    short_help="extracts zipped (.bz2) TestResults into a provided folder",
-    help="extracts "
-    "Please note: we would be migrating the provided database before migrating into one single result folder",
+    short_help="merges all the provided results into the single one. Simple Merge",
+    help="It's a simple merge, it takes in either zip file of your TestResults or a folder itself "
+    "and then it takes a copy, migrates if required and then inserts data into the output database."
+    " Please note we would also run migration scripts on the output TestResults. Temp folders are then deleted.",
 )
 @argument(
     "output",
@@ -276,16 +280,16 @@ def v():
 
 
 @handle_cli.command(
-    short_help="configures TestResults folder with the provided folder name at your cwd",
+    short_help="does the required setup to store your test results in this folder",
     help="""
 Configures TestResults folder with the provided folder name at your cwd. 
-Example: handshake config TestResults, at your cwd: x,\n
+Example: handshake init TestResults, at your cwd: x,\n
 then it creates x -> TestResults -> TeStReSuLtS.sb and x -> TestResults -> Attachments
 and x -> handshakes.json
     """,
 )
 @general_but_optional_requirement
-def config(collection_path):
+def init(collection_path):
     saved_db_path = db_path(collection_path)
 
     set_default_first = not Path(collection_path).exists()

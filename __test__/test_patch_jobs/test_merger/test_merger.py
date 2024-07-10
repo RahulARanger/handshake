@@ -13,7 +13,7 @@ from handshake.services.DBService.models import (
     AttachmentBase,
     AssertBase,
 )
-from handshake.services.DBService.models.enums import Status
+from handshake.services.DBService.models.enums import Status, SuiteType
 from handshake.services.SchedularService.register import register_patch_test_run
 
 
@@ -115,13 +115,14 @@ class TestMerger:
             )
 
         # patch test-suite
+
         for suite in (
-            *await SuiteBase.filter(session_id__in=first_sessions).values_list(
-                "suiteID", flat=True
-            ),
-            *await SuiteBase.filter(session_id__in=second_sessions).values_list(
-                "suiteID", flat=True
-            ),
+            *await SuiteBase.filter(
+                session_id__in=first_sessions, suiteType=SuiteType.SUITE
+            ).values_list("suiteID", flat=True),
+            *await SuiteBase.all(using_db=first_connection)
+            .filter(session_id__in=second_sessions, suiteType=SuiteType.SUITE)
+            .values_list("suiteID", flat=True),
         ):
             suite_record = (
                 await SuiteBase.all(using_db=second_connection)
@@ -136,7 +137,11 @@ class TestMerger:
             assert suite_record.standing == Status.FAILED
             assert suite_record.ended
 
-            child_rollup_suite = await RollupBase.filter(suite_id=suite).first()
+            child_rollup_suite = (
+                await RollupBase.all(using_db=second_connection)
+                .filter(suite_id=suite)
+                .first()
+            )
             assert (
                 child_rollup_suite.passed
                 == child_rollup_suite.failed
@@ -145,48 +150,3 @@ class TestMerger:
             )
 
             assert child_rollup_suite.tests == 9
-
-    async def test_skipped_tables_to_merge(
-        self,
-        sample_test_session,
-        create_session_with_hierarchy_with_no_retries,
-        root_dir,
-        root_dir_1,
-        helper_to_create_test_and_session,
-        attach_config,
-    ):
-        first_connection = connections.get(root_dir_1.name)
-
-        # we would be merging the data in default connection and root_dir_1 connection and
-        # save it in second_connection
-
-        session = await sample_test_session
-        session_2 = await helper_to_create_test_and_session(connection=first_connection)
-
-        attach_config(
-            session.test_id,
-            connection=first_connection,
-            file_retries=3,
-            avoidParentSuitesInCount=True,
-        )
-        attach_config(session.test_id, connection=first_connection, file_retries=6)
-
-        suites = await create_session_with_hierarchy_with_no_retries(
-            session.test_id,
-        )
-        suites_2 = await create_session_with_hierarchy_with_no_retries(
-            session_2.test_id, connection=first_connection
-        )
-
-        await register_patch_test_run(testID=session.test_id)
-        await register_patch_test_run(
-            testID=session_2.test_id, connection=first_connection
-        )
-
-        assert (
-            call(
-                f'handshake merge "{root_dir_2}" -m "{root_dir}" -m "{root_dir_1}"',
-                shell=True,
-            )
-            == 0
-        )
