@@ -203,26 +203,36 @@ def patch(
 
 @handle_cli.command(
     short_help="zips your TestResults in a tar file",
-    help="zipping your TestResults in a single tar file with bz2 compression level."
+    help="it zips your TestResults in a single tar file with bz2 compression level."
     " it stores only inside the provided TestResults folder but not the TestResults folder itself.",
 )
 @general_requirement
 @option(
     "--out",
     "-o",
-    help="Saves the zipped file in this path",
-    type=C_Path(file_okay=True, writable=True, exists=False),
+    help="Saves the zipped file inside this folder path",
+    type=C_Path(dir_okay=True),
     required=False,
+    default=None,
 )
-def zip_results(collection_path, out):
+def zip_results(collection_path, out=None):
     collection = Path(collection_path)
-    output_folder = Path(out if out else "")
-    secho(f"compressing {collection}", fg="blue")
-    make_archive(collection.stem, "bztar", collection)
+    output_folder = Path(out) if out else Path.cwd()
+    output_folder.mkdir(exist_ok=True)
+
+    logger.info(f"compressing TestResults located at: {collection}")
     file_name = collection.stem + ".tar.bz2"
-    if not (output_folder / file_name).exists():
-        move(file_name, output_folder)
-    secho(f"Done, located at {output_folder / file_name}", fg="green")
+    before = (output_folder / file_name).exists()
+    if before:
+        logger.error(
+            f"output file already exists, Please remove or rename the file at {output_folder / file_name}",
+        )
+
+    else:
+        make_archive(collection.stem, "bztar", collection)
+        if out:
+            move(file_name, output_folder)
+        logger.info(f"Done, located at {output_folder / file_name}")
 
 
 @handle_cli.command(
@@ -242,11 +252,11 @@ def zip_results(collection_path, out):
     type=C_Path(dir_okay=True, writable=True),
     required=False,
 )
-def extract_results(file, out):
-    output_folder = Path(out if out else Path(Path(file).stem).stem)
-    secho(f"de-compressing {file}", fg="blue")
+def extract_results(file: str, out: str):
+    output_folder = Path(out if out else file.split(".")[0])
+    logger.info(f"de-compressing {file}")
     unpack_archive(file, output_folder, "bztar")
-    secho(f"Done, located at {output_folder}", fg="green")
+    logger.info(f"Done, located at {output_folder}")
 
 
 @handle_cli.command(

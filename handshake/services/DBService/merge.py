@@ -23,7 +23,7 @@ async def reset_sqlite_sequence(output_db_path):
 
 
 def prep_minis(zipped_results: Path) -> Tuple[Path, bool]:
-    logger.info("preparing a temp. copy of {}...", zipped_results.stem)
+    logger.info("preparing a temp. copy of {}...", zipped_results.name)
     temp_folder = Path(mkdtemp(prefix="handshake-merge-"))
     is_zip = zipped_results.is_file()
 

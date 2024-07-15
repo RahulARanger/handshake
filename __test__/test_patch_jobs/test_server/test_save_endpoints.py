@@ -12,7 +12,6 @@ from handshake.services.DBService.models import (
 from handshake.services.DBService.models.enums import LogType, AttachmentType
 from sanic import Sanic
 from __test__.test_patch_jobs.test_server.commons import set_config
-from tortoise.expressions import Q
 
 
 @mark.usefixtures("sample_test_session")

@@ -85,3 +85,5 @@ TestExportedReports
 !.env.sample
 
 **/handshake.json
+
+TestServerResults

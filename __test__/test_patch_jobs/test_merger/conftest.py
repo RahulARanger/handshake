@@ -31,8 +31,18 @@ def root_dir_3():
     return Path(__file__).parent.parent.parent.parent / "TestMerge3"
 
 
+def clean_files(root_dir, root_dir_1, root_dir_2, root_dir_3):
+    for _ in (
+        f"{root_dir.name}.tar.bz2",
+        f"{root_dir_1.name}.tar.bz2",
+        f"{root_dir_2.name}.tar.bz2",
+        f"{root_dir_3.name}.tar.bz2",
+    ):
+        (Path.cwd() / _).unlink(missing_ok=True)
+
+
 @fixture(autouse=True)
-async def cleanup(root_dir_1, root_dir_2, root_dir_3, get_db_path, init_db):
+async def cleanup(root_dir, root_dir_1, root_dir_2, root_dir_3, get_db_path, init_db):
     dir_s = (root_dir_1, root_dir_2, root_dir_3)
 
     for _ in dir_s:
@@ -45,6 +55,8 @@ async def cleanup(root_dir_1, root_dir_2, root_dir_3, get_db_path, init_db):
 
         if not path.exists():
             init_db(_)
+
+    clean_files(root_dir, root_dir_1, root_dir_2, root_dir_3)
 
     await Tortoise.init(
         {
@@ -69,3 +81,5 @@ async def cleanup(root_dir_1, root_dir_2, root_dir_3, get_db_path, init_db):
     for _ in dir_s:
         if _.exists():
             shutil.rmtree(_)
+
+    clean_files(root_dir, root_dir_1, root_dir_2, root_dir_3)
