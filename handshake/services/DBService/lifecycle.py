@@ -36,6 +36,7 @@ async def init_tortoise_orm(
     init_script: bool = False,
 ):
     chosen = force_db_path if force_db_path else db_path()
+    force_init_scripts = not chosen.exists()
     # migrator is called here
     if migrate:
         migration(chosen)
@@ -49,7 +50,8 @@ async def init_tortoise_orm(
     await Tortoise.generate_schemas()
 
     test = TestConfigManager(chosen)
-    await test.sync(init_script)
+    # we run the init scripts for the newly created db
+    await test.sync(init_script or force_init_scripts)
 
     if close_it:
         await close_connection()
