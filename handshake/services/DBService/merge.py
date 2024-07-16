@@ -22,7 +22,7 @@ async def reset_sqlite_sequence(output_db_path):
     await connection.close()
 
 
-def prep_minis(zipped_results: Path) -> Tuple[Path, bool]:
+def prep_minis(zipped_results: Path) -> Path:
     logger.info("preparing a temp. copy of {}...", zipped_results.name)
     temp_folder = Path(mkdtemp(prefix="handshake-merge-"))
     is_zip = zipped_results.is_file()
@@ -30,10 +30,11 @@ def prep_minis(zipped_results: Path) -> Tuple[Path, bool]:
     try:
         if is_zip:
             logger.debug("unpacking {} into {}", zipped_results, temp_folder)
+            temp_folder /= zipped_results.name.split(".")[0]
+            temp_folder.mkdir()
             unpack_archive(zipped_results, temp_folder, "bztar")
             logger.debug("checking for possible migration for {}", db_path(temp_folder))
             logger.warning("running migrator on {}", db_path(temp_folder))
-            temp_folder /= zipped_results.name.split(".")[0]
         else:
             logger.debug("copying provided folder {} to a temp folder", zipped_results)
             temp_folder /= zipped_results.name
@@ -41,11 +42,12 @@ def prep_minis(zipped_results: Path) -> Tuple[Path, bool]:
             logger.debug("{} is now copied to {}", zipped_results, temp_folder)
             logger.warning("running migrator on {}", db_path(temp_folder))
     except Exception as error:
-        rmtree(temp_folder if is_zip else temp_folder.parent)
+        logger.warning("cleaning temp folders")
+        rmtree(temp_folder.parent)
         raise error
 
     migration(db_path(temp_folder))
-    return temp_folder, is_zip
+    return temp_folder
 
 
 class Merger:
@@ -72,7 +74,6 @@ class Merger:
                 futures.append(prep.submit(prep_minis, Path(collection)))
 
         paths: List[Path[str]] = []
-        note: List[bool] = []
 
         for future in futures:
             has_failed = future.exception()
@@ -83,27 +84,30 @@ class Merger:
                 )
                 continue
 
-            path, is_zip = future.result()
+            path = future.result()
             paths.append(path)
-            note.append(is_zip)
 
-        self.merge_internals(paths)
+        try:
+            self.merge_internals(paths)
 
-        dest = attachment_folder(self.output_db_path)
+            dest = attachment_folder(self.output_db_path)
 
-        with ThreadPoolExecutor(max_workers=6) as after_merge:
-            logger.debug("moving static folders and files")
-            for collection in paths:
-                for test_run in attachment_folder(db_path(str(collection))).iterdir():
-                    after_merge.submit(move, test_run, dest)
+            with ThreadPoolExecutor(max_workers=6) as after_merge:
+                logger.debug("moving static folders and files")
+                for collection in paths:
+                    for test_run in attachment_folder(
+                        db_path(str(collection))
+                    ).iterdir():
+                        after_merge.submit(move, test_run, dest)
 
-        logger.debug("done, cleaning temp folders...")
+            logger.debug("done, cleaning temp folders...")
 
-        with ThreadPoolExecutor(max_workers=6) as cleaner:
-            for collection, was_zip in zip(paths, note):
-                cleaner.submit(rmtree, collection.parent)
-
-        logger.debug("merge operation completed!")
+        finally:
+            with ThreadPoolExecutor(max_workers=6) as cleaner:
+                for collection in paths:
+                    cleaner.submit(rmtree, collection.parent)
+            logger.debug("temp folders have been removed successfully")
+        logger.info("merge operation completed!")
 
     def merge_internals(self, paths: List[Path]):
         with connect(self.output_db_path) as connection:
