@@ -32,6 +32,8 @@ def prep_minis(zipped_results: Path) -> Tuple[Path, bool]:
             logger.debug("unpacking {} into {}", zipped_results, temp_folder)
             unpack_archive(zipped_results, temp_folder, "bztar")
             logger.debug("checking for possible migration for {}", db_path(temp_folder))
+            logger.warning("running migrator on {}", db_path(temp_folder))
+            temp_folder /= zipped_results.name.split(".")[0]
         else:
             logger.debug("copying provided folder {} to a temp folder", zipped_results)
             temp_folder /= zipped_results.name
@@ -95,9 +97,11 @@ class Merger:
                 for test_run in attachment_folder(db_path(str(collection))).iterdir():
                     after_merge.submit(move, test_run, dest)
 
-            logger.debug("cleaning temp folders...")
+        logger.debug("done, cleaning temp folders...")
+
+        with ThreadPoolExecutor(max_workers=6) as cleaner:
             for collection, was_zip in zip(paths, note):
-                after_merge.submit(rmtree, collection if was_zip else collection.parent)
+                cleaner.submit(rmtree, collection.parent)
 
         logger.debug("merge operation completed!")
 

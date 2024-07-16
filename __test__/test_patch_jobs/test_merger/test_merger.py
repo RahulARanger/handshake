@@ -15,6 +15,7 @@ from handshake.services.DBService.models import (
 )
 from handshake.services.DBService.models.enums import Status, SuiteType
 from handshake.services.SchedularService.register import register_patch_test_run
+from handshake.services.DBService.lifecycle import writtenAttachmentFolderName, db_path
 
 
 async def helper_test_patch_test_run(session_record: SessionBase, connection=None):
@@ -61,6 +62,38 @@ async def helper_test_patch_suite(suite: SuiteBase, connection=None):
     assert child_rollup_suite.tests == 9
 
 
+async def add_attachments(connection, create_static_attachment, root_dir, check_in_dir):
+    note = (
+        await SuiteBase.all(using_db=connection)
+        .filter(suiteType=SuiteType.SUITE)
+        .limit(2)
+        .all()
+    )
+    assert note
+    moved_attachments = []
+    for suite in note:
+        for _ in range(2):
+            test = (
+                await SuiteBase.all(using_db=connection)
+                .filter(suiteType=SuiteType.TEST, parent=suite.suiteID)
+                .first()
+            )
+            attachment = await create_static_attachment(
+                root_dir,
+                test.suiteID,
+                test.parent,
+                connection=connection,
+            )
+            moved_attachments.append(
+                check_in_dir
+                / writtenAttachmentFolderName
+                / test.parent
+                / attachment.attachmentValue["value"]
+            )
+            assert not moved_attachments[-1].exists()
+    return moved_attachments
+
+
 @mark.usefixtures("clean_close", "cleanup")
 class TestMerger:
     async def test_normal_case(
@@ -72,6 +105,7 @@ class TestMerger:
         root_dir_2,
         helper_to_create_test_and_session,
         attach_config,
+        create_static_attachment,
     ):
         first_connection = connections.get(root_dir_1.name)
         second_connection = connections.get(root_dir_2.name)
@@ -94,6 +128,20 @@ class TestMerger:
             session_2.test_id, connection=first_connection
         )
 
+        note = (
+            await SuiteBase.all(using_db=first_connection)
+            .filter(suiteType=SuiteType.SUITE)
+            .limit(2)
+            .all()
+        )
+        assert note
+        moved_attachments = await add_attachments(
+            first_connection, create_static_attachment, root_dir_1, root_dir_2
+        )
+        from_second_ones = await add_attachments(
+            None, create_static_attachment, root_dir, root_dir_2
+        )
+
         await register_patch_test_run(testID=session.test_id)
         await register_patch_test_run(
             testID=session_2.test_id, connection=first_connection
@@ -106,6 +154,10 @@ class TestMerger:
             )
             == 0
         )
+
+        # checking if the attachments were moved
+        for attachment in moved_attachments + from_second_ones:
+            assert attachment.exists()
 
         for db in (
             SuiteBase,
@@ -296,7 +348,7 @@ class TestMerger:
 
         assert (
             call(
-                f'handshake merge "{root_dir_2}" -m "{root_dir}.tar.bz2" -m "{root_dir_1}.tar.bz2"',
+                f'handshake merge "{root_dir_2}" -m "{root_dir.name}.tar.bz2" -m "{root_dir_1.name}.tar.bz2"',
                 shell=True,
             )
             == 0

@@ -217,7 +217,7 @@ def patch(
 )
 def zip_results(collection_path, out=None):
     collection = Path(collection_path)
-    output_folder = Path(out) if out else Path.cwd()
+    output_folder = Path(out).resolve() if out else Path.cwd()
     output_folder.mkdir(exist_ok=True)
 
     logger.info(f"compressing TestResults located at: {collection}")
