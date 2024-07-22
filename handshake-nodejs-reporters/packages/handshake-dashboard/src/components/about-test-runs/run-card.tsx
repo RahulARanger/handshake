@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Group, Badge, Anchor, Text } from '@mantine/core';
+import { Card, Group, Badge, Anchor } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import SwitchTestCases from 'components/test-case-switch';
