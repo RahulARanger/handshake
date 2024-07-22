@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Group, Badge, Anchor } from '@mantine/core';
+import { Card, Group, Badge, Anchor, Text } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import SwitchTestCases from 'components/test-case-switch';
@@ -21,18 +21,21 @@ export default function TestRunCard(properties: {
                     <Anchor href={properties.run.Link} size="sm">
                         {properties.run.Started.format(dateFormatUsed)}
                     </Anchor>
-                    <Badge size="xs" variant="light" color="pink.9">
-                        {properties.run.projectName.slice(0, 30) +
-                            (properties.run.projectName.length > 30
-                                ? '...'
-                                : '')}
+                    <Badge
+                        size="xs"
+                        variant="light"
+                        color="pink.9"
+                        maw={'50%'}
+                        title={properties.run.projectName}
+                    >
+                        {properties.run.projectName}
                     </Badge>
                 </Group>
             </Card.Section>
             <Card.Section p="sm" pt={0}>
                 <Group justify="space-between" wrap="nowrap">
                     <PassedRate
-                        width={220}
+                        width={231}
                         text={isTests ? ' Tests' : 'Suites'}
                         rate={
                             isTests

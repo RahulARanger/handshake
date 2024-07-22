@@ -23,18 +23,26 @@ import transformTestRunRecord from 'extractors/transform-run-record';
 
 export function RunsPageContent(properties: {
     forceLoading?: boolean;
+    mockData?: TestRunRecord[];
 }): ReactNode {
     const {
         data: rawRuns,
         isLoading,
         error,
-    } = useSWRImmutable<TestRunRecord[]>(jsonFeedForRunsPage(), () =>
-        fetch(jsonFeedForRunsPage()).then(async (response) => response.json()),
+    } = useSWRImmutable<TestRunRecord[]>(
+        properties.mockData ? undefined : jsonFeedForRunsPage(),
+        () =>
+            fetch(jsonFeedForRunsPage()).then(async (response) =>
+                response.json(),
+            ),
     );
 
     const data = useMemo(
-        () => (rawRuns ?? []).map((record) => transformTestRunRecord(record)),
-        [rawRuns],
+        () =>
+            (rawRuns ?? properties.mockData ?? []).map((record) =>
+                transformTestRunRecord(record),
+            ),
+        [rawRuns, properties.mockData],
     );
 
     const [filters, setFilters] = useState<{
@@ -79,7 +87,7 @@ export function RunsPageContent(properties: {
         <AppShell
             header={{ height: 50 }}
             navbar={{
-                width: 376,
+                width: 390,
                 breakpoint: 'sm',
             }}
             aside={{
@@ -124,7 +132,7 @@ export function RunsPageContent(properties: {
                                 'calc(100vh - var(--app-shell-header-height, 0px))'
                             }
                             chartWidth={
-                                'calc(93vw - var(--app-shell-navbar-width, 0px))'
+                                'calc(95vw - var(--app-shell-navbar-width, 0px))'
                             }
                             runs={filteredRuns}
                             toLoad={toLoad}

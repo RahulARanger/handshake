@@ -13,7 +13,8 @@ from handshake.services.DBService.models import RunBase, SessionBase, ConfigBase
 from datetime import datetime, timedelta, UTC
 from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.models.enums import ConfigKeys
-from handshake.services.DBService.migrator import revert_step_back, OLDEST_VERSION
+from handshake.services.DBService.migrator import revert_step_back
+from shutil import rmtree
 
 pytestmark = mark.asyncio
 
@@ -37,11 +38,13 @@ def version_file():
 
 @fixture()
 def init_db(root_dir):
-    return lambda: subprocess.call(f'handshake config "{root_dir}"', shell=True)
+    return lambda x=None: subprocess.call(
+        f'handshake init "{x if x else root_dir}"', shell=True
+    )
 
 
-async def get_connection(db_path, v=5):
-    connection = connections.get("default")
+async def get_connection(db_path, v=5, connection=None):
+    connection = connections.get("default") if not connection else connection
 
     if v > DB_VERSION:
         # for testing purposes only.
@@ -83,14 +86,17 @@ async def clean_close(db_path, init_db):
     await RunBase.filter(projectName__icontains=testNames).all().delete()
     await close_connection()
 
+    rmtree(db_path.parent)
 
-async def sample_test_run(postfix: Optional[str] = ""):
+
+async def sample_test_run(postfix: Optional[str] = "", connection=None):
     noted = datetime.now(UTC)
     return await RunBase.create(
         projectName=testNames + postfix,
         started=noted,
         ended=noted + timedelta(minutes=10),
         duration=timedelta(minutes=10).total_seconds() * 1000,
+        using_db=connection,
     )
 
 
@@ -110,17 +116,29 @@ def helper_set_db_config():
     return attach_db_config
 
 
+async def create_test_and_session(postfix="", connection=None):
+    return await test_session(
+        (await sample_test_run(postfix, connection)).testID, connection
+    )
+
+
+@fixture()
+def helper_to_create_test_and_session():
+    return create_test_and_session
+
+
 @fixture()
 async def sample_test_session(helper_create_test_run):
     return await test_session((await helper_create_test_run()).testID)
 
 
-async def test_session(test_id: str):
+async def test_session(test_id: str, connection=None):
     started = datetime.now(UTC)
     return await SessionBase.create(
         started=started,
         test_id=test_id,
         ended=started + timedelta(milliseconds=24),
+        using_db=connection,
     )
 
 
