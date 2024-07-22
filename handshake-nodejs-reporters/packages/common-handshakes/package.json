@@ -1,7 +1,7 @@
 {
 	"name": "@hand-shakes/common-handshakes",
 	"description": "common-package used by custom reporters this package will have base classes and functions to support connection with the handshake server",
-	"version": "0.8.1",
+	"version": "0.8.2",
 	"private": false,
 	"author": "RahulARanger <saihanumarahul66@gmail.com>",
 	"type": "module",

@@ -1,5 +1,11 @@
 # common-handshakes
 
+## 0.8.2
+
+### Patch Changes
+
+- 83e445b: bump: version for server build to 0.5.0
+
 ## 0.8.1
 
 ### Patch Changes
