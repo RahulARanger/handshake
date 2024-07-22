@@ -43,8 +43,8 @@ def init_db(root_dir):
     )
 
 
-async def get_connection(db_path, v=5):
-    connection = connections.get("default")
+async def get_connection(db_path, v=5, connection=None):
+    connection = connections.get("default") if not connection else connection
 
     if v > DB_VERSION:
         # for testing purposes only.

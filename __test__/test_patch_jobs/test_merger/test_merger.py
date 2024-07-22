@@ -12,10 +12,12 @@ from handshake.services.DBService.models import (
     StaticBase,
     AttachmentBase,
     AssertBase,
+    ConfigBase,
 )
-from handshake.services.DBService.models.enums import Status, SuiteType
+from handshake.services.DBService.models.enums import Status, SuiteType, ConfigKeys
 from handshake.services.SchedularService.register import register_patch_test_run
 from handshake.services.DBService.lifecycle import writtenAttachmentFolderName, db_path
+from handshake.services.DBService import DB_VERSION
 
 
 async def helper_test_patch_test_run(session_record: SessionBase, connection=None):
@@ -158,6 +160,9 @@ class TestMerger:
         # checking if the attachments were moved
         for attachment in moved_attachments + from_second_ones:
             assert attachment.exists()
+            assert await StaticBase.exists(
+                attachmentID=attachment.stem, using_db=second_connection
+            )
 
         for db in (
             SuiteBase,
@@ -395,3 +400,68 @@ class TestMerger:
             .values_list("suiteID", flat=True),
         ):
             await helper_test_patch_suite(suite, second_connection)
+
+    async def test_extra_tables_merge(
+        self,
+        sample_test_session,
+        create_session_with_hierarchy_with_no_retries,
+        root_dir_1,
+        root_dir_2,
+        helper_to_create_test_and_session,
+        attach_config,
+        add_assertion,
+        get_vth_connection,
+    ):
+        first_connection = connections.get(root_dir_1.name)
+        second_connection = connections.get(root_dir_2.name)
+        first_connection = await get_vth_connection(
+            db_path(root_dir_1), v=DB_VERSION - 1, connection=first_connection
+        )
+
+        # we would be merging the data in default connection and root_dir_1 connection and
+        # save it in second_connection
+
+        session_1 = await helper_to_create_test_and_session(connection=first_connection)
+        await create_session_with_hierarchy_with_no_retries(
+            session_1.test_id, connection=first_connection, skip_register=True
+        )
+        any_test = (
+            await SuiteBase.all(using_db=first_connection)
+            .filter(suiteType=SuiteType.TEST)
+            .first()
+        )
+        await add_assertion(
+            any_test.suiteID, "sample-assertion-1", True, connection=first_connection
+        )
+        await add_assertion(
+            any_test.suiteID, "sample-assertion-2", False, connection=first_connection
+        )
+
+        to_change = (
+            await ConfigBase.all(using_db=first_connection)
+            .filter(key=ConfigKeys.maxRunsPerProject)
+            .first()
+        )
+        to_change.value = 20
+        await to_change.save()
+
+        assert (
+            call(
+                f'handshake merge "{root_dir_2}" -m "{root_dir_1}"',
+                shell=True,
+            )
+            == 0
+        )
+        assert (
+            await ConfigBase.all(using_db=second_connection)
+            .filter(key=ConfigKeys.version)
+            .first()
+        ).value == str(DB_VERSION)
+        assert (
+            await ConfigBase.all(using_db=second_connection)
+            .filter(key=ConfigKeys.maxRunsPerProject)
+            .first()
+        ).value != "20"
+
+        assert (await MigrationBase.all(using_db=second_connection).count()) == 2
+        assert (await AssertBase.all(using_db=second_connection).count()) == 2

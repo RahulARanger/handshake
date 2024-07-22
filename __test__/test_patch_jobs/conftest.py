@@ -4,7 +4,7 @@ from handshake.services.DBService.models import (
     SuiteBase,
     TestConfigBase,
     SessionBase,
-    AttachmentBase,
+    AssertBase,
     StaticBase,
 )
 from handshake.services.DBService.models.enums import SuiteType, Status, AttachmentType
@@ -77,6 +77,7 @@ async def helper_create_session_with_hierarchy_with_no_retries(
     parent_suite: str = "",
     started=datetime.datetime.now(),
     connection=None,
+    skip_register=False,
 ):
     to_return = []
 
@@ -96,7 +97,8 @@ async def helper_create_session_with_hierarchy_with_no_retries(
         )
         await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await session.save(using_db=connection)
-        await register_patch_suite(suite.suiteID, test_id, connection=connection)
+        if not skip_register:
+            await register_patch_suite(suite.suiteID, test_id, connection=connection)
 
     return to_return
 
@@ -164,22 +166,18 @@ async def helper_create_test_config(
     )
 
 
-async def helper_create_assertion(entity_id: str, title: str, passed: bool):
-    await AttachmentBase.create(
+async def helper_create_assertion(
+    entity_id: str, passed: bool, title: str = "toExist", connection=None
+):
+    await AssertBase.create(
         type=AttachmentType.ASSERT,
-        attachmentValue=dict(
-            color="",
-            title="toExist",
-            value=json.dumps(
-                dict(
-                    matcherName=title,
-                    options=dict(wait=1000, interval=500),
-                    result={"pass": passed},
-                ),
-            ),
-        ),
-        description="",
+        title=title,
+        wait=1000,
+        interval=500,
+        passed=passed,
+        message="",
         entity_id=str(entity_id),
+        using_db=connection,
     )
 
 
