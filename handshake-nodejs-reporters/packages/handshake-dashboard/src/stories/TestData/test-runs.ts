@@ -28,9 +28,10 @@ export function getStatus(
     if (failed) return 'FAILED';
     return passed === 0 && skipped !== 0 ? 'SKIPPED' : 'PASSED';
 }
+const generator = Chance();
 
-export function generateTestRun(feed: Feeder): TestRunRecord {
-    const generator = Chance();
+export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
+    const feed: Feeder = rawFeed ?? {};
 
     const tests = feed.tests ?? generator.integer({ min: 3, max: 100 });
     const passed = feed.passed ?? generator.integer({ min: 0, max: tests });
@@ -119,7 +120,7 @@ export function generateTestRun(feed: Feeder): TestRunRecord {
         }),
         duration: dayjs(ended).diff(dayjs(started)),
         projectName: generator.company(),
-        testID: generator.unique(generator.state, 1)[0],
+        testID: crypto.randomUUID(),
         tests,
         standing: getStatus(passed, failed, skipped),
         tags: JSON.stringify(tags),
@@ -164,3 +165,7 @@ export const randomTestProjects = (length: number) => {
         .fill(true)
         .map(() => generator.company());
 };
+
+export function generateTestRunForDemo() {
+    return generator.n(generateTestRun, 6);
+}

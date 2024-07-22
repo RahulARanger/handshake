@@ -9,7 +9,7 @@ import advancedFormat from 'dayjs/plugin/advancedFormat';
 dayjs.extend(advancedFormat);
 
 export default function AreaChartForTestRuns(properties: {
-    Rates: Array<{ rate: [number, number, number]; date: Dayjs }>;
+    Rates: Array<{ rate: [number, number, number]; date: Dayjs; id: string }>;
     percentStack?: boolean;
     w?: AreaChartProps['w'];
 }): ReactNode {
@@ -31,6 +31,7 @@ export default function AreaChartForTestRuns(properties: {
                     Failed: number;
                     Skipped: number;
                     date: string;
+                    Id: string;
                 } => {
                     const showDate =
                         !currentDate || !currentDate.isSame(_.date, 'date');
@@ -43,6 +44,7 @@ export default function AreaChartForTestRuns(properties: {
                         date: _.date.format(
                             showDate ? 'Do MMM, hh:mm a' : 'hh:mm a',
                         ),
+                        Id: _.id,
                     };
                 },
             )}
@@ -56,6 +58,8 @@ export default function AreaChartForTestRuns(properties: {
                 { name: 'Skipped', color: 'yellow' },
                 { name: 'Failed', color: 'red' },
             ]}
+            areaProps={{ isAnimationActive: true }}
+            areaChartProps={{ syncId: 'Id' }}
         />
     );
 }

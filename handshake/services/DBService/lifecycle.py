@@ -23,10 +23,20 @@ def attachment_folder(provided_db_path: Path, *args):
     return to_path
 
 
+async def close_connection():
+    await connections.close_all()
+    # waiting for the logs to be sent or saved
+    await logger.complete()
+
+
 async def init_tortoise_orm(
-    force_db_path: Optional[Union[Path, str]] = None, migrate: bool = False
+    force_db_path: Optional[Union[Path, str]] = None,
+    migrate: bool = False,
+    close_it: bool = False,
+    init_script: bool = False,
 ):
     chosen = force_db_path if force_db_path else db_path()
+    force_init_scripts = not chosen.exists()
     # migrator is called here
     if migrate:
         migration(chosen)
@@ -40,18 +50,16 @@ async def init_tortoise_orm(
     await Tortoise.generate_schemas()
 
     test = TestConfigManager(chosen)
-    await test.sync()
+    # we run the init scripts for the newly created db
+    await test.sync(init_script or force_init_scripts)
+
+    if close_it:
+        await close_connection()
 
 
 async def create_run(projectName: str) -> str:
     test_id = str((await RunBase.create(projectName=projectName)).testID)
     return test_id
-
-
-async def close_connection():
-    await connections.close_all()
-    # waiting for the logs to be sent or saved
-    await logger.complete()
 
 
 class TestConfigManager:
@@ -62,15 +70,16 @@ class TestConfigManager:
         self.db_path = test_result_db
         attachment_folder(self.db_path).mkdir(exist_ok=True)
 
-    async def sync(self):
-        await connections.get("default").execute_script(
-            f"""
+    async def sync(self, init_script: bool = False):
+        if init_script:
+            await connections.get("default").execute_script(
+                f"""
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('MAX_RUNS_PER_PROJECT', '10', '0');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '', '1');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('VERSION', '{DB_VERSION}', '1');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
             """,
-        )
+            )
         if not self.path.exists():
             logger.debug(
                 "missing handshakes.json, creating one at {}", self.path.parent

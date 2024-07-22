@@ -3,22 +3,20 @@ from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from uuid import uuid4, UUID
 from typing import Union
 from handshake.services.DBService.models.result_base import TestLogBase, LogType
-from handshake.services.DBService.lifecycle import init_tortoise_orm, close_connection
-from handshake.services.DBService.models.config_base import ExportBase
-from handshake.services.DBService.models.result_base import RunBase
-from pathlib import Path
-from typing import List
 
 
-async def register_patch_suite(suiteID: str, testID: str) -> TaskBase:
+async def register_patch_suite(suiteID: str, testID: str, connection=None) -> TaskBase:
     return await TaskBase.create(
-        ticketID=suiteID, test_id=testID, type=JobType.MODIFY_SUITE
+        ticketID=suiteID, test_id=testID, type=JobType.MODIFY_SUITE, using_db=connection
     )
 
 
-async def register_patch_test_run(testID: str) -> TaskBase:
+async def register_patch_test_run(testID: str, connection=None) -> TaskBase:
     return await TaskBase.create(
-        type=JobType.MODIFY_TEST_RUN, test_id=testID, ticketID=testID
+        type=JobType.MODIFY_TEST_RUN,
+        test_id=testID,
+        ticketID=testID,
+        using_db=connection,
     )
 
 
