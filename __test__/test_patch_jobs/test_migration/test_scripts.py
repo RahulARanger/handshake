@@ -5,12 +5,14 @@ from handshake.services.DBService.models import (
     TestLogBase,
     TaskBase,
     MigrationBase,
+    RunBase,
 )
 from .conftest import get_version, get_config_value
 from handshake.services.DBService.models.enums import (
     ConfigKeys,
     MigrationStatus,
     MigrationTrigger,
+    RunStatus,
 )
 from handshake.services.DBService.migrator import (
     migration,
@@ -48,16 +50,15 @@ class TestMigrationScripts:
 
     async def test_bump_v5(
         self,
-        sample_test_session,
+        helper_create_test_session,
+        helper_to_create_test_and_session,
         create_suite,
         get_vth_connection,
         scripts,
         db_path,
     ):
         await get_vth_connection(db_path, 5)
-
-        session = await sample_test_session
-        test_run = await session.test
+        session = await helper_to_create_test_and_session(manual_insert_test_run=True)
 
         # based on the previous test we are now in version: 5
         assert int(await get_version()) == 5
@@ -74,7 +75,7 @@ class TestMigrationScripts:
                 "2024-02-07 19:46:39.059284+00:00",
                 "{}",
                 0,
-                str(test_run.testID),
+                str(session.test_id),
             ],
         )
         # you cannot use this because processed col is not there yet.
@@ -133,7 +134,11 @@ class TestMigrationScripts:
         await assert_migration(8, 9, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
 
         assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == "9"
-        # nothing much here we are just dropping table: "ExportBase" it was used long before v3
+        assert await RunBase.all().count() > 0
+        status_before = set(await RunBase.all().values_list("status", flat=True)).pop()
+        assert status_before == RunStatus.COMPLETED
+
+        # add other than, we are just dropping table: "ExportBase" it was used long before v3
 
     # say you are in v8 and have reverted your python build to older version which uses v7
     # question: how does migrate function work ?

@@ -39,16 +39,13 @@ from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_patch_suite
 from pydantic import ValidationError
-from dotenv import load_dotenv
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
 
-load_dotenv()
+
+update_service = Blueprint("UpdateService", url_prefix="/save")
 
 
-service = Blueprint("DBService", url_prefix="/save")
-
-
-@service.on_response
+@update_service.on_response
 async def handle_response(request: Request, response: JSONResponse):
     if 200 <= response.status < 300:
         return response
@@ -58,7 +55,7 @@ async def handle_response(request: Request, response: JSONResponse):
     return JSONResponse(body=payload, status=response.status)
 
 
-@service.put("/registerSession")
+@update_service.put("/registerSession")
 @definition(
     summary="Registers a Session",
     description="Registers a session with state datetime on the currently running Test Run.",
@@ -79,7 +76,7 @@ async def register_session(request: Request) -> HTTPResponse:
     return text(str(session_record.sessionID), status=201)
 
 
-@service.put("/registerSuite")
+@update_service.put("/registerSuite")
 @definition(
     summary="Registers a Suite under a session",
     description="Registers a suite/test with provided meta details of suite/test and session id",
@@ -97,7 +94,8 @@ async def register_suite(request: Request) -> HTTPResponse:
 # NOTE: this API was made specifically to support a registering describeBlocks
 # NOTE: Planning to depreciate this in near future.
 
-@service.put("/registerParentEntities")
+
+@update_service.put("/registerParentEntities")
 @definition(
     summary="Registers a set of parent suites starting from root hierarchy",
     description="Registers set of parent suites with provided meta details of suites and session id",
@@ -124,7 +122,7 @@ async def register_parent_entities(request: Request) -> HTTPResponse:
     return JSONResponse(body=store, status=201)
 
 
-@service.put("/updateSuite", error_format="json")
+@update_service.put("/updateSuite", error_format="json")
 @definition(
     summary="Updates the suite past the test suite's execution",
     description="Once the Test suite/test gets executed, through this endpoint "
@@ -161,7 +159,7 @@ async def updateSuite(request: Request) -> HTTPResponse:
     )
 
 
-@service.put("/updateSession", error_format="json")
+@update_service.put("/updateSession", error_format="json")
 @definition(
     summary="Updates the session past the test session's execution",
     description="Once the Test session gets executed, through this endpoint "
@@ -181,7 +179,7 @@ async def update_session(request: Request) -> HTTPResponse:
     return text(f"{session.sessionID} was updated", status=201)
 
 
-@service.put("/addAttachmentsForEntities")
+@update_service.put("/addAttachmentsForEntities")
 @definition(
     summary="adds multiple attachments to the specified entities",
     description="provide the list of attachments (assertion/link/description) as mentioned in the body, "
@@ -250,7 +248,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     )
 
 
-@service.put("/currentRun")
+@update_service.put("/currentRun")
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
     config = await TestConfigBase.create(
@@ -267,12 +265,11 @@ async def update_run_config(request: Request) -> HTTPResponse:
     test = await config.test
     await test.update_from_dict(dict(exitCode=run_config.exitCode))
     await test.save()
-    await config.save()
 
     return text("provided config was saved successfully.", status=200)
 
 
-@service.put("/updateTestRun")
+@update_service.put("/updateTestRun")
 async def update_test_run(request: Request) -> HTTPResponse:
     about_run = PydanticModalForTestRunUpdate.model_validate(request.json)
     if not about_run:
@@ -284,7 +281,7 @@ async def update_test_run(request: Request) -> HTTPResponse:
     return text("test run was updated successfully.", status=200)
 
 
-@service.put("/registerAWrittenAttachment", error_format="json")
+@update_service.put("/registerAWrittenAttachment", error_format="json")
 @definition(
     summary="Attach an Images to the specified entity",
     description="Writes an attachment inside of our Attachments folder, and attaches it with the specified entity",

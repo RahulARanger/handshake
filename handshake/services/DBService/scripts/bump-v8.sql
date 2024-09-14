@@ -1,3 +1,5 @@
+alter table runbase add column status NOT NULL DEFAULT "COMPLETED";
+
 -- dropping unused tables
 drop table if exists ExportBase;
 drop table if exists PrunedBase;

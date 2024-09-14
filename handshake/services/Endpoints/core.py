@@ -9,7 +9,9 @@ from sanic import Sanic, Request
 from sanic.response import JSONResponse
 from pydantic import ValidationError
 from sanic.blueprints import Blueprint
+from dotenv import load_dotenv
 
+load_dotenv()
 
 listeners = Blueprint.group(
     create_service, update_service, writeServices, name_prefix="listeners"
