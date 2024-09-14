@@ -100,5 +100,15 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     tags: List[Tag]
 
 
+class PydanticModalForCreatingTestRunConfigBase(BaseModel):
+    maxInstances: Optional[int] = 1
+    platform: str
+    framework: str
+    bail: Optional[int] = -1
+    fileRetries: Optional[int] = 0
+    avoidParentSuitesInCount: Optional[bool] = False
+    tags: Optional[List[Tag]] = []
+
+
 class PydanticModalForTestRunUpdate(CommonRegisterCols):
     ...

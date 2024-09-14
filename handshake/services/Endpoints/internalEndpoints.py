@@ -13,7 +13,7 @@ one_liners = Blueprint(name="one_liners", url_prefix="/")
 
 @one_liners.get("/")
 async def health_status(request: Request) -> HTTPResponse:
-    return text("1")
+    return text("1", status=200)
 
 
 @one_liners.put("/done")
@@ -28,4 +28,4 @@ async def bye(request: Request) -> HTTPResponse:
     await close_connection()
     request.app.m.terminate()
 
-    return text("1")
+    return text("1", status=202)

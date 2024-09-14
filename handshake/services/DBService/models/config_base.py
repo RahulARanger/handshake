@@ -8,13 +8,13 @@ from handshake.services.DBService.models.result_base import RunBase
 from tortoise.models import Model
 from tortoise.fields import (
     CharEnumField,
-    ForeignKeyField,
     ForeignKeyRelation,
     TextField,
     UUIDField,
     BooleanField,
     JSONField,
     DatetimeField,
+    OneToOneField,
 )
 
 
@@ -38,8 +38,8 @@ class ExportBase(Model):
 
 
 class TestConfigBase(Model):
-    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="runs", to_field="testID"
+    test: ForeignKeyRelation[RunBase] = OneToOneField(
+        "models.RunBase", related_name="runs", to_field="testID", pk=True
     )
     platform = TextField(null=False, description="could be windows or linux")
     framework = TextField(null=False, description="name of the framework used")

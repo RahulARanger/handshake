@@ -42,10 +42,7 @@ def prepare_loader() -> Tuple[Sanic, AppLoader]:
 
 
 def setup_app(
-    projectname: str,
-    path: str,
-    port: int = 6969,
-    workers: int = 2,
+    projectname: str, path: str, port: int = 6969, workers: int = 2, dev: bool = False
 ):
     @service_provider.main_process_start
     async def get_me_started(app, loop):
@@ -65,6 +62,7 @@ def setup_app(
         workers=max(2, workers),
         host="127.0.0.1",
         motd_display=dict(version=__version__),
+        dev=dev,
     )
     logger.debug("Serving at port: {}", port)
     Sanic.serve(primary=_app, app_loader=loader)
@@ -97,12 +95,22 @@ ports.
     help="Number of workers to use",
     type=int,
 )
+@option(
+    "-d",
+    "--dev",
+    default=False,
+    show_default=True,
+    help="Run the dev server ?",
+    type=bool,
+    is_flag=True,
+)
 def run_app(
     collection_path: str,
     project_name: str,
     version: Union[str, bool],
     port: int,
     workers: int,
+    dev: bool,
 ):
     break_if_mismatch(version)
     if workers < 2:
@@ -111,7 +119,7 @@ def run_app(
         )
 
     P_Path(collection_path).mkdir(exist_ok=True)
-    setup_app(project_name, collection_path, port, workers)
+    setup_app(project_name, collection_path, port, workers, dev)
 
 
 @handle_cli.command(

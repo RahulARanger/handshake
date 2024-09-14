@@ -17,6 +17,10 @@
       <excludeFolder url="file://$MODULE_DIR$/BackUpTestReports" />
       <excludeFolder url="file://$MODULE_DIR$/handshake/dashboard" />
       <excludeFolder url="file://$MODULE_DIR$/dashboard" />
+      <excludeFolder url="file://$MODULE_DIR$/.jetclient" />
+      <excludeFolder url="file://$MODULE_DIR$/.next" />
+      <excludeFolder url="file://$MODULE_DIR$/TestReports" />
+      <excludeFolder url="file://$MODULE_DIR$/test_pytest_reporter/TestResults" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.11 (Handshake)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
