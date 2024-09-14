@@ -28,10 +28,10 @@ export default function TestRunsChartArea(properties: {
     }>({ showTests: false, showPercentStack: false });
     const toLoad = Boolean(properties.toLoad);
     return (
-        <ScrollAreaAutosize h={properties.h} px="xs" py="xs">
+        <ScrollAreaAutosize h={properties.h} px="xs" pb="xs" pr="sm">
             <Stack pr="xs">
                 <Card p="lg" radius="lg" shadow="lg" withBorder>
-                    <Card.Section withBorder>
+                    <Card.Section withBorder p={0}>
                         <Group justify="space-between" p="xs">
                             <Text size="sm">Status of our Test Runs</Text>
                             <Group>
@@ -67,7 +67,7 @@ export default function TestRunsChartArea(properties: {
                             </Group>
                         </Group>
                     </Card.Section>
-                    <Card.Section p="sm">
+                    <Card.Section pt={'xs'} pr={'xs'} ml={-24}>
                         {toLoad ? (
                             <Skeleton w={'100%'} h={300} animate />
                         ) : (
@@ -77,6 +77,7 @@ export default function TestRunsChartArea(properties: {
                                         ? run.Rate
                                         : run.SuitesSummary,
                                     date: run.Started,
+                                    id: run.Id,
                                 }))}
                                 w={properties.chartWidth ?? '60vw'}
                                 percentStack={switchOption.showPercentStack}
@@ -85,19 +86,20 @@ export default function TestRunsChartArea(properties: {
                     </Card.Section>
                 </Card>
                 <Card withBorder shadow="lg" radius="lg" p="lg" mb="sm">
-                    <Card.Section withBorder>
+                    <Card.Section withBorder p={0}>
                         <Group justify="space-between" p="xs">
                             <Text size="sm">Duration of our Test Runs</Text>
                         </Group>
                     </Card.Section>
-                    <Card.Section p="sm">
+                    <Card.Section pt={'xs'} pr={'xs'} ml={-15}>
                         {toLoad ? (
                             <Skeleton w={'100%'} h={150} animate />
                         ) : (
                             <AreaWithTestRunDuration
-                                durations={properties.runs.map((run) =>
-                                    run.Duration.asSeconds(),
-                                )}
+                                runs={properties.runs.map((run) => ({
+                                    duration: run.Duration.asSeconds(),
+                                    id: run.Id,
+                                }))}
                             />
                         )}
                     </Card.Section>

@@ -23,11 +23,19 @@ type Story = StoryObj<typeof meta>;
 export const MultipleRuns: Story = {
     args: {
         Rates: [
-            { rate: [10, 1, 1], date: dayjs().subtract(3, 'day') },
-            { rate: [20, 2, 5], date: dayjs().subtract(2, 'day') },
-            { rate: [24, 4, 10], date: dayjs().add(1, 'hour') },
-            { rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
-            { rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
+            {
+                id: 'sample-1',
+                rate: [10, 1, 1],
+                date: dayjs().subtract(3, 'day'),
+            },
+            {
+                id: 'sample-2',
+                rate: [20, 2, 5],
+                date: dayjs().subtract(2, 'day'),
+            },
+            { id: 'sample-3', rate: [24, 4, 10], date: dayjs().add(1, 'hour') },
+            { id: 'sample-4', rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
+            { id: 'sample-5', rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
         ],
     },
 };
@@ -35,11 +43,19 @@ export const MultipleRuns: Story = {
 export const MultipleRunsStackedPercent: Story = {
     args: {
         Rates: [
-            { rate: [10, 1, 1], date: dayjs().subtract(3, 'day') },
-            { rate: [20, 2, 5], date: dayjs().subtract(2, 'day') },
-            { rate: [24, 4, 10], date: dayjs().add(1, 'hour') },
-            { rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
-            { rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
+            {
+                id: 'sample-1',
+                rate: [10, 1, 1],
+                date: dayjs().subtract(3, 'day'),
+            },
+            {
+                id: 'sample-2',
+                rate: [20, 2, 5],
+                date: dayjs().subtract(2, 'day'),
+            },
+            { id: 'sample-3', rate: [24, 4, 10], date: dayjs().add(1, 'hour') },
+            { id: 'sample-4', rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
+            { id: 'sample-5', rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
         ],
         percentStack: true,
     },
@@ -48,21 +64,55 @@ export const MultipleRunsStackedPercent: Story = {
 export const LargeNumberOfRuns: Story = {
     args: {
         Rates: [
-            { rate: [10, 1, 1], date: dayjs().subtract(3, 'day') },
-            { rate: [20, 2, 5], date: dayjs().subtract(2, 'day') },
-            { rate: [24, 4, 10], date: dayjs().add(15, 'minutes') },
-            { rate: [24, 4, 10], date: dayjs().add(30, 'minutes') },
-            { rate: [24, 4, 10], date: dayjs().add(45, 'minutes') },
-            { rate: [24, 4, 10], date: dayjs().add(60, 'minutes') },
-            { rate: [24, 4, 10], date: dayjs().add(90, 'minutes') },
-            { rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
-            { rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
+            {
+                id: 'sample-1',
+                rate: [10, 1, 1],
+                date: dayjs().subtract(3, 'day'),
+            },
+            {
+                id: 'sample-2',
+                rate: [20, 2, 5],
+                date: dayjs().subtract(2, 'day'),
+            },
+            {
+                id: 'sample-3',
+                rate: [24, 4, 10],
+                date: dayjs().add(15, 'minutes'),
+            },
+            {
+                id: 'sample-4',
+                rate: [24, 4, 10],
+                date: dayjs().add(30, 'minutes'),
+            },
+            {
+                id: 'sample-5',
+                rate: [24, 4, 10],
+                date: dayjs().add(45, 'minutes'),
+            },
+            {
+                id: 'sample-6',
+                rate: [24, 4, 10],
+                date: dayjs().add(60, 'minutes'),
+            },
+            {
+                id: 'sample-7',
+                rate: [24, 4, 10],
+                date: dayjs().add(90, 'minutes'),
+            },
+            { id: 'sample-8', rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
+            { id: 'sample-9', rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
         ],
     },
 };
 
 export const SingleRun: Story = {
     args: {
-        Rates: [{ rate: [10, 1, 1], date: dayjs().subtract(3, 'day') }],
+        Rates: [
+            {
+                id: 'sample-1',
+                rate: [10, 1, 1],
+                date: dayjs().subtract(3, 'day'),
+            },
+        ],
     },
 };

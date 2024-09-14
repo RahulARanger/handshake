@@ -23,7 +23,7 @@ async def test_delete_prune_task_if_sent(sample_test_session):
 
 
 @mark.usefixtures("sample_test_session")
-async def test_simple_prun(db_path, sample_test_session, create_suite):
+async def test_simple_prune(db_path, sample_test_session, create_suite):
     session = await sample_test_session
     test = session.test_id
 

@@ -36,6 +36,9 @@ class AttachmentBase(AttachmentFields):
 
 class StaticBase(AttachmentFields):
     attachmentID = UUIDField(pk=True)
+    attachmentValue = JSONField(
+        description="An attachment value", default={"value": "", "title": ""}
+    )
     entity: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
         "models.SuiteBase", related_name="staticAttachments", to_field="suiteID"
     )

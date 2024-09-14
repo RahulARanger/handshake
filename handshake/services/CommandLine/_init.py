@@ -11,6 +11,7 @@ from click import (
     Path as C_Path,
     confirm,
 )
+from shutil import make_archive, move, unpack_archive
 from tortoise import run_async
 from handshake import __version__
 from handshake.services.DBService.migrator import (
@@ -23,6 +24,7 @@ from handshake.services.DBService.migrator import (
 from handshake.services.SchedularService.start import Scheduler
 from loguru import logger
 from handshake.services.DBService.lifecycle import close_connection, init_tortoise_orm
+from handshake.services.DBService.merge import Merger
 from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
@@ -36,8 +38,7 @@ from asyncio import run
 
 {'{:*^69}'.format(" Welcome to Handshake's CLI ")}
 
-Handshake simplifies the collection and processing of your test results. The Handshake CLI helps you to interact with 
-the stored results or with the server. so for each command it requires a <path> argument, representing the collection 
+Handshake simplifies the collection and processing of your test results. The Handshake CLI helps you to interact with the stored results or with the server. so for each command it requires a <path> argument, representing the collection 
 folder, a place where you could have the database or were planning to store the results [not the HTML files].
 
 [ROOT-DIR] >> [COLLECTION_NAME] (*we need this) >> TeStReSuLtS.db & [Attachments] (for getting this).
@@ -79,9 +80,13 @@ def break_if_mismatch(expected: str) -> bool:
 
 
 @general_requirement
-@handle_cli.command()
+@handle_cli.command(
+    short_help="Returns the version inside the TestResults",
+    help="it would be possible the server and stored results are in different version, "
+    "with this command you can clear that query and note if migration is required",
+)
 def db_version(collection_path):
-    return check_version(path=db_path(collection_path))
+    return check_version(path=db_path(collection_path), is_auto=True)
 
 
 @handle_cli.command(
@@ -114,7 +119,7 @@ def migrate(collection_path: str):
 )
 def step_back(collection_path: str):
     path_to_refer = db_path(collection_path)
-    from_version = (check_version(path=path_to_refer))[-1]
+    from_version = (check_version(path=path_to_refer, is_auto=True))[-1]
     if confirm(f"Do you want revert from v{from_version} to v{from_version - 1}"):
         return revert_step_back(from_version, path_to_refer)
 
@@ -142,14 +147,6 @@ def step_back(collection_path: str):
     is_flag=True,
 )
 @general_requirement
-# TODO: Support the max runs feature, allows user to only export certain number of test runs
-# @option(
-#     "-mr",
-#     "--max-runs",
-#     type=int,
-#     default=100,
-#     help="Asks Sanic to set the use max. number of workers",
-# )
 @option(
     "--build",
     "-b",
@@ -205,6 +202,87 @@ def patch(
 
 
 @handle_cli.command(
+    short_help="zips your TestResults in a tar file",
+    help="it zips your TestResults in a single tar file with bz2 compression level."
+    " it stores only inside the provided TestResults folder but not the TestResults folder itself.",
+)
+@general_requirement
+@option(
+    "--out",
+    "-o",
+    help="Saves the zipped file inside this folder path",
+    type=C_Path(dir_okay=True),
+    required=False,
+    default=None,
+)
+def zip_results(collection_path, out=None):
+    collection = Path(collection_path)
+    output_folder = Path(out).resolve() if out else Path.cwd()
+    output_folder.mkdir(exist_ok=True)
+
+    logger.info(f"compressing TestResults located at: {collection}")
+    file_name = collection.stem + ".tar.bz2"
+    before = (output_folder / file_name).exists()
+    if before:
+        logger.error(
+            f"output file already exists, Please remove or rename the file at {output_folder / file_name}",
+        )
+
+    else:
+        make_archive(collection.stem, "bztar", collection)
+        if out:
+            move(file_name, output_folder)
+        logger.info(f"Done, located at {output_folder / file_name}")
+
+
+@handle_cli.command(
+    short_help="extracts zipped (.bz2) TestResults into a provided folder",
+    help="extracts zipped TestResults into a provided folder. "
+    "we assume that the results were zipped in a tar file with bz2 compression",
+)
+@argument(
+    "file",
+    type=C_Path(file_okay=True, readable=True, exists=True),
+    required=True,
+)
+@option(
+    "--out",
+    "-o",
+    help="Extracts results inside this folder",
+    type=C_Path(dir_okay=True, writable=True),
+    required=False,
+)
+def extract_results(file: str, out: str):
+    output_folder = Path(out if out else file.split(".")[0])
+    logger.info(f"de-compressing {file}")
+    unpack_archive(file, output_folder, "bztar")
+    logger.info(f"Done, located at {output_folder}")
+
+
+@handle_cli.command(
+    short_help="merges all the provided results into the single one. Simple Merge",
+    help="It's a simple merge, it takes in either zip file of your TestResults or a folder itself "
+    "and then it takes a copy, migrates if required and then inserts data into the output database."
+    " Please note we would also run migration scripts on the output TestResults. Temp folders are then deleted.",
+)
+@argument(
+    "output",
+    type=C_Path(dir_okay=True, writable=True, exists=False),
+    required=True,
+)
+@option(
+    "-m",
+    "--merge-with",
+    required=True,
+    multiple=True,
+    help="provide the compressed path of the results folder",
+)
+def merge(output, merge_with):
+    merger = Merger(output)
+    merger.start(merge_with)
+
+
+@handle_cli.command(
     help="returns the version of the handshake", short_help="example: 1.0.0"
 )
 def v():
@@ -212,23 +290,23 @@ def v():
 
 
 @handle_cli.command(
-    short_help="configures TestResults folder with the provided folder name at your cwd",
+    short_help="does the required setup to store your test results in this folder",
     help="""
 Configures TestResults folder with the provided folder name at your cwd. 
-Example: handshake config TestResults, at your cwd: x,\n
+Example: handshake init TestResults, at your cwd: x,\n
 then it creates x -> TestResults -> TeStReSuLtS.sb and x -> TestResults -> Attachments
 and x -> handshakes.json
     """,
 )
 @general_but_optional_requirement
-def config(collection_path):
+def init(collection_path):
     saved_db_path = db_path(collection_path)
 
     set_default_first = not Path(collection_path).exists()
     if set_default_first:
         Path(collection_path).mkdir(exist_ok=True)
 
-    run_async(init_tortoise_orm(saved_db_path, True))
+    run_async(init_tortoise_orm(saved_db_path, True, close_it=True, init_script=True))
 
 
 @handle_cli.group(

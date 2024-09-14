@@ -24,12 +24,14 @@ export function getHandshakeVersionFromServer() {
 export function installLatestVersion(version) {
   try {
     console.log(chalk.green(`Installing latest version of handshake: ${version}`));
-    spawnSync('pip', ['install', `handshake==${version}`], { shell: true });
+    const result = spawnSync('pip', ['install', `handshakes==${version}`], { shell: true });
+    console.log(chalk.grey(result.stdout.toString()));
+    if (result.status) throw new Error(result.stderr.toString());
     console.log(chalk.green('Done...'));
     return true;
   } catch (error) {
     console.log(chalk.red('+ Failed to latest version for handshake (python-build) installed'));
-    console.error(chalk.red(`  + Connection Error: ${error}`));
+    console.error(chalk.red(error));
     return false;
   }
 }
@@ -58,14 +60,14 @@ export function validateConnection(installIfRequired) {
     console.log(
       chalk.yellow(`+ Found the version: v${found} but we need ${versionMeta.version}`),
     );
-    if (installIfRequired) failedToInstall = !installLatestVersion(found);
+    if (installIfRequired) failedToInstall = !installLatestVersion(versionMeta.version);
     if (failedToInstall) {
       console.log(
         chalk.yellow(`+ Please run the command: \`pip install handshakes==${found}\``),
       );
     }
   } else {
-    console.log(chalk.yellow('+ Please setup python venv and then Requested to install handshake ') + chalk.italic('(python build)') + chalk.bold(` of v${versionMeta.version}`));
+    console.log(chalk.yellow('+ Please setup python venv and then install handshake ') + chalk.italic('(python build)') + chalk.bold(` of v${versionMeta.version}`));
   }
 }
 

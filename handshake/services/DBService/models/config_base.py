@@ -10,7 +10,6 @@ from tortoise.fields import (
     CharEnumField,
     ForeignKeyRelation,
     TextField,
-    UUIDField,
     BooleanField,
     JSONField,
     DatetimeField,
@@ -25,15 +24,6 @@ class ConfigBase(Model):
     value = TextField(null=False, description="Handling type is up to us")
     readonly = BooleanField(
         null=False, description="is it readonly field", default=True
-    )
-
-
-class ExportBase(Model):
-    ticketID = UUIDField(pk=True)
-    maxTestRuns = IntField(
-        null=True,
-        default=10,
-        description="Number of test runs to export [recent ones are picked]",
     )
 
 
