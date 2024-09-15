@@ -12,6 +12,7 @@ from handshake.services.DBService.models.types import (
     PydanticModalForTestRunConfigBase,
     PydanticModalForTestRunUpdate,
     WrittenAttachmentForEntity,
+    MarkTestRun,
 )
 from handshake.services.Endpoints.blueprints.utils import (
     attachError,
@@ -248,6 +249,15 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     )
 
 
+@update_service.put("/Run")
+async def update_test_run(request: Request) -> HTTPResponse:
+    to_update = MarkTestRun.model_validate(request.json)
+    record = await RunBase.filter(testID=get_test_id()).first()
+    await record.update_from_dict(to_update.model_dump())
+    await record.save()
+    return text("updated test run successfully", status=200)
+
+
 @update_service.put("/currentRun")
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
@@ -270,7 +280,7 @@ async def update_run_config(request: Request) -> HTTPResponse:
 
 
 @update_service.put("/updateTestRun")
-async def update_test_run(request: Request) -> HTTPResponse:
+async def update_run(request: Request) -> HTTPResponse:
     about_run = PydanticModalForTestRunUpdate.model_validate(request.json)
     if not about_run:
         return text("No changes were made.", status=400)

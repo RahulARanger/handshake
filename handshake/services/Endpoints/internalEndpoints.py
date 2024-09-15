@@ -19,7 +19,7 @@ async def health_status(request: Request) -> HTTPResponse:
 @one_liners.put("/done")
 async def set_done(request: Request) -> HTTPResponse:
     task = await register_patch_test_run(get_test_id())
-    return text(task.ticketID)
+    return text(task.ticketID, status=202)
 
 
 # bye is core request, so make sure to handle it carefully

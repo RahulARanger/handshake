@@ -3,6 +3,7 @@ from handshake.services.DBService.shared import get_test_id
 from sanic.request import Request
 from sanic.response import JSONResponse
 from pydantic import ValidationError
+from typing import Dict, Any, Optional
 
 
 def extractPayload(request: Request, response: JSONResponse):
@@ -56,3 +57,7 @@ async def attachWarn(payload, url: str):
         LogType.WARN,
         f"Failed to process the request at: {url}, we will miss this attachment",
     )
+
+
+def prune_nones(payload: Dict[Any, Optional[Any]]):
+    return {_: payload[_] for _ in payload.keys() if payload[_] is not None}

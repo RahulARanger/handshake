@@ -1,6 +1,11 @@
 import uuid
 from typing import List, Optional, Union
-from handshake.services.DBService.models.enums import Status, SuiteType, AttachmentType
+from handshake.services.DBService.models.enums import (
+    Status,
+    SuiteType,
+    AttachmentType,
+    RunStatus,
+)
 from pydantic import BaseModel
 from datetime import datetime
 from typing_extensions import TypedDict
@@ -112,3 +117,8 @@ class PydanticModalForCreatingTestRunConfigBase(BaseModel):
 
 class PydanticModalForTestRunUpdate(CommonRegisterCols):
     ...
+
+
+class MarkTestRun(BaseModel):
+    exitCode: int
+    status: RunStatus

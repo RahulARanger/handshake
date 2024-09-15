@@ -65,6 +65,19 @@
                       <option name="sortWeight" value="2000000" />
                       <option name="url" value="http://127.0.0.1:6969/create/Dummy" />
                     </requestState>
+                    <requestState>
+                      <option name="body">
+                        <bodyState>
+                          <option name="raw" value="{&#10;  &quot;status&quot;: &quot;COMPLETED&quot;,&#10;  &quot;exitCode&quot;: 1&#10;}" />
+                          <option name="type" value="JSON" />
+                        </bodyState>
+                      </option>
+                      <option name="id" value="3b220e5c-6803-44d6-bcfc-7c1ee81c139d" />
+                      <option name="method" value="PUT" />
+                      <option name="name" value="Update Test Run" />
+                      <option name="sortWeight" value="3000000" />
+                      <option name="url" value="http://127.0.0.1:6969/save/Run" />
+                    </requestState>
                   </list>
                 </option>
                 <option name="sortWeight" value="1000000" />
@@ -80,6 +93,13 @@
                       <option name="name" value="Health" />
                       <option name="sortWeight" value="1000000" />
                       <option name="url" value="http://127.0.0.1:6969/" />
+                    </requestState>
+                    <requestState>
+                      <option name="id" value="64a6684a-20b9-42ca-b1c7-0f7e30c0bba4" />
+                      <option name="method" value="POST" />
+                      <option name="name" value="Terminate Server" />
+                      <option name="sortWeight" value="2000000" />
+                      <option name="url" value="http://127.0.0.1:6969/bye" />
                     </requestState>
                   </list>
                 </option>

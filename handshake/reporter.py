@@ -9,6 +9,7 @@ from handshake.services.DBService.models.types import (
     RegisterSuite,
     MarkSuite,
     MarkSession,
+    MarkTestRun,
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
     PydanticModalForTestRunUpdate,
@@ -42,6 +43,14 @@ class CommonReporter:
         self, postman, url, note: Optional[Union[str, False]] = False, **kwargs
     ):
         response: Response = postman(url, **kwargs)
+        if response.status_code // 200 != 1:
+            logger.warning(
+                "Request failed: {}, status: {}. response: {}",
+                url,
+                response.status_code,
+                response.text,
+            )
+
         response.raise_for_status()
         if note:
             self.note[note] = response.text
@@ -64,6 +73,9 @@ class CommonReporter:
 
     def create_postfix(self, fix):
         return self.postfix(f"create/{fix}")
+
+    def update_postfix(self, fix):
+        return self.postfix(f"save/{fix}")
 
     def start_collection(self, projectName: str):
         command = f"handshake run-app {projectName} {self.results} -p {self.port}"
@@ -95,17 +107,14 @@ class CommonReporter:
                 )
             self.wait_for_connection(retried + 1)
 
-    def end_collection(self):
+    def close_resources(self):
+        self.postman.submit(
+            self.ensure_mails, self.client.put, self.postfix("done"), False
+        )
         self.postman.submit(
             self.ensure_mails, self.client.post, self.postfix("bye"), False
         )
-        logger.info("Informed Handshake server to terminate.")
-
-    def close_resources(self):
         self.postman.shutdown(wait=True, cancel_futures=False)
-        if self.health_connection():
-            self.client.post(self.postfix("bye"))
-        self.client.close()
         logger.complete()
         logger.debug("Handshake Reporter has collected your reports.")
 
@@ -125,6 +134,26 @@ class CommonReporter:
             self.ensure_mails,
             self.client.post,
             self.create_postfix("RunConfig"),
+            False,
+            json=payload.model_dump(),
+        )
+
+    def update_test_session(self, payload: MarkSession):
+        logger.debug("Updating Test Session")
+        self.postman.submit(
+            self.ensure_mails,
+            self.client.post,
+            self.update_postfix("RunConfig"),
+            False,
+            json=payload.model_dump(),
+        )
+
+    def update_test_run(self, payload: MarkTestRun):
+        logger.debug("Updating Test Run")
+        self.postman.submit(
+            self.ensure_mails,
+            self.client.put,
+            self.update_postfix("Run"),
             False,
             json=payload.model_dump(),
         )
