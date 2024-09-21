@@ -1,10 +1,12 @@
 from httpx import Client
 from datetime import datetime
 from subprocess import Popen, PIPE
-from typing import Union, Optional
+from typing import Union, Optional, Dict, List
 from loguru import logger
 from time import sleep
 from sys import stdout, stderr
+from pathlib import Path
+from pytest import Session
 from handshake.services.DBService.models.types import (
     RegisterSuite,
     MarkSuite,
@@ -34,6 +36,7 @@ class CommonReporter:
     postman: ThreadPoolExecutor
     started: Future
     skip: bool = False
+    config_path: Optional[str] = None
 
     def __init__(self, path: str = "TestResults", port: Union[str, int] = 6969):
         self.note = dict()
@@ -56,7 +59,26 @@ class CommonReporter:
             self.note[note] = response.text
         return response
 
-    def set_context(self, set_client: bool, path: str, port: Union[str, int]):
+    def parse_config(self, session: Session):
+        rel_path = session.config.inicfg.get("save_results_in")
+        port = session.config.inicfg.get("handshake_port")
+        config_path = session.config.inicfg.get("save_handshake_config_dir")
+        rel_to = Path(session.config.inipath.parent)
+
+        self.set_context(
+            True,
+            (rel_to / rel_path).resolve() if rel_path else self.results,
+            port if port else self.port,
+            (rel_to / config_path).resolve() if config_path else None,
+        )
+
+    def set_context(
+        self,
+        set_client: bool,
+        path: str,
+        port: Union[str, int],
+        config_path: Optional[str] = None,
+    ):
         self.results = path
         self.port = str(port)
         self.client = Client() if set_client else ...
@@ -67,6 +89,7 @@ class CommonReporter:
             else ...
         )
         self.url = f"http://127.0.0.1:{port}"
+        self.config_path = config_path
 
     def postfix(self, fix):
         return f"{self.url}/{fix}"
@@ -78,7 +101,11 @@ class CommonReporter:
         return self.postfix(f"save/{fix}")
 
     def start_collection(self, projectName: str):
-        command = f"handshake run-app {projectName} {self.results} -p {self.port}"
+        command = (
+            f'handshake run-app {projectName} "{self.results}" "{self.config_path}" -p {self.port}'
+            if self.config_path
+            else f'handshake run-app {projectName} "{self.results}" -p {self.port}'
+        )
         self.collector = Popen(command, shell=True, stdout=stdout, stderr=stderr)
         logger.info("Starting handshake-server")
         self.started = self.postman.submit(self.wait_for_connection)
@@ -116,7 +143,9 @@ class CommonReporter:
         )
         self.postman.shutdown(wait=True, cancel_futures=False)
         logger.complete()
-        logger.debug("Handshake Reporter has collected your reports.")
+
+        if not self.skip:
+            logger.debug("Handshake Reporter has collected your reports.")
 
     def create_session(self, started: datetime):
         logger.debug("Creating test session")

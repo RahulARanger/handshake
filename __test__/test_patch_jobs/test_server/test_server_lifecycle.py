@@ -204,7 +204,7 @@ async def test_life_cycle(root_dir):
 
     assert not await TaskBase.filter(ticketID=session_record.test_id).exists()
     resp = session.put("http://127.0.0.1:6978/done")
-    assert resp.status_code == 200
+    assert resp.status_code == 202
 
     parse_test = await TaskBase.filter(ticketID=session_record.test_id).first()
     assert not parse_test.processed

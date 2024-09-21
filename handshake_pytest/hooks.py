@@ -1,4 +1,4 @@
-from pytest import TestReport, Session, Collector, CollectReport
+from pytest import TestReport, Session, Collector, CollectReport, Item
 from datetime import datetime
 from handshake_pytest.reporter import PyTestHandshakeReporter
 
@@ -6,7 +6,7 @@ reporter = PyTestHandshakeReporter()
 
 
 def pytest_sessionstart(session: Session):
-    reporter.set_context(session.exitstatus == 0, reporter.results, reporter.port)
+    reporter.parse_config(session)
     reporter.start_collection(session.name)
     reporter.create_session(datetime.now())
     reporter.put_test_config()
@@ -25,6 +25,5 @@ def pytest_sessionfinish(session: Session, exitstatus: int):
     reporter.close_resources()
 
 
-#
-
-# def pytest_report_teststatus(report: TestReport):
+def pytest_runtest_setup(item: Item):
+    print(item)

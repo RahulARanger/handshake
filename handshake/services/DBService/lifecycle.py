@@ -34,6 +34,8 @@ async def init_tortoise_orm(
     migrate: bool = False,
     close_it: bool = False,
     init_script: bool = False,
+    config_path: Optional[Union[Path, str]] = None,
+    avoid_config: Optional[bool] = False,
 ):
     chosen = force_db_path if force_db_path else db_path()
     force_init_scripts = not chosen.exists()
@@ -49,9 +51,9 @@ async def init_tortoise_orm(
     # generating schemas
     await Tortoise.generate_schemas()
 
-    test = TestConfigManager(chosen)
+    test = TestConfigManager(chosen, config_path)
     # we run the init scripts for the newly created db
-    await test.sync(init_script or force_init_scripts)
+    await test.sync(init_script or force_init_scripts, avoid_config)
 
     if close_it:
         await close_connection()
@@ -63,14 +65,20 @@ async def create_run(projectName: str) -> str:
 
 
 class TestConfigManager:
-    def __init__(self, test_result_db: Path):
+    def __init__(
+        self, test_result_db: Path, config_path: Optional[Union[str, Path]] = None
+    ):
         # default file
         # enhancement: Allow user to provide the path for the config file
-        self.path = Path.cwd() / "handshake.json"
+        self.path = (
+            Path(config_path) if config_path else Path.cwd()
+        ) / "handshake.json"
         self.db_path = test_result_db
         attachment_folder(self.db_path).mkdir(exist_ok=True)
 
-    async def sync(self, init_script: bool = False):
+    async def sync(
+        self, init_script: bool = False, avoid_config: Optional[bool] = False
+    ):
         if init_script:
             await connections.get("default").execute_script(
                 f"""
@@ -80,6 +88,9 @@ class TestConfigManager:
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
             """,
             )
+        if avoid_config:
+            return
+
         if not self.path.exists():
             logger.debug(
                 "missing handshakes.json, creating one at {}", self.path.parent

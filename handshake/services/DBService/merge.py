@@ -16,7 +16,9 @@ from sqlite3.dbapi2 import Connection, connect
 
 
 async def reset_sqlite_sequence(output_db_path):
-    await init_tortoise_orm(output_db_path, True, init_script=True, close_it=True)
+    await init_tortoise_orm(
+        output_db_path, True, init_script=True, close_it=True, avoid_config=True
+    )
     connection = connections.get("default")
     await connection.execute_query("delete from sqlite_sequence")
     await connection.close()
