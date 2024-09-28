@@ -37,6 +37,18 @@ class RegisterSuite(CommonRegisterCols):
     tags: Optional[List[Tag]] = []
 
 
+class CreatePickedSuiteOrTest(BaseModel):
+    title: str
+    retried: Optional[int] = 0
+    description: Optional[str] = ""
+    suiteType: SuiteType
+    session_id: uuid.UUID
+    file: str
+    parent: str
+    tags: Optional[List[Tag]] = []
+    is_processing: Optional[bool] = True
+
+
 class MarkSession(BaseModel):
     duration: float
     skipped: int

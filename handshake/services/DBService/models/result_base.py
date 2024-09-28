@@ -109,6 +109,7 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     session: ForeignKeyRelation[SessionBase] = ForeignKeyField(
         "models.SessionBase", related_name="suites", to_field="sessionID"
     )
+    started = DatetimeField(null=True)
     attachments = ReverseRelation["AttachmentBase"]
     retries = ReverseRelation["RetriedBase"]
     rolled_up = ReverseRelation["RollupBase"]

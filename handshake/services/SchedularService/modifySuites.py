@@ -46,13 +46,21 @@ class PatchTestSuite:
         logger.info("Patching Suite: {} | {}", self.suite.suiteID, self.suite.title)
 
         if self.suite.standing != Status.YET_TO_CALCULATE:
-            logger.warning("Skipping already patch suite for: {}", self.suite.suiteID)
+            logger.warning(
+                "Suite: {} was not scheduled to be calculated, its status is {}",
+                self.suite.suiteID,
+                self.suite.standing,
+            )
             await self.mark_processed()
             return False
 
         pending_child_tasks = await SuiteBase.filter(
             Q(parent=self.suite.suiteID)
-            & (Q(standing=Status.PENDING) | Q(standing=Status.YET_TO_CALCULATE))
+            & (
+                Q(standing=Status.PENDING)
+                | Q(standing=Status.YET_TO_CALCULATE)
+                | Q(standing=Status.PROCESSING)
+            )
         ).exists()
 
         if pending_child_tasks:

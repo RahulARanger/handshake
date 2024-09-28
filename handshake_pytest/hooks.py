@@ -21,9 +21,8 @@ def pytest_sessionstart(session: Session):
 
 
 def pytest_sessionfinish(session: Session, exitstatus: int):
-    reporter.update_test_status(session, exitstatus)
-    reporter.close_resources()
+    reporter.close_resources(reporter.update_test_status(session, exitstatus))
 
 
-def pytest_runtest_setup(item: Item):
-    print(item)
+def pytest_itemcollected(item: Item):
+    reporter.create_test(item)

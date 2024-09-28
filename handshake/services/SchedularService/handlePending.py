@@ -31,11 +31,10 @@ async def patch_jobs():
             if not tasks:
                 break
 
-            # providers are list of child suites that needs to be processed and whose parents
-            # are planned for processing
+            # providers are list of child suites that needs to be processed before processing their parents
             providers = SuiteBase.filter(
                 Q(parent__in=tasks)
-                & Q(standing=Status.YET_TO_CALCULATE)
+                & (Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PROCESSING))
                 & Q(suiteType=SuiteType.SUITE)
             )
             # these are the list of the suites that needs to be processed and can be processed

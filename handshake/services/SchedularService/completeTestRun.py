@@ -172,7 +172,11 @@ class PatchTestRun:
 
         pending_items = (
             await SuiteBase.filter(session__test_id=self.test_id)
-            .filter(Q(standing=Status.YET_TO_CALCULATE) | Q(standing=Status.PENDING))
+            .filter(
+                Q(standing=Status.YET_TO_CALCULATE)
+                | Q(standing=Status.PENDING)
+                | Q(standing=Status.PROCESSING)
+            )
             .count()
         )
 

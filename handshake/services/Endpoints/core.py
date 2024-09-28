@@ -6,7 +6,6 @@ from handshake.services.Endpoints.blueprints.writeServices import writeServices
 from handshake.services.Endpoints.errorHandling import handle_validation_error
 from handshake.services.Endpoints.blueprints.utils import (
     extractPayload,
-    attachWarn,
     attachInfo,
     attachError,
 )
@@ -36,6 +35,8 @@ service_provider.error_handler.add(ValidationError, handle_validation_error)
 @service_provider.on_response
 async def handle_response(request: Request, response: JSONResponse):
     if 200 <= response.status < 300:
+        if hasattr(service_provider.shared_ctx, "DEV"):
+            await attachInfo(extractPayload(request, response), request.url)
         return response
 
     payload = extractPayload(request, response)

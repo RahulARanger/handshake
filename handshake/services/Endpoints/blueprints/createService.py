@@ -1,9 +1,9 @@
-from handshake.services.DBService.models.result_base import (
-    SessionBase,
-)
+from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
 from handshake.services.DBService.models.types import (
     RegisterSession,
+    CreatePickedSuiteOrTest,
     PydanticModalForCreatingTestRunConfigBase,
+    Status,
 )
 from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
@@ -53,3 +53,18 @@ async def create_test_run_config(request: Request) -> HTTPResponse:
         else "config cannot be updated, please raise a request for this endpoint",
         status=201 if created else 406,
     )
+
+
+@create_service.post("/Suite")
+async def create_suite(request: Request) -> HTTPResponse:
+    suite = CreatePickedSuiteOrTest.model_validate(request.json)
+    to_load = suite.model_dump()
+    if to_load.pop("is_processing"):
+        to_load["standing"] = Status.PROCESSING
+    else:
+        to_load["standing"] = Status.PENDING
+
+    suite_record = await SuiteBase.create(**to_load)
+    await suite_record.save()
+
+    return text(str(suite_record.suiteID), status=201)

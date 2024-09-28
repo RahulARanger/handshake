@@ -38,7 +38,10 @@ from loguru import logger
 from typing import List
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
-from handshake.services.SchedularService.register import register_patch_suite
+from handshake.services.SchedularService.register import (
+    register_patch_suite,
+    register_patch_test_run,
+)
 from pydantic import ValidationError
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
 
@@ -252,7 +255,11 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
 @update_service.put("/Run")
 async def update_test_run(request: Request) -> HTTPResponse:
     to_update = MarkTestRun.model_validate(request.json)
-    record = await RunBase.filter(testID=get_test_id()).first()
+    test_id = get_test_id()
+
+    await register_patch_test_run(test_id)
+    record = await RunBase.filter(testID=test_id).first()
+
     await record.update_from_dict(to_update.model_dump())
     await record.save()
     return text("updated test run successfully", status=200)
@@ -282,13 +289,16 @@ async def update_run_config(request: Request) -> HTTPResponse:
 @update_service.put("/updateTestRun")
 async def update_run(request: Request) -> HTTPResponse:
     about_run = PydanticModalForTestRunUpdate.model_validate(request.json)
+    await register_patch_test_run(get_test_id())
     if not about_run:
         return text("No changes were made.", status=400)
 
     test = await RunBase.filter(testID=get_test_id()).first()
     await test.update_from_dict(about_run.model_dump())
     await test.save()
-    return text("test run was updated successfully.", status=200)
+    return text(
+        "test run was updated and task was also added successfully.", status=200
+    )
 
 
 @update_service.put("/registerAWrittenAttachment", error_format="json")

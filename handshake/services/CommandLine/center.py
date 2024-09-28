@@ -23,6 +23,7 @@ from typing import Tuple, Optional
 from functools import partial
 from loguru import logger
 from handshake.services.Endpoints.static_server import static_provider
+from gc import set_debug, DEBUG_LEAK
 
 
 def feed_app() -> Sanic:
@@ -53,6 +54,8 @@ def setup_app(
     @service_provider.main_process_start
     async def get_me_started(app, loop):
         service_provider.shared_ctx.ROOT = Array("c", str.encode(path))
+        if dev:
+            service_provider.shared_ctx.DEV = Array("c", str.encode("1"))
         await init_tortoise_orm(migrate=True, config_path=config_path)
         test_id = await create_run(projectname)
         service_provider.shared_ctx.TEST_ID = Array("c", str.encode(test_id))
@@ -61,6 +64,9 @@ def setup_app(
     @service_provider.main_process_stop
     async def close_things(app, loop):
         await close_connection()
+
+    if dev:
+        set_debug(DEBUG_LEAK)
 
     _app, loader = prepare_loader()
     _app.prepare(
@@ -177,4 +183,4 @@ def display(
 
 
 if __name__ == "__main__":
-    setup_app("sample", "../../../TestResults")
+    setup_app("sample", "../../../TestResults", dev=True)
