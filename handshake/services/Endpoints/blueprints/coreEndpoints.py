@@ -6,7 +6,10 @@ from handshake.services.DBService.models.result_base import (
 from handshake.services.DBService.models.types import (
     RegisterSession,
     RegisterSuite,
+    PunchInSuite,
+    UpdateSuite,
     MarkSuite,
+    UpdateSession,
     MarkSession,
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
@@ -44,7 +47,6 @@ from handshake.services.SchedularService.register import (
 )
 from pydantic import ValidationError
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
-
 
 update_service = Blueprint("UpdateService", url_prefix="/save")
 
@@ -95,10 +97,89 @@ async def register_suite(request: Request) -> HTTPResponse:
     return text(str(suite_record.suiteID), status=201)
 
 
+@update_service.put("/PunchInSuite", error_format="json")
+@definition(
+    summary="Updates the suite's start datetime",
+    description="we have dynamic dashboard, and since the start time can be provided anytime from the framework, "
+    "we allow suite to be created without starttime, this request is to update start time as soon as "
+    "possible.",
+    tag="update",
+    body={"application/json": PunchInSuite.model_json_schema()},
+)
+async def punch_in_test_suite(request: Request) -> HTTPResponse:
+    payload = request.json
+    suite = PunchInSuite.model_validate(payload)
+    suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
+    if not suite_record:
+        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        return text(f"Suite {suite.suiteID} was not found", status=404)
+
+    payload = suite.model_dump()
+    payload["standing"] = Status.PROCESSING
+    suite_record = await suite_record.update_from_dict(payload)
+    await suite_record.save()
+    return text(str(suite_record.suiteID), status=200)
+
+
+@update_service.put("/Suite", error_format="json")
+@definition(
+    summary="Updates the suite past the test suite's execution",
+    description="Once the Test suite/test gets executed, through this endpoint "
+    "we would updates its status and timings on the registered suite/test",
+    tag="update",
+    body={"application/json": UpdateSuite.model_json_schema()},
+)
+async def update_suite_details(request: Request) -> HTTPResponse:
+    payload = request.json
+    if payload.get("started", False) is None:
+        payload.pop("started")
+
+    suite = UpdateSuite.model_validate(payload)
+    suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
+    if not suite_record:
+        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        return text(f"Suite {suite.suiteID} was not found", status=404)
+
+    if suite_record.suiteType == SuiteType.SUITE:
+        suite.standing = Status.YET_TO_CALCULATE
+    else:
+        note = {
+            suite.standing.lower(): 1,
+            "tests": 1,
+        }
+        await suite_record.update_from_dict(note)
+
+    await suite_record.update_from_dict(suite.model_dump())
+    await suite_record.save()
+
+    if suite_record.suiteType == SuiteType.SUITE:
+        await register_patch_suite(suite_record.suiteID, get_test_id())
+
+    return text(str(suite_record.suiteID), status=200)
+
+
+@update_service.put("/Session", error_format="json")
+@definition(
+    summary="Updates the session past the test session's execution",
+    description="Once the Test session gets executed, through this endpoint "
+    "we would updates its status and timings on the registered session",
+    tag="update",
+    body={"application/json": UpdateSession.model_json_schema()},
+)
+async def update_test_session_details(request: Request) -> HTTPResponse:
+    session = UpdateSession.model_validate(request.json)
+    test_session = await SessionBase.filter(sessionID=session.sessionID).first()
+    if not test_session:
+        logger.error("Expected {} session was not found", str(session.sessionID))
+        return text(f"Session {session.sessionID} was not found", status=404)
+
+    await test_session.update_from_dict(session.model_dump())
+    await test_session.save()
+    return text(f"{session.sessionID} was updated", status=200)
+
+
 # NOTE: this API was made specifically to support a registering describeBlocks
 # NOTE: Planning to depreciate this in near future.
-
-
 @update_service.put("/registerParentEntities")
 @definition(
     summary="Registers a set of parent suites starting from root hierarchy",
@@ -150,7 +231,6 @@ async def updateSuite(request: Request) -> HTTPResponse:
             "tests": 1,
         }
         await suite_record.update_from_dict(note)
-        await suite_record.save()
 
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()

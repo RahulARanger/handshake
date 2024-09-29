@@ -5,6 +5,7 @@ from handshake.services.DBService.models import (
     TestLogBase,
     TaskBase,
     MigrationBase,
+    SuiteBase,
     RunBase,
 )
 from .conftest import get_version, get_config_value
@@ -125,9 +126,12 @@ class TestMigrationScripts:
         ).readonly
 
     async def test_bump_v8(
-        self, get_vth_connection, scripts, db_path, sample_test_session
+        self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
     ):
         await get_vth_connection(db_path, 8)
+        suite = await create_suite(sample_test_session.sessionID)
+        before = suite.started
+
         assert migration(
             db_path, do_once=True
         ), "it should now be in the latest version"
@@ -136,6 +140,13 @@ class TestMigrationScripts:
         assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == "9"
         assert await RunBase.all().count() > 0
         status_before = set(await RunBase.all().values_list("status", flat=True)).pop()
+        started = (
+            await SuiteBase.filter(suiteID=suite.suiteID).first().values("started")
+        )
+        assert started["started"] == before, "value should not change"
+        # this is allowed now but not before
+        suite.started = None
+
         assert status_before == RunStatus.COMPLETED
 
         # add other than, we are just dropping table: "ExportBase" it was used long before v3

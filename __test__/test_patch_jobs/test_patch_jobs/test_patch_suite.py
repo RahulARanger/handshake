@@ -529,3 +529,48 @@ class TestPatchSuiteScheduler:
 
         parent_rollup_suite = await RollupBase.filter(suite_id=parent_id).first()
         assert parent_rollup_suite.tests == 9
+
+    async def test_patch_suite_dates(
+        self, create_suite, create_tests, sample_test_session
+    ):
+        top_parent_suite = await create_suite(sample_test_session.sessionID)
+        parent_suite = await create_suite(
+            sample_test_session.sessionID, parent=top_parent_suite.suiteID
+        )
+        tests = await create_tests(sample_test_session.sessionID, parent_suite.suiteID)
+
+        before_params = dict(
+            started=top_parent_suite.started,
+            ended=top_parent_suite.ended,
+            duration=top_parent_suite.duration,
+        )
+        parent_suite.started = None
+        parent_suite.ended = None
+        # parent suite's start and end datetime were not provided
+        await parent_suite.save()
+        await register_patch_suite(parent_suite.suiteID, sample_test_session.test_id)
+        await patch_jobs()
+
+        expected_start_time = tests[0].started
+        expected_end_time = tests[-1].ended
+
+        values = (
+            await SuiteBase.filter(suiteID=parent_suite.suiteID)
+            .first()
+            .values("started", "ended", "duration")
+        )
+
+        unchanged_values = (
+            await SuiteBase.filter(suiteID=top_parent_suite.suiteID)
+            .first()
+            .values("started", "ended", "duration")
+        )
+
+        assert expected_start_time == values["started"]
+        assert expected_end_time == values["ended"]
+        assert (
+            values["duration"]
+            == (expected_end_time - expected_start_time).total_seconds() * 1e3
+        )
+
+        assert before_params == unchanged_values

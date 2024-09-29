@@ -5,6 +5,7 @@ from handshake.services.DBService.models import (
     SuiteBase,
     TaskBase,
 )
+from handshake.services.DBService.models.enums import Status, SuiteType, RunStatus
 from subprocess import Popen, call
 from requests import post, Session
 from requests.adapters import HTTPAdapter, Retry
@@ -49,6 +50,14 @@ def savePts(suffix: str) -> str:
     return urljoin("http://127.0.0.1:6978/save/", suffix)
 
 
+def createPts(suffix: str) -> str:
+    return urljoin("http://127.0.0.1:6978/create/", suffix)
+
+
+def updatePts(suffix: str) -> str:
+    return urljoin("http://127.0.0.1:6978/save/", suffix)
+
+
 @mark.usefixtures("open_server")
 async def test_life_cycle(root_dir):
     assert session
@@ -62,8 +71,8 @@ async def test_life_cycle(root_dir):
 
     # REGISTRATION OF SESSION
 
-    resp = session.put(savePts("registerSession"), json=payload)
-    assert resp.status_code == 201
+    resp = session.post(createPts("Session"), json=payload)
+    assert resp.status_code == 201, resp.text
     session_record = await SessionBase.filter(sessionID=resp.text).first()
 
     # avoiding timezone info in the LHS
@@ -82,15 +91,26 @@ async def test_life_cycle(root_dir):
         file="./test.py",
         parent="",
         tags=[],
+        is_processing=False,
     )
 
-    resp = session.put(savePts("registerSuite"), json=payload)
+    resp = session.post(createPts("Suite"), json=payload)
     assert resp.status_code == 201
     assert await SuiteBase.filter(suiteID=resp.text).exists()
 
     suite_record = await SuiteBase.filter(suiteID=resp.text).first()
     assert suite_record.started.isoformat()[:-6] == saved
-    assert suite_record.suiteType == "SUITE"
+    assert suite_record.suiteType == SuiteType.SUITE
+    assert suite_record.standing == Status.PENDING
+
+    resp = session.put(
+        updatePts("PunchInSuite"),
+        json=dict(suiteID=str(suite_record.suiteID), started=saved),
+    )
+    assert resp.status_code == 200, resp.text
+
+    suite_record = await SuiteBase.filter(suiteID=suite_record.suiteID).first()
+    assert suite_record.standing == Status.PROCESSING
 
     # task_for_register_suite = await TaskBase.filter(ticketID=resp.text).first()
     # assert task_for_register_suite.picked == 0
@@ -111,14 +131,16 @@ async def test_life_cycle(root_dir):
             file="./test.py",
             parent=parent,
             tags=[],
+            is_processing=True,
         )
 
-        resp = session.put(savePts("registerSuite"), json=payload)
+        resp = session.post(createPts("Suite"), json=payload)
 
         test = await SuiteBase.filter(suiteID=resp.text).first()
         assert test.title == f"sample-test-{_}"
         assert test.started.isoformat()[:-6] == saved
-        assert test.suiteType == "TEST"
+        assert test.suiteType == SuiteType.TEST
+        assert test.standing == Status.PROCESSING
 
         assert not await TaskBase.filter(ticketID=resp.text).exists()
 
@@ -140,6 +162,7 @@ async def test_life_cycle(root_dir):
                 stack="sample-error-stack",
             ),
         ]
+
         payload = dict(
             duration=10,
             ended=(datetime.now() + timedelta(seconds=9)).isoformat(),
@@ -147,10 +170,8 @@ async def test_life_cycle(root_dir):
             errors=errors,
             standing="FAILED",
         )
-
-        resp = session.put(savePts("updateSuite"), json=payload)
-
-        assert resp.status_code == 201
+        resp = session.put(updatePts("Suite"), json=payload)
+        assert resp.status_code == 200, resp.text
 
         test = await SuiteBase.filter(suiteID=suite).first()
         assert test.errors == errors
@@ -166,8 +187,8 @@ async def test_life_cycle(root_dir):
 
     # MARKING TEST SUITE
 
-    resp = session.put(savePts("updateSuite"), json=payload)
-    assert resp.status_code == 201
+    resp = session.put(updatePts("Suite"), json=payload)
+    assert resp.status_code == 200
 
     test = await SuiteBase.filter(suiteID=parent).first()
     assert test.standing == "YET_TO_CALC"
@@ -191,8 +212,8 @@ async def test_life_cycle(root_dir):
         entityVersion=__version__,
         simplified=f"pytest-{__version__}",
     )
-    resp = session.put(savePts("updateSession"), json=payload)
-    assert resp.status_code == 201
+    resp = session.put(updatePts("Session"), json=payload)
+    assert resp.status_code == 200
 
     session_record = await SessionBase.filter(
         sessionID=session_record.sessionID
@@ -200,11 +221,11 @@ async def test_life_cycle(root_dir):
     assert session_record.entityVersion == __version__
     assert session_record.failed == session_record.skipped == 0
 
-    # MARKING TEST RUN
-
     assert not await TaskBase.filter(ticketID=session_record.test_id).exists()
-    resp = session.put("http://127.0.0.1:6978/done")
-    assert resp.status_code == 202
+    # registering the patch task for the test run
+    payload = dict(exitCode=1, status=RunStatus.COMPLETED)
+    resp = session.put(updatePts("Run"), json=payload)
+    assert resp.status_code == 200
 
     parse_test = await TaskBase.filter(ticketID=session_record.test_id).first()
     assert not parse_test.processed

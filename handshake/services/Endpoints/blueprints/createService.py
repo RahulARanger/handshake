@@ -4,6 +4,7 @@ from handshake.services.DBService.models.types import (
     CreatePickedSuiteOrTest,
     PydanticModalForCreatingTestRunConfigBase,
     Status,
+    SuiteType,
 )
 from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
@@ -12,6 +13,7 @@ from sanic.response import text, HTTPResponse
 from loguru import logger
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
+from handshake.services.SchedularService.register import register_bulk_patch_suites
 
 
 create_service = Blueprint("CreateService", url_prefix="/create")
@@ -48,9 +50,11 @@ async def create_test_run_config(request: Request) -> HTTPResponse:
     )
 
     return text(
-        "configuration was added to the current test run"
-        if created
-        else "config cannot be updated, please raise a request for this endpoint",
+        (
+            "configuration was added to the current test run"
+            if created
+            else "config cannot be updated, please raise a request for this endpoint"
+        ),
         status=201 if created else 406,
     )
 
@@ -68,3 +72,25 @@ async def create_suite(request: Request) -> HTTPResponse:
     await suite_record.save()
 
     return text(str(suite_record.suiteID), status=201)
+
+
+@create_service.post("/ScheduleSuites")
+async def register_modify_suites(request: Request) -> HTTPResponse:
+    test_id = get_test_id()
+
+    suites_to_register = await SuiteBase.filter(
+        session__test_id=test_id,
+        suiteType=SuiteType.SUITE,
+        started=None,
+        ended=None,
+    )
+
+    suites = []
+    for suite in suites_to_register:
+        suite.standing = str(Status.YET_TO_CALCULATE)
+        suites.append(suite.suiteID)
+
+    await SuiteBase.bulk_update(suites_to_register, ("standing",), 100)
+    await register_bulk_patch_suites(test_id, suites)
+
+    return text("Done", status=202)

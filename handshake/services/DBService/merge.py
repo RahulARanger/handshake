@@ -159,14 +159,13 @@ class Merger:
                 ]
             )
 
-            if "id" not in cols:
-                combine = (
-                    "INSERT INTO " + table_name + " SELECT * FROM dba." + table_name
-                )
-            else:
+            if "id" in cols:
                 cols.remove("id")
-                rest_of_cols = ", ".join(cols)
-                combine = f"INSERT INTO {table_name}({rest_of_cols}) SELECT {rest_of_cols} FROM dba.{table_name}"
+
+            joined_cols = ", ".join(cols)
+            # join cols even if id is not in the cols, since migration scripts can rearrange
+            # the order of the columns in the table
+            combine = f"INSERT INTO {table_name}({joined_cols}) SELECT {joined_cols} FROM dba.{table_name}"
 
             logger.debug("Executed, {} on {}", combine, child_path.parent.name)
             connection.execute(combine)

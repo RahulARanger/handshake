@@ -1,27 +1,20 @@
 from httpx import Client
 from datetime import datetime
-from subprocess import Popen, PIPE
-from typing import Union, Optional, Dict, List
+from subprocess import Popen
+from typing import Union, Optional, Dict
 from loguru import logger
 from time import sleep
 from sys import stdout, stderr
 from pathlib import Path
 from pytest import Session
 from handshake.services.DBService.models.types import (
-    CreatePickedSuiteOrTest,
-    MarkSuite,
-    MarkSession,
     MarkTestRun,
-    AddAttachmentForEntity,
-    PydanticModalForTestRunConfigBase,
-    PydanticModalForTestRunUpdate,
-    WrittenAttachmentForEntity,
     PydanticModalForCreatingTestRunConfigBase,
 )
 from threading import Lock
 from concurrent.futures.thread import ThreadPoolExecutor
 from concurrent.futures import Future
-from httpx import Response, Timeout
+from httpx import Response
 
 
 def to_acceptable_date_format(date: datetime):
@@ -44,6 +37,15 @@ class CommonReporter:
         self.set_context(False, path, port)
         self.connection_established = False
         self.waiting = Lock()
+
+    def postfix(self, fix: str):
+        return f"{self.url}/{fix}"
+
+    def create_postfix(self, fix: str):
+        return self.postfix(f"create/{fix}")
+
+    def update_postfix(self, fix: str):
+        return self.postfix(f"save/{fix}")
 
     def ensure_mails(
         self, postman, url, note: Optional[Union[str, False]] = False, **kwargs
@@ -82,6 +84,12 @@ class CommonReporter:
             return False
 
     def parse_config(self, session: Session):
+        unregister = session.config.inicfg.get("disable_handshakes")
+        if unregister:
+            handshake_plugin = session.config.pluginmanager.get_plugin("handshakes")
+            session.config.pluginmanager.unregister(handshake_plugin)
+            return True
+
         rel_path = session.config.inicfg.get("save_results_in")
         port = session.config.inicfg.get("handshake_port")
         config_path = session.config.inicfg.get("save_handshake_config_dir")
@@ -112,15 +120,6 @@ class CommonReporter:
         )
         self.url = f"http://127.0.0.1:{port}"
         self.config_path = config_path
-
-    def postfix(self, fix: str):
-        return f"{self.url}/{fix}"
-
-    def create_postfix(self, fix: str):
-        return self.postfix(f"create/{fix}")
-
-    def update_postfix(self, fix: str):
-        return self.postfix(f"save/{fix}")
 
     def start_collection(self, projectName: str):
         command = (
@@ -169,26 +168,13 @@ class CommonReporter:
                         )
                     stack.append(to_retry + 1)
 
-    def close_resources(self, force_call=False):
-        with self.waiting:
-            if force_call:
-                return self.client.post(self.postfix("bye"))
-            self.postman.submit(
-                self.ensure_mails, self.client.post, self.postfix("bye"), False
-            )
-        self.postman.shutdown(wait=True, cancel_futures=False)
-        logger.complete()
-
-        if not self.skip:
-            logger.debug("Handshake Reporter has collected your reports.")
-
     def call(
         self,
         reason: str,
         post_it: bool,
         postfix: str,
         payload: Dict,
-        save_it: bool = False,
+        save_it: Optional[str] = None,
         append: Optional[Dict[str, str]] = None,
     ):
         logger.debug(reason)
@@ -196,7 +182,7 @@ class CommonReporter:
             self.ensure_mails,
             self.client.post if post_it else self.client.put,
             (self.create_postfix if post_it else self.update_postfix)(postfix),
-            postfix if save_it else False,
+            save_it if save_it else False,
             json=payload,
             append=append,
         )
@@ -207,7 +193,7 @@ class CommonReporter:
             True,
             "Session",
             dict(started=to_acceptable_date_format(started)),
-            True,
+            "Session",
         )
 
     @property
@@ -220,15 +206,42 @@ class CommonReporter:
             True,
             "RunConfig",
             payload.model_dump(),
-            True,
         )
 
-    def update_test_session(self, payload: MarkSession):
+    def register_test_entity(
+        self, payload: Dict, save_in: str, parent: Optional[str] = None
+    ):
+        to_append = dict(session_id="Session")
+        if parent:
+            to_append["parent"] = parent
+
+        return self.call(
+            f"Registering a Test Entity: {payload['title']}",
+            True,
+            "Suite",
+            payload,
+            save_in,
+            append=to_append,
+        )
+
+    def update_test_entity(
+        self, payload, node_id: str, punch_in: Optional[bool] = False
+    ):
+        return self.call(
+            f"Updating Test Entity: {node_id}",
+            False,
+            "PunchInSuite" if punch_in else "Suite",
+            payload,
+            append=dict(suiteID=node_id),
+        )
+
+    def update_test_session(self, payload: Dict):
         return self.call(
             "Updating Test Session",
-            True,
-            "RunConfig",
-            payload.model_dump(),
+            False,
+            "Session",
+            payload,
+            append=dict(sessionID="Session"),
         )
 
     def update_test_run(self, payload: MarkTestRun, force_call=False):
@@ -243,17 +256,21 @@ class CommonReporter:
             payload.model_dump(),
         )
 
-    def register_test_suite(self, payload: Dict):
-        return self.call(
-            f"Registering a Test Suite: {payload['title']}",
-            True,
-            "Suite",
-            payload,
-            append=dict(session_id="Session"),
-        )
-
     def force_wait(self):
         if not self.health_connection():
             return
 
         return self.wait_for_connection(1, True)
+
+    def close_resources(self, force_call=False):
+        with self.waiting:
+            if force_call:
+                return self.client.post(self.postfix("bye"))
+            self.postman.submit(
+                self.ensure_mails, self.client.post, self.postfix("bye"), False
+            )
+        self.postman.shutdown(wait=True, cancel_futures=False)
+        logger.complete()
+
+        if not self.skip:
+            logger.debug("Handshake Reporter has collected your reports.")

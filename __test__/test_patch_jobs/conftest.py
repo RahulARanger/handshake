@@ -86,7 +86,7 @@ async def helper_create_session_with_hierarchy_with_no_retries(
         session = await helper_create_session(test_id, connection=connection)
         suite = await helper_create_suite(
             session.sessionID,
-            parent_suite,
+            parent=parent_suite,
             started=started,
             file=thing,
             connection=connection,

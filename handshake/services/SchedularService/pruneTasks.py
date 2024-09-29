@@ -39,7 +39,6 @@ async def pruneTasks(task_id: Optional[str] = ""):
         )
     )
 
-    pruned = []
     for task in to_prune:
         logger.error(
             "Found an error in this task: {}. hence marking it as processed."
@@ -48,10 +47,9 @@ async def pruneTasks(task_id: Optional[str] = ""):
         )
         task.processed = True
         task.picked = True
-        pruned.append(task)
 
     await TaskBase.bulk_update(
-        pruned,
+        to_prune,
         (
             "picked",
             "processed",

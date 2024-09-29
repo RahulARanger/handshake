@@ -22,8 +22,7 @@ class Tag(TypedDict):
     label: str
 
 
-class RegisterSession(CommonRegisterCols):
-    ...
+class RegisterSession(CommonRegisterCols): ...
 
 
 class RegisterSuite(CommonRegisterCols):
@@ -40,6 +39,7 @@ class RegisterSuite(CommonRegisterCols):
 class CreatePickedSuiteOrTest(BaseModel):
     title: str
     retried: Optional[int] = 0
+    started: Optional[datetime] = None
     description: Optional[str] = ""
     suiteType: SuiteType
     session_id: uuid.UUID
@@ -63,14 +63,41 @@ class MarkSession(BaseModel):
     simplified: str
 
 
+class UpdateSession(BaseModel):
+    duration: float
+    skipped: int
+    passed: int
+    failed: int
+    tests: int
+    hooks: int
+    ended: datetime
+    sessionID: uuid.UUID
+    entityName: str
+    entityVersion: str
+    simplified: str
+
+
 class Error(TypedDict):
     name: str
     message: str
     stack: Optional[str]
 
 
-class MarkSuite(BaseModel):
+class UpdateSuite(BaseModel):
+    suiteID: uuid.UUID
     duration: float
+    started: Optional[datetime] = None
+    ended: datetime
+    errors: Optional[List[Error]] = []
+    standing: Status
+
+
+class PunchInSuite(CommonRegisterCols):
+    suiteID: uuid.UUID
+
+
+class MarkSuite(BaseModel):
+    duration: float  # milliseconds
     ended: datetime
     suiteID: uuid.UUID
     errors: Optional[List[Error]] = []
@@ -127,8 +154,7 @@ class PydanticModalForCreatingTestRunConfigBase(BaseModel):
     tags: Optional[List[Tag]] = []
 
 
-class PydanticModalForTestRunUpdate(CommonRegisterCols):
-    ...
+class PydanticModalForTestRunUpdate(CommonRegisterCols): ...
 
 
 class MarkTestRun(BaseModel):

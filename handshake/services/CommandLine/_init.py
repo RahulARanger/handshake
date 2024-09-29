@@ -393,3 +393,12 @@ def yet_to_process(ctx: Context):
     )
 
     pipe.close()
+
+
+# if __name__ == "__main__":
+#     scheduler = Scheduler("TestResults")
+#     try:
+#         run(scheduler.start())
+#     except (KeyboardInterrupt, SystemExit):
+#         logger.warning("Scheduler terminated explicitly...")
+#         run(close_connection())
