@@ -1,7 +1,129 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="JetClientState">
+    <option name="draftsState">
+      <draftsState>
+        <option name="requests">
+          <list>
+            <requestState>
+              <option name="body">
+                <bodyState>
+                  <option name="raw" value="{&#10;  &quot;framework&quot;: &quot;pytest&quot;,&#10;  &quot;platform&quot;: &quot;win32&quot;,&#10;}" />
+                  <option name="type" value="JSON" />
+                </bodyState>
+              </option>
+              <option name="id" value="db147c2f-4cdf-4c97-86cd-2ab35ceb1898" />
+              <option name="method" value="POST" />
+              <option name="name" value="Draft" />
+              <option name="url" value="http://127.0.0.1:6969/bye" />
+            </requestState>
+          </list>
+        </option>
+      </draftsState>
+    </option>
+    <option name="folders">
+      <list>
+        <folderState>
+          <option name="description" value="handshake run-app sample-run TestResults -p 6969 -d" />
+          <option name="environmentGroups">
+            <list>
+              <environmentGroupState>
+                <option name="name" value="Default" />
+              </environmentGroupState>
+            </list>
+          </option>
+          <option name="folders">
+            <list>
+              <folderState>
+                <option name="id" value="95688a91-ab76-48af-8614-a9fe7139da44" />
+                <option name="name" value="Save Requests" />
+                <option name="requests">
+                  <list>
+                    <requestState>
+                      <option name="body">
+                        <bodyState>
+                          <option name="raw" value="{&#10;  &quot;started&quot;: &quot;2024-09-14T22:06:45.629072&quot;&#10;}" />
+                          <option name="type" value="JSON" />
+                        </bodyState>
+                      </option>
+                      <option name="id" value="c7216a0d-7235-45df-ab17-3d088adaacf8" />
+                      <option name="method" value="POST" />
+                      <option name="name" value="add Test Config" />
+                      <option name="sortWeight" value="1000000" />
+                      <option name="url" value="http://127.0.0.1:6969/create/RunConfig" />
+                    </requestState>
+                    <requestState>
+                      <option name="body">
+                        <bodyState>
+                          <option name="raw" value="{&#10;  &quot;started&quot;: &quot;2024-09-14T22:06:45.629072&quot;&#10;}" />
+                          <option name="type" value="JSON" />
+                        </bodyState>
+                      </option>
+                      <option name="id" value="f0b9788e-e8a9-4c9b-9d05-ec254b8d4136" />
+                      <option name="method" value="POST" />
+                      <option name="name" value="Create Session" />
+                      <option name="sortWeight" value="2000000" />
+                      <option name="url" value="http://127.0.0.1:6969/create/Dummy" />
+                    </requestState>
+                    <requestState>
+                      <option name="body">
+                        <bodyState>
+                          <option name="raw" value="{&#10;  &quot;status&quot;: &quot;COMPLETED&quot;,&#10;  &quot;exitCode&quot;: 1&#10;}" />
+                          <option name="type" value="JSON" />
+                        </bodyState>
+                      </option>
+                      <option name="id" value="3b220e5c-6803-44d6-bcfc-7c1ee81c139d" />
+                      <option name="method" value="PUT" />
+                      <option name="name" value="Update Test Run" />
+                      <option name="sortWeight" value="3000000" />
+                      <option name="url" value="http://127.0.0.1:6969/save/Run" />
+                    </requestState>
+                  </list>
+                </option>
+                <option name="sortWeight" value="1000000" />
+              </folderState>
+              <folderState>
+                <option name="id" value="cfa0a097-c651-43c4-b769-f89e17584308" />
+                <option name="name" value="Internal Endpoints" />
+                <option name="requests">
+                  <list>
+                    <requestState>
+                      <option name="id" value="b0a9039d-8f29-4313-b5b4-2e841fecd0f5" />
+                      <option name="method" value="GET" />
+                      <option name="name" value="Health" />
+                      <option name="sortWeight" value="1000000" />
+                      <option name="url" value="http://127.0.0.1:6969/" />
+                    </requestState>
+                    <requestState>
+                      <option name="id" value="64a6684a-20b9-42ca-b1c7-0f7e30c0bba4" />
+                      <option name="method" value="POST" />
+                      <option name="name" value="Terminate Server" />
+                      <option name="sortWeight" value="2000000" />
+                      <option name="url" value="http://127.0.0.1:6969/bye" />
+                    </requestState>
+                  </list>
+                </option>
+                <option name="sortWeight" value="2000000" />
+              </folderState>
+            </list>
+          </option>
+          <option name="id" value="22340abd-90a6-45de-85c2-5001a7336913" />
+          <option name="name" value="Handshake Debug Server" />
+          <option name="selectedEnvironmentIds">
+            <map>
+              <entry key="default" />
+            </map>
+          </option>
+          <option name="syncProperties">
+            <synchronizationPropertiesState>
+              <option name="autoSync" value="true" />
+              <option name="folderPath" value="C:\Users\Rahul\Documents\Hosted Experiments\Handshake\.jetclient" />
+            </synchronizationPropertiesState>
+          </option>
+        </folderState>
+      </list>
+    </option>
     <option name="id" value="2e6f3355-94fe-4fea-bf31-66a64fef3ffc" />
-    <option name="version" value="2" />
+    <option name="version" value="3" />
   </component>
 </project>

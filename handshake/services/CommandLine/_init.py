@@ -29,6 +29,7 @@ from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
 from asyncio import run
+from typing import Optional
 
 
 @group(
@@ -54,9 +55,13 @@ def handle_cli():
 general_requirement = argument(
     "COLLECTION_PATH", nargs=1, type=C_Path(exists=True, dir_okay=True), required=True
 )
-general_but_optional_requirement = argument(
+general_but_optionally_present = argument(
     "COLLECTION_PATH", nargs=1, type=C_Path(dir_okay=True), required=True
 )
+config_optional_path = argument(
+    "CONFIG_PATH", nargs=1, type=C_Path(dir_okay=True), required=False
+)
+
 observed_version = option(
     "--version",
     "-v",
@@ -147,6 +152,7 @@ def step_back(collection_path: str):
     is_flag=True,
 )
 @general_requirement
+@config_optional_path
 @option(
     "--build",
     "-b",
@@ -179,6 +185,7 @@ def patch(
     log_file: str,
     reset: bool = False,
     build: str = None,
+    config_path: Optional[str] = None,
     out: str = None,
     dev: bool = False,
     include=False,
@@ -195,7 +202,7 @@ def patch(
 
     scheduler = Scheduler(collection_path, out, reset, build, include, dev)
     try:
-        run(scheduler.start())
+        run(scheduler.start(config_path))
     except (KeyboardInterrupt, SystemExit):
         logger.warning("Scheduler terminated explicitly...")
         run(close_connection())
@@ -298,15 +305,24 @@ then it creates x -> TestResults -> TeStReSuLtS.sb and x -> TestResults -> Attac
 and x -> handshakes.json
     """,
 )
-@general_but_optional_requirement
-def init(collection_path):
+@general_but_optionally_present
+@config_optional_path
+def init(collection_path, config_path=None):
     saved_db_path = db_path(collection_path)
 
     set_default_first = not Path(collection_path).exists()
     if set_default_first:
         Path(collection_path).mkdir(exist_ok=True)
 
-    run_async(init_tortoise_orm(saved_db_path, True, close_it=True, init_script=True))
+    run_async(
+        init_tortoise_orm(
+            saved_db_path,
+            True,
+            close_it=True,
+            init_script=True,
+            config_path=config_path,
+        )
+    )
 
 
 @handle_cli.group(
@@ -377,3 +393,12 @@ def yet_to_process(ctx: Context):
     )
 
     pipe.close()
+
+
+# if __name__ == "__main__":
+#     scheduler = Scheduler("TestResults")
+#     try:
+#         run(scheduler.start())
+#     except (KeyboardInterrupt, SystemExit):
+#         logger.warning("Scheduler terminated explicitly...")
+#         run(close_connection())

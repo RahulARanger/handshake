@@ -363,15 +363,48 @@ class TestPatchSuiteScheduler:
             sample_test_session, create_suite, parent_id, test_id
         )
 
-    async def test_incomplete_suite(self, sample_test_session, create_suite):
+    async def test_processing_parent_suite_with_pending_child_suite(
+        self, sample_test_session, create_suite
+    ):
         session = await sample_test_session
 
         parent_suite = await create_suite(session.sessionID)
         await create_suite(session.sessionID, parent=parent_suite.suiteID)
         await register_patch_suite(parent_suite.suiteID, session.test_id)
+        assert (
+            parent_suite.standing == Status.YET_TO_CALCULATE
+        ), "suite has to be in yet to calculate state"
         await patch_jobs()
 
         # there is a child suite present but not registered
+        # it might happen because the test run was interrupted in between
+
+        # expected result, the processing of the parent suite will be skipped
+        # AND marks the test run as failed as its child suite was not registered.
+
+        records = await TestLogBase.filter(
+            test_id=session.test_id, type=LogType.ERROR
+        ).all()
+        assert len(records) == 1
+        error_log = records[0]
+        assert error_log.feed["parent_suite"] == str(parent_suite.suiteID)
+        assert error_log.feed["job"] == JobType.MODIFY_SUITE
+        assert "as the child suite was not registered" in error_log.message
+
+    async def test_patching_suite_with_processing_child_suite(
+        self, sample_test_session, create_suite
+    ):
+        session = await sample_test_session
+
+        parent_suite = await create_suite(session.sessionID)
+        child_suite = await create_suite(
+            session.sessionID, parent=parent_suite.suiteID, standing=Status.PROCESSING
+        )
+        await register_patch_suite(parent_suite.suiteID, session.test_id)
+        assert child_suite.standing == Status.PROCESSING
+        await patch_jobs()
+
+        # there is a child suite present but still in processing state
         # it might happen because the test run was interrupted in between
 
         # expected result, the processing of the parent suite will be skipped
@@ -496,3 +529,48 @@ class TestPatchSuiteScheduler:
 
         parent_rollup_suite = await RollupBase.filter(suite_id=parent_id).first()
         assert parent_rollup_suite.tests == 9
+
+    async def test_patch_suite_dates(
+        self, create_suite, create_tests, sample_test_session
+    ):
+        top_parent_suite = await create_suite(sample_test_session.sessionID)
+        parent_suite = await create_suite(
+            sample_test_session.sessionID, parent=top_parent_suite.suiteID
+        )
+        tests = await create_tests(sample_test_session.sessionID, parent_suite.suiteID)
+
+        before_params = dict(
+            started=top_parent_suite.started,
+            ended=top_parent_suite.ended,
+            duration=top_parent_suite.duration,
+        )
+        parent_suite.started = None
+        parent_suite.ended = None
+        # parent suite's start and end datetime were not provided
+        await parent_suite.save()
+        await register_patch_suite(parent_suite.suiteID, sample_test_session.test_id)
+        await patch_jobs()
+
+        expected_start_time = tests[0].started
+        expected_end_time = tests[-1].ended
+
+        values = (
+            await SuiteBase.filter(suiteID=parent_suite.suiteID)
+            .first()
+            .values("started", "ended", "duration")
+        )
+
+        unchanged_values = (
+            await SuiteBase.filter(suiteID=top_parent_suite.suiteID)
+            .first()
+            .values("started", "ended", "duration")
+        )
+
+        assert expected_start_time == values["started"]
+        assert expected_end_time == values["ended"]
+        assert (
+            values["duration"]
+            == (expected_end_time - expected_start_time).total_seconds() * 1e3
+        )
+
+        assert before_params == unchanged_values

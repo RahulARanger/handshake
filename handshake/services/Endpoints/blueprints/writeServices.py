@@ -1,6 +1,6 @@
 import base64
 from sanic.blueprints import Blueprint
-from sanic.response import text, HTTPResponse, JSONResponse
+from sanic.response import text, HTTPResponse
 from loguru import logger
 from sanic.request import Request
 from handshake.services.DBService.models.types import (
@@ -11,20 +11,9 @@ from handshake.services.DBService.models.static_base import (
     StaticBase,
 )
 from handshake.services.SchedularService.constants import writtenAttachmentFolderName
-from handshake.services.Endpoints.blueprints.utils import extractPayload, attachWarn
 from handshake.services.Endpoints.define_api import definition
 
 writeServices = Blueprint("WriteService", url_prefix="/write")
-
-
-@writeServices.on_response
-async def handle_response(request: Request, response: JSONResponse):
-    if 200 <= response.status < 300:
-        return response
-
-    payload = extractPayload(request, response)
-    await attachWarn(payload, request.url)
-    return JSONResponse(body=payload, status=response.status)
 
 
 @writeServices.put("/addAttachmentForEntity", error_format="json")

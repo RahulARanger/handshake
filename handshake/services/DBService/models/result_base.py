@@ -13,7 +13,12 @@ from tortoise.fields import (
     ForeignKeyRelation,
     TextField,
 )
-from handshake.services.DBService.models.enums import Status, SuiteType, LogType
+from handshake.services.DBService.models.enums import (
+    Status,
+    SuiteType,
+    LogType,
+    RunStatus,
+)
 
 
 class CommandReportFields(Model):
@@ -41,7 +46,9 @@ class CommonDetailedFields(CommandReportFields):
 
 class EntityBaseSpecific:
     standing = CharEnumField(
-        Status, description="status of the test run", default=Status.PENDING
+        Status,
+        description="status of the test run based on the test cases executed",
+        default=Status.PENDING,
     )
 
     class Meta:
@@ -67,6 +74,11 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
     )
     exitCode = IntField(
         null=False, default=0, description="Exit code for the test execution"
+    )
+    status = CharEnumField(
+        RunStatus,
+        description="status of the test run marked by the test framework",
+        default=RunStatus.PENDING,
     )
 
 
@@ -97,6 +109,7 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     session: ForeignKeyRelation[SessionBase] = ForeignKeyField(
         "models.SessionBase", related_name="suites", to_field="sessionID"
     )
+    started = DatetimeField(null=True)
     attachments = ReverseRelation["AttachmentBase"]
     retries = ReverseRelation["RetriedBase"]
     rolled_up = ReverseRelation["RollupBase"]

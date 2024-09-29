@@ -1,3 +1,11 @@
+alter table runbase drop column status;
+
+-- making the started column in the suitebase mandate
+alter table suitebase add column started_2 timestamp not null;
+update suitebase set started_2 = started;
+alter table suitebase drop column started;
+alter table suitebase rename column started_2 to started;
+
 -- creating previous tables before v9
 
 CREATE TABLE IF NOT EXISTS ExportBase(
@@ -6,5 +14,4 @@ CREATE TABLE IF NOT EXISTS ExportBase(
 );
 
 -- reverting version
-UPDATE configbase SET value = 8 WHERE key = 'VERSION';
-
+UPDATE ConfigBase SET value = 8 WHERE key = 'VERSION';

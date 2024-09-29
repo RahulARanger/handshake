@@ -1,5 +1,21 @@
 # wdio-graspit-reporter
 
+## 0.8.3
+
+### Patch Changes
+
+- 83e445b: bump: version for server build to 0.5.0
+- Updated dependencies [83e445b]
+  - @hand-shakes/common-handshakes@0.8.2
+
+## 0.8.2
+
+### Patch Changes
+
+- 5267b80: refer 0.4.2 handshake python build and refer 0.7.0 dashboard build.
+- Updated dependencies [5267b80]
+  - @hand-shakes/common-handshakes@0.8.1
+
 ## 0.8.1
 
 ### Patch Changes

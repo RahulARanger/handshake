@@ -1,5 +1,17 @@
 # common-handshakes
 
+## 0.8.2
+
+### Patch Changes
+
+- 83e445b: bump: version for server build to 0.5.0
+
+## 0.8.1
+
+### Patch Changes
+
+- 5267b80: refer 0.4.2 handshake python build and refer 0.7.0 dashboard build.
+
 ## 0.8.0
 
 ### Minor Changes

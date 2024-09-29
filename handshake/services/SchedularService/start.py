@@ -76,8 +76,8 @@ class Scheduler:
         self.reset = manual_reset
         self.connection: Optional[BaseDBAsyncClient] = None
 
-    async def start(self):
-        await init_tortoise_orm(self.db_path, True)
+    async def start(self, config_path: Optional[str] = None):
+        await init_tortoise_orm(self.db_path, True, config_path=config_path)
         self.connection = connections.get("default")
         await self.rotate_test_runs()
         await self.init_jobs()
