@@ -10,7 +10,7 @@ from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.enums import Status, SuiteType
 from tortoise.expressions import Q
-from tortoise.functions import Count, Lower, Sum
+from tortoise.functions import Count, Lower, Sum, Min, Max
 from loguru import logger
 from handshake.services.SchedularService.register import skip_test_run
 from itertools import chain
@@ -46,13 +46,21 @@ class PatchTestSuite:
         logger.info("Patching Suite: {} | {}", self.suite.suiteID, self.suite.title)
 
         if self.suite.standing != Status.YET_TO_CALCULATE:
-            logger.warning("Skipping already patch suite for: {}", self.suite.suiteID)
+            logger.warning(
+                "Suite: {} was not scheduled to be calculated, its status is {}",
+                self.suite.suiteID,
+                self.suite.standing,
+            )
             await self.mark_processed()
             return False
 
         pending_child_tasks = await SuiteBase.filter(
             Q(parent=self.suite.suiteID)
-            & (Q(standing=Status.PENDING) | Q(standing=Status.YET_TO_CALCULATE))
+            & (
+                Q(standing=Status.PENDING)
+                | Q(standing=Status.YET_TO_CALCULATE)
+                | Q(standing=Status.PROCESSING)
+            )
         ).exists()
 
         if pending_child_tasks:
@@ -81,6 +89,31 @@ class PatchTestSuite:
         await self.fetch_records()
         if not await self.do_we_need_to_patch():
             return False
+
+        if not self.suite.started or not self.suite.ended:
+            info = (
+                await SuiteBase.filter(parent=self.suite_id)
+                .annotate(
+                    actual_end=Max("ended"),
+                    actual_start=Min("started"),
+                )
+                .first()
+                .values("actual_start", "actual_end")
+            )
+
+            started, ended = self.suite.started, self.suite.ended
+            if not self.suite.started:
+                logger.info("adding suite: {}'s start datetime", self.suite.title)
+                self.suite.started = info.get("actual_start", self.suite.started)
+                started = self.suite.started
+
+            if not self.suite.ended:
+                logger.info("adding suite: {}'s end datetime", self.suite.title)
+                self.suite.ended = info.get("actual_end", self.suite.ended)
+                ended = self.suite.ended
+
+            self.suite.duration = (ended - started).total_seconds() * 1000
+            await self.suite.save()
 
         await gather(
             self.patch_status(),

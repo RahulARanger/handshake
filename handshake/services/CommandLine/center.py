@@ -1,6 +1,7 @@
 from handshake.services.CommandLine._init import (
     handle_cli,
-    general_but_optional_requirement,
+    general_but_optionally_present,
+    config_optional_path,
     observed_version,
     break_if_mismatch,
 )
@@ -18,10 +19,11 @@ from pathlib import Path as P_Path
 from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
 from sanic import Sanic
-from typing import Tuple
+from typing import Tuple, Optional
 from functools import partial
 from loguru import logger
 from handshake.services.Endpoints.static_server import static_provider
+from gc import set_debug, DEBUG_LEAK
 
 
 def feed_app() -> Sanic:
@@ -46,11 +48,15 @@ def setup_app(
     path: str,
     port: int = 6969,
     workers: int = 2,
+    dev: bool = False,
+    config_path: Optional[str] = None,
 ):
     @service_provider.main_process_start
     async def get_me_started(app, loop):
         service_provider.shared_ctx.ROOT = Array("c", str.encode(path))
-        await init_tortoise_orm(migrate=True)
+        if dev:
+            service_provider.shared_ctx.DEV = Array("c", str.encode("1"))
+        await init_tortoise_orm(migrate=True, config_path=config_path)
         test_id = await create_run(projectname)
         service_provider.shared_ctx.TEST_ID = Array("c", str.encode(test_id))
         set_test_id()
@@ -59,12 +65,16 @@ def setup_app(
     async def close_things(app, loop):
         await close_connection()
 
+    if dev:
+        set_debug(DEBUG_LEAK)
+
     _app, loader = prepare_loader()
     _app.prepare(
         port=port,
         workers=max(2, workers),
         host="127.0.0.1",
         motd_display=dict(version=__version__),
+        dev=dev,
     )
     logger.debug("Serving at port: {}", port)
     Sanic.serve(primary=_app, app_loader=loader)
@@ -80,7 +90,8 @@ ports.
 )
 @argument("PROJECT_NAME", nargs=1, required=True, type=str)
 @observed_version
-@general_but_optional_requirement
+@general_but_optionally_present
+@config_optional_path
 @option(
     "-p",
     "--port",
@@ -97,12 +108,23 @@ ports.
     help="Number of workers to use",
     type=int,
 )
+@option(
+    "-d",
+    "--dev",
+    default=False,
+    show_default=True,
+    help="Run the dev server ?",
+    type=bool,
+    is_flag=True,
+)
 def run_app(
     collection_path: str,
     project_name: str,
     version: Union[str, bool],
     port: int,
     workers: int,
+    dev: bool,
+    config_path: Optional[str] = None,
 ):
     break_if_mismatch(version)
     if workers < 2:
@@ -111,7 +133,9 @@ def run_app(
         )
 
     P_Path(collection_path).mkdir(exist_ok=True)
-    setup_app(project_name, collection_path, port, workers)
+    setup_app(
+        project_name, collection_path, port, workers, dev, config_path=config_path
+    )
 
 
 @handle_cli.command(
@@ -159,4 +183,4 @@ def display(
 
 
 if __name__ == "__main__":
-    setup_app("sample", "../../../TestResults")
+    setup_app("sample", "../../../TestResults", dev=True)

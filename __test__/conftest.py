@@ -1,4 +1,5 @@
 import subprocess
+import uuid
 from typing import Optional
 from pytest import fixture, mark
 from pathlib import Path
@@ -116,10 +117,37 @@ def helper_set_db_config():
     return attach_db_config
 
 
-async def create_test_and_session(postfix="", connection=None):
-    return await test_session(
-        (await sample_test_run(postfix, connection)).testID, connection
-    )
+async def create_test_and_session(
+    postfix="", manual_insert_test_run=False, connection=None
+):
+    if manual_insert_test_run:
+        # used only in test cases that too, on db with old versions
+        test_id = str(uuid.uuid4())
+        await (connection if connection else connections.get("default")).execute_query(
+            'INSERT INTO "runbase" ("started","ended","tests","passed","failed","skipped","duration","retried",'
+            '"standing","testID","projectName","specStructure","suiteSummary","exitCode") VALUES (?,?,?,?,?,'
+            "?,?,?,?,?,?,?,?,?)",
+            [
+                "2024-09-14 17:33:57.568757+00:00",
+                "2024-09-14 17:43:57.568757+00:00",
+                2,
+                2,
+                0,
+                0,
+                0,
+                2,
+                "PENDING",
+                test_id,
+                "sample-test",
+                "{}",
+                "{}",
+                0,
+            ],
+        )
+    else:
+        test_id = (await sample_test_run(postfix, connection)).testID
+
+    return await test_session(test_id, connection)
 
 
 @fixture()

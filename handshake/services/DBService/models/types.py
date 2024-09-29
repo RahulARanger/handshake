@@ -1,6 +1,11 @@
 import uuid
 from typing import List, Optional, Union
-from handshake.services.DBService.models.enums import Status, SuiteType, AttachmentType
+from handshake.services.DBService.models.enums import (
+    Status,
+    SuiteType,
+    AttachmentType,
+    RunStatus,
+)
 from pydantic import BaseModel
 from datetime import datetime
 from typing_extensions import TypedDict
@@ -17,8 +22,7 @@ class Tag(TypedDict):
     label: str
 
 
-class RegisterSession(CommonRegisterCols):
-    ...
+class RegisterSession(CommonRegisterCols): ...
 
 
 class RegisterSuite(CommonRegisterCols):
@@ -32,7 +36,34 @@ class RegisterSuite(CommonRegisterCols):
     tags: Optional[List[Tag]] = []
 
 
+class CreatePickedSuiteOrTest(BaseModel):
+    title: str
+    retried: Optional[int] = 0
+    started: Optional[datetime] = None
+    description: Optional[str] = ""
+    suiteType: SuiteType
+    session_id: uuid.UUID
+    file: str
+    parent: str
+    tags: Optional[List[Tag]] = []
+    is_processing: Optional[bool] = True
+
+
 class MarkSession(BaseModel):
+    duration: float
+    skipped: int
+    passed: int
+    failed: int
+    tests: int
+    hooks: int
+    ended: datetime
+    sessionID: uuid.UUID
+    entityName: str
+    entityVersion: str
+    simplified: str
+
+
+class UpdateSession(BaseModel):
     duration: float
     skipped: int
     passed: int
@@ -52,8 +83,21 @@ class Error(TypedDict):
     stack: Optional[str]
 
 
-class MarkSuite(BaseModel):
+class UpdateSuite(BaseModel):
+    suiteID: uuid.UUID
     duration: float
+    started: Optional[datetime] = None
+    ended: datetime
+    errors: Optional[List[Error]] = []
+    standing: Status
+
+
+class PunchInSuite(CommonRegisterCols):
+    suiteID: uuid.UUID
+
+
+class MarkSuite(BaseModel):
+    duration: float  # milliseconds
     ended: datetime
     suiteID: uuid.UUID
     errors: Optional[List[Error]] = []
@@ -100,5 +144,19 @@ class PydanticModalForTestRunConfigBase(BaseModel):
     tags: List[Tag]
 
 
-class PydanticModalForTestRunUpdate(CommonRegisterCols):
-    ...
+class PydanticModalForCreatingTestRunConfigBase(BaseModel):
+    maxInstances: Optional[int] = 1
+    platform: str
+    framework: str
+    bail: Optional[int] = -1
+    fileRetries: Optional[int] = 0
+    avoidParentSuitesInCount: Optional[bool] = False
+    tags: Optional[List[Tag]] = []
+
+
+class PydanticModalForTestRunUpdate(CommonRegisterCols): ...
+
+
+class MarkTestRun(BaseModel):
+    exitCode: int
+    status: RunStatus

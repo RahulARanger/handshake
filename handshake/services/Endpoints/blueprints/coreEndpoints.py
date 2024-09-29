@@ -6,12 +6,16 @@ from handshake.services.DBService.models.result_base import (
 from handshake.services.DBService.models.types import (
     RegisterSession,
     RegisterSuite,
+    PunchInSuite,
+    UpdateSuite,
     MarkSuite,
+    UpdateSession,
     MarkSession,
     AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
     PydanticModalForTestRunUpdate,
     WrittenAttachmentForEntity,
+    MarkTestRun,
 )
 from handshake.services.Endpoints.blueprints.utils import (
     attachError,
@@ -37,18 +41,17 @@ from loguru import logger
 from typing import List
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
-from handshake.services.SchedularService.register import register_patch_suite
+from handshake.services.SchedularService.register import (
+    register_patch_suite,
+    register_patch_test_run,
+)
 from pydantic import ValidationError
-from dotenv import load_dotenv
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
 
-load_dotenv()
+update_service = Blueprint("UpdateService", url_prefix="/save")
 
 
-service = Blueprint("DBService", url_prefix="/save")
-
-
-@service.on_response
+@update_service.on_response
 async def handle_response(request: Request, response: JSONResponse):
     if 200 <= response.status < 300:
         return response
@@ -58,7 +61,7 @@ async def handle_response(request: Request, response: JSONResponse):
     return JSONResponse(body=payload, status=response.status)
 
 
-@service.put("/registerSession")
+@update_service.put("/registerSession")
 @definition(
     summary="Registers a Session",
     description="Registers a session with state datetime on the currently running Test Run.",
@@ -79,7 +82,7 @@ async def register_session(request: Request) -> HTTPResponse:
     return text(str(session_record.sessionID), status=201)
 
 
-@service.put("/registerSuite")
+@update_service.put("/registerSuite")
 @definition(
     summary="Registers a Suite under a session",
     description="Registers a suite/test with provided meta details of suite/test and session id",
@@ -94,9 +97,90 @@ async def register_suite(request: Request) -> HTTPResponse:
     return text(str(suite_record.suiteID), status=201)
 
 
+@update_service.put("/PunchInSuite", error_format="json")
+@definition(
+    summary="Updates the suite's start datetime",
+    description="we have dynamic dashboard, and since the start time can be provided anytime from the framework, "
+    "we allow suite to be created without starttime, this request is to update start time as soon as "
+    "possible.",
+    tag="update",
+    body={"application/json": PunchInSuite.model_json_schema()},
+)
+async def punch_in_test_suite(request: Request) -> HTTPResponse:
+    payload = request.json
+    suite = PunchInSuite.model_validate(payload)
+    suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
+    if not suite_record:
+        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        return text(f"Suite {suite.suiteID} was not found", status=404)
+
+    payload = suite.model_dump()
+    payload["standing"] = Status.PROCESSING
+    suite_record = await suite_record.update_from_dict(payload)
+    await suite_record.save()
+    return text(str(suite_record.suiteID), status=200)
+
+
+@update_service.put("/Suite", error_format="json")
+@definition(
+    summary="Updates the suite past the test suite's execution",
+    description="Once the Test suite/test gets executed, through this endpoint "
+    "we would updates its status and timings on the registered suite/test",
+    tag="update",
+    body={"application/json": UpdateSuite.model_json_schema()},
+)
+async def update_suite_details(request: Request) -> HTTPResponse:
+    payload = request.json
+    if payload.get("started", False) is None:
+        payload.pop("started")
+
+    suite = UpdateSuite.model_validate(payload)
+    suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
+    if not suite_record:
+        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        return text(f"Suite {suite.suiteID} was not found", status=404)
+
+    if suite_record.suiteType == SuiteType.SUITE:
+        suite.standing = Status.YET_TO_CALCULATE
+    else:
+        note = {
+            suite.standing.lower(): 1,
+            "tests": 1,
+        }
+        await suite_record.update_from_dict(note)
+
+    await suite_record.update_from_dict(suite.model_dump())
+    await suite_record.save()
+
+    if suite_record.suiteType == SuiteType.SUITE:
+        await register_patch_suite(suite_record.suiteID, get_test_id())
+
+    return text(str(suite_record.suiteID), status=200)
+
+
+@update_service.put("/Session", error_format="json")
+@definition(
+    summary="Updates the session past the test session's execution",
+    description="Once the Test session gets executed, through this endpoint "
+    "we would updates its status and timings on the registered session",
+    tag="update",
+    body={"application/json": UpdateSession.model_json_schema()},
+)
+async def update_test_session_details(request: Request) -> HTTPResponse:
+    session = UpdateSession.model_validate(request.json)
+    test_session = await SessionBase.filter(sessionID=session.sessionID).first()
+    if not test_session:
+        logger.error("Expected {} session was not found", str(session.sessionID))
+        return text(f"Session {session.sessionID} was not found", status=404)
+
+    await test_session.update_from_dict(session.model_dump())
+    await test_session.save()
+    return text(f"{session.sessionID} was updated", status=200)
+
+
 # NOTE: this API was made specifically to support a registering describeBlocks
 # NOTE: Planning to depreciate this in near future.
-@service.put("/registerParentEntities")
+@update_service.put("/registerParentEntities")
 @definition(
     summary="Registers a set of parent suites starting from root hierarchy",
     description="Registers set of parent suites with provided meta details of suites and session id",
@@ -123,7 +207,7 @@ async def register_parent_entities(request: Request) -> HTTPResponse:
     return JSONResponse(body=store, status=201)
 
 
-@service.put("/updateSuite", error_format="json")
+@update_service.put("/updateSuite", error_format="json")
 @definition(
     summary="Updates the suite past the test suite's execution",
     description="Once the Test suite/test gets executed, through this endpoint "
@@ -147,7 +231,6 @@ async def updateSuite(request: Request) -> HTTPResponse:
             "tests": 1,
         }
         await suite_record.update_from_dict(note)
-        await suite_record.save()
 
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
@@ -160,7 +243,7 @@ async def updateSuite(request: Request) -> HTTPResponse:
     )
 
 
-@service.put("/updateSession", error_format="json")
+@update_service.put("/updateSession", error_format="json")
 @definition(
     summary="Updates the session past the test session's execution",
     description="Once the Test session gets executed, through this endpoint "
@@ -180,7 +263,7 @@ async def update_session(request: Request) -> HTTPResponse:
     return text(f"{session.sessionID} was updated", status=201)
 
 
-@service.put("/addAttachmentsForEntities")
+@update_service.put("/addAttachmentsForEntities")
 @definition(
     summary="adds multiple attachments to the specified entities",
     description="provide the list of attachments (assertion/link/description) as mentioned in the body, "
@@ -249,7 +332,20 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     )
 
 
-@service.put("/currentRun")
+@update_service.put("/Run")
+async def update_test_run(request: Request) -> HTTPResponse:
+    to_update = MarkTestRun.model_validate(request.json)
+    test_id = get_test_id()
+
+    await register_patch_test_run(test_id)
+    record = await RunBase.filter(testID=test_id).first()
+
+    await record.update_from_dict(to_update.model_dump())
+    await record.save()
+    return text("updated test run successfully", status=200)
+
+
+@update_service.put("/currentRun")
 async def update_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForTestRunConfigBase.model_validate(request.json)
     config = await TestConfigBase.create(
@@ -266,25 +362,26 @@ async def update_run_config(request: Request) -> HTTPResponse:
     test = await config.test
     await test.update_from_dict(dict(exitCode=run_config.exitCode))
     await test.save()
-    await config.save()
 
     return text("provided config was saved successfully.", status=200)
 
 
-# TODO: incomplete
-@service.put("/updateTestRun")
-async def update_test_run(request: Request) -> HTTPResponse:
+@update_service.put("/updateTestRun")
+async def update_run(request: Request) -> HTTPResponse:
     about_run = PydanticModalForTestRunUpdate.model_validate(request.json)
+    await register_patch_test_run(get_test_id())
     if not about_run:
         return text("No changes were made.", status=400)
 
     test = await RunBase.filter(testID=get_test_id()).first()
     await test.update_from_dict(about_run.model_dump())
     await test.save()
-    return text("test run was updated successfully.", status=200)
+    return text(
+        "test run was updated and task was also added successfully.", status=200
+    )
 
 
-@service.put("/registerAWrittenAttachment", error_format="json")
+@update_service.put("/registerAWrittenAttachment", error_format="json")
 @definition(
     summary="Attach an Images to the specified entity",
     description="Writes an attachment inside of our Attachments folder, and attaches it with the specified entity",

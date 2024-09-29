@@ -1,5 +1,4 @@
 from enum import StrEnum
-from typing import Tuple
 
 
 class MigrationStatus(StrEnum):
@@ -23,6 +22,15 @@ class Status(StrEnum):
     )
     # yet_to_calc is mostly seen for the suite
     RETRIED = "RETRIED"
+    PROCESSING = "PROCESSING"
+
+
+class RunStatus(StrEnum):
+    COMPLETED = "COMPLETED"
+    PENDING = "PENDING"
+    INTERRUPTED = "INTERRUPTED"
+    SKIPPED = "SKIPPED"
+    EXPECTED_TO_FAIL = "EXPECTED_TO_FAIL"
 
 
 class SuiteType(StrEnum):

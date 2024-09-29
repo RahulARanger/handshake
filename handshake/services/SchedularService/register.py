@@ -1,7 +1,7 @@
 from loguru import logger
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from uuid import uuid4, UUID
-from typing import Union
+from typing import Union, List
 from handshake.services.DBService.models.result_base import TestLogBase, LogType
 
 
@@ -12,12 +12,29 @@ async def register_patch_suite(suiteID: str, testID: str, connection=None) -> Ta
 
 
 async def register_patch_test_run(testID: str, connection=None) -> TaskBase:
-    return await TaskBase.create(
+    _, created = await TaskBase.get_or_create(
         type=JobType.MODIFY_TEST_RUN,
         test_id=testID,
         ticketID=testID,
         using_db=connection,
     )
+    return _
+
+
+async def register_bulk_patch_suites(
+    testID: str,
+    suites: List[str],
+    connection=None,
+) -> List[TaskBase]:
+    tasks = await TaskBase.bulk_create(
+        [
+            TaskBase(ticketID=suite, test_id=testID, type=JobType.MODIFY_SUITE)
+            for suite in suites
+        ],
+        100,
+        using_db=connection,
+    )
+    return tasks
 
 
 async def mark_for_prune_task(test_id: str):

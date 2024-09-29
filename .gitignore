@@ -13,6 +13,7 @@ dist/*
 
 results
 test-results/*
+PyTestResults/*
 **/TestResults/*
 SanityResults/*
 **/TestReports/*
