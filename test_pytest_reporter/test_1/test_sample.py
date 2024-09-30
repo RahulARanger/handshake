@@ -8,8 +8,7 @@ class TestDummy2:
             print("this will run")
             assert 1 == 1
 
-    def test_dummy_4(self):
-        ...
+    def test_dummy_4(self): ...
 
 
 def test_dummy_3():
