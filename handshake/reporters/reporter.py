@@ -121,11 +121,12 @@ class CommonReporter:
         self.url = f"http://127.0.0.1:{port}"
         self.config_path = config_path
 
-    def start_collection(self, projectName: str):
+    def start_collection(self, session: Session):
+        project_name = session.config.inicfg.get("projectName") or session.path.name
         command = (
-            f'handshake run-app {projectName} "{self.results}" "{self.config_path}" -p {self.port}'
+            f'handshake run-app {project_name} "{self.results}" "{self.config_path}" -p {self.port}'
             if self.config_path
-            else f'handshake run-app {projectName} "{self.results}" -p {self.port}'
+            else f'handshake run-app {project_name} "{self.results}" -p {self.port}'
         )
         self.collector = Popen(command, shell=True, stdout=stdout, stderr=stderr)
         logger.info("Starting handshake-server")

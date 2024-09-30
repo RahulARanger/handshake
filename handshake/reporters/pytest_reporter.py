@@ -1,5 +1,5 @@
 from datetime import datetime
-from handshake.reporter import CommonReporter, to_acceptable_date_format
+from handshake.reporters.reporter import CommonReporter, to_acceptable_date_format
 from handshake.services.DBService.models.types import (
     PydanticModalForCreatingTestRunConfigBase,
     MarkTestRun,
