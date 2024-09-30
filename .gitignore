@@ -88,3 +88,4 @@ TestExportedReports
 **/handshake.json
 
 TestServerResults
+*.docx
