@@ -1,6 +1,6 @@
 from pytest import Session, Item
 from datetime import datetime
-from handshake_pytest.reporter import PyTestHandshakeReporter
+from handshake.reporters.pytest_reporter import PyTestHandshakeReporter
 
 reporter = PyTestHandshakeReporter()
 
@@ -8,7 +8,7 @@ reporter = PyTestHandshakeReporter()
 def pytest_sessionstart(session: Session):
     if reporter.parse_config(session):
         return
-    reporter.start_collection(session.name)
+    reporter.start_collection(session)
     reporter.create_session(datetime.now())
     reporter.put_test_config()
 
@@ -23,6 +23,18 @@ def pytest_runtest_logstart(nodeid, location):
 
 def pytest_runtest_logreport(report):
     reporter.update_test_entity_details(report)
+
+
+# def pytest_assertrepr_compare(config, op, left, right):
+#     print(config, op, left, right)
+#
+#
+# def pytest_assertion_pass(item, lineno, orig, expl):
+#     print(item, lineno, orig, expl)
+#
+#
+# def pytest_exception_interact(node, call, report):
+#     print(node, call, report)
 
 
 def pytest_sessionfinish(session: Session, exitstatus: int):

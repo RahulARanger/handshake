@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "handshakes"
-version = "0.6.0"
+version = "0.6.1"
 description = "A service that's keen to process your test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
 readme = "README.md"
-packages = [{include = "handshake"}, {include = "handshake_pytest", to = "pytest-handshakes"}]
+packages = [{include = "handshake"}]
 maintainers = [
     "Rahul <saihanumarahul66@gmail.com>"
 ]
@@ -64,4 +64,4 @@ handshake = "handshake.services.CommandLine.center:handle_cli"
 asyncio_mode = "auto"
 
 [tool.poetry.plugins."pytest11"]
-"handshakes" = "handshake_pytest.hooks"
+"handshakes" = "handshake.reporters.pytest_hooks"
