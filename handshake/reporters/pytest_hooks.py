@@ -1,6 +1,6 @@
 from pytest import Session, Item
 from datetime import datetime
-from handshake.reporters.pytest_reporter import PyTestHandshakeReporter
+from handshake.reporters.pytest_reporter import PyTestHandshakeReporter, PointToAtPhase
 
 reporter = PyTestHandshakeReporter()
 
@@ -17,12 +17,21 @@ def pytest_itemcollected(item: Item):
     reporter.create_test_entity(item)
 
 
+def pytest_runtest_setup(item: Item):
+    reporter.pointing_to = item
+    reporter.create_test_entity(item, helper_entity=PointToAtPhase.SETUP)
+
+
 def pytest_runtest_logstart(nodeid, location):
     reporter.update_test_entity_details(None, nodeid)
 
 
 def pytest_runtest_logreport(report):
     reporter.update_test_entity_details(report)
+
+
+def pytest_runtest_teardown(item: Item, nextitem: Item):
+    reporter.create_test_entity(item, helper_entity=PointToAtPhase.TEARDOWN)
 
 
 # def pytest_assertrepr_compare(config, op, left, right):

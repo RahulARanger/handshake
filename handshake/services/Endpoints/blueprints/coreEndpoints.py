@@ -47,6 +47,7 @@ from handshake.services.SchedularService.register import (
 )
 from pydantic import ValidationError
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
+from tortoise.expressions import F
 
 update_service = Blueprint("UpdateService", url_prefix="/save")
 
@@ -140,6 +141,12 @@ async def update_suite_details(request: Request) -> HTTPResponse:
         logger.error("Was not able to found {} suite", str(suite.suiteID))
         return text(f"Suite {suite.suiteID} was not found", status=404)
 
+    will_be_updated = suite_record.standing in (
+        Status.PROCESSING,
+        Status.YET_TO_CALCULATE,
+        Status.YET_TO_CALCULATE,
+    )
+
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
     else:
@@ -152,8 +159,18 @@ async def update_suite_details(request: Request) -> HTTPResponse:
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    if suite_record.suiteType == SuiteType.SUITE:
-        await register_patch_suite(suite_record.suiteID, get_test_id())
+    if will_be_updated:
+        match suite_record.suiteType:
+            case SuiteType.SUITE:
+                await register_patch_suite(suite_record.suiteID, get_test_id())
+            case SuiteType.SETUP:
+                await SuiteBase.filter(suiteID=suite_record.parent).update(
+                    setup_duration=F("setup_duration") + suite_record.duration
+                )
+            case SuiteType.TEARDOWN:
+                await SuiteBase.filter(suiteID=suite_record.parent).update(
+                    teardown_duration=F("teardown_duration") + suite_record.duration
+                )
 
     return text(str(suite_record.suiteID), status=200)
 
@@ -235,8 +252,17 @@ async def updateSuite(request: Request) -> HTTPResponse:
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    if suite_record.suiteType == SuiteType.SUITE:
-        await register_patch_suite(suite_record.suiteID, get_test_id())
+    match suite_record.suiteType:
+        case SuiteType.SUITE:
+            await register_patch_suite(suite_record.suiteID, get_test_id())
+        case SuiteType.SETUP:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                setup_duration=F("setup_duration") + suite_record.duration
+            )
+        case SuiteType.TEARDOWN:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                teardown_duration=F("teardown_duration") + suite_record.duration
+            )
 
     return text(
         f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201

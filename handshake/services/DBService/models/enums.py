@@ -36,6 +36,8 @@ class RunStatus(StrEnum):
 class SuiteType(StrEnum):
     TEST = "TEST"
     SUITE = "SUITE"
+    SETUP = "SETUP"
+    TEARDOWN = "TEARDOWN"
 
 
 class AttachmentType(StrEnum):

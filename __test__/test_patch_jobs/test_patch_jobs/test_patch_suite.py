@@ -14,6 +14,7 @@ from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.register import (
     register_patch_suite,
 )
+from datetime import timedelta
 from handshake.services.SchedularService.handlePending import patch_jobs
 from tortoise.expressions import Q
 
@@ -185,6 +186,51 @@ class TestPatchSuiteJob:
 
         assert await patchTestSuite(child_suite.suiteID, test_id)
         assert await patchTestSuite(parent_suite.suiteID, test_id)
+
+    # async def test_dependency_on_hooks(
+    #     self,
+    #     sample_test_session,
+    #     create_suite,
+    #     create_tests,
+    #     attach_config,
+    # ):
+    #     session = await sample_test_session
+    #     session_id = session.sessionID
+    #     test = await session.test
+    #
+    #     # initial suite
+    #     suite = await create_suite(session_id, started=None)
+    #     tests = await create_tests(session_id, suite.suiteID)
+    #     await register_patch_suite(suite.suiteID, test.testID)
+    #
+    #     # setting hooks
+    #     first_one = await create_suite(
+    #         session_id,
+    #         parent=tests[0].suiteID,
+    #         hook="SETUP",
+    #         standing=Status.PASSED,
+    #         started=tests[0].started - timedelta(minutes=10),
+    #         duration=timedelta(minutes=10),
+    #     )  # took 10 minutes
+    #     await create_suite(
+    #         session_id, standing=Status.PASSED, parent=tests[0].suiteID, hook="TEARDOWN"
+    #     )
+    #     await create_suite(
+    #         session_id, standing=Status.PASSED, parent=suite.suiteID, hook="SETUP"
+    #     )
+    #     last_one = await create_suite(
+    #         session_id, standing=Status.PASSED, parent=suite.suiteID, hook="TEARDOWN"
+    #     )
+    #
+    #     assert await patchTestSuite(suite.suiteID, test.testID)
+    #
+    #     suite = await SuiteBase.filter(suiteID=suite.suiteID).first()
+    #     assert (
+    #         suite.started == first_one.started
+    #     ), "we patched the start date since we didn't get it from the user in this case, we take it from hook"
+    #     assert suite.ended == last_one.ended
+    #     assert suite.duration != 12, "it would have if it were not with the setup"
+    #     assert suite.duration == (last_one.ended - first_one.started).as_seconds() * 1e3
 
     async def test_retried_suite_match(
         self,

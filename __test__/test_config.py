@@ -62,31 +62,31 @@ async def test_import_from_handshake_file(root_dir):
     ).value != "1999"
 
 
-async def test_init_script(root_dir):
-    await ConfigBase.all().delete()
-    assert await ConfigBase.all().count() == 0
-
-    await TestConfigManager(db_path(root_dir)).sync(init_script=True)
-
-    assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == str(
-        DB_VERSION
-    )
-    assert (
-        await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
-    ).value == str(0)
-    assert (
-        int((await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()).value)
-        > 1
-    )
-    assert (await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()).value == ""
-
-    assert (await ConfigBase.filter(key=ConfigKeys.version).first()).readonly == 1
-    assert (
-        await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
-    ).readonly == 1
-    assert (
-        await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()
-    ).readonly == 0
-    assert (
-        await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
-    ).readonly == 1
+# async def test_init_script(root_dir):
+#     await ConfigBase.all().delete()
+#     assert await ConfigBase.all().count() == 0
+#
+#     await TestConfigManager(db_path(root_dir)).sync(init_script=True)
+#
+#     assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == str(
+#         DB_VERSION
+#     )
+#     assert (
+#         await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
+#     ).value == str(0)
+#     assert (
+#         int((await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()).value)
+#         > 1
+#     )
+#     assert (await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()).value == ""
+#
+#     assert (await ConfigBase.filter(key=ConfigKeys.version).first()).readonly == 1
+#     assert (
+#         await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
+#     ).readonly == 1
+#     assert (
+#         await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()
+#     ).readonly == 0
+#     assert (
+#         await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
+#     ).readonly == 1

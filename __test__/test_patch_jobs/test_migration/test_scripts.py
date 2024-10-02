@@ -67,11 +67,11 @@ class TestMigrationScripts:
         script = scripts / "bump-v5.sql"
         assert script.exists()
 
-        suite = await create_suite(session.sessionID)
+        suite = await create_suite(session.sessionID, manual_insert=True)
         await tortoise.connections.get("default").execute_query(
             'INSERT INTO "taskbase" ("ticketID","type","dropped","meta","picked","test_id") VALUES (?,?,?,?,?,?)',
             [
-                str(suite.suiteID),
+                suite[0],
                 "fix-suite",
                 "2024-02-07 19:46:39.059284+00:00",
                 "{}",
@@ -86,9 +86,9 @@ class TestMigrationScripts:
 
         await assert_migration(5, 6, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
 
-        assert (await TaskBase.filter(ticketID=suite.suiteID).first()).picked == 0
+        assert (await TaskBase.filter(ticketID=suite[0]).first()).picked == 0
         # new column: processed, is added.
-        assert (await TaskBase.filter(ticketID=suite.suiteID).first()).processed == 0
+        assert (await TaskBase.filter(ticketID=suite[0]).first()).processed == 0
 
     async def test_bump_v6(
         self, get_vth_connection, scripts, db_path, sample_test_session
@@ -129,8 +129,8 @@ class TestMigrationScripts:
         self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
     ):
         await get_vth_connection(db_path, 8)
-        suite = await create_suite(sample_test_session.sessionID)
-        before = suite.started
+        suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
+        before = suite[3]
 
         assert migration(
             db_path, do_once=True
@@ -140,16 +140,36 @@ class TestMigrationScripts:
         assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == "9"
         assert await RunBase.all().count() > 0
         status_before = set(await RunBase.all().values_list("status", flat=True)).pop()
-        started = (
-            await SuiteBase.filter(suiteID=suite.suiteID).first().values("started")
-        )
-        assert started["started"] == before, "value should not change"
-        # this is allowed now but not before
-        suite.started = None
-
         assert status_before == RunStatus.COMPLETED
 
-        # add other than, we are just dropping table: "ExportBase" it was used long before v3
+        suite = await SuiteBase.filter(suiteID=suite[0]).first().values("started")
+        assert suite["started"].isoformat() == before, "value should not change"
+
+        # allowed now
+        suite = await create_suite(
+            sample_test_session.sessionID, started=None, manual_insert=True
+        )
+        assert suite[3] is None
+
+        # we are also dropping table: "ExportBase" it was used long before v3
+
+    async def test_bump_v9(
+        self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
+    ):
+        await get_vth_connection(db_path, 9)
+        suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
+
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            9, 10, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+
+        suite = await SuiteBase.filter(suiteID=suite[0]).first()
+        # before two fields were added in this migration
+        assert suite.setup_duration == 0
+        assert suite.teardown_duration == 0
 
     # say you are in v8 and have reverted your python build to older version which uses v7
     # question: how does migrate function work ?

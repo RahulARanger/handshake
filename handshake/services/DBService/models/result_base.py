@@ -134,6 +134,12 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
         auto_now=True, description="Modified timestamp", null=False
     )
     errors = JSONField(description="Errors found", default=[], null=True)
+    setup_duration = FloatField(
+        default=0, null=False, description="duration of test entity's setup process"
+    )
+    teardown_duration = FloatField(
+        default=0, null=False, description="duration of test entity's teardown process"
+    )
 
 
 class RollupBase(Model):

@@ -1,18 +1,12 @@
 from pytest import fixture
+from time import sleep
 
 
 @fixture(scope="session", autouse=True)
 def sample_setup_1():
-    print("setup test 1")
-    yield
-    print("cleanup setup test 1")
+    sleep(2)
 
 
-@fixture(scope="session")
+@fixture()
 def sample_setup_2():
-    print("setup test 2")
-
-
-@fixture(scope="session")
-def sample_setup_3(sample_setup_2):
-    print("setup test 3")
+    sleep(2)

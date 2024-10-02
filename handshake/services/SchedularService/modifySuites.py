@@ -21,10 +21,12 @@ def fetch_key_from_status(passed, failed, skipped):
     return (
         Status.FAILED
         if failed > 0
-        else Status.PASSED
-        if passed > 0 or skipped == 0
-        else Status.SKIPPED
+        else Status.PASSED if passed > 0 or skipped == 0 else Status.SKIPPED
     )
+
+
+def is_non_test_related():
+    return Q(suiteType=SuiteType.SETUP) | Q(suiteType=SuiteType.TEARDOWN)
 
 
 class PatchTestSuite:
@@ -81,6 +83,10 @@ class PatchTestSuite:
         self.related_task.processed = True
         await self.related_task.save()
 
+    @property
+    def test_entities(self):
+        return SuiteBase.filter(Q(parent=self.suite_id), ~is_non_test_related())
+
     """
     returns true if suite is patched else false
     """
@@ -92,8 +98,7 @@ class PatchTestSuite:
 
         if not self.suite.started or not self.suite.ended:
             info = (
-                await SuiteBase.filter(parent=self.suite_id)
-                .annotate(
+                await self.test_entities.annotate(
                     actual_end=Max("ended"),
                     actual_start=Min("started"),
                 )
@@ -120,6 +125,7 @@ class PatchTestSuite:
             self.patch_rollup_value_for_errors(),
             self.patch_rollup_table(),
             self.patch_retried_records(),
+            self.update_duration_drill_down(),
         )
 
         logger.info("Successfully processed suite: {}", self.suite.suiteID)
@@ -127,11 +133,11 @@ class PatchTestSuite:
         return True
 
     async def patch_status(self):
-        entities = SuiteBase.filter(parent=self.suite.suiteID)
-
         results = dict(
             await (
-                entities.annotate(count=Count("standing"), status=Lower("standing"))
+                self.test_entities.annotate(
+                    count=Count("standing"), status=Lower("standing")
+                )
                 .group_by("standing")
                 .values_list("status", "count")
             )
@@ -141,7 +147,7 @@ class PatchTestSuite:
             results.get("failed", 0),
             results.get("skipped", 0),
         )
-        results["tests"] = await entities.count()
+        results["tests"] = await self.test_entities.count()
 
         await self.suite.update_from_dict(results)
         await self.suite.save()
@@ -177,6 +183,7 @@ class PatchTestSuite:
     async def patch_rollup_table(self):
         required = ("passed", "failed", "skipped", "tests")
 
+        # we are only considering tests for these values
         direct_entities = (
             await (
                 SuiteBase.filter(parent=self.suite_id, suiteType=SuiteType.TEST)
@@ -266,6 +273,20 @@ class PatchTestSuite:
 
         await previous.save()
         return previous
+
+    async def update_duration_drill_down(self):
+        results = (
+            await SuiteBase.filter(parent=self.suite_id)
+            .group_by("parent")
+            .annotate(
+                setup_duration=Sum("setup_duration"),
+                teardown_duration=Sum("teardown_duration"),
+            )
+            .first()
+            .values("teardown_duration", "setup_duration")
+        )
+        await self.suite.update_from_dict(results)
+        await self.suite.save()
 
     async def fall_back(self):
         await skip_test_run(

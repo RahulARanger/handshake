@@ -1,4 +1,4 @@
-import json
+from typing import Optional
 from pytest import fixture
 from handshake.services.DBService.models import (
     SuiteBase,
@@ -12,10 +12,12 @@ from handshake.services.DBService.shared import db_path as shared_db_path
 from handshake.services.Endpoints.blueprints.writeServices import (
     writtenAttachmentFolderName,
 )
+from tortoise.connection import connections
 from handshake.services.SchedularService.register import register_patch_suite
 import datetime
 from asyncio import sleep
 from pathlib import Path
+from uuid import uuid4
 
 
 async def helper_create_suite(
@@ -25,18 +27,54 @@ async def helper_create_suite(
     is_test: bool = False,
     standing=Status.YET_TO_CALCULATE,
     retried=0,
-    started=datetime.datetime.now(),
+    started: Optional[datetime] = datetime.datetime.now(),
     file: str = "test-1.js",
     connection=None,
+    hook: Optional[str] = None,
+    duration: Optional[datetime.timedelta] = None,
+    manual_insert: Optional[bool] = False,
 ):
+    if manual_insert:
+        connection = connection if connection else connections.get("default")
+        _id = str(uuid4())
+        payload = [
+            _id,
+            "sample-suite",
+            "YET_TO_CALC",
+            "2024-10-02 21:04:00.349714+00:00" if started else None,
+            "2024-10-02 21:04:00.361714+00:00" if started else None,
+            1,
+            1,
+            0,
+            0,
+            2000 if started else None,
+            0,
+            file,
+            hook if hook else (SuiteType.TEST if is_test else SuiteType.SUITE),
+            "[]",
+            str(session_id),
+            "[]",
+        ]
+        await connection.execute_query(
+            'INSERT INTO "suitebase" ("suiteID","title","standing","started","ended","tests","passed",'
+            '"failed","skipped","duration","retried","file","suiteType","errors",'
+            '"session_id","tags"'
+            ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            payload,
+        )
+        return payload
     extras = {standing.lower(): 1} if is_test else {}
     error = [] if standing != Status.FAILED else [{"message": "sample-error"}]
 
     return await SuiteBase.create(
         session_id=session_id,
-        suiteType=SuiteType.TEST if is_test else SuiteType.SUITE,
-        started=started.isoformat(),
-        ended=started + datetime.timedelta(milliseconds=12),
+        suiteType=hook if hook else (SuiteType.TEST if is_test else SuiteType.SUITE),
+        started=started.isoformat() if started else None,
+        ended=(
+            (started + (duration if duration else datetime.timedelta(milliseconds=12)))
+            if started
+            else None
+        ),
         title=name,
         standing=standing,
         file=file,

@@ -10,11 +10,24 @@ from pytest import Session, Item, ExitCode, TestReport
 from platform import platform
 from typing import Optional
 from threading import Lock
+from enum import StrEnum
+
+
+class PointToAtPhase(StrEnum):
+    CALL = "call"
+    SETUP = "setup"
+    TEARDOWN = "teardown"
+
+
+def key(node_id: str, method: Optional[str] = "call"):
+    return node_id + "-" + method
 
 
 class PyTestHandshakeReporter(CommonReporter):
     def __init__(self):
         super().__init__()
+        self.pointing_to: Optional[Item] = None
+        self.pointing_to_phase: Optional[PointToAtPhase] = None
         self.identified_parent = dict()
         self.check_if_parents_are = Lock()
         self.passed = 0
@@ -33,30 +46,45 @@ class PyTestHandshakeReporter(CommonReporter):
             )
         )
 
-    def create_test_entity(self, item: Item, is_suite: bool = False):
-        path = item.path.relative_to(item.session.startpath)
-        path = str(path.parent if path.name == "__init__.py" else path)
-        parent = None
+    def get_key(self, node_id: str, method: Optional[str] = "call"):
+        return self.note[key(node_id, method)]
 
-        if item.parent.nodeid:
-            parent = item.parent.nodeid
+    def set_key(self, node_id: str, value: str, method: Optional[str] = "call"):
+        self.note[key(node_id, method)] = value
+
+    def create_test_entity(
+        self,
+        item: Item,
+        is_suite: bool = False,
+        helper_entity: Optional[PointToAtPhase] = None,
+    ):
+        path = item.path.relative_to(item.session.startpath.parent)
+        path = str(path.parent if path.name == "__init__.py" else path)
+        parent = key(item.nodeid) if helper_entity else None
+
+        if helper_entity is None and item.parent.nodeid:
+            parent = key(item.parent.nodeid)
             with self.check_if_parents_are:
-                create_parent = not self.identified_parent.get(parent, False)
+                create_parent = not self.identified_parent.get(
+                    item.parent.nodeid, False
+                )
             if create_parent:
                 self.create_test_entity(item.parent, True)
                 with self.check_if_parents_are:
                     self.identified_parent[item.parent.nodeid] = True
 
+        suite_type = SuiteType.SUITE if is_suite else SuiteType.TEST
+
         self.register_test_entity(
             dict(
                 file=path,
                 title=item.name,
-                suiteType=SuiteType.SUITE if is_suite else SuiteType.TEST,
+                suiteType=helper_entity.upper() if helper_entity else suite_type,
                 parent="",
-                is_processing=False,
+                is_processing=helper_entity is not None,
                 session_id="",
             ),
-            item.nodeid,
+            key(item.nodeid, helper_entity if helper_entity else PointToAtPhase.CALL),
             parent,
         )
 
@@ -66,30 +94,31 @@ class PyTestHandshakeReporter(CommonReporter):
         if not report:
             return self.update_test_entity(
                 dict(started=to_acceptable_date_format(datetime.now())),
-                node_id,
+                key(node_id),
                 punch_in=True,
             )
 
-        if report.when == "call":
-            self.passed += int(report.passed)
-            self.update_test_entity(
-                dict(
-                    duration=report.duration,  # it is in milliseconds
-                    ended=to_acceptable_date_format(
-                        datetime.fromtimestamp(report.stop)
-                    ),
-                    started=to_acceptable_date_format(
-                        datetime.fromtimestamp(report.start)
-                    ),
-                    standing=report.outcome.upper(),
-                    errors=(
-                        [dict(name="", stack="", message=report.longreprtext)]
-                        if report.failed
-                        else []
-                    ),
-                ),
-                report.nodeid,
-            )
+        self.pointing_to_phase = report.when
+        payload = dict(
+            duration=report.duration * 1e3,  # it is in seconds
+            ended=to_acceptable_date_format(datetime.fromtimestamp(report.stop)),
+            started=to_acceptable_date_format(datetime.fromtimestamp(report.start)),
+            standing=report.outcome.upper(),
+            errors=(
+                [dict(name="", stack="", message=report.longreprtext)]
+                if report.failed
+                else []
+            ),
+        )
+
+        match report.when:
+            case PointToAtPhase.CALL:
+                self.passed += int(report.passed)
+
+        self.update_test_entity(
+            payload,
+            key(report.nodeid, report.when),
+        )
 
     def update_session(self, session: Session):
         ended = datetime.now()
