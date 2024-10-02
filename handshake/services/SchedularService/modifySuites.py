@@ -285,6 +285,8 @@ class PatchTestSuite:
             .first()
             .values("teardown_duration", "setup_duration")
         )
+        if not results:
+            return
         await self.suite.update_from_dict(results)
         await self.suite.save()
 

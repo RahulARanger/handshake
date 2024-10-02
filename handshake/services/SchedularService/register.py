@@ -5,10 +5,13 @@ from typing import Union, List
 from handshake.services.DBService.models.result_base import TestLogBase, LogType
 
 
-async def register_patch_suite(suiteID: str, testID: str, connection=None) -> TaskBase:
-    return await TaskBase.create(
+async def register_patch_suite(suiteID: str, testID: str, connection=None):
+    _, created = await TaskBase.get_or_create(
         ticketID=suiteID, test_id=testID, type=JobType.MODIFY_SUITE, using_db=connection
     )
+    if created:
+        return _
+    return False
 
 
 async def register_patch_test_run(testID: str, connection=None) -> TaskBase:

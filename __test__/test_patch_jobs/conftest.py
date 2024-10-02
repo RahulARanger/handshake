@@ -31,7 +31,7 @@ async def helper_create_suite(
     file: str = "test-1.js",
     connection=None,
     hook: Optional[str] = None,
-    duration: Optional[datetime.timedelta] = None,
+    duration: Optional[datetime.timedelta] = datetime.timedelta(seconds=10),
     manual_insert: Optional[bool] = False,
 ):
     if manual_insert:
@@ -47,7 +47,7 @@ async def helper_create_suite(
             1,
             0,
             0,
-            2000 if started else None,
+            2000 if started else 0,
             0,
             file,
             hook if hook else (SuiteType.TEST if is_test else SuiteType.SUITE),
@@ -77,6 +77,7 @@ async def helper_create_suite(
         ),
         title=name,
         standing=standing,
+        duration=(duration.seconds * 1_000) if duration else 12,
         file=file,
         parent=parent,
         tests=1,
@@ -88,7 +89,11 @@ async def helper_create_suite(
 
 
 async def helper_create_all_types_of_tests(
-    session_id: str, parent: str, retried=0, connection=None
+    session_id: str,
+    parent: str,
+    retried=0,
+    connection=None,
+    manual_insert: Optional[bool] = False,
 ):
     tests = []
 
@@ -104,6 +109,7 @@ async def helper_create_all_types_of_tests(
                     _,
                     retried=retried,
                     connection=connection,
+                    manual_insert=manual_insert,
                 )
             )
     return tests
@@ -116,6 +122,7 @@ async def helper_create_session_with_hierarchy_with_no_retries(
     started=datetime.datetime.now(),
     connection=None,
     skip_register=False,
+    manual_insert: Optional[bool] = False,
 ):
     to_return = []
 
@@ -128,15 +135,23 @@ async def helper_create_session_with_hierarchy_with_no_retries(
             started=started,
             file=thing,
             connection=connection,
+            manual_insert=manual_insert,
         )
         to_return.append(str(session.sessionID))
         await helper_create_all_types_of_tests(
-            session.sessionID, suite.suiteID, connection=connection
+            session.sessionID,
+            suite[0] if manual_insert else suite.suiteID,
+            connection=connection,
+            manual_insert=manual_insert,
         )
         await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await session.save(using_db=connection)
         if not skip_register:
-            await register_patch_suite(suite.suiteID, test_id, connection=connection)
+            await register_patch_suite(
+                suite[0] if manual_insert else suite.suiteID,
+                test_id,
+                connection=connection,
+            )
 
     return to_return
 

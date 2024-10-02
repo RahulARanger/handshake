@@ -133,7 +133,9 @@ async def punch_in_test_suite(request: Request) -> HTTPResponse:
 async def update_suite_details(request: Request) -> HTTPResponse:
     payload = request.json
     if payload.get("started", False) is None:
-        payload.pop("started")
+        payload.pop(
+            "started"
+        )  # started is optional, so we are removing it from update payload
 
     suite = UpdateSuite.model_validate(payload)
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
@@ -141,12 +143,8 @@ async def update_suite_details(request: Request) -> HTTPResponse:
         logger.error("Was not able to found {} suite", str(suite.suiteID))
         return text(f"Suite {suite.suiteID} was not found", status=404)
 
-    will_be_updated = suite_record.standing in (
-        Status.PROCESSING,
-        Status.YET_TO_CALCULATE,
-        Status.YET_TO_CALCULATE,
-    )
-
+    # first we save the details which was provided
+    before_duration = suite_record.duration
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
     else:
@@ -159,20 +157,28 @@ async def update_suite_details(request: Request) -> HTTPResponse:
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    if will_be_updated:
-        match suite_record.suiteType:
-            case SuiteType.SUITE:
-                await register_patch_suite(suite_record.suiteID, get_test_id())
-            case SuiteType.SETUP:
-                await SuiteBase.filter(suiteID=suite_record.parent).update(
-                    setup_duration=F("setup_duration") + suite_record.duration
-                )
-            case SuiteType.TEARDOWN:
-                await SuiteBase.filter(suiteID=suite_record.parent).update(
-                    teardown_duration=F("teardown_duration") + suite_record.duration
-                )
+    # now we calculate certain data
+    added_task = False
 
-    return text(str(suite_record.suiteID), status=200)
+    match suite_record.suiteType:
+        case SuiteType.SUITE:
+            added_task = bool(
+                await register_patch_suite(suite_record.suiteID, get_test_id())
+            )
+        case SuiteType.SETUP:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                setup_duration=F("setup_duration")
+                + suite_record.duration
+                - before_duration
+            )
+        case SuiteType.TEARDOWN:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                teardown_duration=F("teardown_duration")
+                + suite_record.duration
+                - before_duration
+            )
+
+    return text(str(suite_record.suiteID), status=201 if added_task else 200)
 
 
 @update_service.put("/Session", error_format="json")
