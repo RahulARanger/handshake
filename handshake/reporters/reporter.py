@@ -1,7 +1,7 @@
 from httpx import Client
 from datetime import datetime
 from subprocess import Popen
-from typing import Union, Optional, Dict
+from typing import Union, Optional, Dict, Callable, List
 from loguru import logger
 from time import sleep
 from sys import stdout, stderr
@@ -35,8 +35,10 @@ class CommonReporter:
     def __init__(self, path: str = "TestResults", port: Union[str, int] = 6969):
         self.note = dict()
         self.set_context(False, path, port)
+        self.lock_attachments = Lock()
         self.connection_established = False
         self.waiting = Lock()
+        self.attachments: List[Dict] = []
 
     def postfix(self, fix: str):
         return f"{self.url}/{fix}"
@@ -174,7 +176,7 @@ class CommonReporter:
         reason: str,
         post_it: bool,
         postfix: str,
-        payload: Dict,
+        payload: Union[Dict, List],
         save_it: Optional[str] = None,
         append: Optional[Dict[str, str]] = None,
     ):
@@ -228,6 +230,7 @@ class CommonReporter:
     def update_test_entity(
         self, payload, node_id: str, punch_in: Optional[bool] = False
     ):
+        self.send_chunk_of_attachments()
         return self.call(
             f"Updating Test Entity: {node_id}",
             False,
@@ -235,6 +238,24 @@ class CommonReporter:
             payload,
             append=dict(suiteID=node_id),
         )
+
+    def add_attachment(self, attachment: Callable):
+        with self.lock_attachments:
+            to_add = attachment().model_dump()
+            to_add["entity_id"] = str(to_add["entity_id"])
+            self.attachments.append(to_add)
+
+    def send_chunk_of_attachments(self):
+        if not self.attachments:
+            return
+        with self.lock_attachments:
+            self.call(
+                "Sending chunk of attachments",
+                True,
+                "Attachments",
+                [*self.attachments],
+            )
+            self.attachments.clear()
 
     def update_test_session(self, payload: Dict):
         return self.call(
@@ -250,6 +271,8 @@ class CommonReporter:
             return self.client.put(
                 self.update_postfix("Run"), json=payload.model_dump()
             )
+        else:
+            self.send_chunk_of_attachments()
         return self.call(
             "Updating Test Run",
             False,

@@ -1,11 +1,18 @@
 from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
+from handshake.services.DBService.models.attachmentBase import AssertBase
+from handshake.services.DBService.models.static_base import (
+    AttachmentBase,
+    AttachmentType,
+)
 from handshake.services.DBService.models.types import (
+    AddAttachmentForEntity,
     RegisterSession,
     CreatePickedSuiteOrTest,
     PydanticModalForCreatingTestRunConfigBase,
     Status,
     SuiteType,
 )
+from pydantic import ValidationError
 from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
 from sanic.blueprints import Blueprint
@@ -14,7 +21,11 @@ from loguru import logger
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_bulk_patch_suites
-
+from typing import List
+from handshake.services.Endpoints.blueprints.utils import (
+    attachWarn,
+    extractPydanticErrors,
+)
 
 create_service = Blueprint("CreateService", url_prefix="/create")
 
@@ -94,3 +105,56 @@ async def register_modify_suites(request: Request) -> HTTPResponse:
     await register_bulk_patch_suites(test_id, suites)
 
     return text("Done", status=202)
+
+
+@create_service.post("/Attachments")
+@definition(
+    summary="adds multiple attachments to the specified entities",
+    description="provide the list of attachments (assertion/link/description) as mentioned in the body, "
+    "and attachments would be inserted in their respective tables",
+    tag="add",
+    body={"application/json": List[AddAttachmentForEntity]},
+)
+async def addAttachmentForEntity(request: Request) -> HTTPResponse:
+    attachments = []
+    note = []
+    assertions = []
+
+    for _ in request.json:
+        try:
+            if _["type"] == AttachmentType.ASSERT:
+                value = _.get("value", dict())
+                value["wait"] = value.get("wait", -1)
+                value["interval"] = value.get("interval", -1)
+
+            attachment = AddAttachmentForEntity.model_validate(_)
+        except ValidationError as error:
+            note.append(_.get("entityID", False))
+            await attachWarn(extractPydanticErrors(request.url, _, error), request.url)
+            continue
+
+        match attachment.type:
+            case AttachmentType.ASSERT:
+                assertions.append(
+                    await AssertBase(
+                        **dict(
+                            entity_id=attachment.entity_id,
+                            title=attachment.title,
+                            message=attachment.description,
+                            passed=attachment.value["passed"],
+                            interval=attachment.value["interval"],
+                            wait=attachment.value["wait"],
+                        )
+                    )
+                )
+
+            case _:
+                attachments.append(AttachmentBase(**attachment.model_dump()))
+
+    if attachments:
+        await AttachmentBase.bulk_create(attachments)
+    if assertions:
+        await AssertBase.bulk_create(assertions)
+    return text(
+        "Attachments was added successfully", status=201 if not len(note) else 206
+    )

@@ -327,7 +327,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                 assertions.append(
                     await AssertBase(
                         **dict(
-                            entity_id=attachment.entityID,
+                            entity_id=attachment.entity_id,
                             title=attachment.title,
                             message=attachment.value["message"],
                             passed=attachment.value["passed"],
@@ -338,22 +338,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                 )
 
             case _:
-                (
-                    attachments.append(
-                        await AttachmentBase(
-                            **dict(
-                                entity_id=attachment.entityID,
-                                description=attachment.description,
-                                type=attachment.type,
-                                attachmentValue=dict(
-                                    color=attachment.color,
-                                    value=attachment.value,
-                                    title=attachment.title,
-                                ),
-                            )
-                        )
-                    )
-                )
+                attachments.append(AttachmentBase(**attachment.model_dump()))
 
     if attachments:
         await AttachmentBase.bulk_create(attachments)
@@ -422,24 +407,16 @@ async def update_run(request: Request) -> HTTPResponse:
 )
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = WrittenAttachmentForEntity.model_validate(request.json)
-    record = await StaticBase.create(
-        entity_id=attachment.entityID,
-        description=attachment.description,
-        type=attachment.type,
-    )
+    record = await StaticBase.create(**attachment.model_dump())
     file_name = f"{record.attachmentID}.{record.type.lower()}"
-    await record.update_from_dict(
-        dict(
-            attachmentValue=dict(value=file_name, title=attachment.title),
-        )
-    )
+    record.value = file_name
     await record.save()
     # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
     return text(
         str(
             attachment_folder(db_path())
             / get_test_id()
-            / str(attachment.entityID)
+            / str(attachment.entity_id)
             / file_name
         ),
         status=201,

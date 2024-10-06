@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict
 from handshake.services.DBService.models.enums import (
     Status,
     SuiteType,
@@ -18,8 +18,8 @@ class CommonRegisterCols(BaseModel):
 
 
 class Tag(TypedDict):
-    name: str
     label: str
+    desc: str
 
 
 class RegisterSession(CommonRegisterCols): ...
@@ -108,21 +108,21 @@ class AssertionPayload(TypedDict):
     passed: bool
     wait: Optional[int]
     interval: Optional[int]
-    message: str
 
 
 # this is for all kinds of attachments
 class AddAttachmentForEntity(BaseModel):
-    entityID: uuid.UUID
+    entity_id: uuid.UUID
     type: AttachmentType
     description: Optional[str] = ""
     value: Union[AssertionPayload, str]
-    color: Optional[str] = ""
     title: Optional[str] = ""
+    extraValues: Optional[Dict[str, str]] = {}
+    tags: Optional[List[Tag]] = []
 
 
 class WrittenAttachmentForEntity(BaseModel):
-    entityID: uuid.UUID
+    entity_id: uuid.UUID
     type: AttachmentType
     description: Optional[str] = ""
     title: Optional[str] = ""

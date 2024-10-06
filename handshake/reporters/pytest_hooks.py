@@ -1,5 +1,6 @@
 from pytest import Session, Item
 from datetime import datetime
+from pathlib import Path
 from handshake.reporters.pytest_reporter import PyTestHandshakeReporter, PointToAtPhase
 
 reporter = PyTestHandshakeReporter()
@@ -34,16 +35,23 @@ def pytest_runtest_teardown(item: Item, nextitem: Item):
     reporter.create_test_entity(item, helper_entity=PointToAtPhase.TEARDOWN)
 
 
-# def pytest_assertrepr_compare(config, op, left, right):
-#     print(config, op, left, right)
-#
-#
-# def pytest_assertion_pass(item, lineno, orig, expl):
-#     print(item, lineno, orig, expl)
-#
-#
-# def pytest_exception_interact(node, call, report):
-#     print(node, call, report)
+def pytest_assertrepr_compare(config, op, left, right):
+    reporter.add_test_assertion(
+        None,
+        f"{left} {op} {right}",
+        f"expected: {left} to be related with {right} based on the operation: {op}",
+        False,
+    )
+
+
+def pytest_assertion_pass(item, lineno, orig, expl):
+    reporter.add_test_assertion(item.nodeid, orig, expl, True)
+
+
+# def pytest_fixture_post_finalizer(
+#     fixturedef: FixtureDef[FixtureValue], request: FixtureRequest
+# ):
+#     reporter.note_fixture(fixturedef, request)
 
 
 def pytest_sessionfinish(session: Session, exitstatus: int):

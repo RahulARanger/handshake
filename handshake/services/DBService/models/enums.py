@@ -40,6 +40,12 @@ class SuiteType(StrEnum):
     TEARDOWN = "TEARDOWN"
 
 
+class LogType(StrEnum):
+    ERROR = "ERROR"
+    WARN = "WARN"
+    INFO = "INFO"
+
+
 class AttachmentType(StrEnum):
     LABEL = "LABEL"
     ENV = "ENV"
@@ -50,12 +56,7 @@ class AttachmentType(StrEnum):
     IMG = "IMAGE"
     LINK = "LINK"
     ASSERT = "ASSERT"
-
-
-class LogType(StrEnum):
-    ERROR = "ERROR"
-    WARN = "WARN"
-    INFO = "INFO"
+    NOTE = "NOTE"
 
 
 class LogDisplayType(StrEnum):

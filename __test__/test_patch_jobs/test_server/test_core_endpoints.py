@@ -15,7 +15,7 @@ class TestSaveEndpoints:
         suite = await create_suite(session.sessionID)
 
         payload = dict(
-            entityID=str(suite.suiteID),
+            entity_id=str(suite.suiteID),
             type="PNG",
             description="sample-attachment",
             title="sample",
@@ -33,5 +33,5 @@ class TestSaveEndpoints:
             == path
         )
         saved = await StaticBase.filter(attachmentID=path.stem).first()
-        assert saved.attachmentValue["value"] == path.name
-        assert saved.attachmentValue["title"] == "sample"
+        assert saved.value == path.name
+        assert saved.title == "sample"

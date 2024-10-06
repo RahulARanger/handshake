@@ -5,12 +5,22 @@ from handshake.services.DBService.models.types import (
     MarkTestRun,
     RunStatus,
     SuiteType,
+    AddAttachmentForEntity,
+    AttachmentType,
+    Tag,
 )
-from pytest import Session, Item, ExitCode, TestReport
+from pytest import Session, Item, ExitCode, TestReport, FixtureRequest
 from platform import platform
-from typing import Optional
+from typing import Optional, Dict, Any, List, Callable
 from threading import Lock
 from enum import StrEnum
+from _pytest.fixtures import FixtureDef, FixtureValue
+from traceback import format_exception
+from pathlib import Path
+
+
+def relative_from_session_parent(session: Session, take_relative_for: Path):
+    return take_relative_for.relative_to(session.startpath.parent)
 
 
 class PointToAtPhase(StrEnum):
@@ -32,6 +42,9 @@ class PyTestHandshakeReporter(CommonReporter):
         self.check_if_parents_are = Lock()
         self.passed = 0
         self.started_at = None
+        self.attachments: List[Dict[str, Any]] = []
+        self.fixtures = {}
+        self.last_assertion_added = {}
 
     def create_session(self, started: datetime):
         super().create_session(started)
@@ -42,7 +55,7 @@ class PyTestHandshakeReporter(CommonReporter):
             PydanticModalForCreatingTestRunConfigBase(
                 framework="pytest",
                 platform=platform(),
-                avoidParentSuitesInCount=True,  # since we are counting packages as suites
+                avoidParentSuitesInCount=False,  # since we are counting packages as suites
             )
         )
 
@@ -58,7 +71,7 @@ class PyTestHandshakeReporter(CommonReporter):
         is_suite: bool = False,
         helper_entity: Optional[PointToAtPhase] = None,
     ):
-        path = item.path.relative_to(item.session.startpath.parent)
+        path = relative_from_session_parent(item.session, item.path)
         path = str(path.parent if path.name == "__init__.py" else path)
         parent = key(item.nodeid) if helper_entity else None
 
@@ -87,6 +100,14 @@ class PyTestHandshakeReporter(CommonReporter):
             key(item.nodeid, helper_entity if helper_entity else PointToAtPhase.CALL),
             parent,
         )
+
+        if hasattr(item, "fixturenames"):
+            add_here = self.fixtures.get(path, set())
+            add_here.update(item.fixturenames)
+            print(add_here)
+
+        if is_suite or helper_entity:
+            return
 
     def update_test_entity_details(
         self, report: Optional[TestReport] = None, node_id: Optional[str] = None
@@ -151,6 +172,9 @@ class PyTestHandshakeReporter(CommonReporter):
         if force_call:
             self.skip = True
             self.force_wait()
+        else:
+            for _ in self.last_assertion_added.values():
+                self.postman.submit(self.add_attachment, _)
 
         self.update_test_run(
             MarkTestRun(exitCode=exitcode, status=status), force_call=force_call
@@ -164,3 +188,90 @@ class PyTestHandshakeReporter(CommonReporter):
             self.create_postfix("ScheduleSuites"),
             False,
         )
+
+    def add_note(
+        self,
+        entity_id: str,
+        title: str,
+        note_description: str,
+        helpful_description: str = "",
+        tags: Optional[List[Tag]] = None,
+    ):
+        # self.add_attachment(
+        #     AddAttachmentForEntity(
+        #         type=AttachmentType.NOTE,
+        #         entity_id=entity_id,
+        #         description=helpful_description,
+        #         value=note_description,
+        #         title=title,
+        #         tags=tags or [],
+        #     ).model_dump()
+        # )
+
+        ...
+
+    def note_fixture(
+        self, fixturedef: FixtureDef[FixtureValue], request: FixtureRequest
+    ):
+        if fixturedef.cached_result is None:
+            return
+
+        scope_desc = ""
+
+        match request.scope:
+            case "session":
+                scope_desc = "Shared across all tests in the session."
+            case "package":
+                scope_desc = "Shared across tests in a package."
+            case "function":
+                scope_desc = "Created anew for each test function."
+            case "class":
+                scope_desc = "Shared among tests in a class."
+
+        if fixturedef.cached_result[-1]:
+            note_desc = f"{request.fixturename} failed to execute, because of this error: {format_exception(fixturedef.cached_result[-1][1])}"
+        else:
+            note_desc = f"{request.fixturename} passed and it gave a result {str(fixturedef.cached_result[0])}"
+
+        fixture_def = "A fixture provides a defined, reliable and consistent context for the tests"
+
+        note_payload = dict(
+            title=request.fixturename,
+            tags=[
+                dict(  # https://docs.pytest.org/en/stable/explanation/fixtures.html
+                    label="fixture",
+                    desc=fixture_def,
+                ),
+                dict(label=request.scope, desc=scope_desc),
+            ],
+            note_desc=note_desc,
+            help_desc=fixture_def,
+        )
+
+        save_in = relative_from_session_parent(
+            request.session,
+            request.session.startpath if request.scope == "session" else request.path,
+        )
+        save_here = self.fixtures.get(save_in, {})
+        save_here[request.fixturename] = note_payload
+        self.fixtures[save_in] = save_here
+
+    def add_test_assertion(
+        self, node_id: Optional[str], title: str, message: str, passed: bool
+    ):
+        value = lambda: AddAttachmentForEntity(
+            entity_id=self.note[
+                key(node_id) if node_id else key(self.pointing_to.nodeid)
+            ],
+            title=title,
+            value=dict(passed=passed, wait=-1, interval=-1),
+            type=AttachmentType.ASSERT,
+            description=message,
+        )
+        if not node_id:
+            self.last_assertion_added[key(self.pointing_to.nodeid)] = value
+            return
+
+        if self.last_assertion_added.get(key(node_id)):
+            self.last_assertion_added.pop(key(node_id))
+        return self.postman.submit(self.add_attachment, value)
