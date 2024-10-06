@@ -5,16 +5,15 @@ from handshake.services.DBService.models.types import (
     MarkTestRun,
     RunStatus,
     SuiteType,
-    AddAttachmentForEntity,
     AttachmentType,
     Tag,
 )
-from pytest import Session, Item, ExitCode, TestReport, FixtureRequest
+from pytest import Session, Item, ExitCode, TestReport
 from platform import platform
 from typing import Optional, Dict, Any, List, Callable
 from threading import Lock
 from enum import StrEnum
-from _pytest.fixtures import FixtureDef, FixtureValue
+from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
 from traceback import format_exception
 from pathlib import Path
 
@@ -101,13 +100,19 @@ class PyTestHandshakeReporter(CommonReporter):
             parent,
         )
 
-        if hasattr(item, "fixturenames"):
-            add_here = self.fixtures.get(path, set())
-            add_here.update(item.fixturenames)
-            print(add_here)
-
-        if is_suite or helper_entity:
+        if is_suite:
             return
+
+        if hasattr(item, "fixturenames"):
+            for name in item.fixturenames:
+                add_here = self.fixtures.get(name, set())
+                add_here.add(
+                    key(
+                        item.nodeid,
+                        helper_entity if helper_entity else PointToAtPhase.CALL,
+                    )
+                )
+                self.fixtures[name] = add_here
 
     def update_test_entity_details(
         self, report: Optional[TestReport] = None, node_id: Optional[str] = None
@@ -174,7 +179,7 @@ class PyTestHandshakeReporter(CommonReporter):
             self.force_wait()
         else:
             for _ in self.last_assertion_added.values():
-                self.postman.submit(self.add_attachment, _)
+                self.attachments.append(_)
 
         self.update_test_run(
             MarkTestRun(exitCode=exitcode, status=status), force_call=force_call
@@ -196,23 +201,20 @@ class PyTestHandshakeReporter(CommonReporter):
         note_description: str,
         helpful_description: str = "",
         tags: Optional[List[Tag]] = None,
+        **extraValues,
     ):
-        # self.add_attachment(
-        #     AddAttachmentForEntity(
-        #         type=AttachmentType.NOTE,
-        #         entity_id=entity_id,
-        #         description=helpful_description,
-        #         value=note_description,
-        #         title=title,
-        #         tags=tags or [],
-        #     ).model_dump()
-        # )
+        self.attachments.append(
+            dict(
+                type=AttachmentType.NOTE,
+                entity_id=entity_id,
+                description=helpful_description,
+                value=note_description,
+                title=title,
+                tags=tags or [],
+            )
+        )
 
-        ...
-
-    def note_fixture(
-        self, fixturedef: FixtureDef[FixtureValue], request: FixtureRequest
-    ):
+    def note_fixture(self, fixturedef: FixtureDef[FixtureValue], request: SubRequest):
         if fixturedef.cached_result is None:
             return
 
@@ -235,31 +237,33 @@ class PyTestHandshakeReporter(CommonReporter):
 
         fixture_def = "A fixture provides a defined, reliable and consistent context for the tests"
 
-        note_payload = dict(
-            title=request.fixturename,
-            tags=[
-                dict(  # https://docs.pytest.org/en/stable/explanation/fixtures.html
-                    label="fixture",
-                    desc=fixture_def,
-                ),
-                dict(label=request.scope, desc=scope_desc),
-            ],
-            note_desc=note_desc,
-            help_desc=fixture_def,
-        )
-
         save_in = relative_from_session_parent(
             request.session,
             request.session.startpath if request.scope == "session" else request.path,
         )
-        save_here = self.fixtures.get(save_in, {})
-        save_here[request.fixturename] = note_payload
-        self.fixtures[save_in] = save_here
+
+        for add_in in self.fixtures.get(request.fixturename, set()):
+            self.add_note(
+                entity_id=add_in,
+                title=request.fixturename,
+                tags=[
+                    dict(  # https://docs.pytest.org/en/stable/explanation/fixtures.html
+                        label="fixture",
+                        desc=fixture_def,
+                    ),
+                    dict(label=request.scope, desc=scope_desc),
+                ],
+                note_description=note_desc,
+                helpful_description=fixture_def,
+                extraValues=dict(savedIn=str(save_in)),
+            )
+
+        self.fixtures.get(request.fixturename, set()).clear()
 
     def add_test_assertion(
         self, node_id: Optional[str], title: str, message: str, passed: bool
     ):
-        value = lambda: AddAttachmentForEntity(
+        value = dict(
             entity_id=self.note[
                 key(node_id) if node_id else key(self.pointing_to.nodeid)
             ],
@@ -274,4 +278,4 @@ class PyTestHandshakeReporter(CommonReporter):
 
         if self.last_assertion_added.get(key(node_id)):
             self.last_assertion_added.pop(key(node_id))
-        return self.postman.submit(self.add_attachment, value)
+        return self.attachments.append(value)

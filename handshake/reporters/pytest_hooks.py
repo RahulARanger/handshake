@@ -1,6 +1,6 @@
 from pytest import Session, Item
+from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
 from datetime import datetime
-from pathlib import Path
 from handshake.reporters.pytest_reporter import PyTestHandshakeReporter, PointToAtPhase
 
 reporter = PyTestHandshakeReporter()
@@ -18,13 +18,13 @@ def pytest_itemcollected(item: Item):
     reporter.create_test_entity(item)
 
 
+def pytest_runtest_logstart(nodeid, location):
+    reporter.update_test_entity_details(None, nodeid)
+
+
 def pytest_runtest_setup(item: Item):
     reporter.pointing_to = item
     reporter.create_test_entity(item, helper_entity=PointToAtPhase.SETUP)
-
-
-def pytest_runtest_logstart(nodeid, location):
-    reporter.update_test_entity_details(None, nodeid)
 
 
 def pytest_runtest_logreport(report):
@@ -48,10 +48,10 @@ def pytest_assertion_pass(item, lineno, orig, expl):
     reporter.add_test_assertion(item.nodeid, orig, expl, True)
 
 
-# def pytest_fixture_post_finalizer(
-#     fixturedef: FixtureDef[FixtureValue], request: FixtureRequest
-# ):
-#     reporter.note_fixture(fixturedef, request)
+def pytest_fixture_post_finalizer(
+    fixturedef: FixtureDef[FixtureValue], request: SubRequest
+):
+    reporter.note_fixture(fixturedef, request)
 
 
 def pytest_sessionfinish(session: Session, exitstatus: int):
