@@ -14,7 +14,6 @@ from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.register import (
     register_patch_suite,
 )
-from datetime import timedelta
 from handshake.services.SchedularService.handlePending import patch_jobs
 from tortoise.expressions import Q
 
@@ -502,6 +501,35 @@ class TestPatchSuiteScheduler:
         assert error_log.feed["parent_suite"] == str(parent_suite_2.suiteID)
         assert error_log.feed["job"] == JobType.MODIFY_SUITE
         assert "as the child suite was not registered" in error_log.message
+
+    async def test_incomplete_processing_entities(
+        self, sample_test_session, create_suite, create_tests
+    ):
+        session = await sample_test_session
+        top_parent = await create_suite(session.sessionID)
+        parent_suite = await create_suite(session.sessionID, parent=top_parent.suiteID)
+        tests = await create_tests(session.sessionID, parent=parent_suite.suiteID)
+        tests[0].standing = Status.PROCESSING
+        await tests[0].save()
+
+        for _ in (top_parent, parent_suite):
+            await register_patch_suite(_.suiteID, session.test_id)
+
+        await patch_jobs()
+
+        # this is expected to throw error, since we have tests which were not updated,
+        # and we have parent suite which was registered to be patched
+        # possible error is in reporter (it missed it), check TestLogBase for more info.
+
+        records = await TestLogBase.filter(
+            test_id=session.test_id, type=LogType.ERROR
+        ).all()
+        assert len(records) == 1
+
+        error_log = records[0]
+        assert error_log.feed["suiteID"] == str(parent_suite.suiteID)
+        assert error_log.feed["job"] == JobType.MODIFY_SUITE
+        assert "Which are not yet updated" in error_log.message
 
     async def test_patch_dependent_retried_suites(
         self, sample_test_session, create_suite, attach_config

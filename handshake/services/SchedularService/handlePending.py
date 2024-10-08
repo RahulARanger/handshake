@@ -3,25 +3,32 @@ from handshake.services.DBService.models.result_base import SuiteBase, Status, S
 from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.SchedularService.completeTestRun import patchTestRun
-from handshake.services.SchedularService.pruneTasks import pruneTasks
+from handshake.services.SchedularService.flag_tasks import pruneTasks
 from loguru import logger
-from tortoise.expressions import Q, Subquery, F
+from tortoise.expressions import Q, Subquery
 from tortoise.functions import Min
 from asyncio import TaskGroup
-from handshake.services.SchedularService.register import skip_test_run
+from handshake.services.SchedularService.register import cancel_patch_for_test_run
+
+
+async def safety_checks():
+    prune_task = await TaskBase.filter(type=JobType.PRUNE_TASKS).first()
+    if prune_task:
+        await pruneTasks(prune_task.ticketID)
 
 
 async def patch_jobs():
     while True:
-        prune_task = await TaskBase.filter(type=JobType.PRUNE_TASKS).first()
-        if prune_task:
-            await pruneTasks(prune_task.ticketID)
+        await safety_checks()
 
         async with TaskGroup() as patcher:
             # list of tasks which were not picked and processed and are specific to MODIFY_SUITE
             tasks = (
                 await TaskBase.filter(
-                    Q(picked=False) & Q(processed=False) & Q(type=JobType.MODIFY_SUITE)
+                    Q(picked=False)
+                    & Q(processed=False)
+                    & Q(processed=False)
+                    & Q(type=JobType.MODIFY_SUITE)
                 )
                 .order_by("dropped")  # old are on top
                 .only("ticketID")
@@ -75,7 +82,7 @@ async def patch_jobs():
             ):
                 # if so mark each of the tests runs as banned.
                 for task in await TaskBase.filter(Q(ticketID__in=tasks)).all():
-                    await skip_test_run(
+                    await cancel_patch_for_test_run(
                         task.test_id,
                         "Failed to find a way to process a parent suite, as the child suite was not registered.",
                         parent_suite=task.ticketID,

@@ -12,7 +12,10 @@ from handshake.services.DBService.models.enums import Status, SuiteType
 from tortoise.expressions import Q
 from tortoise.functions import Count, Lower, Sum, Min, Max
 from loguru import logger
-from handshake.services.SchedularService.register import skip_test_run
+from handshake.services.SchedularService.register import (
+    cancel_patch_for_test_run,
+    JobType,
+)
 from itertools import chain
 from asyncio import gather
 
@@ -56,13 +59,20 @@ class PatchTestSuite:
             await self.mark_processed()
             return False
 
-        pending_child_tasks = await SuiteBase.filter(
+        pending_child_test_tasks = await SuiteBase.filter(
             Q(parent=self.suite.suiteID)
-            & (
-                Q(standing=Status.PENDING)
-                | Q(standing=Status.YET_TO_CALCULATE)
-                | Q(standing=Status.PROCESSING)
+            & (Q(standing=Status.PENDING) | Q(standing=Status.PROCESSING))
+        ).exists()
+
+        if pending_child_test_tasks:
+            await self.fall_back(
+                f"There are some child suites/tests for suite: {self.suite.suiteID}; Which are not yet updated,"
+                " which is not ideal case, as we are trying to patch suite before updating its child entities"
             )
+            return
+
+        pending_child_tasks = await SuiteBase.filter(
+            parent=self.suite.suiteID, standing=Status.YET_TO_CALCULATE
         ).exists()
 
         if pending_child_tasks:
@@ -290,11 +300,16 @@ class PatchTestSuite:
         await self.suite.update_from_dict(results)
         await self.suite.save()
 
-    async def fall_back(self):
-        await skip_test_run(
+    async def fall_back(self, reason: Optional[str] = None):
+        await cancel_patch_for_test_run(
             self.test_id,
-            f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}",
+            (
+                reason
+                if reason
+                else f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}"
+            ),
             suiteID=self.suite_id,
+            job=JobType.MODIFY_SUITE,
         )
 
 

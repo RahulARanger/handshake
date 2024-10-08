@@ -12,7 +12,7 @@ from handshake.services.SchedularService.register import (
 
 @mark.usefixtures()
 class TestPickTasks:
-    async def test_picked_previous_tasks(
+    async def test_if_previously_picked_tasks_are_picked(
         self, db_path, sample_test_session, create_suite
     ):
         """
@@ -36,6 +36,32 @@ class TestPickTasks:
 
         updated_task = await TaskBase.filter(ticketID=task.ticketID).first()
         assert not (updated_task.picked or updated_task.processed)
+
+    async def test_if_previously_skipped_tasks_are_picked(
+        self, db_path, sample_test_session, create_suite
+    ):
+        """
+        tests if the patch command picks the tasks that are skipped previously
+        :param sample_test_session: test session
+        :param create_suite: helper to create a test suite
+        :return:
+        """
+        session = await sample_test_session
+        suite = await create_suite(session.sessionID)
+        test = await session.test
+        task = await register_patch_suite(suite.suiteID, test.testID)
+        task.picked = True
+        task.skip = True
+        # assumption
+        assert not task.processed
+        await task.save()
+        # now assume the scheduler stopped
+
+        # so in the next run it should plan to pick this
+        await Scheduler(db_path.parent).init_jobs()
+
+        updated_task = await TaskBase.filter(ticketID=task.ticketID).first()
+        assert not (updated_task.picked or updated_task.processed or updated_task.skip)
 
     async def test_reset_test_run(
         self, sample_test_session, create_suite, root_dir, db_path

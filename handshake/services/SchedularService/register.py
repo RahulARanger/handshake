@@ -40,16 +40,21 @@ async def register_bulk_patch_suites(
     return tasks
 
 
+async def _mark_custom_task(reason: str, job_type: JobType, test_id: str):
+    logger.warning(reason)
+    await TaskBase.create(ticketID=str(uuid4()), type=job_type, test_id=test_id)
+
+
 async def mark_for_prune_task(test_id: str):
     # someone called this explicitly hence it's a warning
-
-    logger.warning("Requested to prune some tasks")
-    await TaskBase.create(
-        ticketID=str(uuid4()), type=JobType.PRUNE_TASKS, test_id=test_id
+    await _mark_custom_task(
+        "Requested to prune some tasks", JobType.PRUNE_TASKS, test_id
     )
 
 
-async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
+async def cancel_patch_for_test_run(
+    test_id: Union[str, UUID], reason: str, **extra
+) -> False:
     logger.error(reason)
     await TestLogBase.create(
         test_id=str(test_id), message=reason, type=LogType.ERROR, feed=extra

@@ -29,6 +29,7 @@ class RunStatus(StrEnum):
     COMPLETED = "COMPLETED"
     PENDING = "PENDING"
     INTERRUPTED = "INTERRUPTED"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
     SKIPPED = "SKIPPED"
     EXPECTED_TO_FAIL = "EXPECTED_TO_FAIL"
 
@@ -62,10 +63,6 @@ class AttachmentType(StrEnum):
 class LogDisplayType(StrEnum):
     SEPARATE = "SEPARATE"
     TOGETHER = "TOGETHER"
-
-
-class PrunedRecords(StrEnum):
-    RUN = "RUN"
 
 
 class ConfigKeys(StrEnum):

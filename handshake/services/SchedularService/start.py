@@ -39,7 +39,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_SUITE_RETRIED_MAP,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
-from handshake.services.SchedularService.pruneTasks import pruneTasks
+from handshake.services.SchedularService.flag_tasks import pruneTasks
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.handlePending import patch_jobs

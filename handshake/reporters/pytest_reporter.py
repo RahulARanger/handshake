@@ -165,13 +165,16 @@ class PyTestHandshakeReporter(CommonReporter):
 
     def update_test_status(self, session: Optional[Session] = None, exitcode: int = 1):
         status: RunStatus = RunStatus.COMPLETED
-
         if session.shouldfail or session.shouldstop:
             status = RunStatus.EXPECTED_TO_FAIL
         elif session.exitstatus == ExitCode.INTERRUPTED:
             status = RunStatus.INTERRUPTED
-        elif session.exitstatus == ExitCode.INTERNAL_ERROR:
-            status = RunStatus.INTERRUPTED
+        elif (
+            session.exitstatus == ExitCode.USAGE_ERROR
+            or session.exitstatus == ExitCode.INTERNAL_ERROR
+        ):
+            status = RunStatus.INTERNAL_ERROR
+
         force_call = status == RunStatus.INTERRUPTED
 
         if force_call:

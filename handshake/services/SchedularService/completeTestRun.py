@@ -8,7 +8,7 @@ from uuid import UUID
 from typing import Union
 from traceback import format_exc
 from handshake.services.SchedularService.register import (
-    skip_test_run,
+    cancel_patch_for_test_run,
 )
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.DBService.models.dynamic_base import TaskBase
@@ -194,7 +194,9 @@ class PatchTestRun:
 
 
 async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> False:
-    return await skip_test_run(test_id, reason, type=JobType.MODIFY_TEST_RUN, **extra)
+    return await cancel_patch_for_test_run(
+        test_id, reason, type=JobType.MODIFY_TEST_RUN, **extra
+    )
 
 
 def simplify_file_paths(paths: List[Tuple[str, int]]):
