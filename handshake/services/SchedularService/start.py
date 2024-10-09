@@ -473,12 +473,11 @@ WHERE rb.ended <> '' order by rb.started;
             await StaticBase.filter(entity__parent=suite_id)
             .annotate(
                 id=RawSQL("entity_id"),
-                title=RawSQL("attachmentValue ->> 'title'"),
-                file=RawSQL("attachmentValue ->> 'value'"),
+                file=RawSQL("value"),
                 url=RawSQL(
-                    f"'/api/Attachments' || '/{run_id}/' || entity_id || '/' || (attachmentValue ->> 'value')"
+                    f"'/api/Attachments' || '/{run_id}/' || entity_id || '/' || value"
                     if self.dev_run
-                    else f"'/Attachments' || '/{run_id}/' || entity_id || '/' || (attachmentValue ->> 'value')"
+                    else f"'/Attachments' || '/{run_id}/' || entity_id || '/' || value"
                 ),
             )
             .all()

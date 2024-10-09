@@ -31,6 +31,7 @@ async def saveImage(request: Request) -> HTTPResponse:
         entity_id=attachment.entityID,
         description=attachment.description,
         type=attachment.type,
+        title=attachment.title,
     )
 
     file_name = f"{record.attachmentID}.{record.type.lower()}"
@@ -42,12 +43,6 @@ async def saveImage(request: Request) -> HTTPResponse:
 
     file = test_root / file_name
     file.write_bytes(base64.b64decode(attachment.value))
-
-    await record.update_from_dict(
-        dict(
-            attachmentValue=dict(value=file_name, title=attachment.title),
-        )
-    )
-
+    record.value = file_name
     await record.save()
     return text(str(record.attachmentID), status=201)

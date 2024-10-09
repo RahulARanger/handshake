@@ -76,7 +76,7 @@ class TestSaveEndPoints:
             exitCode=1,
             bail=1,
             platformName="windows",
-            tags=[{"name": "*.py", "label": "only py file"}],
+            tags=[{"label": "*.py", "desc": "only py file"}],
             avoidParentSuitesInCount=False,
         )
         request, response = await client.put("/save/currentRun", json=payload)

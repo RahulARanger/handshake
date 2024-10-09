@@ -251,14 +251,13 @@ async def helper_create_written_attachment(
         entity_id=test_id,
         type=AttachmentType.PNG,
         description=description,
+        title=title,
+        value="",
         using_db=connection,
     )
     file_name = f"{str(record.attachmentID)}.{record.type.lower()}"
-    await record.update_from_dict(
-        dict(
-            attachmentValue=dict(value=file_name, title=title),
-        )
-    )
+    record.value = file_name
+    await record.save()
     (written / str(suite_id)).mkdir(exist_ok=True)
     (written / str(suite_id) / file_name).write_text("SAMPLE-NOTES")
     return record

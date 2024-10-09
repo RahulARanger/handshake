@@ -61,7 +61,7 @@ class TestPickTasks:
         await Scheduler(db_path.parent).init_jobs()
 
         updated_task = await TaskBase.filter(ticketID=task.ticketID).first()
-        assert not (updated_task.picked or updated_task.processed or updated_task.skip)
+        assert not (updated_task.picked or updated_task.processed)
 
     async def test_reset_test_run(
         self, sample_test_session, create_suite, root_dir, db_path

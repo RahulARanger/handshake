@@ -63,7 +63,7 @@
                       <option name="method" value="POST" />
                       <option name="name" value="Create Session" />
                       <option name="sortWeight" value="2000000" />
-                      <option name="url" value="http://127.0.0.1:6969/create/Dummy" />
+                      <option name="url" value="http://127.0.0.1:6969/create/Session" />
                     </requestState>
                     <requestState>
                       <option name="body">
@@ -124,6 +124,6 @@
       </list>
     </option>
     <option name="id" value="2e6f3355-94fe-4fea-bf31-66a64fef3ffc" />
-    <option name="version" value="3" />
+    <option name="version" value="4" />
   </component>
 </project>

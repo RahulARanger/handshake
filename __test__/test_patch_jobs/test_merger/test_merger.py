@@ -90,7 +90,7 @@ async def add_attachments(connection, create_static_attachment, root_dir, check_
                 check_in_dir
                 / writtenAttachmentFolderName
                 / test.parent
-                / attachment.attachmentValue["value"]
+                / attachment.value
             )
             assert not moved_attachments[-1].exists()
     return moved_attachments

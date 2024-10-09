@@ -22,7 +22,6 @@ from handshake.services.DBService.migrator import (
     revert_step_back,
 )
 from subprocess import run, PIPE
-from datetime import datetime
 
 
 async def assertEntityNameType(connection, expected):
