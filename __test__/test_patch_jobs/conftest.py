@@ -183,12 +183,12 @@ async def helper_create_normal_suites(
 
         for test in range(3):
             await sleep(0.002)
-            started = datetime.datetime.now()
+            test_started_at = started + datetime.timedelta(milliseconds=2.1 * test)
             test = await SuiteBase.create(
                 session_id=session_id,
                 suiteType=SuiteType.TEST,
                 started=started.isoformat(),
-                ended=started + datetime.timedelta(milliseconds=2),
+                ended=test_started_at + datetime.timedelta(milliseconds=2),
                 title=f"test-{index + 1}-{test + 1}",
                 standing=Status.FAILED,
                 file=suite_files[index],

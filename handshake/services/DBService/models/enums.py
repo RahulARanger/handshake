@@ -30,7 +30,7 @@ class RunStatus(StrEnum):
     PENDING = "PENDING"
     INTERRUPTED = "INTERRUPTED"
     INTERNAL_ERROR = "INTERNAL_ERROR"
-    SKIPPED = "SKIPPED"
+    SKIPPED = "SKIPPED"  # not in use as of now
     EXPECTED_TO_FAIL = "EXPECTED_TO_FAIL"
 
 
