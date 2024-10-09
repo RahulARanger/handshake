@@ -7,6 +7,7 @@ from requests.adapters import HTTPAdapter, Retry
 from pathlib import Path
 from tortoise import Tortoise, connections
 from handshake.services.DBService.models import RunBase, SessionBase, SuiteBase
+from shutil import rmtree
 
 
 @fixture()
@@ -16,6 +17,9 @@ def root_dir_server():
 
 @fixture(autouse=True)
 async def shakes(get_db_path, root_dir_server):
+    if root_dir_server.exists():
+        rmtree(root_dir_server)
+
     result = Popen(
         f'handshake run-app test-app-1 "{root_dir_server}" -p 6590', shell=True
     )
@@ -28,9 +32,9 @@ async def shakes(get_db_path, root_dir_server):
     retries = Retry(total=15, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
     _session.mount("http://", HTTPAdapter(max_retries=retries))
     response = _session.get("http://127.0.0.1:6590/")
-    # assert response.text == "1"
+    assert response.text == "1"
     response = _session.get("http://127.0.0.1:6591/")
-    # assert response.text == "1"
+    assert response.text == "1"
     _session.close()
 
     session = Session()
