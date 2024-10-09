@@ -152,6 +152,11 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             suite.standing.lower(): 1,
             "tests": 1,
         }
+        if (
+            suite_record.suiteType == SuiteType.TEARDOWN
+            or suite_record.suiteType == SuiteType.SETUP
+        ):
+            note[f"{suite_record.suiteType.lower()}_duration"] = suite.duration
         await suite_record.update_from_dict(note)
 
     await suite_record.update_from_dict(suite.model_dump())

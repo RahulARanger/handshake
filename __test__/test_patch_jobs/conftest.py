@@ -66,6 +66,8 @@ async def helper_create_suite(
     extras = {standing.lower(): 1} if is_test else {}
     error = [] if standing != Status.FAILED else [{"message": "sample-error"}]
 
+    save_duration = (duration.seconds * 1_000) if duration else 12
+
     return await SuiteBase.create(
         session_id=session_id,
         suiteType=hook if hook else (SuiteType.TEST if is_test else SuiteType.SUITE),
@@ -77,7 +79,9 @@ async def helper_create_suite(
         ),
         title=name,
         standing=standing,
-        duration=(duration.seconds * 1_000) if duration else 12,
+        duration=save_duration,
+        setup_duration=save_duration if hook == SuiteType.SETUP else 0,
+        teardown_duration=save_duration if hook == SuiteType.TEARDOWN else 0,
         file=file,
         parent=parent,
         tests=1,

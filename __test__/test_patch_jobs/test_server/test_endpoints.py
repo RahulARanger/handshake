@@ -101,6 +101,22 @@ class TestUpdateEndpoints:
             )
             request, response = await client.put("/save/Suite", json=payload)
             assert response.status_code == 200, response.text
+            hook_record = await SuiteBase.filter(suiteID=rest.suiteID).first()
+
+            if rest.suiteType == SuiteType.SETUP:
+                assert (
+                    hook_record.setup_duration
+                    == hook_record.duration
+                    == hook_duration + 5_000
+                )
+                assert hook_record.teardown_duration == 0
+            else:
+                assert (
+                    hook_record.teardown_duration
+                    == hook_record.duration
+                    == hook_duration + 5_000
+                )
+                assert hook_record.setup_duration == 0
 
         suite = await SuiteBase.filter(suiteID=suite.suiteID).first()
         assert (

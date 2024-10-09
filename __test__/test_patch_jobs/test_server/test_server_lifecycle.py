@@ -135,6 +135,7 @@ async def test_life_cycle(root_dir):
         )
 
         resp = session.post(createPts("Suite"), json=payload)
+        assert resp.status_code == 201, resp.text
 
         test = await SuiteBase.filter(suiteID=resp.text).first()
         assert test.title == f"sample-test-{_}"

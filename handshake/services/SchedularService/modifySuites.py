@@ -108,7 +108,8 @@ class PatchTestSuite:
 
         if not self.suite.started or not self.suite.ended:
             info = (
-                await self.test_entities.annotate(
+                await SuiteBase.filter(parent=self.suite_id)
+                .annotate(
                     actual_end=Max("ended"),
                     actual_start=Min("started"),
                 )
