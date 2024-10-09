@@ -86,9 +86,7 @@ async def test_extract(
         attachment = new_test_results / writtenAttachmentFolderName
         assert attachment.exists()
 
-        assert (
-            attachment / str(suite.suiteID) / written.attachmentValue["value"]
-        ).exists()
+        assert (attachment / str(suite.suiteID) / written.value).exists()
 
         assert db_path(new_test_results).exists()
 

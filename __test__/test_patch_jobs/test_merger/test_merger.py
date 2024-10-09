@@ -90,7 +90,7 @@ async def add_attachments(connection, create_static_attachment, root_dir, check_
                 check_in_dir
                 / writtenAttachmentFolderName
                 / test.parent
-                / attachment.attachmentValue["value"]
+                / attachment.value
             )
             assert not moved_attachments[-1].exists()
     return moved_attachments
@@ -425,18 +425,25 @@ class TestMerger:
             manual_insert_test_run=True, connection=first_connection
         )
         await create_session_with_hierarchy_with_no_retries(
-            session_1.test_id, connection=first_connection, skip_register=True
+            session_1.test_id,
+            connection=first_connection,
+            skip_register=True,
+            manual_insert=True,
         )
         any_test = (
             await SuiteBase.all(using_db=first_connection)
             .filter(suiteType=SuiteType.TEST)
             .first()
+            .values("suiteID")
         )
         await add_assertion(
-            any_test.suiteID, "sample-assertion-1", True, connection=first_connection
+            any_test["suiteID"], "sample-assertion-1", True, connection=first_connection
         )
         await add_assertion(
-            any_test.suiteID, "sample-assertion-2", False, connection=first_connection
+            any_test["suiteID"],
+            "sample-assertion-2",
+            False,
+            connection=first_connection,
         )
 
         to_change = (

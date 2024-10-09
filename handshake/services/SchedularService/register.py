@@ -5,10 +5,13 @@ from typing import Union, List
 from handshake.services.DBService.models.result_base import TestLogBase, LogType
 
 
-async def register_patch_suite(suiteID: str, testID: str, connection=None) -> TaskBase:
-    return await TaskBase.create(
+async def register_patch_suite(suiteID: str, testID: str, connection=None):
+    _, created = await TaskBase.get_or_create(
         ticketID=suiteID, test_id=testID, type=JobType.MODIFY_SUITE, using_db=connection
     )
+    if created:
+        return _
+    return False
 
 
 async def register_patch_test_run(testID: str, connection=None) -> TaskBase:
@@ -37,16 +40,21 @@ async def register_bulk_patch_suites(
     return tasks
 
 
+async def _mark_custom_task(reason: str, job_type: JobType, test_id: str):
+    logger.warning(reason)
+    await TaskBase.create(ticketID=str(uuid4()), type=job_type, test_id=test_id)
+
+
 async def mark_for_prune_task(test_id: str):
     # someone called this explicitly hence it's a warning
-
-    logger.warning("Requested to prune some tasks")
-    await TaskBase.create(
-        ticketID=str(uuid4()), type=JobType.PRUNE_TASKS, test_id=test_id
+    await _mark_custom_task(
+        "Requested to prune some tasks", JobType.PRUNE_TASKS, test_id
     )
 
 
-async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
+async def cancel_patch_for_test_run(
+    test_id: Union[str, UUID], reason: str, **extra
+) -> False:
     logger.error(reason)
     await TestLogBase.create(
         test_id=str(test_id), message=reason, type=LogType.ERROR, feed=extra

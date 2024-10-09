@@ -360,11 +360,15 @@ def latest_run(ctx: Context, allow_pending: bool):
     ).fetchone()
 
     secho(
-        "No Test Runs were found"
-        if not result
-        else (
-            result[0],
-            datetime.datetime.fromisoformat(result[1]).astimezone().strftime("%c %Z"),
+        (
+            "No Test Runs were found"
+            if not result
+            else (
+                result[0],
+                datetime.datetime.fromisoformat(result[1])
+                .astimezone()
+                .strftime("%c %Z"),
+            )
         ),
         fg="bright_yellow" if not result else "bright_magenta",
     )
@@ -386,19 +390,21 @@ def yet_to_process(ctx: Context):
     ).fetchall()
 
     secho(
-        "No Pending Tasks"
-        if not result
-        else f"pending tasks:\n {pprint.pformat(result)}",
+        (
+            "No Pending Tasks"
+            if not result
+            else f"pending tasks:\n {pprint.pformat(result)}"
+        ),
         fg="bright_green" if not result else "bright_yellow",
     )
 
     pipe.close()
 
 
-# if __name__ == "__main__":
-#     scheduler = Scheduler("TestResults")
-#     try:
-#         run(scheduler.start())
-#     except (KeyboardInterrupt, SystemExit):
-#         logger.warning("Scheduler terminated explicitly...")
-#         run(close_connection())
+if __name__ == "__main__":
+    scheduler = Scheduler("../../../TestResults")
+    try:
+        run(scheduler.start())
+    except (KeyboardInterrupt, SystemExit):
+        logger.warning("Scheduler terminated explicitly...")
+        run(close_connection())

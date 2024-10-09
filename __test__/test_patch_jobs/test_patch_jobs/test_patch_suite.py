@@ -14,6 +14,7 @@ from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.register import (
     register_patch_suite,
 )
+from datetime import timedelta
 from handshake.services.SchedularService.handlePending import patch_jobs
 from tortoise.expressions import Q
 
@@ -59,6 +60,9 @@ class TestPatchSuiteJob:
             == parent_suite.tests
             == 0
         ), "Patching any empty suite has 0s with passed as status"
+
+        assert parent_suite.setup_duration == 0, "there are no setup steps"
+        assert parent_suite.teardown_duration == 0, "there are no teardown steps"
 
     async def test_rollup_values(
         self,
@@ -185,6 +189,93 @@ class TestPatchSuiteJob:
 
         assert await patchTestSuite(child_suite.suiteID, test_id)
         assert await patchTestSuite(parent_suite.suiteID, test_id)
+
+        for suite in (parent_suite, child_suite):
+            assert suite.setup_duration == 0, "no setup steps are there"
+            assert suite.teardown_duration == 0, "no teardown steps are there"
+
+    async def test_dependency_on_hooks(
+        self,
+        sample_test_session,
+        create_suite,
+        create_tests,
+        attach_config,
+    ):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        # initial suite
+        top_suite = await create_suite(session_id, started=None)
+        suite = await create_suite(session_id, started=None, parent=top_suite.suiteID)
+        tests = await create_tests(session_id, suite.suiteID)
+
+        await register_patch_suite(suite.suiteID, test.testID)
+        await register_patch_suite(top_suite.suiteID, test.testID)
+
+        # setting hooks
+        tests[0].started = tests[0].started - timedelta(minutes=10)
+        await tests[0].save()
+
+        first_one = await create_suite(
+            session_id,
+            parent=tests[0].suiteID,
+            hook="SETUP",
+            standing=Status.PASSED,
+            started=tests[0].started,
+            duration=timedelta(minutes=10),
+        )  # took 10 minutes
+
+        await create_suite(
+            session_id,
+            standing=Status.PASSED,
+            parent=tests[0].suiteID,
+            hook="TEARDOWN",
+            duration=timedelta(seconds=12),
+        )
+        await create_suite(
+            session_id,
+            standing=Status.PASSED,
+            parent=suite.suiteID,
+            hook="SETUP",
+            duration=timedelta(seconds=12),
+        )
+        last_one = await create_suite(
+            session_id,
+            standing=Status.PASSED,
+            parent=suite.suiteID,
+            hook="TEARDOWN",
+            duration=timedelta(seconds=12),
+        )
+
+        # this is assumed to be provided by the API
+        suite.setup_duration = 12 * 1e3
+        suite.teardown_duration = 12 * 1e3
+
+        tests[0].setup_duration = 60 * 10 * 1e3
+        tests[0].teardown_duration = 12 * 1e3
+
+        await suite.save()
+        await tests[0].save()
+
+        assert not (suite.started or suite.ended), "we didn't get this info"
+        assert await patchTestSuite(suite.suiteID, test.testID)
+        assert await patchTestSuite(top_suite.suiteID, test.testID)
+
+        suite = await SuiteBase.filter(suiteID=suite.suiteID).first()
+        top_suite = await SuiteBase.filter(suiteID=top_suite.suiteID).first()
+        assert (
+            suite.started == first_one.started
+        ), "we patched the start date since we didn't get the start date from the user and we pick the first child entity even if it is a hook"
+        assert suite.ended == last_one.ended
+        assert (
+            suite.duration == (last_one.ended - first_one.started).total_seconds() * 1e3
+        )
+
+        assert suite.setup_duration == (600 + 12) * 1000
+        assert suite.teardown_duration == (12 * 2) * 1000
+        assert top_suite.setup_duration == (600 + 12) * 1000
+        assert top_suite.teardown_duration == (12 * 2) * 1000
 
     async def test_retried_suite_match(
         self,
@@ -456,6 +547,35 @@ class TestPatchSuiteScheduler:
         assert error_log.feed["parent_suite"] == str(parent_suite_2.suiteID)
         assert error_log.feed["job"] == JobType.MODIFY_SUITE
         assert "as the child suite was not registered" in error_log.message
+
+    async def test_incomplete_processing_entities(
+        self, sample_test_session, create_suite, create_tests
+    ):
+        session = await sample_test_session
+        top_parent = await create_suite(session.sessionID)
+        parent_suite = await create_suite(session.sessionID, parent=top_parent.suiteID)
+        tests = await create_tests(session.sessionID, parent=parent_suite.suiteID)
+        tests[0].standing = Status.PROCESSING
+        await tests[0].save()
+
+        for _ in (top_parent, parent_suite):
+            await register_patch_suite(_.suiteID, session.test_id)
+
+        await patch_jobs()
+
+        # this is expected to throw error, since we have tests which were not updated,
+        # and we have parent suite which was registered to be patched
+        # possible error is in reporter (it missed it), check TestLogBase for more info.
+
+        records = await TestLogBase.filter(
+            test_id=session.test_id, type=LogType.ERROR
+        ).all()
+        assert len(records) == 1
+
+        error_log = records[0]
+        assert error_log.feed["suiteID"] == str(parent_suite.suiteID)
+        assert error_log.feed["job"] == JobType.MODIFY_SUITE
+        assert "Which are not yet updated" in error_log.message
 
     async def test_patch_dependent_retried_suites(
         self, sample_test_session, create_suite, attach_config

@@ -86,6 +86,6 @@ TestExportedReports
 !.env.sample
 
 **/handshake.json
-
+TestMultipleServerResults
 TestServerResults
 *.docx

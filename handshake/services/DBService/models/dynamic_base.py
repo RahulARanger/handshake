@@ -7,11 +7,10 @@ from tortoise.fields import (
     ForeignKeyField,
     ForeignKeyRelation,
     BooleanField,
-    TextField,
+    IntField,
 )
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.DBService.models.result_base import RunBase
-from handshake.services.DBService.models.enums import PrunedRecords
 
 
 class TaskBase(Model):

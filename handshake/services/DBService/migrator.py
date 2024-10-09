@@ -60,13 +60,15 @@ def check_version(
 
         logger.log(
             "INFO" if not migration_required else "WARNING",
-            "Currently at: v{}."
-            if not migration_required
-            else "Found version: v{}. but required is v{}."
-            + (
-                ""
-                if is_auto or version_stored > DB_VERSION
-                else ' Please execute: \n"handshake migrate [COLLECTION_PATH]"'
+            (
+                "Currently at: v{}."
+                if not migration_required
+                else "Found version: v{}. but required is v{}."
+                + (
+                    ""
+                    if is_auto or version_stored > DB_VERSION
+                    else ' Please execute: \n"handshake migrate [COLLECTION_PATH]"'
+                )
             ),
             result[0],
             DB_VERSION,
