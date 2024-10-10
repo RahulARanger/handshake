@@ -1,4 +1,4 @@
-import json
+from typing import Optional
 from pytest import fixture
 from handshake.services.DBService.models import (
     SuiteBase,
@@ -12,10 +12,12 @@ from handshake.services.DBService.shared import db_path as shared_db_path
 from handshake.services.Endpoints.blueprints.writeServices import (
     writtenAttachmentFolderName,
 )
+from tortoise.connection import connections
 from handshake.services.SchedularService.register import register_patch_suite
 import datetime
 from asyncio import sleep
 from pathlib import Path
+from uuid import uuid4
 
 
 async def helper_create_suite(
@@ -25,20 +27,61 @@ async def helper_create_suite(
     is_test: bool = False,
     standing=Status.YET_TO_CALCULATE,
     retried=0,
-    started=datetime.datetime.now(),
+    started: Optional[datetime] = datetime.datetime.now(),
     file: str = "test-1.js",
     connection=None,
+    hook: Optional[str] = None,
+    duration: Optional[datetime.timedelta] = datetime.timedelta(seconds=10),
+    manual_insert: Optional[bool] = False,
 ):
+    if manual_insert:
+        connection = connection if connection else connections.get("default")
+        _id = str(uuid4())
+        payload = [
+            _id,
+            "sample-suite",
+            "YET_TO_CALC",
+            "2024-10-02 21:04:00.349714+00:00" if started else None,
+            "2024-10-02 21:04:00.361714+00:00" if started else None,
+            1,
+            1,
+            0,
+            0,
+            2000 if started else 0,
+            0,
+            file,
+            hook if hook else (SuiteType.TEST if is_test else SuiteType.SUITE),
+            "[]",
+            str(session_id),
+            "[]",
+        ]
+        await connection.execute_query(
+            'INSERT INTO "suitebase" ("suiteID","title","standing","started","ended","tests","passed",'
+            '"failed","skipped","duration","retried","file","suiteType","errors",'
+            '"session_id","tags"'
+            ") VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            payload,
+        )
+        return payload
     extras = {standing.lower(): 1} if is_test else {}
     error = [] if standing != Status.FAILED else [{"message": "sample-error"}]
 
+    save_duration = (duration.seconds * 1_000) if duration else 12
+
     return await SuiteBase.create(
         session_id=session_id,
-        suiteType=SuiteType.TEST if is_test else SuiteType.SUITE,
-        started=started.isoformat(),
-        ended=started + datetime.timedelta(milliseconds=12),
+        suiteType=hook if hook else (SuiteType.TEST if is_test else SuiteType.SUITE),
+        started=started.isoformat() if started else None,
+        ended=(
+            (started + (duration if duration else datetime.timedelta(milliseconds=12)))
+            if started
+            else None
+        ),
         title=name,
         standing=standing,
+        duration=save_duration,
+        setup_duration=save_duration if hook == SuiteType.SETUP else 0,
+        teardown_duration=save_duration if hook == SuiteType.TEARDOWN else 0,
         file=file,
         parent=parent,
         tests=1,
@@ -50,7 +93,11 @@ async def helper_create_suite(
 
 
 async def helper_create_all_types_of_tests(
-    session_id: str, parent: str, retried=0, connection=None
+    session_id: str,
+    parent: str,
+    retried=0,
+    connection=None,
+    manual_insert: Optional[bool] = False,
 ):
     tests = []
 
@@ -66,6 +113,7 @@ async def helper_create_all_types_of_tests(
                     _,
                     retried=retried,
                     connection=connection,
+                    manual_insert=manual_insert,
                 )
             )
     return tests
@@ -78,6 +126,7 @@ async def helper_create_session_with_hierarchy_with_no_retries(
     started=datetime.datetime.now(),
     connection=None,
     skip_register=False,
+    manual_insert: Optional[bool] = False,
 ):
     to_return = []
 
@@ -90,15 +139,23 @@ async def helper_create_session_with_hierarchy_with_no_retries(
             started=started,
             file=thing,
             connection=connection,
+            manual_insert=manual_insert,
         )
         to_return.append(str(session.sessionID))
         await helper_create_all_types_of_tests(
-            session.sessionID, suite.suiteID, connection=connection
+            session.sessionID,
+            suite[0] if manual_insert else suite.suiteID,
+            connection=connection,
+            manual_insert=manual_insert,
         )
         await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await session.save(using_db=connection)
         if not skip_register:
-            await register_patch_suite(suite.suiteID, test_id, connection=connection)
+            await register_patch_suite(
+                suite[0] if manual_insert else suite.suiteID,
+                test_id,
+                connection=connection,
+            )
 
     return to_return
 
@@ -130,12 +187,12 @@ async def helper_create_normal_suites(
 
         for test in range(3):
             await sleep(0.002)
-            started = datetime.datetime.now()
+            test_started_at = started + datetime.timedelta(milliseconds=2.1 * test)
             test = await SuiteBase.create(
                 session_id=session_id,
                 suiteType=SuiteType.TEST,
                 started=started.isoformat(),
-                ended=started + datetime.timedelta(milliseconds=2),
+                ended=test_started_at + datetime.timedelta(milliseconds=2),
                 title=f"test-{index + 1}-{test + 1}",
                 standing=Status.FAILED,
                 file=suite_files[index],
@@ -194,14 +251,13 @@ async def helper_create_written_attachment(
         entity_id=test_id,
         type=AttachmentType.PNG,
         description=description,
+        title=title,
+        value="",
         using_db=connection,
     )
     file_name = f"{str(record.attachmentID)}.{record.type.lower()}"
-    await record.update_from_dict(
-        dict(
-            attachmentValue=dict(value=file_name, title=title),
-        )
-    )
+    record.value = file_name
+    await record.save()
     (written / str(suite_id)).mkdir(exist_ok=True)
     (written / str(suite_id) / file_name).write_text("SAMPLE-NOTES")
     return record

@@ -1,7 +1,7 @@
 from httpx import Client
 from datetime import datetime
 from subprocess import Popen
-from typing import Union, Optional, Dict
+from typing import Union, Optional, Dict, Callable, List
 from loguru import logger
 from time import sleep
 from sys import stdout, stderr
@@ -35,8 +35,10 @@ class CommonReporter:
     def __init__(self, path: str = "TestResults", port: Union[str, int] = 6969):
         self.note = dict()
         self.set_context(False, path, port)
+        self.lock_attachments = Lock()
         self.connection_established = False
         self.waiting = Lock()
+        self.attachments: List[Dict] = []
 
     def postfix(self, fix: str):
         return f"{self.url}/{fix}"
@@ -59,7 +61,14 @@ class CommonReporter:
                         for refer_as, refer_to in kwargs["append"].items()
                     },
                 }
-            kwargs.pop("append") if "append" in kwargs else ...
+
+            if kwargs.get("json", False) and kwargs.get("map_value", False):
+                for change_for in kwargs["json"]:
+                    before = change_for[kwargs["map_value"]]
+                    change_for[kwargs["map_value"]] = self.note[before]
+
+            for to_pop in ("append", "map_value"):
+                kwargs.pop(to_pop) if to_pop in kwargs else ...
 
             response: Response = postman(url, **kwargs)
             if response.status_code // 200 != 1:
@@ -174,8 +183,9 @@ class CommonReporter:
         reason: str,
         post_it: bool,
         postfix: str,
-        payload: Dict,
+        payload: Union[Dict, List],
         save_it: Optional[str] = None,
+        map_value: str = None,
         append: Optional[Dict[str, str]] = None,
     ):
         logger.debug(reason)
@@ -186,6 +196,7 @@ class CommonReporter:
             save_it if save_it else False,
             json=payload,
             append=append,
+            map_value=map_value,
         )
 
     def create_session(self, started: datetime):
@@ -228,6 +239,7 @@ class CommonReporter:
     def update_test_entity(
         self, payload, node_id: str, punch_in: Optional[bool] = False
     ):
+        self.send_chunk_of_attachments()
         return self.call(
             f"Updating Test Entity: {node_id}",
             False,
@@ -235,6 +247,20 @@ class CommonReporter:
             payload,
             append=dict(suiteID=node_id),
         )
+
+    def send_chunk_of_attachments(self):
+        with self.lock_attachments:
+            if not self.attachments:
+                return
+
+            self.call(
+                "Sending chunk of attachments",
+                True,
+                "Attachments",
+                [*self.attachments],
+                map_value="entity_id",
+            )
+            self.attachments.clear()
 
     def update_test_session(self, payload: Dict):
         return self.call(
@@ -250,6 +276,8 @@ class CommonReporter:
             return self.client.put(
                 self.update_postfix("Run"), json=payload.model_dump()
             )
+        else:
+            self.send_chunk_of_attachments()
         return self.call(
             "Updating Test Run",
             False,
@@ -267,6 +295,8 @@ class CommonReporter:
         with self.waiting:
             if force_call:
                 return self.client.post(self.postfix("bye"))
+            else:
+                self.send_chunk_of_attachments()
             self.postman.submit(
                 self.ensure_mails, self.client.post, self.postfix("bye"), False
             )

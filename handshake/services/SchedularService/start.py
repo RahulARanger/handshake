@@ -39,7 +39,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_SUITE_RETRIED_MAP,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
-from handshake.services.SchedularService.pruneTasks import pruneTasks
+from handshake.services.SchedularService.flag_tasks import pruneTasks
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.handlePending import patch_jobs
@@ -473,12 +473,11 @@ WHERE rb.ended <> '' order by rb.started;
             await StaticBase.filter(entity__parent=suite_id)
             .annotate(
                 id=RawSQL("entity_id"),
-                title=RawSQL("attachmentValue ->> 'title'"),
-                file=RawSQL("attachmentValue ->> 'value'"),
+                file=RawSQL("value"),
                 url=RawSQL(
-                    f"'/api/Attachments' || '/{run_id}/' || entity_id || '/' || (attachmentValue ->> 'value')"
+                    f"'/api/Attachments' || '/{run_id}/' || entity_id || '/' || value"
                     if self.dev_run
-                    else f"'/Attachments' || '/{run_id}/' || entity_id || '/' || (attachmentValue ->> 'value')"
+                    else f"'/Attachments' || '/{run_id}/' || entity_id || '/' || value"
                 ),
             )
             .all()

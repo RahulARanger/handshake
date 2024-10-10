@@ -47,6 +47,7 @@ from handshake.services.SchedularService.register import (
 )
 from pydantic import ValidationError
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
+from tortoise.expressions import F
 
 update_service = Blueprint("UpdateService", url_prefix="/save")
 
@@ -132,7 +133,9 @@ async def punch_in_test_suite(request: Request) -> HTTPResponse:
 async def update_suite_details(request: Request) -> HTTPResponse:
     payload = request.json
     if payload.get("started", False) is None:
-        payload.pop("started")
+        payload.pop(
+            "started"
+        )  # started is optional, so we are removing it from update payload
 
     suite = UpdateSuite.model_validate(payload)
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
@@ -140,6 +143,8 @@ async def update_suite_details(request: Request) -> HTTPResponse:
         logger.error("Was not able to found {} suite", str(suite.suiteID))
         return text(f"Suite {suite.suiteID} was not found", status=404)
 
+    # first we save the details which was provided
+    before_duration = suite_record.duration
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
     else:
@@ -147,15 +152,38 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             suite.standing.lower(): 1,
             "tests": 1,
         }
+        if (
+            suite_record.suiteType == SuiteType.TEARDOWN
+            or suite_record.suiteType == SuiteType.SETUP
+        ):
+            note[f"{suite_record.suiteType.lower()}_duration"] = suite.duration
         await suite_record.update_from_dict(note)
 
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    if suite_record.suiteType == SuiteType.SUITE:
-        await register_patch_suite(suite_record.suiteID, get_test_id())
+    # now we calculate certain data
+    added_task = False
 
-    return text(str(suite_record.suiteID), status=200)
+    match suite_record.suiteType:
+        case SuiteType.SUITE:
+            added_task = bool(
+                await register_patch_suite(suite_record.suiteID, get_test_id())
+            )
+        case SuiteType.SETUP:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                setup_duration=F("setup_duration")
+                + suite_record.duration
+                - before_duration
+            )
+        case SuiteType.TEARDOWN:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                teardown_duration=F("teardown_duration")
+                + suite_record.duration
+                - before_duration
+            )
+
+    return text(str(suite_record.suiteID), status=201 if added_task else 200)
 
 
 @update_service.put("/Session", error_format="json")
@@ -235,8 +263,17 @@ async def updateSuite(request: Request) -> HTTPResponse:
     await suite_record.update_from_dict(suite.model_dump())
     await suite_record.save()
 
-    if suite_record.suiteType == SuiteType.SUITE:
-        await register_patch_suite(suite_record.suiteID, get_test_id())
+    match suite_record.suiteType:
+        case SuiteType.SUITE:
+            await register_patch_suite(suite_record.suiteID, get_test_id())
+        case SuiteType.SETUP:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                setup_duration=F("setup_duration") + suite_record.duration
+            )
+        case SuiteType.TEARDOWN:
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                teardown_duration=F("teardown_duration") + suite_record.duration
+            )
 
     return text(
         f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201
@@ -295,7 +332,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                 assertions.append(
                     await AssertBase(
                         **dict(
-                            entity_id=attachment.entityID,
+                            entity_id=attachment.entity_id,
                             title=attachment.title,
                             message=attachment.value["message"],
                             passed=attachment.value["passed"],
@@ -306,22 +343,7 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                 )
 
             case _:
-                (
-                    attachments.append(
-                        await AttachmentBase(
-                            **dict(
-                                entity_id=attachment.entityID,
-                                description=attachment.description,
-                                type=attachment.type,
-                                attachmentValue=dict(
-                                    color=attachment.color,
-                                    value=attachment.value,
-                                    title=attachment.title,
-                                ),
-                            )
-                        )
-                    )
-                )
+                attachments.append(AttachmentBase(**attachment.model_dump()))
 
     if attachments:
         await AttachmentBase.bulk_create(attachments)
@@ -390,24 +412,16 @@ async def update_run(request: Request) -> HTTPResponse:
 )
 async def saveImage(request: Request) -> HTTPResponse:
     attachment = WrittenAttachmentForEntity.model_validate(request.json)
-    record = await StaticBase.create(
-        entity_id=attachment.entityID,
-        description=attachment.description,
-        type=attachment.type,
-    )
+    record = await StaticBase.create(**attachment.model_dump())
     file_name = f"{record.attachmentID}.{record.type.lower()}"
-    await record.update_from_dict(
-        dict(
-            attachmentValue=dict(value=file_name, title=attachment.title),
-        )
-    )
+    record.value = file_name
     await record.save()
     # we can save the file in this request itself, but no. we let the framework's custom reporter cook.
     return text(
         str(
             attachment_folder(db_path())
             / get_test_id()
-            / str(attachment.entityID)
+            / str(attachment.entity_id)
             / file_name
         ),
         status=201,

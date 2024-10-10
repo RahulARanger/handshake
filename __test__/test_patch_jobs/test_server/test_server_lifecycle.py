@@ -135,6 +135,7 @@ async def test_life_cycle(root_dir):
         )
 
         resp = session.post(createPts("Suite"), json=payload)
+        assert resp.status_code == 201, resp.text
 
         test = await SuiteBase.filter(suiteID=resp.text).first()
         assert test.title == f"sample-test-{_}"
@@ -188,7 +189,7 @@ async def test_life_cycle(root_dir):
     # MARKING TEST SUITE
 
     resp = session.put(updatePts("Suite"), json=payload)
-    assert resp.status_code == 200
+    assert resp.status_code == 201
 
     test = await SuiteBase.filter(suiteID=parent).first()
     assert test.standing == "YET_TO_CALC"

@@ -4,6 +4,7 @@ from tortoise.models import Model
 from tortoise.fields import (
     JSONField,
     CharEnumField,
+    CharField,
     ForeignKeyField,
     ForeignKeyRelation,
     TextField,
@@ -12,15 +13,24 @@ from tortoise.fields import (
 
 
 class AttachmentFields(Model):
-    attachmentValue = JSONField(
-        description="An attachment value", default={"value": ""}
+    extraValues = JSONField(
+        description="Key to Value pair to understand more about the attachment",
+        default={},
     )
     description = TextField(
         null=False, description="Description Field for the attachment"
     )
+    value = TextField(description="Attachment Value", default="", null=False)
+    title = CharField(
+        null=False, max_length=300, description="Title field for the Attachment"
+    )
     type = CharEnumField(
         AttachmentType,
         description="Type of an attachment, refer the enums to get an idea",
+    )
+    tags = JSONField(
+        description="comma separated list of tags to label this attachment",
+        default=[],
     )
 
     class Meta:
@@ -36,9 +46,6 @@ class AttachmentBase(AttachmentFields):
 
 class StaticBase(AttachmentFields):
     attachmentID = UUIDField(pk=True)
-    attachmentValue = JSONField(
-        description="An attachment value", default={"value": "", "title": ""}
-    )
     entity: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
         "models.SuiteBase", related_name="staticAttachments", to_field="suiteID"
     )

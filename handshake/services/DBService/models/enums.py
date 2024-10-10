@@ -29,13 +29,22 @@ class RunStatus(StrEnum):
     COMPLETED = "COMPLETED"
     PENDING = "PENDING"
     INTERRUPTED = "INTERRUPTED"
-    SKIPPED = "SKIPPED"
+    INTERNAL_ERROR = "INTERNAL_ERROR"
+    SKIPPED = "SKIPPED"  # not in use as of now
     EXPECTED_TO_FAIL = "EXPECTED_TO_FAIL"
 
 
 class SuiteType(StrEnum):
     TEST = "TEST"
     SUITE = "SUITE"
+    SETUP = "SETUP"
+    TEARDOWN = "TEARDOWN"
+
+
+class LogType(StrEnum):
+    ERROR = "ERROR"
+    WARN = "WARN"
+    INFO = "INFO"
 
 
 class AttachmentType(StrEnum):
@@ -48,21 +57,12 @@ class AttachmentType(StrEnum):
     IMG = "IMAGE"
     LINK = "LINK"
     ASSERT = "ASSERT"
-
-
-class LogType(StrEnum):
-    ERROR = "ERROR"
-    WARN = "WARN"
-    INFO = "INFO"
+    NOTE = "NOTE"
 
 
 class LogDisplayType(StrEnum):
     SEPARATE = "SEPARATE"
     TOGETHER = "TOGETHER"
-
-
-class PrunedRecords(StrEnum):
-    RUN = "RUN"
 
 
 class ConfigKeys(StrEnum):
