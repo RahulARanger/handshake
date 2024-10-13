@@ -8,6 +8,7 @@ from handshake.services.Endpoints.blueprints.utils import (
     extractPayload,
     attachInfo,
     attachError,
+    attachWarn,
 )
 from sanic import Sanic, Request
 from sanic.response import JSONResponse
@@ -40,5 +41,10 @@ async def handle_response(request: Request, response: JSONResponse):
         return response
 
     payload = extractPayload(request, response)
-    await attachError(payload, request.url)
+    if response.status == 400:
+        await attachError(payload, request.url)
+    else:
+        # let's not raise an error whenever someone requests something from this server
+        await attachWarn(payload, request.url)
+
     return JSONResponse(body=payload, status=response.status)

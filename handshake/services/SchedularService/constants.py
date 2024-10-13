@@ -13,6 +13,7 @@ class JobType(StrEnum):
 
 writtenAttachmentFolderName = "Attachments"
 exportAttachmentFolderName = "Import"
+downloadFolderName = "downloads"
 
 EXPORT_RUNS_PAGE_FILE_NAME = "runs.json"
 EXPORT_RUN_PAGE_FILE_NAME = "run.json"

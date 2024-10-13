@@ -161,16 +161,30 @@ def step_back(collection_path: str):
     type=C_Path(exists=True, file_okay=True, readable=True),
 )
 @option(
-    "--include",
+    "--inside",
     "-i",
     required=False,
-    help="generates the Import Data folder inside the test results (used for internal purposes only)",
+    help="generates the export inside the TestResults itself",
     type=bool,
     is_flag=True,
     default=False,
     show_default=True,
 )
-@option("--out", "-o", type=C_Path(dir_okay=True, writable=True), required=False)
+@option(
+    "--out",
+    "-o",
+    help="generates the export at this desired place",
+    type=C_Path(dir_okay=True, writable=True),
+    required=False,
+)
+@option(
+    "--export_mode",
+    "-e",
+    help="generates either json/html export",
+    type=str,
+    required=False,
+    default="json",
+)
 @option(
     "--dev",
     "-d",
@@ -188,7 +202,8 @@ def patch(
     config_path: Optional[str] = None,
     out: str = None,
     dev: bool = False,
-    include=False,
+    inside=False,
+    export_mode: str = "json",
 ):
     if log_file:
         logger.add(
@@ -200,7 +215,7 @@ def patch(
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    scheduler = Scheduler(collection_path, out, reset, build, include, dev)
+    scheduler = Scheduler(collection_path, out, reset, build, inside, dev, export_mode)
     try:
         run(scheduler.start(config_path))
     except (KeyboardInterrupt, SystemExit):
@@ -402,9 +417,9 @@ def yet_to_process(ctx: Context):
 
 
 if __name__ == "__main__":
-    scheduler = Scheduler("../../../TestResults")
+    _scheduler = Scheduler("../../../TestResults")
     try:
-        run(scheduler.start())
+        run(_scheduler.start())
     except (KeyboardInterrupt, SystemExit):
         logger.warning("Scheduler terminated explicitly...")
         run(close_connection())

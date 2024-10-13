@@ -1,23 +1,18 @@
-import json
-from asyncio import gather, to_thread, TaskGroup
+from asyncio import gather, to_thread
 from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     db_path,
     close_connection,
     attachment_folder,
 )
-from shutil import rmtree, copytree
-from tarfile import open
+from shutil import rmtree
 from pathlib import Path
 from typing import Optional
 from loguru import logger
-from tortoise.expressions import Q, RawSQL
+from tortoise.expressions import Q
 from ANSIToHTML.parser import Parser
 from handshake.services.DBService.models.result_base import (
     RunBase,
-    SuiteBase,
-    SuiteType,
-    SessionBase,
 )
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
@@ -25,28 +20,12 @@ from handshake.services.DBService.models.config_base import (
     ConfigKeys,
 )
 from handshake.services.SchedularService.constants import (
-    writtenAttachmentFolderName,
     exportAttachmentFolderName,
-    EXPORT_RUN_PAGE_FILE_NAME,
-    EXPORT_PROJECTS_FILE_NAME,
-    EXPORT_RUNS_PAGE_FILE_NAME,
-    EXPORT_OVERVIEW_PAGE,
-    EXPORT_ALL_SUITES,
-    EXPORT_SUITE_PAGE_FILE_NAME,
-    EXPORT_SUITE_TESTS_PAGE,
-    EXPORT_TEST_ASSERTIONS,
-    EXPORT_TEST_ENTITY_ATTACHMENTS,
-    EXPORT_SUITE_RETRIED_MAP,
 )
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.flag_tasks import pruneTasks
-from handshake.services.DBService.models.attachmentBase import AssertBase
-from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.handlePending import patch_jobs
-from handshake.services.SchedularService.refer_types import (
-    SubSetOfRunBaseRequiredForProjectExport,
-    SuiteSummary,
-)
+from handshake.Exporters.json_exporter import JsonExporter
 
 
 class Scheduler:
@@ -58,33 +37,32 @@ class Scheduler:
         out_dir: Optional[str] = None,
         manual_reset: Optional[bool] = False,
         zipped_build: Optional[str] = None,
-        include_build: Optional[bool] = False,
+        inside_test_results: Optional[bool] = False,
         dev: Optional[bool] = False,
+        export_mode: str = "json",
     ):
+        self.db_path = db_path(root_dir)
+        self.exporter = (
+            JsonExporter(
+                self.db_path,
+                (
+                    Path(out_dir) / exportAttachmentFolderName
+                    if out_dir and not inside_test_results
+                    else self.db_path.parent / exportAttachmentFolderName
+                ),
+                dev,
+            )
+            if export_mode == "json"
+            else ...
+        )
+        self.skip_export = out_dir is None and not inside_test_results
         self.export = out_dir is None
         self.converter = Parser()
-        self.dashboard_build = zipped_build
-        self.export_dir = Path(out_dir) if out_dir and zipped_build else None
+        # self.dashboard_build = zipped_build
+        # self.export_dir = Path(out_dir) if out_dir and zipped_build else None
         self.db_path = db_path(root_dir)
-        self.include_build = include_build
-        self.dev_run = dev
-        self.import_dir = (
-            self.db_path.parent / exportAttachmentFolderName
-            if not self.export_dir
-            else self.export_dir / exportAttachmentFolderName
-        )
         self.reset = manual_reset
         self.connection: Optional[BaseDBAsyncClient] = None
-
-    async def start(self, config_path: Optional[str] = None):
-        await init_tortoise_orm(self.db_path, True, config_path=config_path)
-        self.connection = connections.get("default")
-        await self.rotate_test_runs()
-        await self.init_jobs()
-        await patch_jobs()
-        await self.export_jobs()
-
-        await close_connection()
 
     async def rotate_test_run(self, projectName: str, to_delete: int):
         project_runs = RunBase.filter(projectName=projectName).all()
@@ -150,9 +128,6 @@ class Scheduler:
 
         logger.info("Delete job is completed.")
 
-    def convert_from_ansi_to_html(self, refer_from: dict, key: str):
-        refer_from[key] = self.converter.parse(refer_from[key])
-
     async def init_jobs(self):
         await pruneTasks()
 
@@ -202,377 +177,29 @@ class Scheduler:
         await gather(pick_old_tasks(), reset_completed_runs())
         logger.debug("Pre-Patch Jobs have been initiated")
 
-    async def export_jobs(self):
-        if not self.export_dir:
-            logger.debug("Skipping export, as the output directory was not provided.")
-            if not self.include_build:
-                return
+    async def start(self, config_path: Optional[str] = None):
+        await init_tortoise_orm(self.db_path, True, config_path=config_path)
+        self.connection = connections.get("default")
+        await self.rotate_test_runs()
+        await self.init_jobs()
+        await patch_jobs()
+        if not self.skip_export:
+            await self.exporter.start_exporting()
 
-        if self.export_dir:
-            logger.debug("Exporting reports...")
-            await to_thread(self.export_files)
-            logger.info("Exporting results...")
+        await close_connection()
 
-        self.import_dir.mkdir(exist_ok=self.include_build)
-
-        await self.export_runs_page()
-        logger.info("Done!")
-
-    async def export_runs_page(self):
-        logger.debug("Exporting Runs Page...")
-
-        async with TaskGroup() as exporter:
-            runs = []
-            projects = {}
-
-            for row in (
-                await self.connection.execute_query(
-                    """
-select rb.*, cb.*,
-rank() over (order by rb.ended desc) as timelineIndex,
-rank() over (partition by projectName order by rb.ended desc) as projectIndex
-from RUNBASE rb
-left join testconfigbase cb on rb.testID = cb.test_id 
-WHERE rb.ended <> '' order by rb.started;
--- note for: projectIndex and timelineIndex, latest -> oldest => 0 - ...
-"""
-                )
-            )[-1]:
-                run = dict(row)
-                test_run = SubSetOfRunBaseRequiredForProjectExport.model_validate(run)
-                runs.append(run)
-
-                logger.info(
-                    "Exporting runs page for {} - {}",
-                    test_run.projectName,
-                    test_run.testID,
-                )
-
-                projects[test_run.projectName] = projects.get(test_run.projectName, [])
-                suite_summary: SuiteSummary = json.loads(test_run.suiteSummary)
-                projects[test_run.projectName].append(
-                    dict(
-                        testID=test_run.testID,
-                        passed=test_run.passed,
-                        failed=test_run.failed,
-                        skipped=test_run.skipped,
-                        tests=test_run.tests,
-                        passedSuites=suite_summary["passed"],
-                        failedSuites=suite_summary["failed"],
-                        skippedSuites=suite_summary["skipped"],
-                        suites=suite_summary["count"],
-                        duration=test_run.duration,
-                    )
-                )
-
-                (self.import_dir / str(test_run.testID)).mkdir(exist_ok=True)
-
-                exporter.create_task(
-                    to_thread(
-                        self.save_test_run_level_files,
-                        EXPORT_RUN_PAGE_FILE_NAME,
-                        str(test_run.testID),
-                        json.dumps(run),
-                    ),
-                    name="export-run-page",
-                )
-
-                exporter.create_task(
-                    self.export_run_page(test_run.testID),
-                    name="export-more-for-run-page",
-                )
-
-            exporter.create_task(
-                to_thread(self.save_runs_query, json.dumps(runs), json.dumps(projects)),
-                name="export-runs-page",
-            )
-
-            logger.info("Exported Runs Page!")
-
-    async def export_run_page(self, run_id: str):
-        await gather(self.export_overview_page(run_id), self.export_all_suites(run_id))
-
-    async def export_overview_page(self, run_id: str):
-        recent_suites = await (
-            SuiteBase.filter(Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE))
-            .order_by("-started")
-            .limit(6)
-            .annotate(
-                # numberOfErrors=RawSQL("json_array_length(errors)"),
-                id=RawSQL("suiteID"),
-                s=RawSQL("suitebase.started"),
-            )
-            .values(
-                "title",
-                "passed",
-                "failed",
-                "skipped",
-                "duration",
-                suiteID="id",
-                started="s",
-            )
-        )
-
-        aggregated = (
-            await SuiteBase.filter(session__test_id=run_id)
-            .annotate(
-                sessions=RawSQL("count(DISTINCT session_id)"),
-                files=RawSQL("count(DISTINCT file)"),
-            )
-            .only("sessions", "files")
-            .first()
-            .values("sessions", "files")
-        )
-
-        platforms = (
-            await SessionBase.filter(test_id=run_id)
-            .only("entityName", "entityVersion", "simplified")
-            .distinct()
-            .values("entityName", "entityVersion", "simplified")
-        )
-
-        await to_thread(
-            self.save_test_run_level_files,
-            EXPORT_OVERVIEW_PAGE,
-            run_id,
-            json.dumps(
-                dict(
-                    recentSuites=recent_suites,
-                    aggregated=aggregated,
-                    platforms=platforms,
-                )
-            ),
-        ),
-
-    async def export_all_suites(self, run_id: str):
-        all_suites = await (
-            SuiteBase.filter(Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE))
-            .order_by("started")
-            .prefetch_related("rollup")
-            .annotate(
-                numberOfErrors=RawSQL("json_array_length(errors)"),
-                id=RawSQL("suiteID"),
-                p_id=RawSQL("parent"),
-                s=RawSQL("suitebase.started"),
-                e=RawSQL("suitebase.ended"),
-                error=RawSQL("errors ->> '[0]'"),
-                nextSuite=RawSQL(
-                    "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
-                    " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
-                    " and suitebase.started <= sb.started and sb.suiteID <> suitebase.suiteID"
-                    " and 'suitebase__session'.'test_id' = ssb.test_id order by sb.started)"
-                ),
-                prevSuite=RawSQL(
-                    "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
-                    " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
-                    " and suitebase.started >= sb.started and sb.suiteID <> suitebase.suiteID"
-                    " and 'suitebase__session'.'test_id' = ssb.test_id order by sb.started)"
-                ),
-                hasChildSuite=RawSQL(
-                    "(select count(*) from suitebase sb where sb.parent=suitebase.suiteID "
-                    "and sb.suiteType='SUITE' LIMIT 1)"
-                ),
-            )
-            .values(
-                "title",
-                "passed",
-                "failed",
-                "standing",
-                "tests",
-                "skipped",
-                "duration",
-                "file",
-                "retried",
-                "tags",
-                "description",
-                "errors",
-                "error",
-                "numberOfErrors",
-                "hasChildSuite",
-                "nextSuite",
-                "prevSuite",
-                suiteID="id",
-                parent="p_id",
-                started="s",
-                ended="e",
-                entityName="session__entityName",
-                entityVersion="session__entityVersion",
-                hooks="session__hooks",
-                simplified="session__simplified",
-                rollup_passed="rollup__passed",
-                rollup_failed="rollup__failed",
-                rollup_skipped="rollup__skipped",
-                rollup_tests="rollup__tests",
-            )
-        )
-
-        await to_thread(
-            self.save_all_suites_query,
-            run_id,
-            all_suites,
-        )
-
-        await gather(
-            *[
-                self.export_suite(run_id, str(suite))
-                for suite in await SuiteBase.filter(
-                    Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE)
-                ).values_list("suiteID", flat=True)
-            ]
-        )
-
-    async def export_suite(self, run_id: str, suite_id: str):
-        tests = await (
-            SuiteBase.filter(Q(parent=suite_id))
-            .order_by("started")
-            .prefetch_related("rollup")
-            .annotate(
-                numberOfErrors=RawSQL("json_array_length(errors)"),
-                id=RawSQL("suiteID"),
-                s=RawSQL("suitebase.started"),
-                e=RawSQL("suitebase.ended"),
-                error=RawSQL("errors ->> '[0]'"),
-                assertions=RawSQL(
-                    "(select count(ab.entity_id) from assertbase ab where ab.entity_id=suitebase.suiteID)"
-                ),
-            )
-            .values(
-                "title",
-                "standing",
-                "assertions",
-                "duration",
-                "file",
-                "retried",
-                "tags",
-                "suiteType",
-                "description",
-                "errors",
-                "error",
-                "numberOfErrors",
-                suiteID="id",
-                started="s",
-                ended="e",
-                hooks="session__hooks",
-                rollup_passed="rollup__passed",
-                rollup_failed="rollup__failed",
-                rollup_skipped="rollup__skipped",
-                rollup_tests="rollup__tests",
-            )
-        )
-
-        assertions = (
-            await AssertBase.filter(entity__parent=suite_id)
-            .annotate(id=RawSQL("entity_id"))
-            .all()
-            .values("title", "message", "interval", "passed", "wait", entity_id="id")
-        )
-
-        written_records = {}
-        assertion_records = {}
-        written = (
-            await StaticBase.filter(entity__parent=suite_id)
-            .annotate(
-                id=RawSQL("entity_id"),
-                file=RawSQL("value"),
-                url=RawSQL(
-                    f"'/api/Attachments' || '/{run_id}/' || entity_id || '/' || value"
-                    if self.dev_run
-                    else f"'/Attachments' || '/{run_id}/' || entity_id || '/' || value"
-                ),
-            )
-            .all()
-            .values("type", "title", "description", "file", "url", entity_id="id")
-        )
-
-        for refer_from, save_in, for_records in zip(
-            (written, assertions),
-            (written_records, assertion_records),
-            ("written", "assertions"),
-        ):
-            for record in refer_from:
-                records = save_in.get(record["entity_id"], [])
-                records.append(record)
-                if for_records == "assertions":
-                    self.convert_from_ansi_to_html(record, "message")
-                save_in[record["entity_id"]] = records
-
-        retried_map = {}
-
-        _, rows = await connections.get("default").execute_query(
-            "select key, value as suite, rb.tests, length, suite_id"
-            " from retriedbase rb join json_each(rb.tests)"
-            " join suitebase sb on suite = sb.suiteID"
-            " join sessionbase ssb on ssb.sessionID = sb.session_id"
-            " where ssb.test_id = ?",
-            (run_id,),
-        )
-
-        for row in rows:
-            retried_map[row["suite"]] = dict(row)
-
-        await to_thread(
-            self.save_under_suite_folder,
-            EXPORT_SUITE_TESTS_PAGE,
-            run_id,
-            suite_id,
-            json.dumps(tests),
-        )
-        await to_thread(
-            self.save_under_suite_folder,
-            EXPORT_TEST_ASSERTIONS,
-            run_id,
-            suite_id,
-            json.dumps(assertion_records),
-        )
-        await to_thread(
-            self.save_under_suite_folder,
-            EXPORT_TEST_ENTITY_ATTACHMENTS,
-            run_id,
-            suite_id,
-            json.dumps(dict(written=written_records)),
-        )
-
-        await to_thread(
-            self.save_under_suite_folder,
-            EXPORT_SUITE_RETRIED_MAP,
-            run_id,
-            suite_id,
-            json.dumps(retried_map),
-        )
-
-    def export_files(self):
-        # we reset entire export folder
-        if self.export_dir.exists():
-            logger.debug("removing previous results")
-            rmtree(self.export_dir)
-
-        self.export_dir.mkdir(exist_ok=False)
-
-        with open(self.dashboard_build, "r:bz2") as tar_file:
-            tar_file.extractall(self.export_dir)
-
-        copytree(
-            self.db_path.parent / writtenAttachmentFolderName,
-            self.export_dir / writtenAttachmentFolderName,
-        )
-
-    def save_runs_query(self, feed: str, projectsFeed: str):
-        (self.import_dir / EXPORT_RUNS_PAGE_FILE_NAME).write_text(feed)
-        (self.import_dir / EXPORT_PROJECTS_FILE_NAME).write_text(projectsFeed)
-
-    def save_test_run_level_files(self, file_name: str, testID: str, feed: str):
-        (self.import_dir / testID / file_name).write_text(feed)
-
-    def save_all_suites_query(self, testID: str, feed: dict):
-        (self.import_dir / testID / EXPORT_ALL_SUITES).write_text(json.dumps(feed))
-        for suite in feed:
-            suite_id = suite["suiteID"]
-            (self.import_dir / testID / suite_id).mkdir(exist_ok=True)
-            self.save_under_suite_folder(
-                EXPORT_SUITE_PAGE_FILE_NAME, testID, suite_id, json.dumps(suite)
-            )
-
-    def save_under_suite_folder(
-        self, file_name: str, testID: str, suiteID: str, feed: str
-    ):
-        (self.import_dir / testID / suiteID / file_name).write_text(feed)
+    # async def export_jobs(self):
+    #     if not self.export_dir:
+    #         logger.debug("Skipping export, as the output directory was not provided.")
+    #         if not self.include_build:
+    #             return
+    #
+    #     if self.export_dir:
+    #         logger.debug("Exporting reports...")
+    #         await to_thread(self.export_files)
+    #         logger.info("Exporting results...")
+    #
+    #     self.import_dir.mkdir(exist_ok=self.include_build)
+    #
+    #     await self.export_runs_page()
+    #     logger.info("Done!")
