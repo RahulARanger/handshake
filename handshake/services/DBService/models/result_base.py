@@ -125,6 +125,9 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     description = TextField(
         null=True, default="", description="Summary if provided for the test entity"
     )
+    case_index = CharField(
+        max_length=12, default="", description="id for representation"
+    )
     parent = CharField(max_length=45, description="Parent Suite's ID", default="")
     tags = JSONField(
         description="comma separated list of tags used by the framework to filter the suites or spec files",

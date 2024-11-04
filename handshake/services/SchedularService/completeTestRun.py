@@ -16,6 +16,7 @@ from handshake.services.DBService.models.types import Status, SuiteType
 from handshake.services.SchedularService.refer_types import PathTree, PathItem
 from handshake.services.SchedularService.modifySuites import fetch_key_from_status
 from tortoise.functions import Sum, Max, Min, Count, Lower
+from tortoise.connection import connections
 from datetime import datetime, timezone
 from typing import List, Tuple
 from pathlib import Path
@@ -123,6 +124,25 @@ class PatchTestRun:
         ) or datetime.now(timezone.utc)
         test_result.pop(self.actual_start) if self.actual_start in test_result else ...
         test_result.pop(self.actual_end) if self.actual_end in test_result else ...
+
+        await connections.get("default").execute_query(
+            f"""
+update suitebase 
+set case_index = sb.case_index
+from (
+    select suiteID as suite_id,
+        IIF(suiteType = 'SUITE', 'TS',
+            IIF(suiteType = 'TEST', 'TC',
+                IIF(suiteType = 'SETUP',
+                    'ST', IIF(suiteType = 'TEARDOWN', 'TD', '')))) ||  
+            RANK() OVER(PARTITION by suiteType, retried ORDER BY started, ended, parent <> '', title, suiteID) case_index
+        from suitebase
+        where session_id in (select sessionID from sessionbase where test_id = ?)
+) sb
+where suiteID = sb.suite_id
+""",
+            (str(self.test_id),),
+        )
 
         await self.test.update_from_dict(
             dict(

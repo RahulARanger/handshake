@@ -191,7 +191,7 @@ async def helper_create_normal_suites(
             test = await SuiteBase.create(
                 session_id=session_id,
                 suiteType=SuiteType.TEST,
-                started=started.isoformat(),
+                started=test_started_at.isoformat(),
                 ended=test_started_at + datetime.timedelta(milliseconds=2),
                 title=f"test-{index + 1}-{test + 1}",
                 standing=Status.FAILED,

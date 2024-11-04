@@ -4,6 +4,7 @@ from handshake.services.DBService.models import (
     RunBase,
     TaskBase,
     TestLogBase,
+    SuiteBase,
 )
 from subprocess import run
 from handshake.services.DBService.models.enums import Status, LogType
@@ -17,6 +18,11 @@ from __test__.test_patch_jobs.test_patch_jobs.test_patch_suite import TestPatchS
 from handshake.services.SchedularService.handlePending import patch_jobs
 from tortoise.expressions import Q
 from handshake.services.SchedularService.constants import JobType
+
+
+async def case_index(test_id):
+    t_record = await SuiteBase.filter(suiteID=test_id).first()
+    return t_record.case_index
 
 
 @mark.usefixtures("sample_test_session")
@@ -55,7 +61,7 @@ class TestPatchRunJob:
             session_id, file=check_for
         )  # this should not be counted in summary
 
-        _, suites = await create_hierarchy(
+        tests, suites = await create_hierarchy(
             session_id,
             parent_suite.suiteID,
             test.testID,
@@ -87,6 +93,28 @@ class TestPatchRunJob:
             == pathlib.Path("inside-1") / "spec-1.js"
         )
 
+        # edge case test: if started and ended are same
+        # we then check the parent is null or not, if null lower index else higher index
+        # if parent is not null, next preference is over the title of the suite/test
+        # still same, then suiteID
+
+        parent_suite = await SuiteBase.filter(suiteID=parent_suite.suiteID).first()
+
+        assert await case_index(parent_suite.suiteID) == "TS1"
+        for index, suite in enumerate(suites):
+            assert await case_index(suite) == f"TS{index+ 2}", "case index must match"
+
+        assert await case_index(tests[0][0]) == "TC1"
+        assert (
+            await case_index(tests[1][0]) == "TC2"
+        )  # because the ended timestamp is same for the first test case
+        # of every suite
+        assert await case_index(tests[2][0]) == "TC3"
+
+        assert await case_index(tests[0][-1]) == "TC7"
+        assert await case_index(tests[1][-1]) == "TC8"
+        assert await case_index(tests[2][-1]) == "TC9"
+
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session
     ):
@@ -114,6 +142,20 @@ class TestPatchRunJob:
         await second_session.save()
 
         assert await patchTestRun(test.testID)
+
+        # case_index testing
+        note = {"TS1", "TS2"}
+        note_2 = {"TS5", "TS6"}
+
+        note.remove(await case_index(suites[0]))
+        assert len(note) == 1
+        note.remove(await case_index(second_suites[0]))
+        assert len(note) == 0
+
+        note_2.remove(await case_index(suites[-1]))
+        assert len(note_2) == 1
+        note_2.remove(await case_index(second_suites[-1]))
+        assert len(note_2) == 0
 
         test_record = await RunBase.filter(testID=test.testID).first()
 
@@ -259,6 +301,13 @@ class TestPatchTestRunThroughScheduler:
         assert result.returncode == 0
 
         test_record = await RunBase.filter(testID=test.testID).first()
+        # case_index testing
+        note = {"TS1", "TS2"}
+
+        note.remove(await case_index(suites[0]))
+        assert len(note) == 1
+        note.remove(await case_index(second_suites[0]))
+        assert len(note) == 0
 
         assert test_record.tests == (2 * (3 * 3)) * 3
         assert test_record.standing == Status.FAILED
@@ -322,10 +371,16 @@ class TestPatchTestRunThroughScheduler:
             test_2.testID
         ), await helper_create_test_session(test_2.testID)
 
-        await create_hierarchy(session_11.sessionID, "", test_1.testID)
-        await create_hierarchy(session_12.sessionID, "", test_1.testID)
+        first_tests, first_suites = await create_hierarchy(
+            session_11.sessionID, "", test_1.testID
+        )
+        second_tests, second_suites = await create_hierarchy(
+            session_12.sessionID, "", test_1.testID
+        )
         await create_hierarchy(session_21.sessionID, "", test_2.testID)
-        await create_hierarchy(session_22.sessionID, "", test_2.testID)
+        last_tests, last_suites = await create_hierarchy(
+            session_22.sessionID, "", test_2.testID
+        )
 
         await session_11.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
         await session_12.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
@@ -340,6 +395,14 @@ class TestPatchTestRunThroughScheduler:
         await register_patch_test_run(test_2.testID)
 
         await patch_jobs()
+
+        assert await case_index(first_tests[0][0]) in {"TC1", "TC2"}
+        assert await case_index(second_tests[0][0]) in {"TC1", "TC2"}
+        assert await case_index(last_tests[0][0]) in {"TC1", "TC2"}
+
+        assert await case_index(first_suites[0]) in {"TS1", "TS2"}
+        assert await case_index(second_suites[0]) in {"TS1", "TS2"}
+        assert await case_index(last_suites[0]) in {"TS1", "TS2"}
 
         test_record = await RunBase.filter(testID=test_1.testID).first()
 
