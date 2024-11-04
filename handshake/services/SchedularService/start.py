@@ -9,7 +9,7 @@ from shutil import rmtree
 from pathlib import Path
 from typing import Optional
 from loguru import logger
-from tortoise.expressions import Q
+from tortoise.expressions import Q, Subquery
 from ANSIToHTML.parser import Parser
 from handshake.services.DBService.models.result_base import (
     RunBase,
@@ -22,10 +22,15 @@ from handshake.services.DBService.models.config_base import (
 from handshake.services.SchedularService.constants import (
     exportAttachmentFolderName,
 )
+from handshake.services.SchedularService.register import (
+    warn_about_test_run,
+    register_bulk_excel_export,
+)
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.flag_tasks import pruneTasks
 from handshake.services.SchedularService.handlePending import patch_jobs
 from handshake.Exporters.json_exporter import JsonExporter
+from handshake.Exporters.excel_exporter import excel_export
 
 
 class Scheduler:
@@ -40,6 +45,7 @@ class Scheduler:
         inside_test_results: Optional[bool] = False,
         dev: Optional[bool] = False,
         export_mode: str = "json",
+        include_excel_export: Optional[bool] = False,
     ):
         self.db_path = db_path(root_dir)
         self.exporter = (
@@ -55,6 +61,7 @@ class Scheduler:
             if export_mode == "json"
             else ...
         )
+        self.excel_export = include_excel_export
         self.skip_export = out_dir is None and not inside_test_results
         self.export = out_dir is None
         self.converter = Parser()
@@ -141,8 +148,14 @@ class Scheduler:
         if self.reset:
             logger.info("It was requested to reset all of the completed test runs")
 
+        to_reset = (
+            (Q(type=JobType.MODIFY_TEST_RUN) | Q(type=JobType.EXPORT_EXCEL))
+            if self.excel_export and excel_export
+            else Q(type=JobType.MODIFY_TEST_RUN)
+        )
+
         to_modify_test_runs = (
-            await TaskBase.filter(type=JobType.MODIFY_TEST_RUN, processed=True).all()
+            await TaskBase.filter(to_reset & Q(processed=True)).all()
             if self.reset
             else []
         )
@@ -150,7 +163,11 @@ class Scheduler:
 
         async def pick_old_tasks():
             for task in to_pick:
-                logger.info("scheduling old task {} for this iteration", task.ticketID)
+                logger.info(
+                    "scheduling old task {} : {} for this iteration",
+                    task.type,
+                    task.ticketID,
+                )
                 task.picked = False
                 task.processed = False
 
@@ -174,7 +191,32 @@ class Scheduler:
                 reset_from_config.value = ""
                 await reset_from_config.save()
 
-        await gather(pick_old_tasks(), reset_completed_runs())
+        async def add_export_jobs():
+            if not self.excel_export:
+                return
+
+            test_ids_to_pick = await RunBase.filter(
+                ~Q(
+                    testID__in=Subquery(
+                        TaskBase.filter(type=JobType.EXPORT_EXCEL).values_list(
+                            "test_id", flat=True
+                        )
+                    )
+                )
+            ).values_list("testID", flat=True)
+
+            if not excel_export:
+                await warn_about_test_run(
+                    test_ids_to_pick,
+                    "Excel Export due to non-availability of the library, please proceed with the pip install "
+                    "handshakes[excel-export] to download the openpyxl which is required for the excel export",
+                    about="excel_export",
+                )
+                return
+
+            test_ids_to_pick and await register_bulk_excel_export(test_ids_to_pick)
+
+        await gather(pick_old_tasks(), reset_completed_runs(), add_export_jobs())
         logger.debug("Pre-Patch Jobs have been initiated")
 
     async def start(self, config_path: Optional[str] = None):
@@ -182,7 +224,7 @@ class Scheduler:
         self.connection = connections.get("default")
         await self.rotate_test_runs()
         await self.init_jobs()
-        await patch_jobs()
+        await patch_jobs(self.excel_export, self.db_path)
         if not self.skip_export:
             await self.exporter.start_exporting()
 

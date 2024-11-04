@@ -9,11 +9,13 @@ class JobType(StrEnum):
     EXECUTOR = "say-bye-if-required"
     PRUNE_TASKS = "prune-tasks"
     DELETE_RUNS = "delete-runs"
+    EXPORT_EXCEL = "export-excel-job"
 
 
 writtenAttachmentFolderName = "Attachments"
 exportAttachmentFolderName = "Import"
 downloadFolderName = "downloads"
+exportExportFileName = "excel-export.xlsx"
 
 EXPORT_RUNS_PAGE_FILE_NAME = "runs.json"
 EXPORT_RUN_PAGE_FILE_NAME = "run.json"

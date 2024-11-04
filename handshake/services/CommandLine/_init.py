@@ -186,6 +186,15 @@ def step_back(collection_path: str):
     default="json",
 )
 @option(
+    "--xlsx",
+    "-xl",
+    help="generates excel export of the test run",
+    required=False,
+    is_flag=True,
+    default=False,
+    show_default=True,
+)
+@option(
     "--dev",
     "-d",
     required=False,
@@ -204,6 +213,7 @@ def patch(
     dev: bool = False,
     inside=False,
     export_mode: str = "json",
+    xlsx: bool = False,
 ):
     if log_file:
         logger.add(
@@ -215,7 +225,9 @@ def patch(
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    scheduler = Scheduler(collection_path, out, reset, build, inside, dev, export_mode)
+    scheduler = Scheduler(
+        collection_path, out, reset, build, inside, dev, export_mode, xlsx
+    )
     try:
         run(scheduler.start(config_path))
     except (KeyboardInterrupt, SystemExit):
@@ -417,7 +429,7 @@ def yet_to_process(ctx: Context):
 
 
 if __name__ == "__main__":
-    _scheduler = Scheduler("../../../TestResults")
+    _scheduler = Scheduler("../../../TestResults", manual_reset=True, excel_export=True)
     try:
         run(_scheduler.start())
     except (KeyboardInterrupt, SystemExit):

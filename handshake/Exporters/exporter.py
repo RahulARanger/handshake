@@ -1,5 +1,6 @@
 from ANSIToHTML.parser import Parser
 from loguru import logger
+from typing import Optional
 from abc import ABC, abstractmethod
 from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.result_base import (
@@ -34,30 +35,36 @@ class Exporter(ABC):
     def convert_from_ansi_to_html(self, refer_from: dict, key: str):
         refer_from[key] = self.converter.parse(refer_from[key])
 
-    async def start_exporting(self, skip_project_summary: bool = False):
+    async def start_exporting(
+        self, run_id: Optional[str] = None, skip_project_summary: bool = False
+    ):
         self.connection: BaseDBAsyncClient = connections.get("default")
         self.prepare()
-        await self.export_runs_page(skip_project_summary)
+        await self.export_runs_page(run_id, skip_project_summary)
         logger.info("Done!")
 
     @abstractmethod
     def prepare(self): ...
 
-    async def export_runs_page(self, skip_project_summary=False):
+    async def export_runs_page(
+        self, run_id: Optional[str] = None, skip_project_summary=False
+    ):
         logger.debug("Exporting Runs Page...")
 
         async with TaskGroup() as exporter:
             runs = []
             projects = {}
-
+            extra_join_query = f"and rb.testID = '{run_id}'" if run_id else ""
             for row in (
                 await self.connection.execute_query(
-                    """
+                    f"""
     select rb.*, cb.*,
     rank() over (order by rb.ended desc) as timelineIndex,
     rank() over (partition by projectName order by rb.ended desc) as projectIndex
     from RUNBASE rb
-    left join testconfigbase cb on rb.testID = cb.test_id 
+    join testconfigbase cb 
+    on rb.testID = cb.test_id
+    {extra_join_query} 
     WHERE rb.ended <> '' order by rb.started;
     -- note for: projectIndex and timelineIndex, latest -> oldest => 0 - ...
     """
