@@ -78,7 +78,7 @@ class PatchTestSuite:
         if pending_child_tasks:
             logger.warning(
                 "There are some child suites, which are not yet processed,"
-                " so will process {} suite in the next iteration",
+                " so will process suite: {} in the next iteration",
                 self.suite.suiteID,
             )
             await self.pick_it_later()

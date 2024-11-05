@@ -25,6 +25,7 @@ from loguru import logger
 from tortoise.expressions import Q
 from typing import Optional
 from asyncio import gather
+from math import log10, ceil
 
 
 class PatchTestRun:
@@ -106,6 +107,29 @@ class PatchTestRun:
 
         return test_result
 
+    async def update_case_index(self, tests):
+        await connections.get("default").execute_query(
+            f"""
+update suitebase 
+set case_index = sb.case_index
+from (
+    select suiteID as suite_id,
+        IIF(suiteType = 'SUITE', 'TS',
+            IIF(suiteType = 'TEST', 'TC',
+                IIF(suiteType = 'SETUP',
+                    'ST', IIF(suiteType = 'TEARDOWN', 'TD', '')))) ||  
+                printf(
+                    '%0{ceil(log10(tests if tests > 1 else 2)) + 1}d',
+                    RANK() OVER(PARTITION by suiteType, retried ORDER BY started, ended, parent <> '', title, suiteID)
+                ) case_index
+        from suitebase
+        where session_id in (select sessionID from sessionbase where test_id = ?)
+) sb
+where suiteID = sb.suite_id
+        """,
+            (str(self.test_id),),
+        )
+
     async def patch_test_values(self):
         (summary, test_result, retried_sessions) = await gather(
             self.fetch_suite_summary(),
@@ -125,24 +149,7 @@ class PatchTestRun:
         test_result.pop(self.actual_start) if self.actual_start in test_result else ...
         test_result.pop(self.actual_end) if self.actual_end in test_result else ...
 
-        await connections.get("default").execute_query(
-            f"""
-update suitebase 
-set case_index = sb.case_index
-from (
-    select suiteID as suite_id,
-        IIF(suiteType = 'SUITE', 'TS',
-            IIF(suiteType = 'TEST', 'TC',
-                IIF(suiteType = 'SETUP',
-                    'ST', IIF(suiteType = 'TEARDOWN', 'TD', '')))) ||  
-            RANK() OVER(PARTITION by suiteType, retried ORDER BY started, ended, parent <> '', title, suiteID) case_index
-        from suitebase
-        where session_id in (select sessionID from sessionbase where test_id = ?)
-) sb
-where suiteID = sb.suite_id
-""",
-            (str(self.test_id),),
-        )
+        await self.update_case_index(test_result["tests"])
 
         await self.test.update_from_dict(
             dict(
