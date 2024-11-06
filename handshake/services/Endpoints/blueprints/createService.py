@@ -101,7 +101,9 @@ async def register_modify_suites(request: Request) -> HTTPResponse:
         suite.standing = str(Status.YET_TO_CALCULATE)
         suites.append(suite.suiteID)
 
-    await SuiteBase.bulk_update(suites_to_register, ("standing",), 100)
+    suites_to_register and await SuiteBase.bulk_update(
+        suites_to_register, ("standing",), 100
+    )
     await register_bulk_patch_suites(test_id, suites)
 
     return text("Done", status=202)

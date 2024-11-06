@@ -155,7 +155,7 @@ class TestMigrationScripts:
     async def test_bump_v9(
         self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
     ):
-        await get_vth_connection(db_path, 9)
+        connection = await get_vth_connection(db_path, 9)
         suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
 
         assert migration(
@@ -165,10 +165,31 @@ class TestMigrationScripts:
             9, 10, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
         )
 
+        result = (
+            await connection.execute_query(
+                "SELECT setup_duration, teardown_duration from suitebase where suiteID = ?",
+                (suite[0],),
+            )
+        )[1][0]
+        assert result[0] == result[1] == 0
+
+    async def test_bump_v10(
+        self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
+    ):
+        await get_vth_connection(db_path, 10)
+        suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
+
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            10, 11, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+
         suite = await SuiteBase.filter(suiteID=suite[0]).first()
-        # before two fields were added in this migration
-        assert suite.setup_duration == 0
-        assert suite.teardown_duration == 0
+        # one field is added, which is mention if the suite was retried later or not
+        # default value is no
+        assert not suite.retried_later
 
     # say you are in v8 and have reverted your python build to older version which uses v7
     # question: how does migrate function work ?

@@ -127,8 +127,7 @@ class TestConfigManager:
                 continue
             record.value = refer_from[record.key]
             to_save.append(record)
-        if to_save:
-            await ConfigBase.bulk_update(to_save, ("value",), 100)
+        to_save and await ConfigBase.bulk_update(to_save, ("value",), 100)
         if hard_save:
             logger.debug(
                 "Observed some of the keys are missing in handshakes.json, saving it"

@@ -8,15 +8,18 @@ from handshake.services.DBService.models import (
     TestLogBase,
 )
 from subprocess import run
-from handshake.services.DBService.models.enums import Status, LogType
+from handshake.services.DBService.models.enums import Status, LogType, SuiteType
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.SchedularService.modifySuites import patchTestSuite
-from handshake.services.SchedularService.register import (
-    register_patch_suite,
-)
-from datetime import timedelta
+from handshake.services.SchedularService.register import register_patch_suite
 from handshake.services.SchedularService.handlePending import patch_jobs
 from tortoise.expressions import Q
+from datetime import datetime, timedelta
+
+
+async def retried_later(test_id):
+    t_record = await SuiteBase.filter(suiteID=test_id).first()
+    return t_record.retried_later
 
 
 @mark.usefixtures("sample_test_session")
@@ -292,9 +295,12 @@ class TestPatchSuiteJob:
 
         # initial suite
         suite = await create_suite(session_id)
-        await create_tests(session_id, suite.suiteID)
+        tests = await create_tests(session_id, suite.suiteID)
         await register_patch_suite(suite.suiteID, test.testID)
         await patchTestSuite(suite.suiteID, test.testID)
+
+        # initially this would be marked as not retried later
+        assert not await retried_later(suite.suiteID)
 
         record = await RetriedBase.filter(suite_id=suite.suiteID).first()
         assert record is not None
@@ -304,10 +310,18 @@ class TestPatchSuiteJob:
 
         # retried suite
         retried_suite = await create_suite(session_id, retried=1, started=suite.ended)
-        await create_tests(session_id, retried_suite.suiteID, retried=1)
+        retried_tests = await create_tests(session_id, retried_suite.suiteID, retried=1)
 
         await register_patch_suite(retried_suite.suiteID, test.testID)
         await patchTestSuite(retried_suite.suiteID, test.testID)
+
+        # but now
+        assert await retried_later(suite.suiteID)
+        for test in tests:
+            assert await retried_later(test.suiteID)
+
+        assert not await retried_later(retried_suite.suiteID)
+        assert not await retried_later(retried_tests[0].suiteID)
 
         record = await RetriedBase.filter(suite_id=retried_suite.suiteID).first()
         assert record is not None
@@ -389,6 +403,7 @@ class TestPatchSuiteJob:
             ]
         ):
             result = await RetriedBase.exists(suite_id=suite)
+            assert await retried_later(suite)
             assert result is False, index
 
         for index, suites in enumerate(
@@ -405,20 +420,85 @@ class TestPatchSuiteJob:
             assert record.tests == [str(_) for _ in suites]
             assert record.length == 3
 
-        retries = await SessionBase.filter(
-            Q(sessionID__in=[session.sessionID, second_session.sessionID])
-        ).values_list("retried", flat=True)
-        assert all(retries)
-        third_session = await SessionBase.filter(
-            sessionID=third_session.sessionID
-        ).first()
-        assert not third_session.retried
-
         for session in await SessionBase.filter(test_id=test.testID).all():
             await session.update_from_dict(dict(tests=9, passed=3, failed=3, skipped=3))
             await session.save()
 
         return test
+
+    async def test_retried_label_for_retried_entities(
+        self, sample_test_session, attach_config, create_suite
+    ):
+        session = await sample_test_session
+        test = await session.test
+        await attach_config(str(test.testID), 4)
+
+        old_parent_suite = await create_suite(
+            session.sessionID,
+            started=datetime.now(),
+            duration=timedelta(seconds=10),
+            retried=0,
+        )
+        old_test_case = await create_suite(
+            session.sessionID,
+            standing=Status.FAILED,
+            parent=old_parent_suite.suiteID,
+            is_test=True,
+            started=old_parent_suite.started,
+            duration=timedelta(seconds=10),
+            retried=0,
+        )
+        old_setup_case = await create_suite(
+            session.sessionID,
+            standing=Status.PASSED,
+            parent=old_test_case.suiteID,
+            hook=SuiteType.SETUP,
+            started=old_parent_suite.started,
+            duration=timedelta(seconds=10),
+            retried=0,
+        )
+        old_teardown_case = await create_suite(
+            session.sessionID,
+            standing=Status.PASSED,
+            parent=old_test_case.suiteID,
+            hook=SuiteType.TEARDOWN,
+            started=old_parent_suite.started,
+            duration=timedelta(seconds=10),
+            retried=0,
+        )
+
+        parent_suite = await create_suite(
+            session.sessionID,
+            started=old_test_case.started + timedelta(seconds=11),
+            duration=timedelta(seconds=10),
+            retried=1,
+        )
+        test_case = await create_suite(
+            session.sessionID,
+            standing=Status.PASSED,
+            parent=parent_suite.suiteID,
+            is_test=True,
+            started=parent_suite.started,
+            duration=timedelta(seconds=6),
+            retried=1,
+        )
+
+        await register_patch_suite(old_parent_suite.suiteID, test.testID)
+        await register_patch_suite(parent_suite.suiteID, test.testID)
+
+        await session.update_from_dict(dict(passed=1, failed=0, skipped=0, tests=1))
+        await session.save()
+
+        assert await patchTestSuite(old_parent_suite.suiteID, test.testID)
+        assert await patchTestSuite(parent_suite.suiteID, test.testID)
+
+        assert await retried_later(old_parent_suite.suiteID)
+        assert await retried_later(old_test_case.suiteID)
+        assert await retried_later(old_setup_case.suiteID)
+        assert await retried_later(old_teardown_case.suiteID)
+
+        assert not await retried_later(parent_suite.suiteID)
+        assert not await retried_later(test_case.suiteID)
 
 
 @mark.usefixtures("sample_test_session")
@@ -609,9 +689,11 @@ class TestPatchSuiteScheduler:
         assert (
             await SuiteBase.filter(suiteID=parent_suite.suiteID).first()
         ).standing == "RETRIED"
+        assert await retried_later(parent_suite.suiteID)
         assert (
             await SuiteBase.filter(suiteID=parent_suite_2.suiteID).first()
         ).standing == "PASSED"
+        assert not await retried_later(parent_suite_2.suiteID)
 
     async def test_patch_command(
         self, sample_test_session, create_suite, create_tests, root_dir
