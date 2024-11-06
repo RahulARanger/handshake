@@ -31,9 +31,6 @@ class CommandReportFields(Model):
         default=0, null=False, description="test entities that were skipped"
     )
     duration = FloatField(default=0, null=False, description="duration of test entity")
-    retried = IntField(
-        default=0, null=False, description="number of the retries performed"
-    )
 
     class Meta:
         abstract = True
@@ -49,6 +46,9 @@ class EntityBaseSpecific:
         Status,
         description="status of the test run based on the test cases executed",
         default=Status.PENDING,
+    )
+    retried = IntField(
+        default=0, null=False, description="number of the retries performed"
     )
 
     class Meta:
@@ -86,11 +86,6 @@ class SessionBase(CommonDetailedFields):
     table = "SessionBase"
     test: ForeignKeyRelation[RunBase] = ForeignKeyField(
         "models.RunBase", related_name="sessions", to_field="testID"
-    )
-    retried = BooleanField(
-        description="was this session omitted, because there would be one more retried session",
-        default=False,
-        required=False,
     )
     suites = ReverseRelation["SuiteBase"]
     sessionID = UUIDField(pk=True)
@@ -139,6 +134,11 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     )
     teardown_duration = FloatField(
         default=0, null=False, description="duration of test entity's teardown process"
+    )
+    retried_later = BooleanField(
+        default=False,
+        required=False,
+        description="was this test entity retried later",
     )
 
 

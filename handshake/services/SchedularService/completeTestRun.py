@@ -15,13 +15,13 @@ from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.types import Status, SuiteType
 from handshake.services.SchedularService.refer_types import PathTree, PathItem
 from handshake.services.SchedularService.modifySuites import fetch_key_from_status
-from tortoise.functions import Sum, Max, Min, Count, Lower
+from tortoise.functions import Sum, Max, Min, Count, Lower, Coalesce
 from datetime import datetime, timezone
 from typing import List, Tuple
 from pathlib import Path
 from os.path import join
 from loguru import logger
-from tortoise.expressions import Q
+from tortoise.expressions import Q, Subquery
 from typing import Optional
 from asyncio import gather
 
@@ -80,24 +80,32 @@ class PatchTestRun:
         return summary
 
     async def fetch_agg_values_of_test(self):
-        filtered = SessionBase.filter(Q(test_id=self.test_id) & Q(retried=False))
+        filtered_sessions = SessionBase.filter(test_id=self.test_id)
 
-        # we get the values of the test run from the non-retried test sessions
+        filtered = SuiteBase.filter(
+            Q(session_id__in=Subquery(filtered_sessions.values("sessionID")))
+            & Q(suiteType=SuiteType.TEST)
+            & Q(retried_later=False)
+        )
+
+        # we get the values of the test run from the non-retried test entities
         test_result = (
             await filtered.annotate(
-                passed=Sum("passed"),
-                failed=Sum("failed"),
-                skipped=Sum("skipped"),
-                tests=Sum("tests"),
+                passed=Coalesce(Sum("passed"), 0),
+                failed=Coalesce(Sum("failed"), 0),
+                skipped=Coalesce(Sum("skipped"), 0),
+                tests=Coalesce(Sum("tests"), 0),
+            )
+            .first()
+            .values("passed", "failed", "skipped", "tests")
+        )
+        test_result.update(
+            await filtered_sessions.annotate(
                 actual_end=Max("ended"),
                 actual_start=Min("started"),
             )
             .first()
             .values(
-                "passed",
-                "failed",
-                "skipped",
-                "tests",
                 self.actual_start,
                 self.actual_end,
             )
@@ -106,11 +114,11 @@ class PatchTestRun:
         return test_result
 
     async def patch_test_values(self):
-        (summary, test_result, retried_sessions) = await gather(
+        (summary, test_result, retried_suites) = await gather(
             self.fetch_suite_summary(),
             self.fetch_agg_values_of_test(),
             # just to get the count of the retried sessions we had in this run
-            SessionBase.filter(Q(test_id=self.test_id) & Q(retried=True)).count(),
+            SuiteBase.filter(Q(parent="") & Q(standing=Status.RETRIED)).count(),
         )
 
         # start date was initially when we start the shipment
@@ -127,7 +135,7 @@ class PatchTestRun:
         await self.test.update_from_dict(
             dict(
                 **{_: test_result[_] or 0 for _ in test_result.keys()},
-                retried=retried_sessions,
+                retried=retried_suites,
                 started=started,
                 ended=ended,
                 duration=(ended - started).total_seconds() * 1000,

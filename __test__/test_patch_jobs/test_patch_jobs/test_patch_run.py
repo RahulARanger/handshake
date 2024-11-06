@@ -36,6 +36,7 @@ class TestPatchRunJob:
             == empty.suiteSummary["count"]
             == empty.suiteSummary["skipped"]
         )
+        assert empty.tests == empty.passed == empty.failed == empty.skipped == 0
 
     async def test_avoidParentSuitesInCount(
         self,
@@ -55,7 +56,7 @@ class TestPatchRunJob:
             session_id, file=check_for
         )  # this should not be counted in summary
 
-        _, suites = await create_hierarchy(
+        tests, suites = await create_hierarchy(
             session_id,
             parent_suite.suiteID,
             test.testID,
@@ -87,6 +88,10 @@ class TestPatchRunJob:
             == pathlib.Path("inside-1") / "spec-1.js"
         )
 
+        # no changes in the test cases count calculated
+        assert record.tests == 9
+        assert record.passed == record.failed == record.skipped == 3
+
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session
     ):
@@ -96,7 +101,7 @@ class TestPatchRunJob:
 
         second_session = await create_session(test.testID)
 
-        _, suites = await create_hierarchy(session_id, "", test.testID)
+        first_tests, suites = await create_hierarchy(session_id, "", test.testID)
         _, second_suites = await create_hierarchy(
             second_session.sessionID, "", test.testID
         )
@@ -106,9 +111,9 @@ class TestPatchRunJob:
             result = await patchTestSuite(suite, test.testID)
             assert result is True, suite
 
-        await session.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
+        await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await second_session.update_from_dict(
-            dict(passed=9, failed=9, skipped=9, tests=27)
+            dict(passed=3, failed=3, skipped=3, tests=9)
         )
         await session.save()
         await second_session.save()
@@ -117,14 +122,9 @@ class TestPatchRunJob:
 
         test_record = await RunBase.filter(testID=test.testID).first()
 
-        # session dependant
-        assert (
-            test_record.passed
-            == test_record.failed
-            == test_record.skipped
-            == 2 * (3 * 3)
-        )
-        assert test_record.tests == (2 * (3 * 3)) * 3
+        # test cases count calculated
+        assert test_record.tests == 9 + 9
+        assert test_record.passed == test_record.failed == test_record.skipped == 3 + 3
 
         # job related
         assert test_record.standing == Status.FAILED
@@ -248,9 +248,9 @@ class TestPatchTestRunThroughScheduler:
             result = await patchTestSuite(suite, test.testID)
             assert result is True, suite
 
-        await session.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
+        await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await second_session.update_from_dict(
-            dict(passed=9, failed=9, skipped=9, tests=27)
+            dict(passed=3, failed=3, skipped=3, tests=9)
         )
         await session.save()
         await second_session.save()
@@ -259,8 +259,7 @@ class TestPatchTestRunThroughScheduler:
         assert result.returncode == 0
 
         test_record = await RunBase.filter(testID=test.testID).first()
-
-        assert test_record.tests == (2 * (3 * 3)) * 3
+        assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
         assert test_record.suiteSummary["count"] == 3 + 3
 
@@ -288,9 +287,9 @@ class TestPatchTestRunThroughScheduler:
         task = await register_patch_test_run(test.testID)
         assert not task.processed
 
-        await session.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
+        await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await second_session.update_from_dict(
-            dict(passed=9, failed=9, skipped=9, tests=27)
+            dict(passed=3, failed=3, skipped=3, tests=9)
         )
         await session.save()
         await second_session.save()
@@ -299,7 +298,7 @@ class TestPatchTestRunThroughScheduler:
 
         test_record = await RunBase.filter(testID=test.testID).first()
 
-        assert test_record.tests == (2 * (3 * 3)) * 3
+        assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
         assert test_record.suiteSummary["count"] == 3 + 3
 
@@ -327,10 +326,10 @@ class TestPatchTestRunThroughScheduler:
         await create_hierarchy(session_21.sessionID, "", test_2.testID)
         await create_hierarchy(session_22.sessionID, "", test_2.testID)
 
-        await session_11.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
-        await session_12.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
-        await session_21.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
-        await session_22.update_from_dict(dict(passed=9, failed=9, skipped=9, tests=27))
+        await session_11.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
+        await session_12.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
+        await session_21.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
+        await session_22.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
         await session_11.save()
         await session_12.save()
         await session_21.save()
@@ -343,7 +342,7 @@ class TestPatchTestRunThroughScheduler:
 
         test_record = await RunBase.filter(testID=test_1.testID).first()
 
-        assert test_record.tests == (2 * (3 * 3)) * 3
+        assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
         assert test_record.suiteSummary["count"] == 3 + 3
 
@@ -351,7 +350,7 @@ class TestPatchTestRunThroughScheduler:
 
         test_record = await RunBase.filter(testID=test_2.testID).first()
 
-        assert test_record.tests == (2 * (3 * 3)) * 3
+        assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
         assert test_record.suiteSummary["count"] == 3 + 3
 
