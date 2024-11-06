@@ -43,6 +43,7 @@ class TestPatchRunJob:
             == empty.suiteSummary["count"]
             == empty.suiteSummary["skipped"]
         )
+        assert empty.tests == empty.passed == empty.failed == empty.skipped == 0
 
     async def test_avoidParentSuitesInCount(
         self,
@@ -93,6 +94,10 @@ class TestPatchRunJob:
             pathlib.Path(record.specStructure[check_for]["current"])
             == pathlib.Path("inside-1") / "spec-1.js"
         )
+
+        # no changes in the test cases count calculated
+        assert record.tests == 9
+        assert record.passed == record.failed == record.skipped == 3
 
         # edge case test: if started and ended are same
         # we then check the parent is null or not, if null lower index else higher index
@@ -162,14 +167,9 @@ class TestPatchRunJob:
 
         test_record = await RunBase.filter(testID=test.testID).first()
 
-        # session dependant
-        assert (
-            test_record.passed
-            == test_record.failed
-            == test_record.skipped
-            == 2 * (3 * 3)
-        )
-        assert test_record.tests == (2 * (3 * 3)) * 3
+        # test cases count calculated
+        assert test_record.tests == 9 + 9
+        assert test_record.passed == test_record.failed == test_record.skipped == 3 + 3
 
         # job related
         assert test_record.standing == Status.FAILED
@@ -245,8 +245,15 @@ class TestPatchRunJob:
         await register_patch_suite(parent_suite.suiteID, test.testID)
         assert await patchTestSuite(parent_suite.suiteID, test.testID)
 
+        await session.update_from_dict(dict(passed=1, failed=0, skipped=0, tests=1))
+        await session.save()
+
         await register_patch_test_run(test.testID)
         await patchTestRun(test.testID)
+
+        test = await RunBase.filter(testID=test.testID).first()
+        assert test.suiteSummary["count"] == 1
+        assert test.suiteSummary["passed"] == 1
 
         assert await case_index(parent_suite.suiteID) == "TS01"
         assert await case_index(p_setup.suiteID) == "ST01"
@@ -297,14 +304,24 @@ class TestPatchRunJob:
         await register_patch_suite(old_parent_suite.suiteID, test.testID)
         await register_patch_suite(parent_suite.suiteID, test.testID)
 
+        await session.update_from_dict(dict(passed=1, failed=0, skipped=0, tests=1))
+        await session.save()
+
         assert await patchTestSuite(old_parent_suite.suiteID, test.testID)
         assert await patchTestSuite(parent_suite.suiteID, test.testID)
 
         await register_patch_test_run(test.testID)
         await patchTestRun(test.testID)
 
+        old_parent_suite = await SuiteBase.filter(
+            suiteID=old_parent_suite.suiteID
+        ).first()
         assert await case_index(parent_suite.suiteID) == "TS01"
-        assert await case_index(old_parent_suite.suiteID) == "TS01"
+        assert old_parent_suite.standing == Status.RETRIED
+        assert await case_index(old_parent_suite.suiteID) == "TRS01"
+
+        assert await case_index(test_case.suiteID) == "TC01"
+        assert await case_index(old_test_case.suiteID) == "TC02"
 
     async def test_after_retries(
         self,

@@ -7,22 +7,20 @@ from handshake.services.DBService.models.config_base import TestConfigBase
 from uuid import UUID
 from typing import Union
 from traceback import format_exc
-from handshake.services.SchedularService.register import (
-    cancel_patch_for_test_run,
-)
+from handshake.services.SchedularService.register import cancel_patch_for_test_run
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.types import Status, SuiteType
 from handshake.services.SchedularService.refer_types import PathTree, PathItem
 from handshake.services.SchedularService.modifySuites import fetch_key_from_status
-from tortoise.functions import Sum, Max, Min, Count, Lower
+from tortoise.functions import Sum, Max, Min, Count, Lower, Coalesce
 from tortoise.connection import connections
 from datetime import datetime, timezone
 from typing import List, Tuple
 from pathlib import Path
 from os.path import join
 from loguru import logger
-from tortoise.expressions import Q
+from tortoise.expressions import Q, Subquery, RawSQL
 from typing import Optional
 from asyncio import gather
 from math import log10, ceil
@@ -82,24 +80,39 @@ class PatchTestRun:
         return summary
 
     async def fetch_agg_values_of_test(self):
-        filtered = SessionBase.filter(Q(test_id=self.test_id) & Q(retried=False))
+        filtered = SuiteBase.filter(
+            parent__in=Subquery(
+                SuiteBase.filter(
+                    Q(session__test_id=self.test_id)
+                    & ~Q(standing=Status.RETRIED)
+                    & Q(suiteType=SuiteType.SUITE)
+                )
+                .only("suiteID")
+                .values("suiteID")
+            ),
+            suiteType=SuiteType.TEST,
+        )
 
         # we get the values of the test run from the non-retried test sessions
         test_result = (
             await filtered.annotate(
-                passed=Sum("passed"),
-                failed=Sum("failed"),
-                skipped=Sum("skipped"),
-                tests=Sum("tests"),
+                passed=Coalesce(Sum("passed"), 0),
+                failed=Coalesce(Sum("failed"), 0),
+                skipped=Coalesce(Sum("skipped"), 0),
+                tests=Coalesce(Sum("tests"), 0),
+            )
+            .first()
+            .values("passed", "failed", "skipped", "tests")
+        )
+
+        filtered = SessionBase.filter(test_id=self.test_id)
+        test_result.update(
+            await filtered.annotate(
                 actual_end=Max("ended"),
                 actual_start=Min("started"),
             )
             .first()
             .values(
-                "passed",
-                "failed",
-                "skipped",
-                "tests",
                 self.actual_start,
                 self.actual_end,
             )
@@ -108,26 +121,37 @@ class PatchTestRun:
         return test_result
 
     async def update_case_index(self, tests):
+        suites = (
+            await SuiteBase.filter(
+                Q(session__test_id=self.test_id)
+                & ~Q(standing=Status.RETRIED)
+                & Q(suiteType=SuiteType.SUITE)
+            )
+            .annotate(id=RawSQL("suiteID"))
+            .only("id")
+            .values_list("id", flat=True)
+        )
         await connections.get("default").execute_query(
             f"""
 update suitebase 
 set case_index = sb.case_index
 from (
     select suiteID as suite_id,
-        IIF(suiteType = 'SUITE', 'TS',
             IIF(suiteType = 'TEST', 'TC',
-                IIF(suiteType = 'SETUP',
-                    'ST', IIF(suiteType = 'TEARDOWN', 'TD', '')))) ||  
+                IIF(suiteType = 'SUITE',
+                    'TS', IIF(suiteType = 'SETUP',
+                        'ST', IIF(suiteType = 'TEARDOWN', 'TD', '')))) ||  
                 printf(
                     '%0{ceil(log10(tests if tests > 1 else 2)) + 1}d',
-                    RANK() OVER(PARTITION by suiteType, retried ORDER BY started, ended, parent <> '', title, suiteID)
+                    RANK() OVER(PARTITION by suiteType, retried 
+                    ORDER BY started, ended, parent <> '', title, suiteID)
                 ) case_index
         from suitebase
-        where session_id in (select sessionID from sessionbase where test_id = ?)
+        where suiteID or parent in ({','.join(['?'] * len(suites))})
 ) sb
 where suiteID = sb.suite_id
         """,
-            (str(self.test_id),),
+            suites,
         )
 
     async def patch_test_values(self):
