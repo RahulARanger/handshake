@@ -56,12 +56,11 @@ class PatchTestRun:
 
         refer = SuiteBase
 
-        if test_config:
+        if test_config and test_config.avoidParentSuitesInCount:
             # consider cucumber files
             # if the feature file has 3 scenarios, then if user sets the avoidParentSuitesInCount
             # we would get a value of 3 as total scenarios else 4
-            if test_config.avoidParentSuitesInCount:
-                refer = SuiteBase.filter(~Q(parent=""))
+            refer = SuiteBase.filter(~Q(parent=""))
 
         # we want to count the number of suites status
         summary = dict(passed=0, failed=0, skipped=0)
@@ -117,7 +116,7 @@ class PatchTestRun:
         (summary, test_result, retried_suites) = await gather(
             self.fetch_suite_summary(),
             self.fetch_agg_values_of_test(),
-            # just to get the count of the retried sessions we had in this run
+            # just to get the count of the retried suites we had in this run
             SuiteBase.filter(Q(parent="") & Q(standing=Status.RETRIED)).count(),
         )
 

@@ -88,4 +88,4 @@ TestExportedReports
 **/handshake.json
 TestMultipleServerResults
 TestServerResults
-*.docx
+handshake/Exporters/~$Template.xlsx

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "handshakes"
-version = "0.6.1"
+version = "0.6.2"
 description = "A service that's keen to process your test results"
 authors = ["Rahul <saihanumarahul66@gmail.com>"]
 license = "MIT"
@@ -31,6 +31,7 @@ httpx = "^0.26.0"
 python-dotenv = "^1.0.1"
 setuptools = ">=69.2,<71.0"
 ansitohtml = "^0.1.0"
+aiofiles = "^24.1.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.2"
@@ -41,6 +42,10 @@ black = ">=23.9.1,<25.0.0"
 virtualenv = "^20.25.1"
 requests = "^2.31.0"
 sanic-ext = "^23.12.0"
+
+
+[tool.poetry.group.excel-export.dependencies]
+openpyxl = "^3.1.5"
 
 [tool.poetry.extras]
 excel-export = ["openpyxl"]

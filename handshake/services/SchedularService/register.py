@@ -40,6 +40,21 @@ async def register_bulk_patch_suites(
     return tasks
 
 
+async def register_bulk_excel_export(
+    testIDs: List[str],
+    connection=None,
+) -> List[TaskBase]:
+    tasks = await TaskBase.bulk_create(
+        [
+            TaskBase(ticketID=str(uuid4()), test_id=test, type=JobType.EXPORT_EXCEL)
+            for test in testIDs
+        ],
+        100,
+        using_db=connection,
+    )
+    return tasks
+
+
 async def _mark_custom_task(reason: str, job_type: JobType, test_id: str):
     logger.warning(reason)
     await TaskBase.create(ticketID=str(uuid4()), type=job_type, test_id=test_id)
@@ -63,9 +78,21 @@ async def cancel_patch_for_test_run(
     return False
 
 
-async def warn_about_test_run(test_id: Union[str, UUID], about: str, **extra) -> True:
+async def warn_about_test_run(
+    test_id: Union[str, UUID, List[UUID]], about: str, bulk=False, **extra
+) -> True:
     logger.warning(about)
-    await TestLogBase.create(
-        test_id=str(test_id), message=about, type=LogType.WARN, feed=extra
-    )
+    if not bulk:
+        await TestLogBase.create(
+            test_id=str(test_id), message=about, type=LogType.WARN, feed=extra
+        )
+    else:
+        await TestLogBase.bulk_create(
+            [
+                TestLogBase(
+                    test_id=str(_), message=about, type=LogType.WARN, feed=extra
+                )
+                for _ in test_id
+            ]
+        )
     return True

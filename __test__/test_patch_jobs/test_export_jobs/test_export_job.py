@@ -22,7 +22,7 @@ from pytest import mark
 class TestMinimalExport:
     async def test_with_export_disabled(self, root_dir):
         scheduler = Scheduler(root_dir)
-        assert scheduler.export_dir is None
+        assert scheduler.save_in is None
         assert scheduler.dashboard_build is None
 
     async def test_with_no_runs(self, root_dir, report_dir, zipped_build):

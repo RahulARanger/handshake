@@ -267,9 +267,7 @@ class PyTestHandshakeReporter(CommonReporter):
         self, node_id: Optional[str], title: str, message: str, passed: bool
     ):
         value = dict(
-            entity_id=self.note[
-                key(node_id) if node_id else key(self.pointing_to.nodeid)
-            ],
+            entity_id=key(node_id) if node_id else key(self.pointing_to.nodeid),
             title=title,
             value=dict(passed=passed, wait=-1, interval=-1),
             type=AttachmentType.ASSERT,
