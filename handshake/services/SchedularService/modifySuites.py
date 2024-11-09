@@ -17,7 +17,7 @@ from handshake.services.SchedularService.register import (
     JobType,
 )
 from itertools import chain
-from asyncio import gather, TaskGroup
+from asyncio import gather
 
 
 def fetch_key_from_status(passed, failed, skipped):

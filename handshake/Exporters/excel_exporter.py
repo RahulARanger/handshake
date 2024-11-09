@@ -2,19 +2,26 @@ from typing import Optional
 from handshake.services.SchedularService.constants import exportExportFileName, JobType
 from handshake.services.SchedularService.register import warn_about_test_run
 from handshake.services.DBService.models.dynamic_base import TaskBase
+from handshake.services.DBService.models.result_base import SuiteBase, SessionBase
+from handshake.services.DBService.models.attachmentBase import AssertBase
+from handshake.services.DBService.models.static_base import StaticBase
 from handshake.Exporters.exporter import Exporter
 from handshake.services.DBService.lifecycle import attachment_folder
 from loguru import logger
-from asyncio import gather, TaskGroup
 from json import loads
 from pathlib import Path
 from aiofiles.os import mkdir
 from datetime import datetime
+from tortoise.expressions import Q, Subquery
 
 try:
     from openpyxl import load_workbook, Workbook
     from openpyxl.worksheet.worksheet import Worksheet
+    from openpyxl.cell import Cell
+    from openpyxl.styles.alignment import Alignment
     from openpyxl.comments.comments import Comment
+    from openpyxl.worksheet.table import Table, TableStyleInfo
+    from openpyxl.formatting.formatting import ConditionalFormatting
 
     excel_export = True
 except ImportError:
@@ -25,8 +32,15 @@ def save_datetime_in_excel(obj: datetime):
     return obj.strftime("%Y-%m-%d %H:%M:%S")
 
 
+def calc_percentage(num, deno):
+    return (num / deno) if deno else 0
+
+
 class ExcelExporter(Exporter):
     template: Workbook
+    standing_format: ConditionalFormatting
+    percentage_format: ConditionalFormatting
+    parent_links = {}
 
     def __init__(self, db_path: Path, dev_run: bool = False):
         super().__init__(dev_run)
@@ -72,9 +86,14 @@ class ExcelExporter(Exporter):
         task.picked = False
         await task.save()
 
+    def completed(self):
+        logger.info(
+            "Excel is available in Attachments folder, Please check at the {}",
+            self.save_in,
+        )
+
     async def export_test_run_summary(self, test_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
-        reference_sheet = self.template.get_sheet_by_name("Reference")
 
         start_from_row = 6
         detail_col = 7
@@ -82,18 +101,30 @@ class ExcelExporter(Exporter):
         suite_summary = loads(summary["suiteSummary"])
 
         edit_cell(index_sheet, start_from_row, detail_col, summary["projectName"], True)
-        edit_cell(
+
+        standing_cell = edit_cell(
             index_sheet,
             start_from_row + 1,
             detail_col,
             summary["standing"].lower().capitalize(),
             True,
-        ).comment = Comment(
+        )
+        self.standing_format, self.percentage_format, *_ = list(
+            index_sheet.conditional_formatting
+        )
+
+        standing_cell.comment = Comment(
             f"Run Status: {summary['status'].lower().capitalize()}\n"
             f"Exit Code: {summary['exitCode']}",
             summary["framework"],
         )
-        edit_cell(reference_sheet, 3, 3, summary["duration"] / 1000)
+
+        edit_cell(
+            index_sheet,
+            start_from_row + 2,
+            detail_col,
+            format_duration(summary["duration"] / 1000),
+        )
 
         edit_cell(index_sheet, start_from_row + 3, detail_col, suite_summary["count"])
         edit_cell(index_sheet, start_from_row + 4, detail_col, summary["tests"])
@@ -102,13 +133,13 @@ class ExcelExporter(Exporter):
             index_sheet,
             start_from_row + 5,
             detail_col,
-            suite_summary["passed"] / suite_summary["count"],
+            calc_percentage(suite_summary["passed"], suite_summary["count"]),
         )
         edit_cell(
             index_sheet,
             start_from_row + 6,
             detail_col,
-            summary["passed"] / summary["tests"],
+            calc_percentage(summary["passed"], summary["tests"]),
         )
 
         edit_cell(
@@ -151,22 +182,262 @@ class ExcelExporter(Exporter):
             index_sheet, start_from_row + 7, detail_col, summary["aggregated"]["files"]
         )
 
-    async def export_all_suites_of_test_run(self, run_id, all_suites): ...
+    async def export_all_suites(self, run_id: str, export_suite_wise: bool = True):
+        await super().export_all_suites(run_id, False)
+
+    async def export_all_suites_of_test_run(self, run_id, all_suites):
+        suites_sheet = self.template.get_sheet_by_name("Test Scenarios")
+        table_style = TableStyleInfo(name="TableStyleMedium26", showRowStripes=True)
+
+        columns = (
+            "title",
+            "duration",
+            "description",
+            "standing",
+            "tests",
+            "rollup_passed",
+            "rollup_failed",
+            "rollup_skipped",
+            "numberOfErrors",
+            "error",
+            "started",
+            "ended",
+            "parent",
+            "simplified",
+            "file",
+            "setup_duration",
+            "teardown_duration",
+            "retried_later",
+        )
+        alias = {
+            "numberOfErrors": "Errors",
+            "tests": "passed%",
+            "simplified": "Ran with",
+            "standing": "status",
+            "rollup_passed": "Passed",
+            "rollup_failed": "Failed",
+            "rollup_skipped": "Skipped",
+            "retried_later": "Retried Later",
+            "setup_duration": "Setup",
+            "teardown_duration": "Teardown",
+        }
+
+        suites_sheet.freeze_panes = "B1"  # freeze first col (title)
+
+        for row_index, suite in enumerate(all_suites):
+            for header_index, header in enumerate(columns):
+                if not row_index:
+                    suites_sheet.cell(1, header_index + 1).value = alias.get(
+                        header, header
+                    ).capitalize()
+
+                cell = suites_sheet.cell(row_index + 2, header_index + 1)
+                value = suite[header]
+                to_save = value
+                resize = True
+                match header:
+                    case "started":
+                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                    case "ended":
+                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                    case "duration":
+                        to_save = format_duration(value / 1000)
+                        resize = (
+                            False  # else it considers the length of the formula string
+                        )
+                        resize_col(suites_sheet, cell, 10)
+                    case "setup_duration":
+                        to_save = format_duration(value / 1000)
+                        resize = False
+                        resize_col(suites_sheet, cell, 6)
+                    case "teardown_duration":
+                        to_save = format_duration(value / 1000)
+                        resize = False
+                        resize_col(suites_sheet, cell, 7)
+                    case "tests":
+                        to_save = calc_percentage(
+                            suite["rollup_passed"], suite["rollup_tests"]
+                        )
+                        cell.number_format = "0%"
+                        copy_format_to_cell(suites_sheet, cell, self.percentage_format)
+                        resize = False
+                    case "title":
+                        resize = True
+                        self.parent_links[suite["suiteID"]] = (
+                            f"#'{suites_sheet.title}'!{cell.column_letter}{cell.row}",
+                            value,
+                        )
+                    case "standing":
+                        to_save = value.lower().capitalize()
+                        resize = True
+                        copy_format_to_cell(suites_sheet, cell, self.standing_format)
+                    case "description":
+                        if value:
+                            resize_col(suites_sheet, cell, 30)
+                            resize = False
+                    case "error":
+                        if value:
+                            resize_col(suites_sheet, cell, 30)
+                            resize = False
+                    case "parent":
+                        if value and self.parent_links[value]:
+                            to_save = "🔗"
+                            cell.hyperlink = self.parent_links[value][0]
+                            resize = False
+                            cell.alignment = Alignment("center", "center")
+                            cell.comment = Comment(
+                                self.parent_links[value][1], "Handshake"
+                            )
+                            cell.comment.width = 100
+                            if len(value) < 100:
+                                cell.comment.height = 30
+                    case "retried_later":
+                        to_save = "YES" if value else "NO"
+                    case "file":
+                        cell.comment = Comment(value, "Handshake")
+                        resize = False
+                        resize_col(suites_sheet, cell, 10)
+                    case _:
+                        to_save = value
+                        resize = False
+                        resize_col(suites_sheet, cell, 6)
+
+                edit_cell(
+                    suites_sheet, row_index + 2, header_index + 1, to_save, resize
+                )
+
+        suites_sheet.add_table(
+            Table(
+                ref=f"A1:{suites_sheet.cell(1, 1).offset(0, len(columns) - 1).column_letter}"
+                f"{len(all_suites) + 1}",
+                displayName="Test_Scenarios",
+                tableStyleInfo=table_style,
+            )
+        )
+
+    @staticmethod
+    def export_test_query(based_on: str):
+        return (
+            SuiteBase.filter(
+                Q(session_id__in=Subquery(SessionBase.filter(test_id=based_on)))
+            ),
+            AssertBase.filter(entity__session__test_id=based_on),
+            StaticBase.filter(entity__session__test_id=based_on),
+        )
+
+    async def export_tests(self, run_id, suite_id, tests):
+        test_sheet = self.template.get_sheet_by_name("Test Cases")
+        table_style = TableStyleInfo(name="TableStyleDark2", showRowStripes=True)
+
+        columns = (
+            "title",
+            "duration",
+            "suiteType",
+            "description",
+            "standing",
+            "assertions",
+            "numberOfErrors",
+            "error",
+            "started",
+            "ended",
+            "parent",
+            "file",
+            "retried_later",
+        )
+        alias = {
+            "numberOfErrors": "Errors",
+            "simplified": "Ran with",
+            "standing": "status",
+            "retried_later": "Retried Later",
+            "setup_duration": "Setup",
+            "teardown_duration": "Teardown",
+            "suiteType": "Type",
+        }
+
+        test_sheet.freeze_panes = "B1"  # freeze first col (title)
+
+        for row_index, test in enumerate(tests):
+            for header_index, header in enumerate(columns):
+                if not row_index:
+                    test_sheet.cell(1, header_index + 1).value = alias.get(
+                        header, header
+                    ).capitalize()
+
+                cell = test_sheet.cell(row_index + 2, header_index + 1)
+                value = test[header]
+                to_save = value
+                resize = True
+                match header:
+                    case "started":
+                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                    case "ended":
+                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                    case "duration":
+                        to_save = format_duration(value / 1000)
+                        resize = (
+                            False  # else it considers the length of the formula string
+                        )
+                        resize_col(test_sheet, cell, 10)
+                    case "setup_duration":
+                        to_save = format_duration(value / 1000)
+                        resize = False
+                        resize_col(test_sheet, cell, 6)
+                    case "teardown_duration":
+                        to_save = format_duration(value / 1000)
+                        resize = False
+                        resize_col(test_sheet, cell, 7)
+                    case "title":
+                        resize = True
+                    case "standing":
+                        to_save = value.lower().capitalize()
+                        resize = True
+                        copy_format_to_cell(test_sheet, cell, self.standing_format)
+                    case "description":
+                        if value:
+                            resize_col(test_sheet, cell, 30)
+                            resize = False
+                    case "error":
+                        if value:
+                            resize_col(test_sheet, cell, 30)
+                            resize = False
+                    case "parent":
+                        if value and self.parent_links.get(value, ""):
+                            to_save = "🔗"
+                            cell.hyperlink = self.parent_links[value][0]
+                            resize = False
+                            cell.alignment = Alignment("center", "center")
+                            cell.comment = Comment(
+                                self.parent_links[value][1], "Handshake"
+                            )
+                            cell.comment.width = 100
+                            if len(value) < 100:
+                                cell.comment.height = 30
+                    case "retried_later":
+                        to_save = "YES" if value else "NO"
+                    case "file":
+                        cell.comment = Comment(value, "Handshake")
+                        resize = False
+                        resize_col(test_sheet, cell, 10)
+                    case _:
+                        to_save = value
+                        resize = False
+                        resize_col(test_sheet, cell, 6)
+
+                edit_cell(test_sheet, row_index + 2, header_index + 1, to_save, resize)
+
+        test_sheet.add_table(
+            Table(
+                ref=f"A1:{test_sheet.cell(1, 1).offset(0, len(columns) - 1).column_letter}"
+                f"{len(tests) + 1}",
+                displayName="Test_Cases",
+                tableStyleInfo=table_style,
+            )
+        )
 
     async def export_retries_map(self, run_id, suite_id, retried_map): ...
 
-    async def export_suite(self, run_id: str, suite_id: str): ...
-
     async def export_attachments(
         self, run_id, suite_id, assertion_records, written_records
-    ): ...
-
-    async def export_tests(self, run_id, suite_id, tests): ...
-
-    async def export_all_suites(self, run_id: str): ...
-
-    async def export_overview_page(
-        self, run_id: str, skip_recent_suites: bool = False
     ): ...
 
 
@@ -175,10 +446,29 @@ def edit_cell(
 ):
     cell = sheet.cell(row, col)
     cell.value = value
-    if not value:
-        print(row, col, value)
     if value and resize:
-        sheet.column_dimensions[cell.column_letter].width = max(
-            sheet.column_dimensions[cell.column_letter].width, len(value)
-        )
+        resize_col(sheet, cell, len(value))
     return cell
+
+
+def resize_col(sheet: Worksheet, cell: Cell, length: int):
+    sheet.column_dimensions[cell.column_letter].width = max(
+        sheet.column_dimensions[cell.column_letter].width, length
+    )
+
+
+def format_duration(value: int):
+    return f"""=IF({value}>=3600, TEXT(INT({value}/3600), "0") & " hrs " & 
+                TEXT(INT(MOD({value}, 3600)/60), "0") & " mins " & TEXT(MOD({value}, 60), "0") & " secs",
+                IF({value}>=60, TEXT(INT({value}/60), "0") & " mins " & TEXT(MOD({value}, 60), "0") & " secs",
+                IF({value}>=1, TEXT({value}, "0") & " secs", TEXT({value}*1000, "0") & " ms")))"""
+
+
+def copy_format_to_cell(
+    sheet: Worksheet, cell: Cell, formatting_rules: ConditionalFormatting
+):
+    for rule in formatting_rules.rules:
+        sheet.conditional_formatting.add(
+            f"{cell.column_letter}{cell.row}",
+            rule,
+        )

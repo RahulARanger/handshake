@@ -39,6 +39,9 @@ class JsonExporter(Exporter):
 
         self.save_in.mkdir(exist_ok=False)
 
+    def completed(self):
+        logger.info("Export Completed, saved in {}", self.save_in)
+
     async def export_test_run_summary(self, test_id: str, summary):
         await mkdir(self.save_in / str(test_id))
         await write_as_plain_string(

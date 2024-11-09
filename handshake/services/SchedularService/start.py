@@ -63,6 +63,11 @@ class Scheduler:
         )
         self.excel_export = include_excel_export
         self.skip_export = out_dir is None and not inside_test_results
+        if self.skip_export and self.exporter:
+            logger.warning(
+                "Export would be skipped,"
+                " Please pass the out_dir example: handshake patch TestResults -e json -o TestReports"
+            )
         self.export = out_dir is None
         self.converter = Parser()
         # self.dashboard_build = zipped_build

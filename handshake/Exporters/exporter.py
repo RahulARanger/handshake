@@ -41,7 +41,10 @@ class Exporter(ABC):
         self.connection: BaseDBAsyncClient = connections.get("default")
         self.prepare()
         await self.export_runs_page(run_id, skip_project_summary)
-        logger.info("Done!")
+        self.completed()
+
+    @abstractmethod
+    def completed(self): ...
 
     @abstractmethod
     def prepare(self): ...
@@ -186,7 +189,7 @@ class Exporter(ABC):
     @abstractmethod
     async def export_overview_of_test_run(self, run_id: str, summary): ...
 
-    async def export_all_suites(self, run_id: str):
+    async def export_all_suites(self, run_id: str, export_suite_wise: bool = True):
         all_suites = await (
             SuiteBase.filter(Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE))
             .order_by("started")
@@ -233,6 +236,9 @@ class Exporter(ABC):
                 "hasChildSuite",
                 "nextSuite",
                 "prevSuite",
+                "retried_later",
+                "setup_duration",
+                "teardown_duration",
                 suiteID="id",
                 parent="p_id",
                 started="s",
@@ -252,22 +258,35 @@ class Exporter(ABC):
             run_id,
             all_suites,
         )
-        await gather(
-            *[
-                self.export_suite(run_id, str(suite))
-                for suite in await SuiteBase.filter(
-                    Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE)
-                ).values_list("suiteID", flat=True)
-            ],
-        )
+        if export_suite_wise:
+            await gather(
+                *[
+                    self.export_suite(run_id, str(suite))
+                    for suite in await SuiteBase.filter(
+                        Q(session__test_id=run_id) & Q(suiteType=SuiteType.SUITE)
+                    ).values_list("suiteID", flat=True)
+                ],
+            )
+        else:
+            await self.export_suite(run_id)
 
     @abstractmethod
     async def export_all_suites_of_test_run(self, run_id, all_suites): ...
 
-    async def export_suite(self, run_id: str, suite_id: str):
+    @staticmethod
+    def export_test_query(based_on: str):
+        return (
+            SuiteBase.filter(Q(parent=based_on)),
+            AssertBase.filter(entity__parent=based_on),
+            StaticBase.filter(entity__parent=based_on),
+        )
+
+    async def export_suite(self, run_id: str, suite_id: Optional[str] = None):
+        test_query, assertion_query, attachment_query = self.export_test_query(
+            suite_id if suite_id else run_id
+        )
         tests = await (
-            SuiteBase.filter(Q(parent=suite_id))
-            .order_by("started")
+            test_query.order_by("started")
             .prefetch_related("rollup")
             .annotate(
                 numberOfErrors=RawSQL("json_array_length(errors)"),
@@ -292,6 +311,10 @@ class Exporter(ABC):
                 "errors",
                 "error",
                 "numberOfErrors",
+                "retried_later",
+                "setup_duration",
+                "teardown_duration",
+                "parent",
                 suiteID="id",
                 started="s",
                 ended="e",
@@ -304,8 +327,7 @@ class Exporter(ABC):
         )
 
         assertions = (
-            await AssertBase.filter(entity__parent=suite_id)
-            .annotate(id=RawSQL("entity_id"))
+            await assertion_query.annotate(id=RawSQL("entity_id"))
             .all()
             .values("title", "message", "interval", "passed", "wait", entity_id="id")
         )
@@ -313,8 +335,7 @@ class Exporter(ABC):
         written_records = {}
         assertion_records = {}
         written = (
-            await StaticBase.filter(entity__parent=suite_id)
-            .annotate(
+            await attachment_query.annotate(
                 id=RawSQL("entity_id"),
                 file=RawSQL("value"),
                 url=RawSQL(
