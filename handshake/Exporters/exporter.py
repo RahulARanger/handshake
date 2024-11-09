@@ -327,9 +327,13 @@ class Exporter(ABC):
         )
 
         assertions = (
-            await assertion_query.annotate(id=RawSQL("entity_id"))
+            await assertion_query.annotate(
+                id=RawSQL("entity_id"), raw=RawSQL("message")
+            )
             .all()
-            .values("title", "message", "interval", "passed", "wait", entity_id="id")
+            .values(
+                "title", "message", "raw", "interval", "passed", "wait", entity_id="id"
+            )
         )
 
         written_records = {}
