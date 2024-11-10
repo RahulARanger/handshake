@@ -22,10 +22,10 @@ jobs:
       # TODO: skip decide job if manually triggered
       runs-on: ubuntu-latest
       outputs:
-        dashboard: ${{ steps.filter.outputs.dashboard }}
+#        dashboard: ${{ steps.filter.outputs.dashboard }}
         py: ${{ steps.filter.outputs.py }}
-        common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
-        wdio_reporter: ${{ steps.filter.outputs.wdio_reporter }}
+#        common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
+#        wdio_reporter: ${{ steps.filter.outputs.wdio_reporter }}
 
       name: decides which job to run based on the file changes
       steps:

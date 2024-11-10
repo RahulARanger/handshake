@@ -19,7 +19,7 @@ async def safety_checks():
         await pruneTasks(prune_task.ticketID)
 
 
-async def patch_jobs(include_excel_export: bool, db_path: Path):
+async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
     while True:
         await safety_checks()
 
@@ -111,7 +111,7 @@ async def patch_jobs(include_excel_export: bool, db_path: Path):
             await job.save()
             patcher.create_task(patchTestRun(job.ticketID), name=job.ticketID)
 
-    if not (include_excel_export and excel_export):
+    if not (db_path and include_excel_export and excel_export):
         logger.debug("Done!")
         return
 
