@@ -322,8 +322,8 @@ class TestJSONExportsWithRuns:
     async def test_with_multiple_runs_in_single_project(
         self, helper_create_test_run, report_dir, root_dir
     ):
-        first = await helper_create_test_run("test-1")
-        test_run = await helper_create_test_run("test-1")
+        first = await helper_create_test_run("test-1", add_test_config=True)
+        test_run = await helper_create_test_run("test-1", add_test_config=True)
         project = test_run.projectName
 
         await register_patch_test_run(first.testID)
@@ -343,15 +343,15 @@ class TestJSONExportsWithRuns:
     async def test_with_multiple_runs_in_multiple_project(
         self, helper_create_test_run, report_dir, root_dir
     ):
-        first = await helper_create_test_run("test-1")
-        test_run = await helper_create_test_run("test-1")
+        first = await helper_create_test_run("test-1", add_test_config=True)
+        test_run = await helper_create_test_run("test-1", add_test_config=True)
         project = test_run.projectName
 
         await register_patch_test_run(first.testID)
         await register_patch_test_run(test_run.testID)
 
-        first = await helper_create_test_run("test-2")
-        test_run = await helper_create_test_run("test-2")
+        first = await helper_create_test_run("test-2", add_test_config=True)
+        test_run = await helper_create_test_run("test-2", add_test_config=True)
 
         second_project = test_run.projectName
 
