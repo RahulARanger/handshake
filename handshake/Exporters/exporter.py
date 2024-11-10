@@ -13,6 +13,7 @@ from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
     SuiteSummary,
 )
+from handshake.services.SchedularService.constants import JobType, exportExportFileName
 from json import loads
 from asyncio import TaskGroup
 from tortoise import BaseDBAsyncClient
@@ -53,23 +54,31 @@ class Exporter(ABC):
         self, run_id: Optional[str] = None, skip_project_summary=False
     ):
         logger.debug("Exporting Runs Page...")
+        path = (
+            f"'/api/Attachments/' || rb.testID || '/{exportExportFileName}'"
+            if self.dev_run
+            else f"'/Attachments/' || rb.testID || '/{exportExportFileName}'"
+        )
+        extra_join_query = f"and rb.testID = '{run_id}'" if run_id else ""
 
         async with TaskGroup() as exporter:
             runs = []
             projects = {}
-            extra_join_query = f"and rb.testID = '{run_id}'" if run_id else ""
+
             for row in (
                 await self.connection.execute_query(
                     f"""
-    select rb.*, cb.*,
-    rank() over (order by rb.ended desc) as timelineIndex,
-    rank() over (partition by projectName order by rb.ended desc) as projectIndex
-    from RUNBASE rb
-    join testconfigbase cb 
-    on rb.testID = cb.test_id
-    {extra_join_query} 
-    WHERE rb.ended <> '' order by rb.started;
-    -- note for: projectIndex and timelineIndex, latest -> oldest => 0 - ...
+select rb.*, cb.*,
+rank() over (order by rb.ended desc) as timelineIndex,
+rank() over (partition by projectName order by rb.ended desc) as projectIndex,
+IIF(tb.type <> '', {path}, '') as excelExport
+from RUNBASE rb
+join testconfigbase cb 
+on rb.testID = cb.test_id
+left join taskbase tb
+on tb.test_id = rb.testID and tb.type = '{JobType.EXPORT_EXCEL}'
+WHERE rb.ended <> '' order by rb.started;
+-- note for: projectIndex and timelineIndex, latest -> oldest => 0 - ...
     """
                 )
             )[-1]:

@@ -218,21 +218,6 @@ async def helper_create_normal_suites(
     return tests, suites
 
 
-async def helper_create_test_config(
-    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None
-):
-    await TestConfigBase.create(
-        fileRetries=file_retries,
-        framework="pytest",
-        exitCode=0,
-        platform="windows",
-        maxInstances=1,
-        avoidParentSuitesInCount=avoidParentSuitesInCount,
-        test_id=test_id,
-        using_db=connection,
-    )
-
-
 async def helper_create_assertion(
     entity_id: str, passed: bool, title: str = "toExist", connection=None
 ):
@@ -298,11 +283,6 @@ def create_tests():
 @fixture
 def create_hierarchy():
     return helper_create_normal_suites
-
-
-@fixture
-def attach_config():
-    return helper_create_test_config
 
 
 @fixture

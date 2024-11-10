@@ -10,7 +10,12 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     DB_VERSION,
 )
-from handshake.services.DBService.models import RunBase, SessionBase, ConfigBase
+from handshake.services.DBService.models import (
+    RunBase,
+    SessionBase,
+    ConfigBase,
+    TestConfigBase,
+)
 from datetime import datetime, timedelta, UTC
 from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.models.enums import ConfigKeys
@@ -90,15 +95,31 @@ async def clean_close(db_path, init_db):
     rmtree(db_path.parent)
 
 
+async def helper_create_test_config(
+    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None
+):
+    await TestConfigBase.update_or_create(
+        fileRetries=file_retries,
+        framework="pytest",
+        platform="windows",
+        maxInstances=1,
+        avoidParentSuitesInCount=avoidParentSuitesInCount,
+        test_id=test_id,
+        using_db=connection,
+    )
+
+
 async def sample_test_run(postfix: Optional[str] = "", connection=None):
     noted = datetime.now(UTC)
-    return await RunBase.create(
+    note = await RunBase.create(
         projectName=testNames + postfix,
         started=noted,
         ended=noted + timedelta(minutes=10),
         duration=timedelta(minutes=10).total_seconds() * 1000,
         using_db=connection,
     )
+    await helper_create_test_config(note.testID)
+    return note
 
 
 async def attach_db_config(maxRunsPerProject=2):
@@ -153,6 +174,11 @@ async def create_test_and_session(
 @fixture()
 def helper_to_create_test_and_session():
     return create_test_and_session
+
+
+@fixture
+def attach_config():
+    return helper_create_test_config
 
 
 @fixture()

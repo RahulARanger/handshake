@@ -1,6 +1,10 @@
 import json
-from handshake.services.DBService.models import RunBase, SuiteBase
-from handshake.services.SchedularService.start import Scheduler
+from handshake.services.DBService.models import RunBase, SuiteBase, TaskBase
+from handshake.services.SchedularService.start import (
+    Scheduler,
+    attachment_folder as af,
+    JobType,
+)
 from handshake.services.SchedularService.constants import (
     exportAttachmentFolderName,
     EXPORT_RUNS_PAGE_FILE_NAME,
@@ -8,6 +12,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_RUN_PAGE_FILE_NAME,
     EXPORT_OVERVIEW_PAGE,
     EXPORT_ALL_SUITES,
+    exportExportFileName,
 )
 from __test__.conftest import helper_to_test_date_operator
 from handshake.services.SchedularService.register import (
@@ -22,18 +27,16 @@ from pytest import mark
 class TestMinimalExport:
     async def test_with_export_disabled(self, root_dir):
         scheduler = Scheduler(root_dir)
-        assert scheduler.save_in is None
-        assert scheduler.dashboard_build is None
+        assert scheduler.skip_export
+        # assert scheduler.dashboard_build is None
 
-    async def test_with_no_runs(self, root_dir, report_dir, zipped_build):
-        scheduler = Scheduler(root_dir, report_dir, zipped_build=zipped_build)
-        assert scheduler.export_dir == report_dir
-        assert scheduler.dashboard_build == zipped_build
+    async def test_with_no_runs_json_export(self, root_dir, report_dir):
+        scheduler = Scheduler(
+            root_dir, report_dir, export_mode="json", include_excel_export=True
+        )
+        assert scheduler.exporter.save_in == report_dir / "Import"
 
         await scheduler.start()
-
-        assert (report_dir / "RUNS").exists()
-        assert (report_dir / "RUNS" / "index.html").exists()
 
         assert len(list((report_dir / exportAttachmentFolderName).iterdir())) == 2
 
@@ -46,7 +49,7 @@ class TestMinimalExport:
 
 
 @mark.usefixtures("clean_close")
-class TestExportsWithRuns:
+class TestJSONExportsWithRuns:
     async def test_with_a_single_run(
         self,
         helper_create_test_run,
@@ -54,18 +57,15 @@ class TestExportsWithRuns:
         attach_config,
         root_dir,
         report_dir,
-        zipped_build,
     ):
         test_run = await helper_create_test_run()
-        await attach_config(test_run.testID)
         await create_session_with_hierarchy_with_no_retries(test_run.testID)
         await create_session_with_hierarchy_with_no_retries(test_run.testID)
         await create_session_with_hierarchy_with_no_retries(test_run.testID)
 
         await register_patch_test_run(test_run.testID)
 
-        await Scheduler(root_dir, out_dir=report_dir, zipped_build=zipped_build).start()
-        assert (report_dir / "RUNS").exists()
+        await Scheduler(root_dir, out_dir=report_dir, export_mode="json").start()
 
         # TESTING runs.json
         feed = (
@@ -79,6 +79,7 @@ class TestExportsWithRuns:
         assert first_run["projectName"] == test_run.projectName
         assert first_run["timelineIndex"] == 1
         assert first_run["projectIndex"] == 1
+        assert not first_run["excelExport"], "Excel Export was not enabled"
 
         after_patch = await RunBase.filter(testID=test_run.testID).first()
 
@@ -150,6 +151,7 @@ class TestExportsWithRuns:
             "suiteSummary",
             "duration",
             "specStructure",
+            "exportExcel",
         ):
             assert required in first_run
             assert first_run[required] is not None
@@ -250,6 +252,9 @@ class TestExportsWithRuns:
                 "rollup_failed",
                 "rollup_skipped",
                 "rollup_tests",
+                "retried_later",
+                "setup_duration",
+                "teardown_duration",
             ):
                 assert required in suite
                 assert suite[required] is not None
@@ -281,16 +286,16 @@ class TestExportsWithRuns:
         child = await create_suite(session.sessionID, parent=suite.suiteID)
         await register_patch_suite(suite.suiteID, test_run.testID)
         await register_patch_suite(child.suiteID, test_run.testID)
+        await register_patch_test_run(test_run.testID)
 
         run(
-            f'handshake patch "{root_dir}" -o "{report_dir}" -b "{zipped_build}"',
+            f'handshake patch "{root_dir}" -o "{report_dir}" -e json',
             shell=True,
             stderr=PIPE,
         )
 
         assert report_dir.exists()
         assert (report_dir / exportAttachmentFolderName).exists()
-        assert (report_dir / "RUNS" / "index.html").exists()
 
         feed = json.loads(
             (
@@ -316,7 +321,7 @@ class TestExportsWithRuns:
                 assert not _suite["hasChildSuite"]
 
     async def test_with_multiple_runs_in_single_project(
-        self, helper_create_test_run, report_dir, zipped_build, root_dir
+        self, helper_create_test_run, report_dir, root_dir
     ):
         first = await helper_create_test_run("test-1")
         test_run = await helper_create_test_run("test-1")
@@ -325,7 +330,7 @@ class TestExportsWithRuns:
         await register_patch_test_run(first.testID)
         await register_patch_test_run(test_run.testID)
 
-        await Scheduler(root_dir, out_dir=report_dir, zipped_build=zipped_build).start()
+        await Scheduler(root_dir, out_dir=report_dir, export_mode="json").start()
 
         # TESTING projects.json
         feed = json.loads(
@@ -337,7 +342,7 @@ class TestExportsWithRuns:
         assert len(for_this_project) == 2
 
     async def test_with_multiple_runs_in_multiple_project(
-        self, helper_create_test_run, report_dir, zipped_build, root_dir
+        self, helper_create_test_run, report_dir, root_dir
     ):
         first = await helper_create_test_run("test-1")
         test_run = await helper_create_test_run("test-1")
@@ -354,7 +359,7 @@ class TestExportsWithRuns:
         await register_patch_test_run(first.testID)
         await register_patch_test_run(test_run.testID)
 
-        await Scheduler(root_dir, out_dir=report_dir, zipped_build=zipped_build).start()
+        await Scheduler(root_dir, out_dir=report_dir, export_mode="json").start()
 
         # TESTING projects.json
         feed = json.loads(
@@ -379,7 +384,7 @@ async def test_patch_interruption(
 
     try:
         run(
-            f'handshake patch "{root_dir}" -o "{report_dir}" -b "{zipped_build}"',
+            f'handshake patch "{root_dir}" -o "{report_dir}" -e json',
             shell=True,
             stderr=PIPE,
             timeout=0.3,  # 1 second is not enough, so it fail
@@ -388,3 +393,56 @@ async def test_patch_interruption(
         found_error = True
 
     assert found_error, "Expected TimeoutExpired Error"
+
+
+class TestExcelExport:
+    async def test_with_parent_suite(
+        self,
+        helper_create_test_run,
+        helper_create_test_session,
+        create_suite,
+        root_dir,
+        report_dir,
+        zipped_build,
+        db_path,
+    ):
+        test_run = await helper_create_test_run()
+        session = await helper_create_test_session(test_run.testID)
+
+        suite = await create_suite(session.sessionID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(suite.suiteID, test_run.testID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        await register_patch_test_run(test_run.testID)
+
+        await Scheduler(root_dir, include_excel_export=True).start()
+
+        task = await TaskBase.filter(
+            type=JobType.EXPORT_EXCEL, test_id=test_run.testID
+        ).first()
+        previously = task.dropped
+        assert task.processed, "Excel export task must be processed by now"
+
+        assert (
+            af(db_path) / str(test_run.testID) / exportExportFileName
+        ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())
+
+        await Scheduler(root_dir, include_excel_export=True).start()
+
+        task = await TaskBase.filter(
+            type=JobType.EXPORT_EXCEL, test_id=test_run.testID
+        ).first()
+        assert task.dropped == previously, "excel will not be exported again"
+
+        await Scheduler(root_dir, include_excel_export=True, manual_reset=True).start()
+
+        task = await TaskBase.filter(
+            type=JobType.EXPORT_EXCEL, test_id=test_run.testID
+        ).first()
+        assert task.dropped > previously, "Excel should be exported again"
+
+        assert (
+            af(db_path) / str(test_run.testID) / exportExportFileName
+        ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())

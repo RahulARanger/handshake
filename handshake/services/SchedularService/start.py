@@ -68,7 +68,7 @@ class Scheduler:
                 "Export would be skipped,"
                 " Please pass the out_dir example: handshake patch TestResults -e json -o TestReports"
             )
-        self.export = out_dir is None
+        # self.export = out_dir is None
         self.converter = Parser()
         # self.dashboard_build = zipped_build
         # self.export_dir = Path(out_dir) if out_dir and zipped_build else None

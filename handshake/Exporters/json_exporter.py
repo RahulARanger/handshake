@@ -37,6 +37,7 @@ class JsonExporter(Exporter):
             logger.debug("removing previous results")
             rmtree(self.save_in)
 
+        self.save_in.parent.mkdir(exist_ok=True)
         self.save_in.mkdir(exist_ok=False)
 
     def completed(self):
