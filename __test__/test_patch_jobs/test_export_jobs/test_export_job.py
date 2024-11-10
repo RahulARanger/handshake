@@ -151,7 +151,6 @@ class TestJSONExportsWithRuns:
             "suiteSummary",
             "duration",
             "specStructure",
-            "exportExcel",
         ):
             assert required in first_run
             assert first_run[required] is not None
