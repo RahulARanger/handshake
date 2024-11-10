@@ -429,7 +429,9 @@ def yet_to_process(ctx: Context):
 
 
 if __name__ == "__main__":
-    _scheduler = Scheduler("../../../TestResults", manual_reset=True, excel_export=True)
+    _scheduler = Scheduler(
+        "../../../TestResults", manual_reset=True, include_excel_export=True
+    )
     try:
         run(_scheduler.start())
     except (KeyboardInterrupt, SystemExit):

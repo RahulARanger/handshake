@@ -210,13 +210,11 @@ class Scheduler:
                 )
             ).values_list("testID", flat=True)
 
-            if test_ids_to_pick and not excel_export:
-                await warn_about_test_run(
-                    test_ids_to_pick,
+            if not excel_export:
+                return logger.warning(
                     "Excel Export due to non-availability of the library, please proceed with the pip install "
                     "handshakes[excel-export] to download the openpyxl which is required for the excel export",
                 )
-                return
 
             test_ids_to_pick and await register_bulk_excel_export(test_ids_to_pick)
 

@@ -74,7 +74,7 @@ rank() over (partition by projectName order by rb.ended desc) as projectIndex,
 IIF(tb.type <> '', {path}, '') as excelExport
 from RUNBASE rb
 join testconfigbase cb 
-on rb.testID = cb.test_id
+on rb.testID = cb.test_id {extra_join_query}
 left join taskbase tb
 on tb.test_id = rb.testID and tb.type = '{JobType.EXPORT_EXCEL}'
 WHERE rb.ended <> '' order by rb.started;
