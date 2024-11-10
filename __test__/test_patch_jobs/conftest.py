@@ -40,7 +40,11 @@ async def helper_create_suite(
         payload = [
             _id,
             "sample-suite",
-            "YET_TO_CALC",
+            (
+                Status.PASSED
+                if hook
+                else (Status.PASSED if is_test else Status.YET_TO_CALCULATE)
+            ),
             "2024-10-02 21:04:00.349714+00:00" if started else None,
             "2024-10-02 21:04:00.361714+00:00" if started else None,
             1,
@@ -185,20 +189,26 @@ async def helper_create_normal_suites(
 
         _tests = []
 
-        for test in range(3):
+        for test_index, stat in enumerate(
+            (Status.PASSED, Status.FAILED, Status.SKIPPED)
+        ):
             await sleep(0.002)
-            test_started_at = started + datetime.timedelta(milliseconds=2.1 * test)
+            test_started_at = started + datetime.timedelta(
+                milliseconds=2.1 * test_index
+            )
             test = await SuiteBase.create(
                 session_id=session_id,
                 suiteType=SuiteType.TEST,
-                started=started.isoformat(),
+                started=test_started_at.isoformat(),
                 ended=test_started_at + datetime.timedelta(milliseconds=2),
-                title=f"test-{index + 1}-{test + 1}",
-                standing=Status.FAILED,
+                title=f"test-{index + 1}-{test_index + 1}",
+                standing=stat,
                 file=suite_files[index],
                 parent=suites[-1],
-                errors=[{"message": f"{index}-{test}"}],
+                errors=[{"message": f"{index}-{test_index}"}],
                 retried=retried,
+                tests=1,
+                **{stat.lower(): 1},
             )
             _tests.append(test.suiteID)
 
@@ -206,21 +216,6 @@ async def helper_create_normal_suites(
         tests.append(_tests)
 
     return tests, suites
-
-
-async def helper_create_test_config(
-    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None
-):
-    await TestConfigBase.create(
-        fileRetries=file_retries,
-        framework="pytest",
-        exitCode=0,
-        platform="windows",
-        maxInstances=1,
-        avoidParentSuitesInCount=avoidParentSuitesInCount,
-        test_id=test_id,
-        using_db=connection,
-    )
 
 
 async def helper_create_assertion(
@@ -288,11 +283,6 @@ def create_tests():
 @fixture
 def create_hierarchy():
     return helper_create_normal_suites
-
-
-@fixture
-def attach_config():
-    return helper_create_test_config
 
 
 @fixture

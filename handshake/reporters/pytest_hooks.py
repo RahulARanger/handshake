@@ -45,7 +45,10 @@ def pytest_assertrepr_compare(config, op, left, right):
 
 
 def pytest_assertion_pass(item, lineno, orig, expl):
-    reporter.add_test_assertion(item.nodeid, orig, expl, True)
+    try:
+        reporter.add_test_assertion(item.nodeid, orig, expl, True)
+    except Exception as e:
+        print(e)
 
 
 def pytest_fixture_post_finalizer(

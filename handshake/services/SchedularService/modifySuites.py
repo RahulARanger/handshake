@@ -265,14 +265,10 @@ class PatchTestSuite:
         )
 
         previous_suite = await SuiteBase.filter(suiteID=previous.suite_id).first()
-        await previous_suite.update_from_dict(dict(standing=Status.RETRIED))
+        await previous_suite.update_from_dict(
+            dict(standing=Status.RETRIED, retried_later=True)
+        )
         await previous_suite.save()
-
-        session = await SessionBase.filter(
-            sessionID=(await previous_suite.session).sessionID
-        ).first()
-        await session.update_from_dict(dict(retried=True))
-        await session.save()
 
         await previous.update_from_dict(
             dict(
@@ -280,6 +276,38 @@ class PatchTestSuite:
                 tests=previous.tests + [self.suite_id],
                 suite_id=suite.suiteID,
             )
+        )
+
+        child_entities = []
+        current_loop = (
+            await SuiteBase.filter(
+                Q(parent=previous_suite.suiteID) & ~Q(suiteType=SuiteType.SUITE)
+            )
+            .only("suiteID")
+            .values_list("suiteID", flat=True)
+        )
+
+        while current_loop:
+            child_entities.extend(current_loop)
+            temp = (
+                await SuiteBase.filter(
+                    Q(parent__in=current_loop) & ~Q(suiteType=SuiteType.SUITE)
+                )
+                .only("suiteID")
+                .values_list("suiteID", flat=True)
+            )
+
+            current_loop.clear()
+            current_loop.extend(temp)
+
+        entities = []
+        for entity in await SuiteBase.filter(suiteID__in=child_entities):
+            entity.retried_later = True
+            entities.append(entity)
+
+        entities and await SuiteBase.bulk_update(
+            entities,
+            ("retried_later",),
         )
 
         await previous.save()

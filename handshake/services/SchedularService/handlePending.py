@@ -8,7 +8,9 @@ from loguru import logger
 from tortoise.expressions import Q, Subquery
 from tortoise.functions import Min
 from asyncio import TaskGroup
+from pathlib import Path
 from handshake.services.SchedularService.register import cancel_patch_for_test_run
+from handshake.Exporters.excel_exporter import excel_export, ExcelExporter
 
 
 async def safety_checks():
@@ -17,7 +19,7 @@ async def safety_checks():
         await pruneTasks(prune_task.ticketID)
 
 
-async def patch_jobs():
+async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
     while True:
         await safety_checks()
 
@@ -108,5 +110,21 @@ async def patch_jobs():
             job.picked = True
             await job.save()
             patcher.create_task(patchTestRun(job.ticketID), name=job.ticketID)
+
+    if not (db_path and include_excel_export and excel_export):
+        logger.debug("Done!")
+        return
+
+    logger.debug("Exporting Test Runs")
+    async with TaskGroup() as patcher:
+        for job in await TaskBase.filter(
+            Q(type=JobType.EXPORT_EXCEL) & Q(picked=False) & Q(processed=False)
+        ).all():
+            exporter = ExcelExporter(db_path)
+            job.picked = True
+            await job.save()
+            patcher.create_task(
+                exporter.start_exporting(job.test_id), name=job.ticketID
+            )
 
     logger.debug("Done!")
