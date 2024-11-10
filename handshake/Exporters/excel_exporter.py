@@ -110,7 +110,7 @@ class ExcelExporter(Exporter):
     async def export_test_run_summary(self, test_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
 
-        start_from_row = 6
+        start_from_row = 3
         detail_col = 7
 
         suite_summary = loads(summary["suiteSummary"])
@@ -190,7 +190,7 @@ class ExcelExporter(Exporter):
     async def export_overview_of_test_run(self, run_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
 
-        start_from_row = 6
+        start_from_row = 3
         detail_col = 7
 
         edit_cell(
