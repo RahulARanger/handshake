@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Any
 from handshake.services.SchedularService.constants import exportExportFileName, JobType
 from handshake.services.SchedularService.register import warn_about_test_run
 from handshake.services.DBService.models.dynamic_base import TaskBase
@@ -33,7 +33,13 @@ try:
 
     excel_export = True
 except ImportError:
+    Workbook = Any
+    Worksheet = Any
+    ConditionalFormatting = Any
     excel_export = False
+    Cell = Any
+
+# PLEASE DO NOT TYPECAST EXCEL RELATED THINGS UNLESS WE HANDLE IT IN EXCEPTION
 
 
 def save_datetime_in_excel(obj: datetime):
