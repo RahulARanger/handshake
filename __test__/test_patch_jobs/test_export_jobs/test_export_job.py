@@ -58,7 +58,7 @@ class TestJSONExportsWithRuns:
         root_dir,
         report_dir,
     ):
-        test_run = await helper_create_test_run()
+        test_run = await helper_create_test_run(add_test_config=True)
         await create_session_with_hierarchy_with_no_retries(test_run.testID)
         await create_session_with_hierarchy_with_no_retries(test_run.testID)
         await create_session_with_hierarchy_with_no_retries(test_run.testID)
@@ -276,7 +276,7 @@ class TestJSONExportsWithRuns:
         report_dir,
         zipped_build,
     ):
-        test_run = await helper_create_test_run()
+        test_run = await helper_create_test_run(add_test_config=True)
         session = await helper_create_test_session(test_run.testID)
 
         suite = await create_suite(session.sessionID)
@@ -377,7 +377,7 @@ class TestJSONExportsWithRuns:
 async def test_patch_interruption(
     helper_create_test_run, root_dir, report_dir, zipped_build
 ):
-    test_run = await helper_create_test_run()
+    test_run = await helper_create_test_run(add_test_config=True)
     await register_patch_test_run(test_run.testID)
     found_error = False
 
@@ -405,7 +405,7 @@ class TestExcelExport:
         zipped_build,
         db_path,
     ):
-        test_run = await helper_create_test_run()
+        test_run = await helper_create_test_run(add_test_config=True)
         session = await helper_create_test_session(test_run.testID)
 
         suite = await create_suite(session.sessionID)

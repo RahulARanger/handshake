@@ -109,7 +109,9 @@ async def helper_create_test_config(
     )
 
 
-async def sample_test_run(postfix: Optional[str] = "", connection=None):
+async def sample_test_run(
+    postfix: Optional[str] = "", connection=None, add_test_config=False
+):
     noted = datetime.now(UTC)
     note = await RunBase.create(
         projectName=testNames + postfix,
@@ -118,7 +120,8 @@ async def sample_test_run(postfix: Optional[str] = "", connection=None):
         duration=timedelta(minutes=10).total_seconds() * 1000,
         using_db=connection,
     )
-    await helper_create_test_config(note.testID)
+    if add_test_config:
+        await helper_create_test_config(note.testID)
     return note
 
 
