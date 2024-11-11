@@ -19,6 +19,8 @@ from pathlib import Path
 
 
 def relative_from_session_parent(session: Session, take_relative_for: Path):
+    if take_relative_for.is_relative_to(session.startpath.parent):
+        return
     return take_relative_for.relative_to(session.startpath.parent)
 
 
@@ -70,8 +72,10 @@ class PyTestHandshakeReporter(CommonReporter):
         is_suite: bool = False,
         helper_entity: Optional[PointToAtPhase] = None,
     ):
-        path = relative_from_session_parent(item.session, item.path)
-        path = str(path.parent if path.name == "__init__.py" else path)
+        path: Path = relative_from_session_parent(item.session, item.path)
+        if path is None:
+            return
+        path: str = str(path.parent if path.name == "__init__.py" else path)
         parent = key(item.nodeid) if helper_entity else None
 
         if helper_entity is None and item.parent.nodeid:
@@ -258,7 +262,9 @@ class PyTestHandshakeReporter(CommonReporter):
                 ],
                 note_description=note_desc,
                 helpful_description=fixture_def,
-                extraValues=dict(savedIn=str(save_in)),
+                extraValues=dict(
+                    savedIn=str(save_in if save_in else request.session.startpath)
+                ),
             )
 
         self.fixtures.get(request.fixturename, set()).clear()
