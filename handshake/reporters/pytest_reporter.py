@@ -19,7 +19,7 @@ from pathlib import Path
 
 
 def relative_from_session_parent(session: Session, take_relative_for: Path):
-    if take_relative_for.is_relative_to(session.startpath.parent):
+    if not take_relative_for.is_relative_to(session.startpath.parent):
         return
     return take_relative_for.relative_to(session.startpath.parent)
 
