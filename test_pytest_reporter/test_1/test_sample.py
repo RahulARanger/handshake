@@ -1,7 +1,18 @@
+from handshake.reporters.markers import set_info
+
+pytestmark = set_info(
+    name="test_sample", description="contains nested and simple tests"
+)
+
+
+@set_info(name="test_dummy", description="just asserting with the value 1 with 1")
 def test_dummy():
     assert 1 == 1
 
 
+@set_info(
+    name="test_dummy_2_class", description="created this suite to test the nested suite"
+)
 class TestDummy2:
     class TestDummy4:
         def test_dummy_5(self):

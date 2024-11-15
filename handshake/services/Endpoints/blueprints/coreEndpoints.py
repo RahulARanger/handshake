@@ -171,6 +171,7 @@ async def update_suite_details(request: Request) -> HTTPResponse:
                 await register_patch_suite(suite_record.suiteID, get_test_id())
             )
         case SuiteType.SETUP:
+            # note here suite_record.duration means hook's duration
             await SuiteBase.filter(suiteID=suite_record.parent).update(
                 setup_duration=F("setup_duration")
                 + suite_record.duration

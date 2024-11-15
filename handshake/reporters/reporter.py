@@ -138,7 +138,7 @@ class CommonReporter:
             else f'handshake run-app {project_name} "{self.results}" -p {self.port}'
         )
         self.collector = Popen(command, shell=True, stdout=stdout, stderr=stderr)
-        logger.info("Starting handshake-server")
+        logger.info("Starting handshake-server, {}", command)
         self.started = self.postman.submit(self.wait_for_connection)
 
     def health_connection(self) -> bool:

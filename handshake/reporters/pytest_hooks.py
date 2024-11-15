@@ -6,6 +6,13 @@ from handshake.reporters.pytest_reporter import PyTestHandshakeReporter, PointTo
 reporter = PyTestHandshakeReporter()
 
 
+def pytest_configure(config):
+    config.addinivalue_line(
+        "markers",
+        "test_metadata(title, description): Attach metadata to handshake like title and description to tests.",
+    )
+
+
 def pytest_sessionstart(session: Session):
     if reporter.parse_config(session):
         return
@@ -25,6 +32,10 @@ def pytest_runtest_logstart(nodeid, location):
 def pytest_runtest_setup(item: Item):
     reporter.pointing_to = item
     reporter.create_test_entity(item, helper_entity=PointToAtPhase.SETUP)
+
+
+def pytest_runtest_call(item: Item):
+    reporter.func_args[item.nodeid] = item.funcargs
 
 
 def pytest_runtest_logreport(report):
