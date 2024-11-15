@@ -8,7 +8,7 @@ from handshake.services.DBService.models.types import (
     AttachmentType,
     Tag,
 )
-from handshake.reporters.markers import meta_data_mark, test_metadata
+from handshake.reporters.markers import meta_data_mark
 from pytest import Session, Item, ExitCode, TestReport
 from platform import platform
 from typing import Optional, Dict, Any, List
@@ -95,6 +95,16 @@ class PyTestHandshakeReporter(CommonReporter):
         suite_type = SuiteType.SUITE if is_suite else SuiteType.TEST
         marker = not helper_entity and item.get_closest_marker(meta_data_mark)
         meta = marker.kwargs if marker else {}
+        tags = []
+
+        for tag in item.own_markers if not helper_entity else tags:
+            if tag.name == meta_data_mark:
+                continue
+            kwarg_string = (f"{_}: {tag.kwargs[_]}" for _ in tag.kwargs.keys())
+            desc = ("" if not tag.args else f"args: {', '.join(tag.args)}") + (
+                "" if not tag.kwargs else f"kwargs: {', '.join(kwarg_string)}"
+            )
+            tags.append(dict(label=tag.name, desc=desc))
 
         self.register_test_entity(
             dict(
@@ -105,6 +115,7 @@ class PyTestHandshakeReporter(CommonReporter):
                 parent="",
                 is_processing=helper_entity is not None,
                 session_id="",
+                tags=tags,
             ),
             key(item.nodeid, helper_entity if helper_entity else PointToAtPhase.CALL),
             parent,
