@@ -42,8 +42,12 @@ except ImportError:
 # PLEASE DO NOT TYPECAST EXCEL RELATED THINGS UNLESS WE HANDLE IT IN EXCEPTION
 
 
-def save_datetime_in_excel(obj: datetime):
-    return obj.strftime("%Y-%m-%d %H:%M:%S")
+def save_datetime_in_excel(obj: datetime, cell: Optional[Cell] = None):
+    full_text = obj.strftime("%Y-%m-%d %I:%M:%S %p")
+    if not cell:
+        return full_text
+    cell.comment = Comment(full_text, "Handshake")
+    return obj.strftime("%I:%M:%S %p")
 
 
 def calc_percentage(num, deno):
@@ -132,6 +136,7 @@ class ExcelExporter(Exporter):
             f"Run Status: {summary['status'].lower().capitalize()}\n"
             f"Exit Code: {summary['exitCode']}",
             summary["framework"],
+            width=200,
         )
 
         edit_cell(
@@ -201,12 +206,14 @@ class ExcelExporter(Exporter):
         await super().export_all_suites(run_id, False)
 
     async def export_all_suites_of_test_run(self, run_id, all_suites):
+        if not all_suites:
+            return
         suites_sheet = self.template.get_sheet_by_name("Test Scenarios")
-        table_style = TableStyleInfo(name="TableStyleMedium26", showRowStripes=True)
+        table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
         columns = (
             "title",
-            "duration",
+            "total_duration",
             "description",
             "standing",
             "tests",
@@ -220,12 +227,14 @@ class ExcelExporter(Exporter):
             "parent",
             "simplified",
             "file",
+            "duration",
             "setup_duration",
             "teardown_duration",
             "retried_later",
         )
         alias = {
             "numberOfErrors": "Errors",
+            "duration": "test_duration",
             "tests": "passed%",
             "simplified": "Ran with",
             "standing": "status",
@@ -247,20 +256,29 @@ class ExcelExporter(Exporter):
                     ).capitalize()
 
                 cell = suites_sheet.cell(row_index + 2, header_index + 1)
+                cell.alignment = Alignment("right")
                 value = suite[header]
                 to_save = value
                 resize = True
                 match header:
                     case "started":
-                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                        to_save = save_datetime_in_excel(
+                            datetime.fromisoformat(value), cell
+                        )
                     case "ended":
-                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                        to_save = save_datetime_in_excel(
+                            datetime.fromisoformat(value), cell
+                        )
                     case "duration":
                         to_save = format_duration(value / 1000)
                         resize = (
                             False  # else it considers the length of the formula string
                         )
                         resize_col(suites_sheet, cell, 10)
+                    case "total_duration":
+                        to_save = format_duration(value / 1000)
+                        resize = False
+                        resize_col(suites_sheet, cell, 6)
                     case "setup_duration":
                         to_save = format_duration(value / 1000)
                         resize = False
@@ -286,6 +304,10 @@ class ExcelExporter(Exporter):
                         to_save = value.lower().capitalize()
                         resize = True
                         copy_format_to_cell(suites_sheet, cell, self.standing_format)
+                    case "title":
+                        cell.alignment = Alignment(wrapText=True)
+                        resize_col(suites_sheet, cell, 30)
+                        resize = False
                     case "description":
                         if value:
                             cell.alignment = Alignment(wrapText=True)
@@ -299,9 +321,9 @@ class ExcelExporter(Exporter):
                         to_save = "〰️"
                         cell.alignment = Alignment("center", "center")
                         if value and self.parent_links[value]:
-                            to_save = "🔗"
+                            to_save = f"{suite['parent_title']} 🔗"
                             cell.hyperlink = self.parent_links[value][0]
-                            resize = False
+                            resize = True
                             cell.comment = Comment(
                                 self.parent_links[value][1], "Handshake"
                             )
@@ -343,13 +365,15 @@ class ExcelExporter(Exporter):
         )
 
     async def export_tests(self, run_id, suite_id, tests):
+        if not tests:
+            return
         test_sheet = self.template.get_sheet_by_name("Test Cases")
         hooks_sheet = self.template.get_sheet_by_name("Hooks")
-        table_style = TableStyleInfo(name="TableStyleDark2", showRowStripes=True)
+        table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
         columns = (
             "title",
-            "duration",
+            "total_duration",
             "suiteType",
             "description",
             "standing",
@@ -360,9 +384,13 @@ class ExcelExporter(Exporter):
             "ended",
             "parent",
             "file",
+            "duration",
+            "setup_duration",
+            "teardown_duration",
             "retried_later",
         )
         alias = {
+            "duration": "test_duration",
             "numberOfErrors": "Errors",
             "simplified": "Ran with",
             "standing": "status",
@@ -389,21 +417,30 @@ class ExcelExporter(Exporter):
 
                 sheet = test_sheet if is_test else hooks_sheet
                 cell = sheet.cell(test_rows if is_test else hooks_row, header_index + 1)
+                cell.alignment = Alignment("right")
 
                 value = test[header]
                 to_save = value
                 resize = True
                 match header:
                     case "started":
-                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                        to_save = save_datetime_in_excel(
+                            datetime.fromisoformat(value), cell
+                        )
                     case "ended":
-                        to_save = save_datetime_in_excel(datetime.fromisoformat(value))
+                        to_save = save_datetime_in_excel(
+                            datetime.fromisoformat(value), cell
+                        )
                     case "duration":
                         to_save = format_duration(value / 1000)
                         resize = (
                             False  # else it considers the length of the formula string
                         )
                         resize_col(sheet, cell, 10)
+                    case "total_duration":
+                        to_save = format_duration(value / 1000)
+                        resize = False
+                        resize_col(sheet, cell, 6)
                     case "setup_duration":
                         to_save = format_duration(value / 1000)
                         resize = False
@@ -422,6 +459,10 @@ class ExcelExporter(Exporter):
                         to_save = value.lower().capitalize()
                         resize = True
                         copy_format_to_cell(sheet, cell, self.standing_format)
+                    case "title":
+                        cell.alignment = Alignment(wrapText=True)
+                        resize_col(sheet, cell, 30)
+                        resize = False
                     case "description":
                         if value:
                             cell.alignment = Alignment(wrapText=True)
@@ -446,9 +487,9 @@ class ExcelExporter(Exporter):
                             ),
                         )
                         if value and link:
-                            to_save = "🔗"
+                            to_save = f"{test['parent_title']} 🔗"
+                            resize = True
                             cell.hyperlink = link[0]
-                            resize = False
                             cell.alignment = Alignment("center", "center")
 
                             if link[1]:
@@ -479,7 +520,7 @@ class ExcelExporter(Exporter):
             else:
                 hooks_row += 1
 
-        test_sheet.add_table(
+        test_rows > 2 and test_sheet.add_table(
             Table(
                 ref=f"A1:{test_sheet.cell(1, 1).offset(0, len(columns) - 1).column_letter}"
                 f"{test_rows - 1}",
@@ -487,7 +528,7 @@ class ExcelExporter(Exporter):
                 tableStyleInfo=table_style,
             )
         )
-        hooks_sheet.add_table(
+        hooks_row > 2 and hooks_sheet.add_table(
             Table(
                 ref=f"A1:{hooks_sheet.cell(1, 1).offset(0, len(columns) - 1).column_letter}"
                 f"{hooks_row - 1}",
@@ -501,8 +542,10 @@ class ExcelExporter(Exporter):
     async def export_attachments(
         self, run_id, suite_id, assertion_records, written_records
     ):
+        if not assertion_records:
+            return
         assertion_sheet = self.template.get_sheet_by_name("Assertions")
-        table_style = TableStyleInfo(name="TableStyleMedium25", showRowStripes=True)
+        table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
         columns = ("title", "raw", "entity_id", "passed", "interval", "wait")
         alias = {"entity_id": "entity", "raw": "description"}
@@ -521,6 +564,7 @@ class ExcelExporter(Exporter):
                     ).capitalize()
 
                 cell = assertion_sheet.cell(row_index + 2, header_index + 1)
+                cell.alignment = Alignment("right")
                 if not assertion["passed"]:
                     cell.fill = fill
 
@@ -529,7 +573,9 @@ class ExcelExporter(Exporter):
                 resize = True
                 match header:
                     case "title":
-                        resize = True
+                        cell.alignment = Alignment(wrapText=True)
+                        resize_col(assertion_sheet, cell, 30)
+                        resize = False
                     case "raw":
                         if value:
                             cell.alignment = Alignment(wrapText=True)

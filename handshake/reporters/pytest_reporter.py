@@ -8,9 +8,10 @@ from handshake.services.DBService.models.types import (
     AttachmentType,
     Tag,
 )
+from handshake.reporters.markers import meta_data_mark
 from pytest import Session, Item, ExitCode, TestReport
 from platform import platform
-from typing import Optional, Dict, Any, List, Callable
+from typing import Optional, Dict, Any, List
 from threading import Lock
 from enum import StrEnum
 from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
@@ -46,6 +47,7 @@ class PyTestHandshakeReporter(CommonReporter):
         self.attachments: List[Dict[str, Any]] = []
         self.fixtures = {}
         self.last_assertion_added = {}
+        self.func_args = {}
 
     def create_session(self, started: datetime):
         super().create_session(started)
@@ -72,10 +74,11 @@ class PyTestHandshakeReporter(CommonReporter):
         is_suite: bool = False,
         helper_entity: Optional[PointToAtPhase] = None,
     ):
-        path: Path = relative_from_session_parent(item.session, item.path)
-        if path is None:
+        path_obj: Path = relative_from_session_parent(item.session, item.path)
+        if path_obj is None:
             return
-        path: str = str(path.parent if path.name == "__init__.py" else path)
+        path_obj = path_obj.parent if path_obj.name == "__init__.py" else path_obj
+        path: str = str(path_obj)
         parent = key(item.nodeid) if helper_entity else None
 
         if helper_entity is None and item.parent.nodeid:
@@ -90,15 +93,29 @@ class PyTestHandshakeReporter(CommonReporter):
                     self.identified_parent[item.parent.nodeid] = True
 
         suite_type = SuiteType.SUITE if is_suite else SuiteType.TEST
+        marker = not helper_entity and item.get_closest_marker(meta_data_mark)
+        meta = marker.kwargs if marker else {}
+        tags = []
+
+        for tag in item.own_markers if not helper_entity else tags:
+            if tag.name == meta_data_mark:
+                continue
+            kwarg_string = (f"{_}: {tag.kwargs[_]}" for _ in tag.kwargs.keys())
+            desc = ("" if not tag.args else f"args: {', '.join(tag.args)}") + (
+                "" if not tag.kwargs else f"kwargs: {', '.join(kwarg_string)}"
+            )
+            tags.append(dict(label=tag.name, desc=desc))
 
         self.register_test_entity(
             dict(
                 file=path,
-                title=item.name,
+                title=meta.get("title", item.name),
+                description=meta.get("description", ""),
                 suiteType=helper_entity.upper() if helper_entity else suite_type,
                 parent="",
                 is_processing=helper_entity is not None,
                 session_id="",
+                tags=tags,
             ),
             key(item.nodeid, helper_entity if helper_entity else PointToAtPhase.CALL),
             parent,
@@ -127,7 +144,6 @@ class PyTestHandshakeReporter(CommonReporter):
                 key(node_id),
                 punch_in=True,
             )
-
         self.pointing_to_phase = report.when
         payload = dict(
             duration=report.duration * 1e3,  # it is in seconds
