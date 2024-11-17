@@ -210,6 +210,12 @@ WHERE rb.ended <> '' order by rb.started;
                 s=RawSQL("suitebase.started"),
                 e=RawSQL("suitebase.ended"),
                 error=RawSQL("errors ->> '[0]'"),
+                total_duration=RawSQL(
+                    "suitebase.duration + suitebase.setup_duration + suitebase.teardown_duration"
+                ),
+                parent_title=RawSQL(
+                    "(select sb.title from suitebase sb where sb.suiteID = suitebase.parent)"
+                ),
                 nextSuite=RawSQL(
                     "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
                     " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
@@ -248,6 +254,8 @@ WHERE rb.ended <> '' order by rb.started;
                 "retried_later",
                 "setup_duration",
                 "teardown_duration",
+                "total_duration",
+                "parent_title",
                 suiteID="id",
                 parent="p_id",
                 started="s",
@@ -301,6 +309,12 @@ WHERE rb.ended <> '' order by rb.started;
                 numberOfErrors=RawSQL("json_array_length(errors)"),
                 id=RawSQL("suiteID"),
                 s=RawSQL("suitebase.started"),
+                total_duration=RawSQL(
+                    "suitebase.duration + suitebase.setup_duration + suitebase.teardown_duration"
+                ),
+                parent_title=RawSQL(
+                    "(select sb.title from suitebase sb where sb.suiteID = suitebase.parent)"
+                ),
                 e=RawSQL("suitebase.ended"),
                 error=RawSQL("errors ->> '[0]'"),
                 assertions=RawSQL(
@@ -323,7 +337,9 @@ WHERE rb.ended <> '' order by rb.started;
                 "retried_later",
                 "setup_duration",
                 "teardown_duration",
+                "total_duration",
                 "parent",
+                "parent_title",
                 suiteID="id",
                 started="s",
                 ended="e",
