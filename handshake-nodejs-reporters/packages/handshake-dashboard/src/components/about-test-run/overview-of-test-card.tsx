@@ -115,7 +115,7 @@ function NotedValues(properties: {
                         </Table.Td>
                         <Table.Td>
                             <Text c="dimmed" size="sm">
-                                Configured
+                                Observed
                             </Text>
                         </Table.Td>
                     </Table.Tr>
@@ -145,7 +145,7 @@ function NotedValues(properties: {
                             </Table.Td>
                             <Table.Td>
                                 <Text c="dimmed" size="sm">
-                                    Configured
+                                    Observed
                                 </Text>
                             </Table.Td>
                         </Table.Tr>
@@ -231,14 +231,21 @@ function NotedValues(properties: {
 
 export default function OverviewCard(properties: {
     run?: DetailedTestRecord;
+    mockData?: Projects;
 }): ReactNode {
     const {
-        data: projects,
+        data: _projects,
         isLoading: loadingProjects,
         error: fetchProjectsError,
-    } = useSWRImmutable<Projects>(jsonFeedForProjects(), () =>
-        fetch(jsonFeedForProjects()).then(async (response) => response.json()),
+    } = useSWRImmutable<Projects>(
+        properties.mockData ? undefined : jsonFeedForProjects(),
+        () =>
+            fetch(jsonFeedForProjects()).then(async (response) =>
+                response.json(),
+            ),
     );
+    const projects = properties.mockData ?? _projects;
+
     const run = properties.run;
     const [showTests, setShowTests] = useState(false);
 
@@ -348,22 +355,21 @@ export default function OverviewCard(properties: {
                             )}
                         </Group>
                         <Group align="center" wrap="nowrap">
-                            {isRecentRun ? (
-                                <Badge
-                                    color="blue.9"
-                                    variant="light"
-                                    title={
-                                        run.timelineIndex === 0
-                                            ? 'Recent Test Run'
-                                            : `Recent Test Run of ${run.projectName}`
-                                    }
-                                >
-                                    Recent Run
-                                </Badge>
-                            ) : (
+                            {run?.RunStatus === 'COMPLETED' ? (
                                 <></>
+                            ) : (
+                                <Badge
+                                    color={
+                                        run?.RunStatus === 'INTERNAL_ERROR'
+                                            ? 'red.9'
+                                            : 'orange.9'
+                                    }
+                                    variant="light"
+                                    title={run?.RunStatus}
+                                >
+                                    {run?.RunStatus?.replaceAll('_', ' ')}
+                                </Badge>
                             )}
-
                             {toLoad ? (
                                 <Skeleton animate width={100} height={18} />
                             ) : (
@@ -434,7 +440,7 @@ export default function OverviewCard(properties: {
                     {/* https://uigradients.com/#RedOcean */}
                     <Card.Section p="sm">
                         <Grid columns={2}>
-                            <Grid.Col span={0.8} pt={rem('5%')}>
+                            <Grid.Col span={0.8} pl={12} pt={rem('5%')}>
                                 <Card.Section>
                                     <TestStatusRing
                                         labelText={

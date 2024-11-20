@@ -5,6 +5,9 @@ import {
     Text,
     Group,
     Tabs,
+    ActionIcon,
+    rem,
+    Button,
 } from '@mantine/core';
 import RelativeDate from 'components/timings/relative-date';
 import type { ReactNode } from 'react';
@@ -20,6 +23,7 @@ import { jsonFeedAboutTestRun, jsonFeedForSuite } from 'components/links';
 import useSWRImmutable from 'swr/immutable';
 import type { TestRunRecord } from 'types/test-run-records';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
+import { IconFileExcel } from '@tabler/icons-react';
 
 export default function RunPageContent(properties: {
     testID?: string;
@@ -81,7 +85,31 @@ export default function RunPageContent(properties: {
                         testID={run?.Id}
                         isSuiteDetailedView={Boolean(properties.inSuiteOf)}
                     />
+
                     <Group align="flex-end" wrap="nowrap">
+                        {run?.ExcelExportUrl ? (
+                            <Button
+                                variant="subtle"
+                                component="a"
+                                color="gray"
+                                leftSection={
+                                    <IconFileExcel
+                                        color="green"
+                                        style={{
+                                            width: rem(18),
+                                            height: rem(18),
+                                        }}
+                                        stroke={2}
+                                    />
+                                }
+                                href={run.ExcelExportUrl}
+                                mb={1}
+                            >
+                                Excel Report
+                            </Button>
+                        ) : (
+                            <></>
+                        )}
                         {aboutSuite ? (
                             <Text size="xs" fs="italic" lineClamp={1} maw={400}>
                                 {aboutSuite.title}

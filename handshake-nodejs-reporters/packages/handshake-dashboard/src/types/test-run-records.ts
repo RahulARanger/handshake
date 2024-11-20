@@ -1,4 +1,4 @@
-import type { statusOfEntity } from './session-records';
+import type { RunStatus, statusOfEntity } from './session-records';
 
 export default interface OnlyTestRunRecord {
     projectName: string;
@@ -27,6 +27,8 @@ export interface TestRunRecord extends OnlyTestRunRecord {
     bail: number;
     timelineIndex: number; // 1 - indexed
     projectIndex: number; // 1 - indexed
+    status: RunStatus;
+    excelExport?: string;
 }
 
 export type specStructure = Record<string, specNode>;
@@ -49,7 +51,8 @@ export type possibleFrameworks =
     | 'mocha'
     | 'cucumber'
     | 'jasmine'
-    | 'unknown';
+    | 'unknown'
+    | 'pytest';
 
 export type logTypes = 'WARN' | 'INFO' | 'ERROR';
 

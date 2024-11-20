@@ -290,7 +290,26 @@ export default function PreviewTestRun(properties: {
                         </Tooltip>
                     ))}
                 </Group>
-                <Group align="center" wrap="nowrap"></Group>
+                <Group justify="space-between" align="center" wrap="nowrap">
+                    <Text size="sm"> More about Test Run</Text>
+                    <Group>
+                        {properties.run?.projectIndex === 0 ? (
+                            <Badge
+                                color="blue.9"
+                                variant="light"
+                                title={
+                                    run?.timelineIndex === 0
+                                        ? 'Recent Test Run'
+                                        : `Recent Test Run of ${run?.projectName}`
+                                }
+                            >
+                                Recent Run
+                            </Badge>
+                        ) : (
+                            <></>
+                        )}
+                    </Group>
+                </Group>
             </Card.Section>
 
             <Card.Section

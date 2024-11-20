@@ -48,6 +48,12 @@ export const NoFrameworksUsed: Story = {
     },
 };
 
+export const Pytest: Story = {
+    args: {
+        frameworks: ['pytest'],
+    },
+};
+
 export const Webdriverio: Story = {
     args: {
         frameworks: ['webdriverio'],

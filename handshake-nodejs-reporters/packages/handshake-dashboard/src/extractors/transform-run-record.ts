@@ -54,6 +54,8 @@ export default function transformTestRunRecord(
         MaxInstances: testRunRecord.maxInstances,
         Platform: testRunRecord.platform.trim(),
         Tags: JSON.parse(testRunRecord.tags),
+        RunStatus: testRunRecord.status,
+        ExcelExportUrl: testRunRecord.excelExport,
     };
 }
 

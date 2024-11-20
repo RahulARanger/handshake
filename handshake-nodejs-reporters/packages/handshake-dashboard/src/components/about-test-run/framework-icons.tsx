@@ -3,6 +3,7 @@ import { Avatar, Tooltip } from '@mantine/core';
 import type { ReactNode } from 'react';
 import React from 'react';
 import type { possibleFrameworks } from 'types/test-run-records';
+import hoverStyles from 'styles/hover.module.css';
 
 export function FrameworksUsed(properties: {
     frameworks: possibleFrameworks[];
@@ -40,6 +41,11 @@ export function FrameworksUsed(properties: {
                     'https://avatars.githubusercontent.com/u/4624349?s=48&v=4';
                 break;
             }
+            case 'pytest': {
+                color = 'blue';
+                source = 'https://icon.icepanel.io/Technology/svg/pytest.svg';
+                break;
+            }
         }
 
         links.push(
@@ -56,6 +62,7 @@ export function FrameworksUsed(properties: {
                         src={source}
                         aria-label={`${key}-avatar`}
                         alt={framework}
+                        className={hoverStyles.frameIcon}
                     />
                 </Tooltip>
             ) : (

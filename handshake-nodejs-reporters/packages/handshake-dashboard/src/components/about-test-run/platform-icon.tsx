@@ -1,13 +1,14 @@
 import type { AvatarProps } from '@mantine/core';
 import { Avatar } from '@mantine/core';
 import React from 'react';
+import hoverStyles from 'styles/hover.module.css';
 
 export function OnPlatform(properties: {
     platform: string;
     size?: AvatarProps['size'];
 }) {
     let source = '';
-    const target = properties.platform;
+    const target = (properties.platform ?? '').toLowerCase();
 
     if (target.startsWith('win')) source = '/windows.png';
     else if (target.startsWith('mac')) source = '/mac.png';
@@ -20,6 +21,7 @@ export function OnPlatform(properties: {
             src={source}
             alt={target}
             color="red"
+            className={hoverStyles.clickIcon}
         />
     );
 }

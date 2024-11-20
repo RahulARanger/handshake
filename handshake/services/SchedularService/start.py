@@ -56,7 +56,7 @@ class Scheduler:
                     if out_dir and not inside_test_results
                     else self.db_path.parent / exportAttachmentFolderName
                 ),
-                dev,
+                dev or inside_test_results,
             )
             if export_mode == "json"
             else ...

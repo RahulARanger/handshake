@@ -1,6 +1,7 @@
 import type { Dayjs } from 'dayjs';
 import type {
     possibleEntityNames,
+    RunStatus,
     statusOfEntity,
 } from 'types/session-records';
 import type { Duration } from 'dayjs/plugin/duration';
@@ -39,6 +40,8 @@ export interface DetailedTestRecord extends BasicDetails {
     MaxInstances: number;
     Platform: string;
     Tags: Tag[];
+    RunStatus: RunStatus;
+    ExcelExportUrl?: string;
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {

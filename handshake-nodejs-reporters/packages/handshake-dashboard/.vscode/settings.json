@@ -3,7 +3,7 @@
     "prettier.useTabs": true,
     "prettier.tabWidth": 4,
     "editor.formatOnSave": true,
-    "eslint.format.enable": true,
+    "eslint.format.enable": false,
     "eslint.run": "onType",
     "eslint.lintTask.enable": true,
     "eslint.enable": true,
