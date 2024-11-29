@@ -276,7 +276,7 @@ files = [
 name = "et-xmlfile"
 version = "2.0.0"
 description = "An implementation of lxml.xmlfile for the standard library"
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "et_xmlfile-2.0.0-py3-none-any.whl", hash = "sha256:7a91720bc756843502c3b7504c77b8fe44217c85c537d85037f0f536151b2caa"},
@@ -591,7 +591,7 @@ files = [
 name = "openpyxl"
 version = "3.1.5"
 description = "A Python library to read/write Excel 2010 xlsx/xlsm files"
-optional = false
+optional = true
 python-versions = ">=3.8"
 files = [
     {file = "openpyxl-3.1.5-py2.py3-none-any.whl", hash = "sha256:5282c12b107bffeef825f4617dc029afaf41d0ea60823bbb665ef3079dc79de2"},
@@ -1078,7 +1078,7 @@ files = [
 name = "tabulate"
 version = "0.9.0"
 description = "Pretty-print tabular data"
-optional = false
+optional = true
 python-versions = ">=3.7"
 files = [
     {file = "tabulate-0.9.0-py3-none-any.whl", hash = "sha256:024ca478df22e9340661486f85298cff5f6dcdba14f3813e8830015b9ed1948f"},
@@ -1407,10 +1407,10 @@ files = [
 dev = ["black (>=19.3b0)", "pytest (>=4.6.2)"]
 
 [extras]
-excel-export = []
-query-sqlite-results = []
+excel-export = ["openpyxl"]
+print-tables = ["tabulate"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11,<3.13"
-content-hash = "387c365b375f5f48ad182eae0f069b9e27f45eba5402db801994079f37182560"
+content-hash = "57899c7fabbe17b2bce2efa10b8af1e6a7c20f2a51e9e355ca00e2d2c811990e"

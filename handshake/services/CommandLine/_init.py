@@ -417,7 +417,7 @@ def query(ctx: Context, q: str):
     except ImportError:
         return logger.error(
             "could not execute the provided query, Please install this package by"
-            " pip install handshakes[query-sqlite-results]"
+            ' pip install "handshakes[print-tables]"'
         )
     if not q.lower().startswith("select"):
         return logger.warning(
