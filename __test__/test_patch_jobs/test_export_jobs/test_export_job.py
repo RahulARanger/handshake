@@ -445,3 +445,26 @@ class TestExcelExport:
         assert (
             af(db_path) / str(test_run.testID) / exportExportFileName
         ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())
+
+    async def test_with_skip_export_if_not_processed(
+        self,
+        helper_create_test_run,
+        helper_create_test_session,
+        create_suite,
+        root_dir,
+        db_path,
+    ):
+        test_run = await helper_create_test_run(add_test_config=True)
+        session = await helper_create_test_session(test_run.testID)
+
+        await create_suite(session.sessionID)
+        await register_patch_test_run(test_run.testID)
+
+        await Scheduler(root_dir, include_excel_export=True).start()
+        task = await TaskBase.filter(
+            type=JobType.EXPORT_EXCEL, test_id=test_run.testID
+        ).first()
+        assert not task.picked and not task.processed
+        assert not (
+            af(db_path) / str(test_run.testID) / exportExportFileName
+        ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())

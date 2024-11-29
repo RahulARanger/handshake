@@ -118,7 +118,10 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
     logger.debug("Exporting Test Runs")
     async with TaskGroup() as patcher:
         for job in await TaskBase.filter(
-            Q(type=JobType.EXPORT_EXCEL) & Q(picked=False) & Q(processed=False)
+            Q(type=JobType.EXPORT_EXCEL)
+            & Q(picked=False)
+            & Q(processed=False)
+            & ~Q(test__standing=Status.PENDING)
         ).all():
             exporter = ExcelExporter(db_path)
             job.picked = True
