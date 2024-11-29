@@ -3,7 +3,7 @@ import { Chance } from 'chance';
 import CurrentLocation from 'components/about-test-run/current-location';
 
 const meta = {
-    title: 'AboutTestRun/Overview/Header/CurrentLocation',
+    title: 'AboutTestRun/Header',
     component: CurrentLocation,
     parameters: {
         layout: 'centered',

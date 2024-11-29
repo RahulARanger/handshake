@@ -12,3 +12,9 @@ export type statusOfEntity =
     | 'PENDING'
     | 'SKIPPED'
     | 'RETRIED';
+
+export type RunStatus =
+    | 'COMPLETED'
+    | 'INTERRUPTED'
+    | 'INTERNAL_ERROR'
+    | 'SKIPPED';

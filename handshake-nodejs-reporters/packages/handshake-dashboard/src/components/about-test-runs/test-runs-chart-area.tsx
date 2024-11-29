@@ -28,9 +28,9 @@ export default function TestRunsChartArea(properties: {
     }>({ showTests: false, showPercentStack: false });
     const toLoad = Boolean(properties.toLoad);
     return (
-        <ScrollAreaAutosize h={properties.h} px="xs" pb="xs" pr="sm">
+        <ScrollAreaAutosize h={properties.h} pt="xs" px="xs" pb="sm" pr="sm">
             <Stack pr="xs">
-                <Card p="lg" radius="lg" shadow="lg" withBorder>
+                <Card p="lg" shadow="lg" withBorder>
                     <Card.Section withBorder p={0}>
                         <Group justify="space-between" p="xs">
                             <Text size="sm">Status of our Test Runs</Text>
@@ -85,7 +85,7 @@ export default function TestRunsChartArea(properties: {
                         )}
                     </Card.Section>
                 </Card>
-                <Card withBorder shadow="lg" radius="lg" p="lg" mb="sm">
+                <Card withBorder shadow="lg" p="lg" mb="sm">
                     <Card.Section withBorder p={0}>
                         <Group justify="space-between" p="xs">
                             <Text size="sm">Duration of our Test Runs</Text>

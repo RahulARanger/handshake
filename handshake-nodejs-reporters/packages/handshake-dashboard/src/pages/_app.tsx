@@ -14,7 +14,7 @@ const theme = createTheme({
 
 export function OurApp(properties: { Component: ReactNode }): ReactNode {
     return (
-        <MantineProvider defaultColorScheme="dark" theme={theme}>
+        <MantineProvider forceColorScheme="dark" theme={theme}>
             {properties.Component}
         </MantineProvider>
     );

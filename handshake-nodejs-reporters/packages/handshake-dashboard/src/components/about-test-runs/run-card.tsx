@@ -1,26 +1,79 @@
 import React, { useState } from 'react';
-import { Card, Group, Badge, Anchor } from '@mantine/core';
+import {
+    Card,
+    Group,
+    Badge,
+    Anchor,
+    rem,
+    Tooltip,
+    Avatar,
+    Menu,
+    MenuTarget,
+    MenuDropdown,
+    MenuItem,
+} from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import SwitchTestCases from 'components/test-case-switch';
 import PassedRate from '../about-test-run/passed-rate';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
-import { FrameworksUsed } from '../about-test-run/framework-icons';
 import { dateFormatUsed } from 'components/timings/format';
+import { OnPlatform } from 'components/about-test-run/platform-icon';
+import cardStyle from 'styles/gradients.module.css';
+import {
+    IconExclamationCircle,
+    IconFileExcel,
+    IconFlagPause,
+} from '@tabler/icons-react';
 
 export default function TestRunCard(properties: {
     run: DetailedTestRecord;
 }): ReactNode {
     const [isTests, setTests] = useState(false);
-
+    const unexpected =
+        properties.run.RunStatus === 'INTERNAL_ERROR' ||
+        properties.run.RunStatus === 'INTERRUPTED';
     return (
-        <Card shadow="lg" withBorder radius="md" pt="xs">
+        <Card
+            shadow="lg"
+            withBorder
+            radius="md"
+            pt="xs"
+            className={cardStyle.mirrorCard}
+        >
             <Card.Section inheritPadding pb={2} pt={0}>
                 <Group justify="space-between" mt="md" mb="xs" wrap="nowrap">
-                    <Anchor href={properties.run.Link} size="sm">
-                        {properties.run.Started.format(dateFormatUsed)}
-                    </Anchor>
+                    <Menu trigger="hover" shadow="xl">
+                        <MenuTarget>
+                            <Anchor href={properties.run.Link} size="sm">
+                                {properties.run.Started.format(dateFormatUsed)}
+                            </Anchor>
+                        </MenuTarget>
+                        <MenuDropdown>
+                            {properties.run.ExcelExportUrl ? (
+                                <MenuItem
+                                    color="green"
+                                    leftSection={
+                                        <IconFileExcel
+                                            color="green"
+                                            style={{
+                                                width: rem(18),
+                                                height: rem(18),
+                                            }}
+                                            stroke={2}
+                                        />
+                                    }
+                                    component="a"
+                                    href={properties.run.ExcelExportUrl}
+                                >
+                                    Excel Export
+                                </MenuItem>
+                            ) : (
+                                <></>
+                            )}
+                        </MenuDropdown>
+                    </Menu>
                     <Badge
                         size="xs"
                         variant="light"
@@ -34,8 +87,40 @@ export default function TestRunCard(properties: {
             </Card.Section>
             <Card.Section p="sm" pt={0}>
                 <Group justify="space-between" wrap="nowrap">
+                    {properties.run.RunStatus === 'INTERRUPTED' ? (
+                        <Tooltip label="This run was interrupted">
+                            <Avatar size="sm" color="gray">
+                                <IconFlagPause
+                                    style={{
+                                        width: rem(14),
+                                        height: rem(14),
+                                        color: '#cb4154',
+                                    }}
+                                    stroke={2}
+                                />
+                            </Avatar>
+                        </Tooltip>
+                    ) : (
+                        <></>
+                    )}
+                    {properties.run.RunStatus === 'INTERNAL_ERROR' ? (
+                        <Tooltip label="Encountered internal error in this test run">
+                            <Avatar size="sm" color="gray">
+                                <IconExclamationCircle
+                                    style={{
+                                        width: rem(14),
+                                        height: rem(14),
+                                        color: '#cb4154',
+                                    }}
+                                    stroke={2}
+                                />
+                            </Avatar>
+                        </Tooltip>
+                    ) : (
+                        <></>
+                    )}
                     <PassedRate
-                        width={231}
+                        width={unexpected ? 180 : 231}
                         text={isTests ? ' Tests' : 'Suites'}
                         rate={
                             isTests
@@ -50,7 +135,7 @@ export default function TestRunCard(properties: {
                 </Group>
             </Card.Section>
             <Card.Section px="sm" pb="sm">
-                <Group justify="space-between" wrap="nowrap">
+                <Group justify="space-between" wrap="nowrap" align="center">
                     <Badge
                         size="xs"
                         variant="light"
@@ -77,10 +162,7 @@ export default function TestRunCard(properties: {
                             size="xs"
                         />
                     </Badge>
-                    <FrameworksUsed
-                        frameworks={properties.run.Frameworks}
-                        size="xs"
-                    />
+                    <OnPlatform platform={properties.run.Platform} size="sm" />
                 </Group>
             </Card.Section>
         </Card>

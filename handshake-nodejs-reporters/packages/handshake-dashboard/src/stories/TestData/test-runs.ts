@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import { Chance } from 'chance';
 import type { statusOfEntity } from 'types/session-records';
-import type { TestRunRecord } from 'types/test-run-records';
+import type { Project, Projects, TestRunRecord } from 'types/test-run-records';
 
 interface Feeder {
     started?: dayjs.Dayjs;
@@ -49,11 +49,14 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
     const bail = generator.integer({ min: 0, max: 3 });
 
     const suites = feed.suites ?? generator.integer({ min: 1, max: tests });
-    const passedSuites = generator.integer({ min: 0, max: suites });
-    const failedSuites = generator.integer({
-        min: 0,
-        max: suites - passedSuites,
-    });
+    const passedSuites =
+        feed.passedSuites ?? generator.integer({ min: 0, max: suites });
+    const failedSuites =
+        feed.failedSuites ??
+        generator.integer({
+            min: 0,
+            max: suites - passedSuites,
+        });
     const skippedSuites = suites - (passedSuites + failedSuites);
 
     const platform = generator.pickone([
@@ -133,6 +136,12 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         retried: generator.integer({ min: 0, max: 1 }),
         projectIndex: generator.integer({ min: 0, max: 10 }),
         timelineIndex: generator.integer({ min: 0, max: 20 }),
+        status: generator.pickone([
+            'COMPLETED',
+            'INTERRUPTED',
+            'INTERNAL_ERROR',
+            'SKIPPED',
+        ]),
     };
 }
 
@@ -146,6 +155,7 @@ export const onlySkipped = generateTestRun({
     failedSuites: 0,
     skippedSuites: 3,
 });
+
 export const allPassed = generateTestRun({
     tests: 10,
     skipped: 0,
@@ -168,4 +178,49 @@ export const randomTestProjects = (length: number) => {
 
 export function generateTestRunForDemo() {
     return generator.n(generateTestRun, 6);
+}
+
+export function generateRandomProject(): Project {
+    const tests = generator.integer({ min: 3, max: 100 });
+    const passed = generator.integer({ min: 0, max: tests });
+    const failed = generator.integer({ min: 0, max: tests - passed });
+
+    const skipped = tests - (passed + failed);
+
+    const suites = generator.integer({ min: 1, max: tests });
+    const passedSuites = generator.integer({ min: 0, max: suites });
+    const failedSuites = generator.integer({
+        min: 0,
+        max: suites - passedSuites,
+    });
+    const skippedSuites = suites - (passedSuites + failedSuites);
+
+    return {
+        duration: generator.integer({ min: 10, max: 20 }) * 36e3,
+        tests,
+        passed,
+        failed,
+        skipped,
+        passedSuites,
+        failedSuites,
+        skippedSuites,
+        testID: crypto.randomUUID(),
+        suites,
+    };
+}
+
+export function generateRandomProjects() {
+    const projects = generator.n(
+        () => generator.company(),
+        generator.integer({ min: 2, max: 3 }),
+    );
+    const projects_json: Projects = {};
+    for (const project of projects) {
+        projects_json[project] = generator.n(
+            generateRandomProject,
+            generator.integer({ min: 3, max: 4 }),
+        );
+    }
+
+    return projects_json;
 }
