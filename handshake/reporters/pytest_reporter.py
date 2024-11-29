@@ -15,6 +15,7 @@ from typing import Optional, Dict, Any, List
 from threading import Lock
 from enum import StrEnum
 from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
+from _pytest.nodes import Node
 from traceback import format_exception
 from pathlib import Path
 
@@ -39,9 +40,9 @@ class PyTestHandshakeReporter(CommonReporter):
     def __init__(self):
         super().__init__()
         self.pointing_to: Optional[Item] = None
-        self.pointing_to_phase: Optional[PointToAtPhase] = None
         self.identified_parent = dict()
         self.check_if_parents_are = Lock()
+        self.mark_point = Lock()
         self.passed = 0
         self.started_at = None
         self.attachments: List[Dict[str, Any]] = []
@@ -70,25 +71,31 @@ class PyTestHandshakeReporter(CommonReporter):
 
     def create_test_entity(
         self,
-        item: Item,
+        item: Node,
         is_suite: bool = False,
         helper_entity: Optional[PointToAtPhase] = None,
+        is_for_parent: bool = False,
     ):
         path_obj: Path = relative_from_session_parent(item.session, item.path)
         if path_obj is None:
             return
+
+        if helper_entity and not is_for_parent:
+            with self.mark_point:
+                self.pointing_to = key(item.nodeid, helper_entity)
+
         path_obj = path_obj.parent if path_obj.name == "__init__.py" else path_obj
         path: str = str(path_obj)
         parent = key(item.nodeid) if helper_entity else None
 
-        if helper_entity is None and item.parent.nodeid:
+        if not is_for_parent and helper_entity is None and item.parent.nodeid:
             parent = key(item.parent.nodeid)
             with self.check_if_parents_are:
                 create_parent = not self.identified_parent.get(
                     item.parent.nodeid, False
                 )
             if create_parent:
-                self.create_test_entity(item.parent, True)
+                self.create_test_entity(item.parent, True, is_for_parent=True)
                 with self.check_if_parents_are:
                     self.identified_parent[item.parent.nodeid] = True
 
@@ -100,9 +107,8 @@ class PyTestHandshakeReporter(CommonReporter):
         for tag in item.own_markers if not helper_entity else tags:
             if tag.name == meta_data_mark:
                 continue
-            kwarg_string = (f"{_}: {tag.kwargs[_]}" for _ in tag.kwargs.keys())
-            desc = ("" if not tag.args else f"args: {', '.join(tag.args)}") + (
-                "" if not tag.kwargs else f"kwargs: {', '.join(kwarg_string)}"
+            desc = ("" if not tag.args else f"args: {tag.args} and ") + (
+                "" if not tag.kwargs else f"kwargs: {tag.kwargs}"
             )
             tags.append(dict(label=tag.name, desc=desc))
 
@@ -138,32 +144,45 @@ class PyTestHandshakeReporter(CommonReporter):
     def update_test_entity_details(
         self, report: Optional[TestReport] = None, node_id: Optional[str] = None
     ):
+        with self.mark_point:
+            self.pointing_to = (
+                key(node_id) if node_id else key(report.nodeid, report.when)
+            )
         if not report:
             return self.update_test_entity(
                 dict(started=to_acceptable_date_format(datetime.now())),
                 key(node_id),
                 punch_in=True,
             )
-        self.pointing_to_phase = report.when
+
+        # NOTE: there are test cases which are skipped before the test is called
+        # we do not have report for the call. so we need to manually update for such
+        # Hack: we assume setup call as usual test
+        when = (
+            PointToAtPhase.CALL
+            if report.outcome == "skipped" and report.when == PointToAtPhase.SETUP
+            else report.when
+        )
+
         payload = dict(
             duration=report.duration * 1e3,  # it is in seconds
             ended=to_acceptable_date_format(datetime.fromtimestamp(report.stop)),
             started=to_acceptable_date_format(datetime.fromtimestamp(report.start)),
             standing=report.outcome.upper(),
             errors=(
-                [dict(name="", stack="", message=report.longreprtext)]
+                [dict(name="Error", stack="", message=report.longreprtext)]
                 if report.failed
                 else []
             ),
         )
 
-        match report.when:
+        match when:
             case PointToAtPhase.CALL:
                 self.passed += int(report.passed)
 
         self.update_test_entity(
             payload,
-            key(report.nodeid, report.when),
+            key(report.nodeid, when),
         )
 
     def update_session(self, session: Session):
@@ -288,17 +307,18 @@ class PyTestHandshakeReporter(CommonReporter):
     def add_test_assertion(
         self, node_id: Optional[str], title: str, message: str, passed: bool
     ):
-        value = dict(
-            entity_id=key(node_id) if node_id else key(self.pointing_to.nodeid),
-            title=title,
-            value=dict(passed=passed, wait=-1, interval=-1),
-            type=AttachmentType.ASSERT,
-            description=message,
-        )
-        if not node_id:
-            self.last_assertion_added[key(self.pointing_to.nodeid)] = value
-            return
+        with self.mark_point:
+            value = dict(
+                entity_id=key(node_id) if node_id else self.pointing_to,
+                title=title,
+                value=dict(passed=passed, wait=-1, interval=-1),
+                type=AttachmentType.ASSERT,
+                description=message,
+            )
+            if not node_id:
+                self.last_assertion_added[self.pointing_to] = value
+                return
 
-        if self.last_assertion_added.get(key(node_id)):
-            self.last_assertion_added.pop(key(node_id))
-        return self.attachments.append(value)
+            if self.last_assertion_added.get(key(node_id)):
+                self.last_assertion_added.pop(key(node_id))
+            return self.attachments.append(value)

@@ -1,8 +1,22 @@
-from pytest import approx, raises
+from pytest import approx, raises, mark, skip
 
 
 def test_dummy():
     assert 1 == 1
+
+
+@mark.skip(reason="this is skipped")
+def test_the_skip():
+    assert 1 == 1
+
+
+def test_the_skip_based_on_condition():
+    skip("skipped inside the call")
+
+
+@mark.parametrize("param", [1, 2])
+def test_param(param):
+    print(param)
 
 
 class TestDummy:

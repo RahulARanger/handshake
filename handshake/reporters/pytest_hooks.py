@@ -1,6 +1,7 @@
 from pytest import Session, Item
 from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
 from datetime import datetime
+from loguru import logger
 from handshake.reporters.pytest_reporter import PyTestHandshakeReporter, PointToAtPhase
 
 reporter = PyTestHandshakeReporter()
@@ -30,7 +31,6 @@ def pytest_runtest_logstart(nodeid, location):
 
 
 def pytest_runtest_setup(item: Item):
-    reporter.pointing_to = item
     reporter.create_test_entity(item, helper_entity=PointToAtPhase.SETUP)
 
 
@@ -47,19 +47,23 @@ def pytest_runtest_teardown(item: Item, nextitem: Item):
 
 
 def pytest_assertrepr_compare(config, op, left, right):
-    reporter.add_test_assertion(
-        None,
-        f"{left} {op} {right}",
-        f"expected: {left} to be related with {right} based on the operation: {op}",
-        False,
-    )
+    try:
+        reporter.add_test_assertion(
+            None,
+            f"{left} {op} {right}",
+            f"expected: {left} to be related with {right} based on the operation: {op}",
+            False,
+        )
+    except Exception:
+        logger.exception("Unable to add test assertion")
 
 
+#
 def pytest_assertion_pass(item, lineno, orig, expl):
     try:
         reporter.add_test_assertion(item.nodeid, orig, expl, True)
-    except Exception as e:
-        print(e)
+    except Exception:
+        logger.exception("Unable to add test assertion")
 
 
 def pytest_fixture_post_finalizer(
