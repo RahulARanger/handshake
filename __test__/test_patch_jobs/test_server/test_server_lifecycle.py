@@ -169,7 +169,7 @@ async def test_life_cycle(root_dir):
             ended=(datetime.now() + timedelta(seconds=9)).isoformat(),
             suiteID=suite,
             errors=errors,
-            standing="FAILED",
+            standing=Status.FAILED,
         )
         resp = session.put(updatePts("Suite"), json=payload)
         assert resp.status_code == 200, resp.text
@@ -183,7 +183,7 @@ async def test_life_cycle(root_dir):
         ended=(datetime.now() + timedelta(seconds=39)).isoformat(),
         suiteID=parent,
         errors=[],
-        standing="FAILED",
+        standing=Status.FAILED,
     )
 
     # MARKING TEST SUITE
@@ -192,7 +192,7 @@ async def test_life_cycle(root_dir):
     assert resp.status_code == 201
 
     test = await SuiteBase.filter(suiteID=parent).first()
-    assert test.standing == "YET_TO_CALC"
+    assert test.standing == Status.FAILED
 
     parse_suite_task = await TaskBase.filter(ticketID=parent).first()
     assert not parse_suite_task.processed

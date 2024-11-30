@@ -437,15 +437,16 @@ def query(ctx: Context, q: str):
                 result[-1].append(cell if cell is not None else "")
 
         column_names = [description[0] for description in rows.description]
-        print(
-            tabulate.tabulate(
-                result,
-                headers=column_names,
-                tablefmt="rounded_grid",
-                maxheadercolwidths=12,
-                maxcolwidths=12,
+        if result:
+            print(
+                tabulate.tabulate(
+                    result,
+                    headers=column_names,
+                    tablefmt="rounded_grid",
+                    maxheadercolwidths=12,
+                    maxcolwidths=12,
+                )
             )
-        )
         secho(f"Returned {len(result)} rows.", fg="green")
 
 

@@ -14,6 +14,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_ALL_SUITES,
     exportExportFileName,
 )
+from handshake.services.DBService.models.enums import Status
 from __test__.conftest import helper_to_test_date_operator
 from handshake.services.SchedularService.register import (
     register_patch_test_run,
@@ -21,6 +22,7 @@ from handshake.services.SchedularService.register import (
 )
 from subprocess import run, PIPE, TimeoutExpired
 from pytest import mark
+from handshake.Exporters.excel_exporter import excel_export
 
 
 @mark.usefixtures("clean_close")
@@ -395,6 +397,7 @@ async def test_patch_interruption(
 
 
 class TestExcelExport:
+    @mark.skipif(not excel_export, reason="extras were not installed")
     async def test_with_parent_suite(
         self,
         helper_create_test_run,
@@ -446,6 +449,7 @@ class TestExcelExport:
             af(db_path) / str(test_run.testID) / exportExportFileName
         ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())
 
+    @mark.skipif(not excel_export, reason="extras were not installed")
     async def test_with_skip_export_if_not_processed(
         self,
         helper_create_test_run,
@@ -468,3 +472,36 @@ class TestExcelExport:
         assert not (
             af(db_path) / str(test_run.testID) / exportExportFileName
         ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())
+
+    @mark.skipif(excel_export, reason="extras were installed")
+    async def test_skip_export_if_not_installed(
+        self,
+        helper_create_test_run,
+        helper_create_test_session,
+        create_suite,
+        root_dir,
+        db_path,
+    ):
+        test_run = await helper_create_test_run(add_test_config=True)
+        session = await helper_create_test_session(test_run.testID)
+
+        suite = await create_suite(session.sessionID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(suite.suiteID, test_run.testID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        await register_patch_test_run(test_run.testID)
+
+        await Scheduler(root_dir, include_excel_export=True).start()
+        assert not (
+            await TaskBase.filter(
+                type=JobType.EXPORT_EXCEL, test_id=test_run.testID
+            ).exists()
+        )
+        assert not (
+            af(db_path) / str(test_run.testID) / exportExportFileName
+        ).exists(), list((af(db_path) / str(test_run.testID)).iterdir())
+
+        test_run = await RunBase.filter(testID=test_run.testID).first()
+        assert test_run.standing != Status.PENDING
