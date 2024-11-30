@@ -5,6 +5,7 @@ from handshake.services.DBService.models.enums import (
     SuiteType,
     AttachmentType,
     RunStatus,
+    LogType,
 )
 from pydantic import BaseModel
 from datetime import datetime
@@ -111,12 +112,16 @@ class AssertionPayload(TypedDict):
     interval: Optional[int]
 
 
+class LogPayload(TypedDict):
+    type: LogType
+
+
 # this is for all kinds of attachments
 class AddAttachmentForEntity(BaseModel):
     entity_id: uuid.UUID
     type: AttachmentType
     description: Optional[str] = ""
-    value: Union[AssertionPayload, str]
+    value: Union[AssertionPayload, LogPayload, str]
     title: Optional[str] = ""
     extraValues: Optional[Dict[str, str]] = {}
     tags: Optional[List[Tag]] = []

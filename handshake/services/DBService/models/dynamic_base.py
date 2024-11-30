@@ -7,7 +7,6 @@ from tortoise.fields import (
     ForeignKeyField,
     ForeignKeyRelation,
     BooleanField,
-    IntField,
 )
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.DBService.models.result_base import RunBase

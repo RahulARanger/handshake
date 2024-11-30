@@ -46,7 +46,7 @@ def save_datetime_in_excel(obj: datetime, cell: Optional[Cell] = None):
     full_text = obj.strftime("%Y-%m-%d %I:%M:%S %p")
     if not cell:
         return full_text
-    cell.comment = Comment(full_text, "Handshake")
+    cell.comment = Comment(full_text, "Handshake", width=150, height=40)
     return obj.strftime("%I:%M:%S %p")
 
 
@@ -153,13 +153,16 @@ class ExcelExporter(Exporter):
             index_sheet,
             start_from_row + 5,
             detail_col,
-            calc_percentage(suite_summary["passed"], suite_summary["count"]),
+            calc_percentage(
+                suite_summary["passed"] + suite_summary["skipped"],
+                suite_summary["count"],
+            ),
         )
         edit_cell(
             index_sheet,
             start_from_row + 6,
             detail_col,
-            calc_percentage(summary["passed"], summary["tests"]),
+            calc_percentage(summary["passed"] + summary["skipped"], summary["tests"]),
         )
 
         edit_cell(
@@ -289,7 +292,8 @@ class ExcelExporter(Exporter):
                         resize_col(suites_sheet, cell, 7)
                     case "tests":
                         to_save = calc_percentage(
-                            suite["rollup_passed"], suite["rollup_tests"]
+                            suite["rollup_passed"] + suite["rollup_skipped"],
+                            suite["rollup_tests"],
                         )
                         cell.number_format = "0%"
                         copy_format_to_cell(suites_sheet, cell, self.percentage_format)
@@ -588,12 +592,12 @@ class ExcelExporter(Exporter):
                             value, self.parent_links.get(value, tuple())
                         )
                         if value and link:
-                            to_save = "🔗"
+                            to_save = f"{tip} 🔗"
                             cell.hyperlink = link
-                            resize = False
+                            resize = True
                             cell.comment = Comment(tip, "Handshake")
                             cell.comment.width = 100
-                            if len(value) < 100:
+                            if len(value) < 20:
                                 cell.comment.height = 30
                     case "passed":
                         to_save = "YES" if value else "NO"

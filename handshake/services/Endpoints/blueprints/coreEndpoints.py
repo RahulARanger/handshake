@@ -22,6 +22,7 @@ from handshake.services.Endpoints.blueprints.utils import (
     extractPayload,
     attachWarn,
     extractPydanticErrors,
+    prune_nones,
 )
 from handshake.services.DBService.models.static_base import (
     AttachmentBase,
@@ -131,11 +132,7 @@ async def punch_in_test_suite(request: Request) -> HTTPResponse:
     body={"application/json": UpdateSuite.model_json_schema()},
 )
 async def update_suite_details(request: Request) -> HTTPResponse:
-    payload = request.json
-    if payload.get("started", False) is None:
-        payload.pop(
-            "started"
-        )  # started is optional, so we are removing it from update payload
+    payload = prune_nones(request.json)
 
     suite = UpdateSuite.model_validate(payload)
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
@@ -159,7 +156,7 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             note[f"{suite_record.suiteType.lower()}_duration"] = suite.duration
         await suite_record.update_from_dict(note)
 
-    await suite_record.update_from_dict(suite.model_dump())
+    await suite_record.update_from_dict(prune_nones(suite.model_dump()))
     await suite_record.save()
 
     # now we calculate certain data

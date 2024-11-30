@@ -11,9 +11,7 @@ from typing import Optional
 from loguru import logger
 from tortoise.expressions import Q, Subquery
 from ANSIToHTML.parser import Parser
-from handshake.services.DBService.models.result_base import (
-    RunBase,
-)
+from handshake.services.DBService.models.result_base import RunBase
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (
     ConfigBase,
@@ -22,10 +20,7 @@ from handshake.services.DBService.models.config_base import (
 from handshake.services.SchedularService.constants import (
     exportAttachmentFolderName,
 )
-from handshake.services.SchedularService.register import (
-    warn_about_test_run,
-    register_bulk_excel_export,
-)
+from handshake.services.SchedularService.register import register_bulk_excel_export
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.flag_tasks import pruneTasks
 from handshake.services.SchedularService.handlePending import patch_jobs
@@ -206,7 +201,7 @@ class Scheduler:
                         TaskBase.filter(type=JobType.EXPORT_EXCEL).values_list(
                             "test_id", flat=True
                         )
-                    )
+                    ),
                 )
             ).values_list("testID", flat=True)
 

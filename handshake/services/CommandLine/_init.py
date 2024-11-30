@@ -1,5 +1,6 @@
 import datetime
 import pprint
+import sqlite3
 from sqlite3 import connect, sqlite_version_info
 from click import (
     group,
@@ -381,26 +382,72 @@ def latest_run(ctx: Context, allow_pending: bool):
     db_file = db_path(Path(ctx.parent.params["collection_path"]))
     pipe = connect(db_file)
     result = pipe.execute(
-        "SELECT PROJECTNAME, ENDED FROM RUNBASE WHERE ENDED <> '' ORDER BY STARTED LIMIT 1"
+        "SELECT PROJECTNAME, STRFTIME('%d/%m/%Y, %H:%M', STARTED, 'localtime') as STARTED, "
+        "STRFTIME('%d/%m/%Y, %H:%M', ENDED, 'localtime') as ENDED, TESTID"
+        " FROM RUNBASE WHERE ENDED <> '' ORDER BY STARTED LIMIT 1"
         if not allow_pending
-        else "SELECT PROJECTNAME, ENDED FROM RUNBASE ORDER BY STARTED LIMIT 1"
-    ).fetchone()
+        else "SELECT PROJECTNAME, STRFTIME('%d/%m/%Y, %H:%M', STARTED, 'localtime') as STARTED,"
+        " STRFTIME('%d/%m/%Y, %H:%M', ENDED, 'localtime') as ENDED, TESTID FROM RUNBASE ORDER BY STARTED LIMIT 1"
+    )
 
+    row = result.fetchone()
     secho(
         (
             "No Test Runs were found"
-            if not result
-            else (
-                result[0],
-                datetime.datetime.fromisoformat(result[1])
-                .astimezone()
-                .strftime("%c %Z"),
-            )
+            if not row
+            else (pprint.pformat(list(zip(row, [_[0] for _ in result.description]))))
         ),
-        fg="bright_yellow" if not result else "bright_magenta",
+        fg="bright_yellow" if not row else "bright_magenta",
     )
 
     pipe.close()
+
+
+@db.command(short_help="fetches the results from the sqlite database")
+@argument(
+    "q",
+    default=False,
+    type=str,
+)
+@pass_context
+def query(ctx: Context, q: str):
+    db_file = db_path(Path(ctx.parent.params["collection_path"]))
+    try:
+        import tabulate
+    except ImportError:
+        return logger.error(
+            "could not execute the provided query, Please install this package by"
+            ' pip install "handshakes[print-tables]"'
+        )
+    if not q.lower().startswith("select"):
+        return logger.warning(
+            "we do not support & recommend modifying the values through this command, only select commands are allowed"
+        )
+
+    with connect(db_file) as pipe:
+        try:
+            rows = pipe.execute(q)
+        except sqlite3.OperationalError:
+            return logger.exception("Failed to execute the query, Please check once, ")
+
+        result = []
+        for row in rows.fetchall()[:20]:
+            result.append([])
+            for cell in row:
+                result[-1].append(cell if cell is not None else "")
+
+        column_names = [description[0] for description in rows.description]
+        if result:
+            print(
+                tabulate.tabulate(
+                    result,
+                    headers=column_names,
+                    tablefmt="rounded_grid",
+                    maxheadercolwidths=12,
+                    maxcolwidths=12,
+                )
+            )
+        secho(f"Returned {len(result)} rows.", fg="green")
 
 
 @db.command(

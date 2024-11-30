@@ -1,5 +1,5 @@
 from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
-from handshake.services.DBService.models.attachmentBase import AssertBase
+from handshake.services.DBService.models.attachmentBase import AssertBase, EntityLogBase
 from handshake.services.DBService.models.static_base import (
     AttachmentBase,
     AttachmentType,
@@ -120,6 +120,7 @@ async def register_modify_suites(request: Request) -> HTTPResponse:
 async def addAttachmentForEntity(request: Request) -> HTTPResponse:
     attachments = []
     note = []
+    logs = []
     assertions = []
 
     for _ in request.json:
@@ -150,11 +151,26 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                     )
                 )
 
+            case AttachmentType.LOG:
+                logs.append(
+                    await EntityLogBase(
+                        **dict(
+                            entity_id=attachment.entity_id,
+                            title=attachment.title,
+                            message=attachment.description,
+                            type=attachment.value["type"],
+                            tags=attachment.tags,
+                        )
+                    )
+                )
+
             case _:
                 attachments.append(AttachmentBase(**attachment.model_dump()))
 
     if attachments:
         await AttachmentBase.bulk_create(attachments)
+    if logs:
+        await EntityLogBase.bulk_create(logs)
     if assertions:
         await AssertBase.bulk_create(assertions)
     return text(

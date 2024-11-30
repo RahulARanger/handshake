@@ -11,11 +11,6 @@ from handshake.services.DBService.lifecycle import (
 )
 
 
-@fixture()
-def root_dir():
-    return Path(__file__).parent.parent / "TestResultsConfig"
-
-
 async def test_default_config_file(root_dir):
     target = root_dir / "handshake.json"
     target.unlink(missing_ok=True)
