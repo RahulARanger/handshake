@@ -57,7 +57,8 @@ class AttachmentType(StrEnum):
     IMG = "IMAGE"
     LINK = "LINK"
     ASSERT = "ASSERT"
-    NOTE = "NOTE"
+    NOTE = "NOTE"  # depreciated
+    LOG = "LOG"
 
 
 class LogDisplayType(StrEnum):

@@ -156,7 +156,7 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             note[f"{suite_record.suiteType.lower()}_duration"] = suite.duration
         await suite_record.update_from_dict(note)
 
-    await suite_record.update_from_dict(payload)
+    await suite_record.update_from_dict(prune_nones(suite.model_dump()))
     await suite_record.save()
 
     # now we calculate certain data

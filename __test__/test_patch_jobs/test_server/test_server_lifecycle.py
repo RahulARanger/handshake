@@ -192,7 +192,7 @@ async def test_life_cycle(root_dir):
     assert resp.status_code == 201
 
     test = await SuiteBase.filter(suiteID=parent).first()
-    assert test.standing == Status.FAILED
+    assert test.standing == Status.YET_TO_CALCULATE
 
     parse_suite_task = await TaskBase.filter(ticketID=parent).first()
     assert not parse_suite_task.processed

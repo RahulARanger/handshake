@@ -3,10 +3,13 @@ from handshake.reporters.reporter import CommonReporter, to_acceptable_date_form
 from handshake.services.DBService.models.types import (
     PydanticModalForCreatingTestRunConfigBase,
     MarkTestRun,
-    RunStatus,
-    SuiteType,
     AttachmentType,
     Tag,
+)
+from handshake.services.DBService.models.enums import (
+    LogType,
+    RunStatus,
+    SuiteType,
 )
 from handshake.reporters.markers import meta_data_mark
 from pytest import Session, Item, ExitCode, TestReport
@@ -47,7 +50,6 @@ class PyTestHandshakeReporter(CommonReporter):
         self.started_at = None
         self.attachments: List[Dict[str, Any]] = []
         self.fixtures = {}
-        self.last_assertion_added = {}
         self.func_args = {}
 
     def create_session(self, started: datetime):
@@ -74,13 +76,12 @@ class PyTestHandshakeReporter(CommonReporter):
         item: Node,
         is_suite: bool = False,
         helper_entity: Optional[PointToAtPhase] = None,
-        is_for_parent: bool = False,
     ):
         path_obj: Path = relative_from_session_parent(item.session, item.path)
         if path_obj is None:
             return
 
-        if helper_entity and not is_for_parent:
+        if helper_entity:
             with self.mark_point:
                 self.pointing_to = key(item.nodeid, helper_entity)
 
@@ -88,14 +89,18 @@ class PyTestHandshakeReporter(CommonReporter):
         path: str = str(path_obj)
         parent = key(item.nodeid) if helper_entity else None
 
-        if not is_for_parent and helper_entity is None and item.parent.nodeid:
+        if (
+            helper_entity is None
+            and item.parent.nodeid
+            and not Path(item.parent.path).is_dir()
+        ):
             parent = key(item.parent.nodeid)
             with self.check_if_parents_are:
                 create_parent = not self.identified_parent.get(
                     item.parent.nodeid, False
                 )
             if create_parent:
-                self.create_test_entity(item.parent, True, is_for_parent=True)
+                self.create_test_entity(item.parent, True)
                 with self.check_if_parents_are:
                     self.identified_parent[item.parent.nodeid] = True
 
@@ -160,7 +165,7 @@ class PyTestHandshakeReporter(CommonReporter):
         # Hack: we assume setup call as usual test
         when = (
             PointToAtPhase.CALL
-            if report.outcome == "skipped" and report.when == PointToAtPhase.SETUP
+            if report.skipped and report.when == PointToAtPhase.SETUP
             else report.when
         )
 
@@ -175,6 +180,15 @@ class PyTestHandshakeReporter(CommonReporter):
                 else []
             ),
         )
+
+        if report.skipped:
+            self.add_log(
+                LogType.INFO,
+                key(report.nodeid),
+                "Skipped!",
+                report.longreprtext,
+                tags=[dict(label="Reason", desc=str(report.longrepr[-1]))],
+            )
 
         match when:
             case PointToAtPhase.CALL:
@@ -219,9 +233,6 @@ class PyTestHandshakeReporter(CommonReporter):
         if force_call:
             self.skip = True
             self.force_wait()
-        else:
-            for _ in self.last_assertion_added.values():
-                self.attachments.append(_)
 
         self.update_test_run(
             MarkTestRun(exitCode=exitcode, status=status), force_call=force_call
@@ -236,21 +247,20 @@ class PyTestHandshakeReporter(CommonReporter):
             False,
         )
 
-    def add_note(
+    def add_log(
         self,
+        log_type: LogType,
         entity_id: str,
         title: str,
-        note_description: str,
-        helpful_description: str = "",
+        description: str,
         tags: Optional[List[Tag]] = None,
-        **extraValues,
     ):
         self.attachments.append(
             dict(
-                type=AttachmentType.NOTE,
+                type=AttachmentType.LOG,
                 entity_id=entity_id,
-                description=helpful_description,
-                value=note_description,
+                description=description,
+                value=dict(type=log_type),
                 title=title,
                 tags=tags or [],
             )
@@ -273,9 +283,12 @@ class PyTestHandshakeReporter(CommonReporter):
                 scope_desc = "Shared among tests in a class."
 
         if fixturedef.cached_result[-1]:
-            note_desc = f"{request.fixturename} failed to execute, because of this error: {format_exception(fixturedef.cached_result[-1][1])}"
+            note_desc = (
+                f"{request.fixturename}(scope: {request.scope}) failed to execute, "
+                f"because of this error: {format_exception(fixturedef.cached_result[-1][1])}"
+            )
         else:
-            note_desc = f"{request.fixturename} passed and it gave a result {str(fixturedef.cached_result[0])}"
+            note_desc = f"{request.fixturename}(scope: {request.scope}) passed and it gave a result {str(fixturedef.cached_result[0])}"
 
         fixture_def = "A fixture provides a defined, reliable and consistent context for the tests"
 
@@ -285,7 +298,8 @@ class PyTestHandshakeReporter(CommonReporter):
         )
 
         for add_in in self.fixtures.get(request.fixturename, set()):
-            self.add_note(
+            self.add_log(
+                LogType.INFO,
                 entity_id=add_in,
                 title=request.fixturename,
                 tags=[
@@ -294,19 +308,17 @@ class PyTestHandshakeReporter(CommonReporter):
                         desc=fixture_def,
                     ),
                     dict(label=request.scope, desc=scope_desc),
+                    dict(
+                        label="saved in",
+                        desc=str(save_in if save_in else request.session.startpath),
+                    ),
                 ],
-                note_description=note_desc,
-                helpful_description=fixture_def,
-                extraValues=dict(
-                    savedIn=str(save_in if save_in else request.session.startpath)
-                ),
+                description=note_desc,
             )
 
         self.fixtures.get(request.fixturename, set()).clear()
 
-    def add_test_assertion(
-        self, node_id: Optional[str], title: str, message: str, passed: bool
-    ):
+    def add_test_assertion(self, node_id: str, title: str, message: str, passed: bool):
         with self.mark_point:
             value = dict(
                 entity_id=key(node_id) if node_id else self.pointing_to,
@@ -315,10 +327,4 @@ class PyTestHandshakeReporter(CommonReporter):
                 type=AttachmentType.ASSERT,
                 description=message,
             )
-            if not node_id:
-                self.last_assertion_added[self.pointing_to] = value
-                return
-
-            if self.last_assertion_added.get(key(node_id)):
-                self.last_assertion_added.pop(key(node_id))
             return self.attachments.append(value)

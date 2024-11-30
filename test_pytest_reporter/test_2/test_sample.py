@@ -25,8 +25,11 @@ class TestDummy:
         assert [1] == [1]
         assert 1 in {1, 2}
         assert 1 in [1, 2]
-        with raises(ValueError):
-            [1, 2].index(3)
+        with raises(AssertionError):
+            assert 3 in [
+                1,
+                2,
+            ], "this will fail, but we are expecting this AssertionError"
         assert 3 not in {1, 2}
 
     def test_nearly(self):

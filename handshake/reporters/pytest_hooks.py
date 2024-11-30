@@ -46,18 +46,6 @@ def pytest_runtest_teardown(item: Item, nextitem: Item):
     reporter.create_test_entity(item, helper_entity=PointToAtPhase.TEARDOWN)
 
 
-def pytest_assertrepr_compare(config, op, left, right):
-    try:
-        reporter.add_test_assertion(
-            None,
-            f"{left} {op} {right}",
-            f"expected: {left} to be related with {right} based on the operation: {op}",
-            False,
-        )
-    except Exception:
-        logger.exception("Unable to add test assertion")
-
-
 #
 def pytest_assertion_pass(item, lineno, orig, expl):
     try:

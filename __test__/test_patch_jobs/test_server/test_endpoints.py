@@ -6,6 +6,7 @@ from handshake.services.DBService.models import (
     AttachmentBase,
     TestLogBase,
     AssertBase,
+    EntityLogBase,
 )
 from handshake.services.DBService.models.enums import SuiteType, Status
 from sanic import Sanic
@@ -156,6 +157,15 @@ class TestUpdateEndpoints:
                 ),
                 dict(
                     entity_id=str(suite.suiteID),
+                    type=AttachmentType.LOG,
+                    description="hello there, adding a note here",
+                    title="Hey 😁",
+                    value=dict(
+                        type=LogType.INFO,
+                    ),
+                ),
+                dict(
+                    entity_id=str(suite.suiteID),
                     type=AttachmentType.ASSERT,
                     title="toExist",
                     description="This log existed",
@@ -234,6 +244,14 @@ class TestUpdateEndpoints:
                 interval=-1,
                 wait=-1,
                 passed=True,
+            )
+
+            assert await EntityLogBase.exists(
+                entity_id=suite.suiteID,
+                message="hello there, adding a note here",
+                title="Hey 😁",
+                type=LogType.INFO,
+                generatedBy=None,
             )
 
             desc = await AttachmentBase.filter(

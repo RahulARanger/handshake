@@ -105,44 +105,59 @@ jobs:
           run: |
             bash ./.github/scripts/build-sqlite.sh
 
-        - name: Set up Python 3.11 & 3.12
+        - name: if not Windows, Set up Python 3.11 & 3.12
+          if: ${{ matrix.os != 'windows-latest' }}
           uses: actions/setup-python@v5
           with:
             python-version: |
               3.11
               3.12
 
+        - name: if Windows, Set up Python 3.11
+          if: ${{ matrix.os == 'windows-latest' }}
+          uses: actions/setup-python@v5
+          with:
+            python-version: "3.11"
+
         - name: Set up venv
           run: |
             python -m venv venv
 
-        - name: Activate venv if not Windows
+        - name: Activate venv for non-Windows System
           if: ${{ matrix.os != 'windows-latest' }}
           run: |
             source ./venv/bin/activate
 
-        - name: Activate venv if Windows
+        - name: Activate venv if Windows System
           if: ${{ matrix.os == 'windows-latest' }}
           run: ./venv/scripts/activate
 
-        - name: Install dependencies
+        # for macOS, we install deps but not extra ones
+        - name: Install dependencies without optional dependencies
+          if: ${{ matrix.os == 'macos-latest' }}
           run: |
             python -m pip install --upgrade pip
             pip install poetry nox
             poetry install
 
+        # for windows and linux, we install deps with all extras
         - name: Install dependencies with optional dependencies
+          if: ${{ matrix.os != 'macos-latest' }}
           run: |
             python -m pip install --upgrade pip
             pip install poetry nox
             poetry install --all-extras
 
+        # for macOS, we conduct tests which doesn't depend on optional dependencies
+        # for linux, we conduct tests including the ones that depend on optional dependencies
+        # and run those on both 3.12 and 3.11
         - name: Regression Test without optional dependencies
           if: ${{ matrix.os != 'windows-latest' }}
           run: nox -s test
 
+        # for windows, we conduct tests including the ones that depend on optional dependencies but run it only on 3.11
         - name: Regression Test with optional dependencies
-          if: ${{ matrix.os != 'windows-latest' }}
+          if: ${{ matrix.os == 'windows-latest' }}
           run: pytest __test__
 
     test-common-nodejs-reporters:
