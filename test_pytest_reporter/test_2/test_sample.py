@@ -1,4 +1,5 @@
 from pytest import approx, raises, mark, skip
+from handshake.reporters.markers import set_info
 
 
 def test_dummy():
@@ -15,8 +16,17 @@ def test_the_skip_based_on_condition():
 
 
 @mark.parametrize("param", [1, 2])
-def test_param(param):
-    print(param)
+@mark.parametrize("x", ["a", "b"])
+@set_info(
+    name="test_parameterize_hook",
+    description="Testing how we handle the parametrize hook given by pytest",
+    **{
+        "a-1": dict(name="first-test", description="with param as 1 and x as a"),
+        "b-1": dict(name="first-test-in-b", description="with param as 1 and x as b"),
+    }
+)
+def test_param(param, x):
+    print(param, x)
 
 
 class TestDummy:

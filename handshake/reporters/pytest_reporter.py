@@ -113,15 +113,27 @@ class PyTestHandshakeReporter(CommonReporter):
             if tag.name == meta_data_mark:
                 continue
             desc = ("" if not tag.args else f"args: {tag.args} and ") + (
-                "" if not tag.kwargs else f"kwargs: {tag.kwargs}"
+                "kwargs: {}" if not tag.kwargs else f"kwargs: {tag.kwargs}"
             )
             tags.append(dict(label=tag.name, desc=desc))
+
+        title = ""
+        description = ""
+
+        if hasattr(item, "callspec"):
+            if hasattr(item.callspec, "id"):
+                meta_obj = meta.get(item.callspec.id, dict())
+                title = meta_obj.get("title")
+                description = meta_obj.get("description")
+
+        title = title or meta.get(title, item.name)
+        description = description or meta.get("description", "")
 
         self.register_test_entity(
             dict(
                 file=path,
-                title=meta.get("title", item.name),
-                description=meta.get("description", ""),
+                title=title,
+                description=description,
                 suiteType=helper_entity.upper() if helper_entity else suite_type,
                 parent="",
                 is_processing=helper_entity is not None,
