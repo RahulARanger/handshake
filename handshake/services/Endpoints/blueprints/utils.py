@@ -1,4 +1,4 @@
-from handshake.services.DBService.models.result_base import LogType, TestLogBase
+from handshake.services.DBService.models.attachmentBase import LogType, TestLogBase
 from handshake.services.DBService.shared import get_test_id
 from sanic.request import Request
 from sanic.response import JSONResponse

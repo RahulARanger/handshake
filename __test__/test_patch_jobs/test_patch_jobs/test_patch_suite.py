@@ -645,7 +645,7 @@ class TestPatchSuiteScheduler:
 
         # this is expected to throw error, since we have tests which were not updated,
         # and we have parent suite which was registered to be patched
-        # possible error is in reporter (it missed it), check TestLogBase for more info.
+        # possible error is in a reporter (it missed it), check TestLogBase for more info.
 
         records = await TestLogBase.filter(
             test_id=session.test_id, type=LogType.ERROR

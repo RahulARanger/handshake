@@ -2,7 +2,7 @@ from loguru import logger
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from uuid import uuid4, UUID
 from typing import Union, List
-from handshake.services.DBService.models.result_base import TestLogBase, LogType
+from handshake.services.DBService.models.attachmentBase import TestLogBase, LogType
 
 
 async def register_patch_suite(suiteID: str, testID: str, connection=None):

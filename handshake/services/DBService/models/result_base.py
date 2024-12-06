@@ -174,15 +174,3 @@ class RetriedBase(Model):
     modified = DatetimeField(
         auto_now=True, description="Modified timestamp", null=False
     )
-
-
-class TestLogBase(Model):
-    test: ForeignKeyRelation[RunBase] = ForeignKeyField(
-        "models.RunBase", related_name="log", to_field="testID", pk=True
-    )
-    type = CharEnumField(LogType, description="Log type", null=False)
-    message = TextField(description="Log Message", null=False)
-    feed = JSONField(
-        description="If you want to share any feed here", null=True, default={}
-    )
-    dropped = DatetimeField(auto_now=True, description="timestamp", null=False)
