@@ -10,7 +10,7 @@ reporter = PyTestHandshakeReporter()
 def pytest_configure(config):
     config.addinivalue_line(
         "markers",
-        "test_metadata(title, description): Attach metadata to handshake like title and description to tests.",
+        "test_metadata(title: str, description: str): Attach metadata to handshake like title and description to tests.",
     )
 
 
