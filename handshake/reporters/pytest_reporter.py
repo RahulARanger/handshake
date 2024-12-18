@@ -19,7 +19,6 @@ from threading import Lock
 from enum import StrEnum
 from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
 from _pytest.nodes import Node
-from traceback import format_exception
 from pathlib import Path
 
 
@@ -294,10 +293,10 @@ class PyTestHandshakeReporter(CommonReporter):
             case "class":
                 scope_desc = "Shared among tests in a class."
 
-        if fixturedef.cached_result[-1]:
+        if fixturedef.cached_result and fixturedef.cached_result[-1]:
             note_desc = (
                 f"{request.fixturename}(scope: {request.scope}) failed to execute, "
-                f"because of this error: {format_exception(fixturedef.cached_result[-1][1])}"
+                f"because of this error: {repr(fixturedef.cached_result[-1][1])}"
             )
         else:
             note_desc = f"{request.fixturename}(scope: {request.scope}) passed and it gave a result {str(fixturedef.cached_result[0])}"
