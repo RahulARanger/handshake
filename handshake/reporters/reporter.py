@@ -1,7 +1,7 @@
 from httpx import Client
 from datetime import datetime
 from subprocess import Popen
-from typing import Union, Optional, Dict, Callable, List
+from typing import Union, Optional, Dict, List
 from loguru import logger
 from time import sleep
 from sys import stdout, stderr
