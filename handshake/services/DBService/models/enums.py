@@ -1,10 +1,16 @@
-from enum import StrEnum
+from enum import StrEnum, IntEnum
 
 
 class MigrationStatus(StrEnum):
     PASSED = "PASSED"
     PENDING = "PENDING"
     FAILED = "FAILED"
+
+
+class LogGeneratedBy(IntEnum):
+    USER = 0
+    API = 1
+    SCHEDULER = 2
 
 
 class MigrationTrigger(StrEnum):

@@ -2,17 +2,20 @@ from subprocess import call
 from pytest import mark
 from tortoise.connection import connections
 from handshake.services.DBService.models import (
-    SuiteBase,
     SessionBase,
+    SuiteBase,
+    MigrationBase,
     RunBase,
     TestConfigBase,
-    MigrationBase,
+    AttachmentBase,
     TaskBase,
+    ConfigBase,
     RollupBase,
     StaticBase,
-    AttachmentBase,
+    RetriedBase,
     AssertBase,
-    ConfigBase,
+    TestLogBase,
+    EntityLogBase,
 )
 from handshake.services.DBService.models.enums import Status, SuiteType, ConfigKeys
 from handshake.services.SchedularService.register import register_patch_test_run
@@ -174,12 +177,21 @@ class TestMerger:
             RollupBase,
             StaticBase,
             AttachmentBase,
+            RetriedBase,
             AssertBase,
+            TestLogBase,
+            EntityLogBase,
         ):
             merge_1_count = await db.all().count()
             merge_2_count = await db.all(using_db=first_connection).count()
             total = await db.all(using_db=second_connection).count()
             assert total == (merge_2_count + merge_1_count), repr(db)
+
+        # no changes in the configbase
+        assert (
+            await ConfigBase.all(using_db=second_connection).count()
+            == await ConfigBase.all(using_db=first_connection).count()
+        )
 
         # patching the merged db
         assert (

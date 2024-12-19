@@ -58,11 +58,11 @@ class PatchTestRun:
 
         if test_config and test_config.avoidParentSuitesInCount:
             # consider cucumber files
-            # if the feature file has 3 scenarios, then if user sets the avoidParentSuitesInCount
+            # if the feature file has 3 scenarios, then, if the user sets the avoidParentSuitesInCount,
             # we would get a value of 3 as total scenarios else 4
             refer = SuiteBase.filter(~Q(parent=""))
 
-        # we want to count the number of suites status
+        # we want to count the amount of suite status
         summary = dict(passed=0, failed=0, skipped=0)
         summary.update(
             await refer.filter(
@@ -120,7 +120,7 @@ class PatchTestRun:
             SuiteBase.filter(Q(parent="") & Q(standing=Status.RETRIED)).count(),
         )
 
-        # start date was initially when we start the shipment
+        # the start date was initially when we start the shipment
         # now it is when the first session starts
         started = (
             test_result.get(self.actual_start, self.test.started) or self.test.started
@@ -174,7 +174,7 @@ class PatchTestRun:
             return False
 
         # check: 2
-        # check if any child suites are yet to be processed
+        # check if any child suites are yet to be processed,
         # this should not happen, as we are patching all the related suites before test run
 
         pending_items = (
@@ -202,7 +202,11 @@ class PatchTestRun:
 
 async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> False:
     return await cancel_patch_for_test_run(
-        test_id, reason, type=JobType.MODIFY_TEST_RUN, **extra
+        test_id,
+        reason,
+        JobType.MODIFY_TEST_RUN,
+        type=JobType.MODIFY_TEST_RUN,
+        **extra,
     )
 
 

@@ -4,7 +4,6 @@ from handshake.services.DBService.models.result_base import (
     SuiteBase,
     RollupBase,
     RetriedBase,
-    SessionBase,
 )
 from handshake.services.DBService.models.config_base import TestConfigBase
 from handshake.services.DBService.models.dynamic_base import TaskBase
@@ -337,6 +336,7 @@ class PatchTestSuite:
                 if reason
                 else f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}"
             ),
+            JobType.MODIFY_SUITE,
             suiteID=self.suite_id,
             job=JobType.MODIFY_SUITE,
         )

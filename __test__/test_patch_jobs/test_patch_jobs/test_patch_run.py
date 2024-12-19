@@ -6,7 +6,7 @@ from handshake.services.DBService.models import (
     TestLogBase,
 )
 from subprocess import run
-from handshake.services.DBService.models.enums import Status, LogType
+from handshake.services.DBService.models.enums import Status, LogType, LogGeneratedBy
 from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.completeTestRun import patchTestRun
 from handshake.services.SchedularService.register import (
@@ -192,12 +192,15 @@ class TestPatchRunJob:
         assert not await patchTestRun(test)
 
         test_records = await TestLogBase.filter(
-            Q(type=LogType.ERROR) & Q(test_id=test)
+            Q(type=LogType.ERROR)
+            & Q(test_id=test)
+            & Q(generatedByGroup=LogGeneratedBy.SCHEDULER)
         ).all()
         assert len(test_records) == 1
 
         log = test_records[0]
         assert log.feed["type"] == JobType.MODIFY_TEST_RUN
+        assert log.generatedBy == "fix-test-run"
         assert log.feed["incomplete"] == (await session.test).projectName
         assert log.feed["pending_suites"] == 3
 

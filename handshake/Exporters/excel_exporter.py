@@ -84,9 +84,9 @@ class ExcelExporter(Exporter):
             await warn_about_test_run(
                 run_id,
                 "Failed to export this test run in excel",
+                task.type,
                 error=repr(error),
                 task=task.ticketID,
-                type=task.type,
             )
             task.processed = True
             await task.save()

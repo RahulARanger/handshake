@@ -1,8 +1,5 @@
-alter table testlogbase drop column feed;
-alter table testlogbase add column apiGenerated BOOLEAN DEFAULT FALSE;
-alter table testlogbase add column schedulerGenerated BOOLEAN DEFAULT FALSE;
-alter table testlogbase add column userGenerated BOOLEAN DEFAULT FALSE;
-alter table testlogbase add column generatedBy VARCHAR(200) DEFAULT '';
+alter table testlogbase add column generatedByGroup INTEGER DEFAULT 0;
+alter table testlogbase add column generatedBy VARCHAR(80) DEFAULT '';
 alter table testlogbase add column tags JSON DEFAULT '[]';
 
 -- Version Migration

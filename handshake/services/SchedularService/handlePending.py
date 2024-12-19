@@ -32,7 +32,7 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
                     & Q(processed=False)
                     & Q(type=JobType.MODIFY_SUITE)
                 )
-                .order_by("dropped")  # old are on top
+                .order_by("dropped")  # old is on top
                 .only("ticketID")
                 .values_list("ticketID", flat=True)
             )
@@ -52,7 +52,7 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
                 & ~Q(suiteID__in=Subquery(providers.values("parent")))
             )
 
-            # get list of tasks which do not have children that are yet to processed
+            # get a list of tasks which do not have children that are yet to process
             to_process = await TaskBase.filter(
                 Q(
                     ticketID__in=Subquery(
@@ -75,18 +75,19 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
 
             # so we process the suites whose child suites are all processed and their previous retries were processed
 
-            # if there are no such tasks to process then check if the tasks are there for the child suites
+            # if there are no such tasks to process, then check if the tasks are there for the child suites
             if not (
                 to_process
                 or await TaskBase.filter(
                     Q(ticketID=Subquery(providers.values("suiteID")))
                 ).exists()
             ):
-                # if so mark each of the tests runs as banned.
+                # if so, mark each of the tests runs as banned.
                 for task in await TaskBase.filter(Q(ticketID__in=tasks)).all():
                     await cancel_patch_for_test_run(
                         task.test_id,
                         "Failed to find a way to process a parent suite, as the child suite was not registered.",
+                        "patcher-for-next-test-run-patch",
                         parent_suite=task.ticketID,
                         job=task.type,
                     )
