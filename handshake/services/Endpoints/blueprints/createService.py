@@ -1,5 +1,9 @@
 from handshake.services.DBService.models.result_base import SessionBase, SuiteBase
-from handshake.services.DBService.models.attachmentBase import AssertBase, EntityLogBase
+from handshake.services.DBService.models.attachmentBase import (
+    AssertBase,
+    EntityLogBase,
+    LogGeneratedBy,
+)
 from handshake.services.DBService.models.static_base import (
     AttachmentBase,
     AttachmentType,
@@ -160,6 +164,9 @@ async def addAttachmentForEntity(request: Request) -> HTTPResponse:
                             message=attachment.description,
                             type=attachment.value["type"],
                             tags=attachment.tags,
+                            feed=attachment.extraValues,
+                            generatedByGroup=LogGeneratedBy.USER,
+                            generatedBy="User",
                         )
                     )
                 )

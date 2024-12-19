@@ -8,12 +8,16 @@ from handshake.services.DBService.models import (
     TestLogBase,
 )
 from subprocess import run
-from handshake.services.DBService.models.enums import Status, LogType, SuiteType
+from handshake.services.DBService.models.enums import (
+    Status,
+    LogType,
+    SuiteType,
+    LogGeneratedBy,
+)
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.register import register_patch_suite
 from handshake.services.SchedularService.handlePending import patch_jobs
-from tortoise.expressions import Q
 from datetime import datetime, timedelta
 
 
@@ -48,7 +52,7 @@ class TestPatchSuiteJob:
 
             assert await patchTestSuite(parent_id, test_id)
 
-        # if there are no test entities it won't make any change
+        # if there are no test entities, it won't make any change
         record = await RollupBase.filter(suite_id=parent_id).first()
         assert record, "Rollup record must have been created"
         assert record.passed == record.failed == record.tests == record.skipped == 0
@@ -169,7 +173,7 @@ class TestPatchSuiteJob:
     async def test_dependency_of_suites(self, sample_test_session, create_suite):
         # we would have suite - 1 and suite - 2
         # suite - 2 is child of the suite - 1
-        # suite - 2 is under processing but suite - 1 will now be processed so, in that case parent suite
+        # suite - 2 is under processing, but suite - 1 will now be processed so, in that case the parent suite
         # will not be processed until the child suite is processed
 
         session = await sample_test_session
@@ -267,9 +271,10 @@ class TestPatchSuiteJob:
 
         suite = await SuiteBase.filter(suiteID=suite.suiteID).first()
         top_suite = await SuiteBase.filter(suiteID=top_suite.suiteID).first()
-        assert (
-            suite.started == first_one.started
-        ), "we patched the start date since we didn't get the start date from the user and we pick the first child entity even if it is a hook"
+        assert suite.started == first_one.started, (
+            "we patched the start date since we didn't get the start date from the user and we pick the first child "
+            "entity even if it is a hook"
+        )
         assert suite.ended == last_one.ended
         assert (
             suite.duration == (last_one.ended - first_one.started).total_seconds() * 1e3
@@ -299,7 +304,7 @@ class TestPatchSuiteJob:
         await register_patch_suite(suite.suiteID, test.testID)
         await patchTestSuite(suite.suiteID, test.testID)
 
-        # initially this would be marked as not retried later
+        # initially, this would be marked as not retried later
         assert not await retried_later(suite.suiteID)
 
         record = await RetriedBase.filter(suite_id=suite.suiteID).first()
@@ -554,7 +559,9 @@ class TestPatchSuiteScheduler:
         # AND marks the test run as failed as its child suite was not registered.
 
         records = await TestLogBase.filter(
-            test_id=session.test_id, type=LogType.ERROR
+            test_id=session.test_id,
+            type=LogType.ERROR,
+            generatedByGroup=LogGeneratedBy.SCHEDULER,
         ).all()
         assert len(records) == 1
         error_log = records[0]
@@ -575,7 +582,7 @@ class TestPatchSuiteScheduler:
         assert child_suite.standing == Status.PROCESSING
         await patch_jobs()
 
-        # there is a child suite present but still in processing state
+        # there is a child suite present, but still in processing state
         # it might happen because the test run was interrupted in between
 
         # expected result, the processing of the parent suite will be skipped
@@ -645,7 +652,7 @@ class TestPatchSuiteScheduler:
 
         # this is expected to throw error, since we have tests which were not updated,
         # and we have parent suite which was registered to be patched
-        # possible error is in reporter (it missed it), check TestLogBase for more info.
+        # possible error is in a reporter (it missed it), check TestLogBase for more info.
 
         records = await TestLogBase.filter(
             test_id=session.test_id, type=LogType.ERROR
@@ -673,7 +680,7 @@ class TestPatchSuiteScheduler:
         )
 
         # imagine if the parent suite_2 is processed at the same time as parent_suite
-        # they belong to different tree but parent_suite_2 is dependent on parent_suite_1 since
+        # they belong to a different tree but parent_suite_2 is dependent on parent_suite_1 since
         await register_patch_suite(parent_suite_2.suiteID, session.test_id)
         await register_patch_suite(parent_suite.suiteID, session.test_id)
 

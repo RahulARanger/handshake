@@ -1,6 +1,5 @@
 from .conftest import get_version
 from handshake.services.DBService.models.enums import (
-    ConfigKeys,
     MigrationStatus,
     MigrationTrigger,
 )

@@ -1,22 +1,10 @@
-from handshake.services.DBService.models.result_base import TestLogBase, LogType
-from handshake.services.SchedularService.constants import JobType
+from handshake.services.DBService.models.attachmentBase import TestLogBase, LogType
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from loguru import logger
 from typing import Optional
 from tortoise.expressions import Q, Subquery
 from typing import Union
 from uuid import UUID
-
-
-async def skip_test_run(test_id: Union[str, UUID], reason: str, **extra) -> False:
-    logger.error(reason)
-    await TestLogBase.create(
-        test_id=str(test_id),
-        feed=extra,
-        type=LogType.ERROR,
-        message=reason,
-    )
-    return False
 
 
 async def pruneTasks(task_id: Optional[str] = ""):

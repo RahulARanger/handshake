@@ -1,5 +1,5 @@
 import uuid
-from typing import List, Optional, Union, Dict
+from typing import List, Optional, Union, Dict, Any
 from handshake.services.DBService.models.enums import (
     Status,
     SuiteType,
@@ -123,7 +123,7 @@ class AddAttachmentForEntity(BaseModel):
     description: Optional[str] = ""
     value: Union[AssertionPayload, LogPayload, str]
     title: Optional[str] = ""
-    extraValues: Optional[Dict[str, str]] = {}
+    extraValues: Optional[Dict[Any, Any]] = {}
     tags: Optional[List[Tag]] = []
 
 

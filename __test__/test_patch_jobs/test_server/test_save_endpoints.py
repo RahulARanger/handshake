@@ -3,13 +3,8 @@ import json
 from pytest import mark
 from handshake.services.DBService.models import (
     RunBase,
-    AttachmentBase,
-    AssertBase,
     TestConfigBase,
-    TestLogBase,
-    SuiteBase,
 )
-from handshake.services.DBService.models.enums import LogType, AttachmentType
 from sanic import Sanic
 from __test__.test_patch_jobs.test_server.commons import set_config
 

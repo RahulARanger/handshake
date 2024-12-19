@@ -12,7 +12,11 @@ from handshake.services.DBService.models.enums import SuiteType, Status
 from sanic import Sanic
 from asyncio import gather
 from __test__.test_patch_jobs.test_server.commons import set_config
-from handshake.services.DBService.models.enums import LogType, AttachmentType
+from handshake.services.DBService.models.enums import (
+    LogType,
+    AttachmentType,
+    LogGeneratedBy,
+)
 
 
 @mark.usefixtures("sample_test_session")
@@ -251,7 +255,8 @@ class TestUpdateEndpoints:
                 message="hello there, adding a note here",
                 title="Hey 😁",
                 type=LogType.INFO,
-                generatedBy=None,
+                generatedByGroup=LogGeneratedBy.USER,
+                generatedBy="User",
             )
 
             desc = await AttachmentBase.filter(

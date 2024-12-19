@@ -61,7 +61,7 @@ class TestMigrationScripts:
         await get_vth_connection(db_path, 5)
         session = await helper_to_create_test_and_session(manual_insert_test_run=True)
 
-        # based on the previous test we are now in version: 5
+        # based on the previous test, we are now in version: 5
         assert int(await get_version()) == 5
 
         script = scripts / "bump-v5.sql"
@@ -191,8 +191,35 @@ class TestMigrationScripts:
         # default value is no
         assert not suite.retried_later
 
-    # say you are in v8 and have reverted your python build to older version which uses v7
-    # question: how does migrate function work ?
+    async def test_bump_v11(
+        self, get_vth_connection, scripts, db_path, sample_test_session
+    ):
+        await get_vth_connection(db_path, 11)
+
+        await tortoise.connections.get("default").execute_query(
+            'INSERT INTO "testlogbase" ("test_id","type","dropped","feed","title") VALUES (?,?,?,?,?)',
+            [
+                str(sample_test_session.test_id),
+                "INFO",
+                "2024-02-07 19:46:39.059284+00:00",
+                "{}",
+                "sample_log",
+            ],
+        )
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            11, 12, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+
+        previous_log = await TestLogBase.filter(title="sample_log").first()
+        assert previous_log.generatedBy == ""
+        assert previous_log.generatedByGroup == 0
+        assert previous_log.tags == []
+
+    # say you are in v8 and have reverted your python build to an older version which uses v7
+    # question: how does migrate function work?
 
     async def test_version_command(self, root_dir):
         result = run(f'handshake db-version "{root_dir}"', shell=True, stderr=PIPE)

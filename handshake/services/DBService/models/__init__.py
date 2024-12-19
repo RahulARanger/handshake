@@ -4,12 +4,11 @@ from .result_base import (
     RunBase,
     RollupBase,
     RetriedBase,
-    TestLogBase,
 )
 from .config_base import ConfigBase, TestConfigBase, MigrationBase
 from .static_base import AttachmentBase, StaticBase
 from .dynamic_base import TaskBase
-from .attachmentBase import AssertBase, EntityLogBase
+from .attachmentBase import AssertBase, EntityLogBase, TestLogBase
 
 __all__ = [
     SessionBase,
