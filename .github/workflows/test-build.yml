@@ -2,6 +2,12 @@ name: 'test-build'
 
 on:
   workflow_dispatch:
+    inputs:
+      force_run_pybuild_tests:
+        description: 'force run test cases for handshake .py build'
+        required: false
+        type: boolean
+        default: false
   push:
     branches:
       - build
@@ -91,7 +97,7 @@ jobs:
       needs: decide
       name: check if the py-build for handshake is stable
       runs-on: ${{ matrix.os }}
-      if: ${{ needs.decide.outputs.py == 'true' }}
+      if: ${{ inputs.force_run_pybuild_tests or needs.decide.outputs.py == 'true' }}
 
       strategy:
         matrix:
