@@ -150,10 +150,7 @@ class TestJSONExportsWithRuns:
             "failed",
             "skipped",
             "tests",
-            "suites",
-            "passedSuites",
-            "failedSuites",
-            "skippedSuites",
+            "suiteSummary",
             "duration",
             "specStructure",
         ):

@@ -134,10 +134,6 @@ class PatchTestRun:
         await self.test.update_from_dict(
             dict(
                 **{_: test_result[_] or 0 for _ in test_result.keys()},
-                **{
-                    f"{_}Suites" if _ != "count" else "suites": summary[_] or 0
-                    for _ in summary.keys()
-                },
                 retried=retried_suites,
                 started=started,
                 ended=ended,
@@ -160,6 +156,7 @@ class PatchTestRun:
                 standing=fetch_key_from_status(
                     summary["passed"], summary["failed"], summary["skipped"]
                 ),
+                suiteSummary=summary,
             )
         )
         await self.test.save()
