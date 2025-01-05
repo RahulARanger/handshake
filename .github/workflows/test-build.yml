@@ -97,7 +97,7 @@ jobs:
       needs: decide
       name: check if the py-build for handshake is stable
       runs-on: ${{ matrix.os }}
-      if: ${{ inputs.force_run_pybuild_tests or needs.decide.outputs.py == 'true' }}
+      if: ${{ inputs.force_run_pybuild_tests || needs.decide.outputs.py == 'true' }}
 
       strategy:
         matrix:
@@ -154,7 +154,7 @@ jobs:
             pip install poetry nox
             poetry install --all-extras
 
-        # for macOS, we conduct tests which doesn't depend on optional dependencies
+        # for macOS, we conduct tests that don't depend on optional dependencies
         # for linux, we conduct tests including the ones that depend on optional dependencies
         # and run those on both 3.12 and 3.11
         - name: Regression Test without optional dependencies
