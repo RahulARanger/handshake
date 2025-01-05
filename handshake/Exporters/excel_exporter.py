@@ -11,7 +11,6 @@ from handshake.services.DBService.models.static_base import StaticBase
 from handshake.Exporters.exporter import Exporter
 from handshake.services.DBService.lifecycle import attachment_folder
 from loguru import logger
-from json import loads
 from pathlib import Path
 from aiofiles.os import mkdir
 from datetime import datetime
@@ -60,6 +59,10 @@ class ExcelExporter(Exporter):
     percentage_format: ConditionalFormatting
     parent_links = {}
     test_link = {}
+
+    test_summary_row = 3
+    test_summary_col = 7
+    test_summary_files_row = -1
 
     def __init__(self, db_path: Path, dev_run: bool = False):
         super().__init__(dev_run)
@@ -114,20 +117,24 @@ class ExcelExporter(Exporter):
     async def export_test_run_summary(self, test_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
 
-        start_from_row = 3
-        detail_col = 7
-
-        suite_summary = loads(summary["suiteSummary"])
-
-        edit_cell(index_sheet, start_from_row, detail_col, summary["projectName"], True)
+        edit_cell(
+            index_sheet,
+            self.test_summary_row,
+            self.test_summary_col,
+            summary["projectName"],
+            True,
+        )
+        self.test_summary_row += 1
 
         standing_cell = edit_cell(
             index_sheet,
-            start_from_row + 1,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
             summary["standing"].lower().capitalize(),
             True,
         )
+        self.test_summary_row += 1
+
         self.standing_format, self.percentage_format, *_ = list(
             index_sheet.conditional_formatting
         )
@@ -141,54 +148,89 @@ class ExcelExporter(Exporter):
 
         edit_cell(
             index_sheet,
-            start_from_row + 2,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
             format_duration(summary["duration"] / 1000),
         )
-
-        edit_cell(index_sheet, start_from_row + 3, detail_col, suite_summary["count"])
-        edit_cell(index_sheet, start_from_row + 4, detail_col, summary["tests"])
+        self.test_summary_row += 1
 
         edit_cell(
             index_sheet,
-            start_from_row + 5,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
+            summary["suites"],
+        )
+        self.test_summary_row += 1
+
+        edit_cell(
+            index_sheet,
+            self.test_summary_row,
+            self.test_summary_col,
+            summary["tests"],
+        )
+        self.test_summary_row += 1
+
+        edit_cell(
+            index_sheet,
+            self.test_summary_row,
+            self.test_summary_col,
             calc_percentage(
-                suite_summary["passed"] + suite_summary["skipped"],
-                suite_summary["count"],
+                summary["passedSuites"] + summary["skippedSuites"],
+                summary["suites"],
             ),
         )
+        self.test_summary_row += 1
+
         edit_cell(
             index_sheet,
-            start_from_row + 6,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
             calc_percentage(summary["passed"] + summary["skipped"], summary["tests"]),
         )
-
-        edit_cell(
-            index_sheet, start_from_row + 8, detail_col, summary["platform"], True
-        )
-        edit_cell(index_sheet, start_from_row + 9, detail_col, summary["framework"])
+        self.test_summary_row += 2
+        self.test_summary_files_row = self.test_summary_row - 1
 
         edit_cell(
             index_sheet,
-            start_from_row + 12,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
+            summary["platform"],
+            True,
+        )
+        self.test_summary_row += 1
+
+        edit_cell(
+            index_sheet,
+            self.test_summary_row,
+            self.test_summary_col,
+            summary["framework"],
+        )
+        # starting with the timeline table
+        self.test_summary_row += 3
+        edit_cell(
+            index_sheet,
+            self.test_summary_row,
+            self.test_summary_col,
             save_datetime_in_excel(datetime.fromisoformat(summary["started"])),
         )
+        self.test_summary_row += 1
+
         edit_cell(
             index_sheet,
-            start_from_row + 13,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
             save_datetime_in_excel(datetime.fromisoformat(summary["ended"])),
         )
+        self.test_summary_row += 1
+
         edit_cell(
             index_sheet,
-            start_from_row + 14,
-            detail_col,
+            self.test_summary_row,
+            self.test_summary_col,
             save_datetime_in_excel(datetime.now()),
             resize=True,
         )
+        self.test_summary_row += 1
 
     async def export_run_page(self, run_id: str, skip_recent_suites: bool = False):
         await super().export_run_page(run_id, True)
@@ -198,11 +240,11 @@ class ExcelExporter(Exporter):
     async def export_overview_of_test_run(self, run_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
 
-        start_from_row = 3
-        detail_col = 7
-
         edit_cell(
-            index_sheet, start_from_row + 7, detail_col, summary["aggregated"]["files"]
+            index_sheet,
+            self.test_summary_files_row,
+            self.test_summary_col,
+            summary["aggregated"]["files"],
         )
 
     async def export_all_suites(self, run_id: str, export_suite_wise: bool = True):

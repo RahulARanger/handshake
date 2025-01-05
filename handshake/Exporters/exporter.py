@@ -11,10 +11,8 @@ from handshake.services.DBService.models.result_base import (
 from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
-    SuiteSummary,
 )
 from handshake.services.SchedularService.constants import JobType, exportExportFileName
-from json import loads
 from asyncio import TaskGroup
 from tortoise import BaseDBAsyncClient
 from tortoise.connection import connections
@@ -101,7 +99,6 @@ WHERE rb.ended <> '' order by rb.started;
                     projects[test_run.projectName] = projects.get(
                         test_run.projectName, []
                     )
-                    suite_summary: SuiteSummary = loads(test_run.suiteSummary)
                     projects[test_run.projectName].append(
                         dict(
                             testID=test_run.testID,
@@ -109,10 +106,10 @@ WHERE rb.ended <> '' order by rb.started;
                             failed=test_run.failed,
                             skipped=test_run.skipped,
                             tests=test_run.tests,
-                            passedSuites=suite_summary["passed"],
-                            failedSuites=suite_summary["failed"],
-                            skippedSuites=suite_summary["skipped"],
-                            suites=suite_summary["count"],
+                            passedSuites=test_run.passedSuites,
+                            failedSuites=test_run.failedSuites,
+                            skippedSuites=test_run.skippedSuites,
+                            suites=test_run.suites,
                             duration=test_run.duration,
                         )
                     )
