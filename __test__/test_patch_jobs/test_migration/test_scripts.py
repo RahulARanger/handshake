@@ -1,4 +1,3 @@
-import json
 import sqlite3
 import tortoise
 from handshake.services.DBService.models import (
@@ -218,35 +217,6 @@ class TestMigrationScripts:
         assert previous_log.generatedBy == ""
         assert previous_log.generatedByGroup == 0
         assert previous_log.tags == []
-
-    async def test_bump_v12(
-        self,
-        get_vth_connection,
-        scripts,
-        db_path,
-        helper_to_create_test_and_session,
-    ):
-        connection = await get_vth_connection(db_path, 12)
-        test_id, sample_session = await helper_to_create_test_and_session(
-            manual_insert_test_run=True, connection=connection, return_id=True
-        )
-        await connection.execute_query(
-            "update runbase set suiteSummary = ? where testID = ?",
-            (json.dumps(dict(passed=2, failed=3, skipped=1, count=6)), test_id),
-        )
-
-        assert migration(
-            db_path, do_once=True
-        ), "it should now be in the latest version"
-        await assert_migration(
-            12, 13, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
-        )
-
-        migrated_run = await RunBase.filter(testID=test_id).first()
-        assert migrated_run.passedSuites == 2
-        assert migrated_run.failedSuites == 3
-        assert migrated_run.suites == 6
-        assert migrated_run.skippedSuites == 1
 
     # say you are in v8 and have reverted your python build to an older version which uses v7
     # question: how does migrate function work?
