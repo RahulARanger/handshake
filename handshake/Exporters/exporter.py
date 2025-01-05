@@ -204,6 +204,9 @@ WHERE rb.ended <> '' order by rb.started;
                 numberOfErrors=RawSQL("json_array_length(errors)"),
                 id=RawSQL("suiteID"),
                 p_id=RawSQL("parent"),
+                aliasID=RawSQL(
+                    "substr(suitebase.suiteID, 0, instr(suitebase.suiteID, '-'))"
+                ),
                 s=RawSQL("suitebase.started"),
                 e=RawSQL("suitebase.ended"),
                 error=RawSQL("errors ->> '[0]'"),
@@ -234,6 +237,7 @@ WHERE rb.ended <> '' order by rb.started;
                 "title",
                 "passed",
                 "failed",
+                "aliasID",
                 "standing",
                 "tests",
                 "skipped",
@@ -300,9 +304,12 @@ WHERE rb.ended <> '' order by rb.started;
             suite_id if suite_id else run_id
         )
         tests = await (
-            test_query.order_by("started")
+            test_query.order_by("-suiteType", "started")
             .prefetch_related("rollup")
             .annotate(
+                aliasID=RawSQL(
+                    "substr(suitebase.suiteID, 0, instr(suitebase.suiteID, '-'))"
+                ),
                 numberOfErrors=RawSQL("json_array_length(errors)"),
                 id=RawSQL("suiteID"),
                 s=RawSQL("suitebase.started"),
@@ -320,6 +327,7 @@ WHERE rb.ended <> '' order by rb.started;
             )
             .values(
                 "title",
+                "aliasID",
                 "standing",
                 "assertions",
                 "duration",
@@ -350,15 +358,27 @@ WHERE rb.ended <> '' order by rb.started;
 
         assertions = (
             await assertion_query.annotate(
-                id=RawSQL("entity_id"), raw=RawSQL("message")
+                id=RawSQL("entity_id"),
+                raw=RawSQL("message"),
+                aliasID=RawSQL(
+                    "substr(assertbase.entity_id, 0, instr(assertbase.entity_id, '-'))"
+                ),
             )
             .all()
             .values(
-                "title", "message", "raw", "interval", "passed", "wait", entity_id="id"
+                "title",
+                "message",
+                "raw",
+                "interval",
+                "passed",
+                "wait",
+                "aliasID",
+                entity_id="id",
             )
         )
 
         written_records = {}
+        # TODO: Export Attachments to excel
         assertion_records = {}
         written = (
             await attachment_query.annotate(
