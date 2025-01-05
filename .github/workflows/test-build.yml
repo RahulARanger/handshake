@@ -153,6 +153,11 @@ jobs:
             python -m pip install --upgrade pip
             pip install poetry nox
 
+        - name: Install dependencies with optional dependencies - 2
+          if: ${{ matrix.os != 'macos-latest' }}
+          run: |
+            poetry install --all-extras
+
         # for macOS, we conduct tests that don't depend on optional dependencies
         # for linux, we conduct tests including the ones that depend on optional dependencies
         # and run those on both 3.12 and 3.11
