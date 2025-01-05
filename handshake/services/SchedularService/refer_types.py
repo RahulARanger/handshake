@@ -16,19 +16,15 @@ class PathItem(TypedDict):
     count: int
 
 
-class SuiteSummary(TypedDict):
-    passed: int
-    skipped: int
-    count: int
-    failed: int
-
-
 class SubSetOfRunBaseRequiredForProjectExport(BaseModel):
     testID: str
     tests: int
     passed: int
     skipped: int
     failed: int
-    suiteSummary: str
+    passedSuites: int
+    failedSuites: int
+    skippedSuites: int
+    suites: int
     duration: float
     projectName: str
