@@ -32,10 +32,10 @@ async def helper_test_patch_test_run(session_record: SessionBase, connection=Non
     assert test_record.skipped == 9
     assert test_record.tests == 9 * 3
 
-    assert test_record.suiteSummary["passed"] == 0
-    assert test_record.suiteSummary["failed"] == 3
-    assert test_record.suiteSummary["skipped"] == 0
-    assert test_record.suiteSummary["count"] == 3
+    assert test_record["passedSuites"] == 0
+    assert test_record["failedSuites"] == 3
+    assert test_record["skippedSuites"] == 0
+    assert test_record["suites"] == 3
 
     assert test_record.ended
     assert (

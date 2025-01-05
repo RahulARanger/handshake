@@ -171,8 +171,9 @@ class PyTestHandshakeReporter(CommonReporter):
                 punch_in=True,
             )
 
-        # NOTE: there are test cases which are skipped before the test is called
-        # we do not have report for the call. so we need to manually update for such
+        # NOTE: there are test cases that are skipped before the test is called
+        # we do not have a report for the call.
+        # so we need to manually update for such
         # Hack: we assume setup call as usual test
         when = (
             PointToAtPhase.CALL
@@ -198,7 +199,7 @@ class PyTestHandshakeReporter(CommonReporter):
                 key(report.nodeid),
                 "Skipped!",
                 report.longreprtext,
-                tags=[dict(label="Reason", desc=str(report.longrepr[-1]))],
+                tags=[dict(label="Reason", desc=repr(report.longrepr))],
             )
 
         match when:
