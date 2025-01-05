@@ -68,11 +68,10 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
     specStructure = JSONField(
         description="file structure of spec files", default=dict()
     )
-    passedSuites = IntField(default=0, null=False, description="Passed suites")
-    failedSuites = IntField(default=0, null=False, description="failed suites")
-    skippedSuites = IntField(default=0, null=False, description="skipped suites")
-    suites = IntField(default=0, null=False, description="total test suites")
-
+    suiteSummary = JSONField(
+        description="summary of the suites",
+        default=dict(count=0, passed=0, failed=0, skipped=0),
+    )
     exitCode = IntField(
         null=False, default=0, description="Exit code for the test execution"
     )

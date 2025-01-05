@@ -1,4 +1,4 @@
-from typing import Optional, Any, Union, Tuple
+from typing import Optional, Any
 from handshake.services.SchedularService.constants import exportExportFileName, JobType
 from handshake.services.SchedularService.register import warn_about_test_run
 from handshake.services.DBService.models.dynamic_base import TaskBase
@@ -11,6 +11,7 @@ from handshake.services.DBService.models.static_base import StaticBase
 from handshake.Exporters.exporter import Exporter
 from handshake.services.DBService.lifecycle import attachment_folder
 from loguru import logger
+from json import loads
 from pathlib import Path
 from aiofiles.os import mkdir
 from datetime import datetime
@@ -59,10 +60,6 @@ class ExcelExporter(Exporter):
     percentage_format: ConditionalFormatting
     parent_links = {}
     test_link = {}
-
-    test_summary_row = 3
-    test_summary_col = 7
-    test_summary_files_row = -1
 
     def __init__(self, db_path: Path, dev_run: bool = False):
         super().__init__(dev_run)
@@ -117,24 +114,20 @@ class ExcelExporter(Exporter):
     async def export_test_run_summary(self, test_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
 
-        edit_cell(
-            index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
-            summary["projectName"],
-            True,
-        )
-        self.test_summary_row += 1
+        start_from_row = 3
+        detail_col = 7
+
+        suite_summary = loads(summary["suiteSummary"])
+
+        edit_cell(index_sheet, start_from_row, detail_col, summary["projectName"], True)
 
         standing_cell = edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 1,
+            detail_col,
             summary["standing"].lower().capitalize(),
             True,
         )
-        self.test_summary_row += 1
-
         self.standing_format, self.percentage_format, *_ = list(
             index_sheet.conditional_formatting
         )
@@ -148,89 +141,54 @@ class ExcelExporter(Exporter):
 
         edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 2,
+            detail_col,
             format_duration(summary["duration"] / 1000),
         )
-        self.test_summary_row += 1
+
+        edit_cell(index_sheet, start_from_row + 3, detail_col, suite_summary["count"])
+        edit_cell(index_sheet, start_from_row + 4, detail_col, summary["tests"])
 
         edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
-            summary["suites"],
-        )
-        self.test_summary_row += 1
-
-        edit_cell(
-            index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
-            summary["tests"],
-        )
-        self.test_summary_row += 1
-
-        edit_cell(
-            index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 5,
+            detail_col,
             calc_percentage(
-                summary["passedSuites"] + summary["skippedSuites"],
-                summary["suites"],
+                suite_summary["passed"] + suite_summary["skipped"],
+                suite_summary["count"],
             ),
         )
-        self.test_summary_row += 1
-
         edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 6,
+            detail_col,
             calc_percentage(summary["passed"] + summary["skipped"], summary["tests"]),
         )
-        self.test_summary_row += 2
-        self.test_summary_files_row = self.test_summary_row - 1
+
+        edit_cell(
+            index_sheet, start_from_row + 8, detail_col, summary["platform"], True
+        )
+        edit_cell(index_sheet, start_from_row + 9, detail_col, summary["framework"])
 
         edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
-            summary["platform"],
-            True,
-        )
-        self.test_summary_row += 1
-
-        edit_cell(
-            index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
-            summary["framework"],
-        )
-        # starting with the timeline table
-        self.test_summary_row += 3
-        edit_cell(
-            index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 12,
+            detail_col,
             save_datetime_in_excel(datetime.fromisoformat(summary["started"])),
         )
-        self.test_summary_row += 1
-
         edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 13,
+            detail_col,
             save_datetime_in_excel(datetime.fromisoformat(summary["ended"])),
         )
-        self.test_summary_row += 1
-
         edit_cell(
             index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
+            start_from_row + 14,
+            detail_col,
             save_datetime_in_excel(datetime.now()),
             resize=True,
         )
-        self.test_summary_row += 1
 
     async def export_run_page(self, run_id: str, skip_recent_suites: bool = False):
         await super().export_run_page(run_id, True)
@@ -240,11 +198,11 @@ class ExcelExporter(Exporter):
     async def export_overview_of_test_run(self, run_id: str, summary):
         index_sheet = self.template.get_sheet_by_name("Index")
 
+        start_from_row = 3
+        detail_col = 7
+
         edit_cell(
-            index_sheet,
-            self.test_summary_files_row,
-            self.test_summary_col,
-            summary["aggregated"]["files"],
+            index_sheet, start_from_row + 7, detail_col, summary["aggregated"]["files"]
         )
 
     async def export_all_suites(self, run_id: str, export_suite_wise: bool = True):
@@ -258,7 +216,6 @@ class ExcelExporter(Exporter):
 
         columns = (
             "title",
-            "aliasID",
             "total_duration",
             "description",
             "standing",
@@ -277,10 +234,8 @@ class ExcelExporter(Exporter):
             "setup_duration",
             "teardown_duration",
             "retried_later",
-            "Parent Alias",
         )
         alias = {
-            "aliasID": "Alias",
             "numberOfErrors": "Errors",
             "duration": "test_duration",
             "tests": "passed%",
@@ -305,14 +260,7 @@ class ExcelExporter(Exporter):
 
                 cell = suites_sheet.cell(row_index + 2, header_index + 1)
                 cell.alignment = Alignment("right")
-                match header:
-                    case "Parent Alias":
-                        value: Union[Any, Tuple[str, str, str], bool] = (
-                            self.parent_links.get(suite["parent"], False)
-                        )
-                    case _:
-                        value = suite[header]
-
+                value = suite[header]
                 to_save = value
                 resize = True
                 match header:
@@ -355,7 +303,6 @@ class ExcelExporter(Exporter):
                         self.parent_links[suite["suiteID"]] = (
                             f"#'{suites_sheet.title}'!{cell.column_letter}{cell.row}",
                             value,
-                            suite["aliasID"],
                         )
                     case "standing":
                         to_save = value.lower().capitalize()
@@ -381,19 +328,16 @@ class ExcelExporter(Exporter):
                             to_save = f"{suite['parent_title']} 🔗"
                             cell.hyperlink = self.parent_links[value][0]
                             resize = True
-                            add_comment_to_cell(cell, self.parent_links[value][1])
-                    case "Parent Alias":
-                        to_save = "〰️"
-                        cell.alignment = Alignment("center", "center")
-                        if value:
-                            to_save = f"{value[-1]} 🔗"
-                            cell.hyperlink = value[0]
-                            resize = True
-                            add_comment_to_cell(cell, value[-1])
+                            cell.comment = Comment(
+                                self.parent_links[value][1], "Handshake"
+                            )
+                            cell.comment.width = 100
+                            if len(value) < 100:
+                                cell.comment.height = 30
                     case "retried_later":
                         to_save = "YES" if value else "NO"
                     case "file":
-                        add_comment_to_cell(cell, value)
+                        cell.comment = Comment(value, "Handshake")
                         resize = False
                         resize_col(suites_sheet, cell, 10)
                     case _:
@@ -433,7 +377,6 @@ class ExcelExporter(Exporter):
 
         columns = (
             "title",
-            "aliasID",
             "total_duration",
             "suiteType",
             "description",
@@ -449,10 +392,8 @@ class ExcelExporter(Exporter):
             "setup_duration",
             "teardown_duration",
             "retried_later",
-            "Parent Alias",
         )
         alias = {
-            "aliasID": "alias",
             "duration": "test_duration",
             "numberOfErrors": "Errors",
             "simplified": "Ran with",
@@ -482,17 +423,9 @@ class ExcelExporter(Exporter):
                 cell = sheet.cell(test_rows if is_test else hooks_row, header_index + 1)
                 cell.alignment = Alignment("right")
 
-                match header:
-                    case "Parent Alias":
-                        value: Union[Any, Tuple[str, str, str], bool] = (
-                            self.parent_links.get(test["parent"], False)
-                        )
-                    case _:
-                        value = test[header]
-
-                resize = True
+                value = test[header]
                 to_save = value
-
+                resize = True
                 match header:
                     case "started":
                         to_save = save_datetime_in_excel(
@@ -525,7 +458,6 @@ class ExcelExporter(Exporter):
                         self.parent_links[test["suiteID"]] = (
                             f"#'{test_sheet.title}'!{cell.column_letter}{cell.row}",
                             value,
-                            test["aliasID"],
                         )
                     case "standing":
                         to_save = value.lower().capitalize()
@@ -553,7 +485,10 @@ class ExcelExporter(Exporter):
                         )
                         link = self.parent_links.get(
                             value,
-                            (f"#'{test_sheet.title}'!A{index}", "", ""),
+                            (
+                                f"#'{test_sheet.title}'!A{index}",
+                                "",
+                            ),
                         )
                         if value and link:
                             to_save = f"{test['parent_title']} 🔗"
@@ -562,31 +497,14 @@ class ExcelExporter(Exporter):
                             cell.alignment = Alignment("center", "center")
 
                             if link[1]:
-                                add_comment_to_cell(cell, link[1])
-                    case "Parent Alias":
-                        to_save = ""
-                        index = (
-                            test_rows
-                            if test["suiteType"] == SuiteType.SETUP
-                            else (test_rows - 1)
-                        )
-                        link = (
-                            value
-                            if value
-                            else (f"#'{test_sheet.title}'!A{index}", "", "")
-                        )
-                        if value and link:
-                            to_save = f"{link[2]} 🔗"
-                            resize = True
-                            cell.hyperlink = link[0]
-                            cell.alignment = Alignment("center", "center")
-
-                            if link[2]:
-                                add_comment_to_cell(cell, link[2])
+                                cell.comment = Comment(link[1], "Handshake")
+                                cell.comment.width = 100
+                                if len(value) < 100:
+                                    cell.comment.height = 30
                     case "retried_later":
                         to_save = "YES" if value else "NO"
                     case "file":
-                        add_comment_to_cell(cell, value)
+                        cell.comment = Comment(value, "Handshake")
                         resize = False
                         resize_col(sheet, cell, 10)
                     case _:
@@ -633,15 +551,7 @@ class ExcelExporter(Exporter):
         assertion_sheet = self.template.get_sheet_by_name("Assertions")
         table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
-        columns = (
-            "title",
-            "raw",
-            "entity_id",
-            "passed",
-            "interval",
-            "wait",
-            "Test Alias",
-        )
+        columns = ("title", "raw", "entity_id", "passed", "interval", "wait")
         alias = {"entity_id": "entity", "raw": "description"}
 
         assertion_sheet.freeze_panes = "B1"  # freeze first col (title)
@@ -662,11 +572,7 @@ class ExcelExporter(Exporter):
                 if not assertion["passed"]:
                     cell.fill = fill
 
-                match header:
-                    case "Test Alias":
-                        value = self.parent_links.get(assertion["entity_id"], False)
-                    case _:
-                        value = assertion[header]
+                value = assertion[header]
                 to_save = value
                 resize = True
                 match header:
@@ -682,23 +588,17 @@ class ExcelExporter(Exporter):
                     case "entity_id":
                         to_save = "〰️"
                         cell.alignment = Alignment("center", "center")
-                        link, tip, parent_alias = self.parent_links.get(
-                            value, ("", "", "")
+                        link, tip = self.test_link.get(
+                            value, self.parent_links.get(value, tuple())
                         )
                         if value and link:
                             to_save = f"{tip} 🔗"
                             cell.hyperlink = link
                             resize = True
-                            add_comment_to_cell(cell, tip)
-                    case "Test Alias":
-                        to_save = "〰️"
-                        cell.alignment = Alignment("center", "center")
-                        link, tip, parent_alias = value
-                        if value and link:
-                            to_save = f"{parent_alias} 🔗"
-                            cell.hyperlink = link
-                            resize = True
-                            add_comment_to_cell(cell, parent_alias)
+                            cell.comment = Comment(tip, "Handshake")
+                            cell.comment.width = 100
+                            if len(value) < 20:
+                                cell.comment.height = 30
                     case "passed":
                         to_save = "YES" if value else "NO"
                     case _:
@@ -751,9 +651,3 @@ def copy_format_to_cell(
             f"{cell.column_letter}{cell.row}",
             rule,
         )
-
-
-def add_comment_to_cell(cell: Cell, value: str):
-    cell.comment = Comment(value, "Handshake")
-    cell.comment.width = 150
-    cell.comment.height = 30 + (len(value) / 30) * 30

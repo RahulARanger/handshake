@@ -98,7 +98,7 @@ class TestPickTasks:
         result = run(f'handshake patch "{root_dir}"', shell=True)
         assert result.returncode == 0
 
-        # the first thing it would do it would make the flag: reset_test_run as false
+        # first thing it would do it would make the flag: reset_test_run as false
         record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
         assert not record.value
 
