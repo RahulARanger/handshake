@@ -31,10 +31,10 @@ class TestPatchRunJob:
         assert empty.standing == Status.PASSED
         assert empty.passed == empty.failed == empty.skipped == empty.tests == 0
         assert (
-            empty.suiteSummary["passed"]
-            == empty.suiteSummary["failed"]
-            == empty.suiteSummary["count"]
-            == empty.suiteSummary["skipped"]
+            empty.passedSuites
+            == empty.failedSuites
+            == empty.skippedSuites
+            == empty.suites
         )
         assert empty.tests == empty.passed == empty.failed == empty.skipped == 0
 
@@ -77,10 +77,10 @@ class TestPatchRunJob:
         await patchTestRun(test.testID)
 
         record = await RunBase.filter(testID=test.testID).first()
-        assert record.suiteSummary["count"] == 3  # notice this is not 4
-        assert record.suiteSummary["passed"] == 0
-        assert record.suiteSummary["failed"] == 3
-        assert record.suiteSummary["skipped"] == 0
+        assert record.suites == 3  # notice this is not 4
+        assert record.passedSuites == 0
+        assert record.failedSuites == 3
+        assert record.skippedSuites == 0
 
         assert check_for in record.specStructure
         assert (
@@ -128,10 +128,10 @@ class TestPatchRunJob:
 
         # job related
         assert test_record.standing == Status.FAILED
-        assert test_record.suiteSummary["passed"] == 0
-        assert test_record.suiteSummary["failed"] == 3 + 3
-        assert test_record.suiteSummary["skipped"] == 0
-        assert test_record.suiteSummary["count"] == 3 + 3
+        assert test_record.passedSuites == 0
+        assert test_record.failedSuites == 3 + 3
+        assert test_record.skippedSuites == 0
+        assert test_record.suites == 3 + 3
 
         # assumption
         assert session.started < second_session.started
@@ -170,9 +170,8 @@ class TestPatchRunJob:
         assert record.tests == 9
         assert record.standing == Status.FAILED
 
-        suite_agg = record.suiteSummary
-        assert suite_agg["passed"] == suite_agg["skipped"] == 0
-        assert suite_agg["count"] == suite_agg["failed"] == 4
+        assert record.passedSuites == record.skippedSuites == 0
+        assert record.suites == record.failedSuites == 4
 
         assert record.retried == 2
 
@@ -264,7 +263,7 @@ class TestPatchTestRunThroughScheduler:
         test_record = await RunBase.filter(testID=test.testID).first()
         assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
-        assert test_record.suiteSummary["count"] == 3 + 3
+        assert test_record.suites == 3 + 3
 
         assert (await TaskBase.filter(ticketID=task.ticketID).first()).processed
 
@@ -303,7 +302,7 @@ class TestPatchTestRunThroughScheduler:
 
         assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
-        assert test_record.suiteSummary["count"] == 3 + 3
+        assert test_record.suites == 3 + 3
 
         assert (await TaskBase.filter(ticketID=task.ticketID).first()).processed
 
@@ -347,7 +346,7 @@ class TestPatchTestRunThroughScheduler:
 
         assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
-        assert test_record.suiteSummary["count"] == 3 + 3
+        assert test_record.suites == 3 + 3
 
         assert (await TaskBase.filter(ticketID=test_2.testID).first()).processed
 
@@ -355,6 +354,6 @@ class TestPatchTestRunThroughScheduler:
 
         assert test_record.tests == (2 * (3 + 3 + 3))
         assert test_record.standing == Status.FAILED
-        assert test_record.suiteSummary["count"] == 3 + 3
+        assert test_record.suites == 3 + 3
 
         assert (await TaskBase.filter(ticketID=test_2.testID).first()).processed
