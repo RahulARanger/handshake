@@ -11,10 +11,8 @@ from handshake.services.DBService.models.result_base import (
 from handshake.services.DBService.models.static_base import StaticBase
 from handshake.services.SchedularService.refer_types import (
     SubSetOfRunBaseRequiredForProjectExport,
-    SuiteSummary,
 )
 from handshake.services.SchedularService.constants import JobType, exportExportFileName
-from json import loads
 from asyncio import TaskGroup
 from tortoise import BaseDBAsyncClient
 from tortoise.connection import connections
@@ -101,7 +99,6 @@ WHERE rb.ended <> '' order by rb.started;
                     projects[test_run.projectName] = projects.get(
                         test_run.projectName, []
                     )
-                    suite_summary: SuiteSummary = loads(test_run.suiteSummary)
                     projects[test_run.projectName].append(
                         dict(
                             testID=test_run.testID,
@@ -109,10 +106,10 @@ WHERE rb.ended <> '' order by rb.started;
                             failed=test_run.failed,
                             skipped=test_run.skipped,
                             tests=test_run.tests,
-                            passedSuites=suite_summary["passed"],
-                            failedSuites=suite_summary["failed"],
-                            skippedSuites=suite_summary["skipped"],
-                            suites=suite_summary["count"],
+                            passedSuites=test_run.passedSuites,
+                            failedSuites=test_run.failedSuites,
+                            skippedSuites=test_run.skippedSuites,
+                            suites=test_run.suites,
                             duration=test_run.duration,
                         )
                     )
@@ -207,6 +204,9 @@ WHERE rb.ended <> '' order by rb.started;
                 numberOfErrors=RawSQL("json_array_length(errors)"),
                 id=RawSQL("suiteID"),
                 p_id=RawSQL("parent"),
+                aliasID=RawSQL(
+                    "substr(suitebase.suiteID, 0, instr(suitebase.suiteID, '-'))"
+                ),
                 s=RawSQL("suitebase.started"),
                 e=RawSQL("suitebase.ended"),
                 error=RawSQL("errors ->> '[0]'"),
@@ -237,6 +237,7 @@ WHERE rb.ended <> '' order by rb.started;
                 "title",
                 "passed",
                 "failed",
+                "aliasID",
                 "standing",
                 "tests",
                 "skipped",
@@ -303,9 +304,12 @@ WHERE rb.ended <> '' order by rb.started;
             suite_id if suite_id else run_id
         )
         tests = await (
-            test_query.order_by("started")
+            test_query.order_by("-suiteType", "started")
             .prefetch_related("rollup")
             .annotate(
+                aliasID=RawSQL(
+                    "substr(suitebase.suiteID, 0, instr(suitebase.suiteID, '-'))"
+                ),
                 numberOfErrors=RawSQL("json_array_length(errors)"),
                 id=RawSQL("suiteID"),
                 s=RawSQL("suitebase.started"),
@@ -323,6 +327,7 @@ WHERE rb.ended <> '' order by rb.started;
             )
             .values(
                 "title",
+                "aliasID",
                 "standing",
                 "assertions",
                 "duration",
@@ -353,15 +358,27 @@ WHERE rb.ended <> '' order by rb.started;
 
         assertions = (
             await assertion_query.annotate(
-                id=RawSQL("entity_id"), raw=RawSQL("message")
+                id=RawSQL("entity_id"),
+                raw=RawSQL("message"),
+                aliasID=RawSQL(
+                    "substr(assertbase.entity_id, 0, instr(assertbase.entity_id, '-'))"
+                ),
             )
             .all()
             .values(
-                "title", "message", "raw", "interval", "passed", "wait", entity_id="id"
+                "title",
+                "message",
+                "raw",
+                "interval",
+                "passed",
+                "wait",
+                "aliasID",
+                entity_id="id",
             )
         )
 
         written_records = {}
+        # TODO: Export Attachments to excel
         assertion_records = {}
         written = (
             await attachment_query.annotate(
