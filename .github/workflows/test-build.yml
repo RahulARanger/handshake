@@ -101,7 +101,7 @@ jobs:
 
       strategy:
         matrix:
-          os: ['windows-latest', 'ubuntu-latest']
+          os: ['macos-latest', 'windows-latest', 'ubuntu-latest']
 
       steps:
         - uses: actions/checkout@v4
@@ -152,7 +152,6 @@ jobs:
           run: |
             python -m pip install --upgrade pip
             pip install poetry nox
-            poetry install --all-extras
 
         # for macOS, we conduct tests that don't depend on optional dependencies
         # for linux, we conduct tests including the ones that depend on optional dependencies
