@@ -16,9 +16,9 @@ def save_version_to_version_file():
         / ".version"
     )
     assert target_node.exists()
-    version_text = tomllib.loads((root / "pyproject.toml").read_text())["tool"][
-        "poetry"
-    ]["version"]
+    version_text = tomllib.loads((root / "sample.toml").read_text())["tool"]["poetry"][
+        "version"
+    ]
     note_file = root / "handshake" / "__init__.py"
     note_file.write_text(f'__version__ = "{version_text}"\n')
 

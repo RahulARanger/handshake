@@ -13,7 +13,6 @@ from tortoise.fields import (
     IntEnumField,
 )
 from handshake.services.DBService.models.enums import LogType, LogGeneratedBy
-from handshake.services.SchedularService.constants import JobType
 
 
 class AssertBase(Model):
