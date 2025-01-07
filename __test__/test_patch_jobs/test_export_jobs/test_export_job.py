@@ -391,7 +391,7 @@ async def test_patch_interruption(
             f'handshake patch "{root_dir}" -o "{report_dir}" -e json',
             shell=True,
             stderr=PIPE,
-            timeout=0.3,  # 1 second is not enough, so it fail
+            timeout=0.1,  # 1 second is not enough, so it fails
         )
     except TimeoutExpired:
         found_error = True
