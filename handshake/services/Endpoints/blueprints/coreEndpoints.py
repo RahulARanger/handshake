@@ -140,8 +140,8 @@ async def update_suite_details(request: Request) -> HTTPResponse:
         logger.error("Was not able to found {} suite", str(suite.suiteID))
         return text(f"Suite {suite.suiteID} was not found", status=404)
 
-    # first we save the details which was provided
-    before_duration = suite_record.duration
+    # first, we save the details that were provided
+    before_duration = suite_record.duration or 0
     if suite_record.suiteType == SuiteType.SUITE:
         suite.standing = Status.YET_TO_CALCULATE
     else:
@@ -167,18 +167,21 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             added_task = bool(
                 await register_patch_suite(suite_record.suiteID, get_test_id())
             )
+        # we can't have combined expression with duration and int at the same time, so we update twice
         case SuiteType.SETUP:
             # note here suite_record.duration means hook's duration
             await SuiteBase.filter(suiteID=suite_record.parent).update(
-                setup_duration=F("setup_duration")
-                + suite_record.duration
-                - before_duration
+                setup_duration=F("setup_duration") + suite_record.duration
+            )
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                setup_duration=F("setup_duration") - before_duration
             )
         case SuiteType.TEARDOWN:
             await SuiteBase.filter(suiteID=suite_record.parent).update(
-                teardown_duration=F("teardown_duration")
-                + suite_record.duration
-                - before_duration
+                teardown_duration=F("teardown_duration") + suite_record.duration
+            )
+            await SuiteBase.filter(suiteID=suite_record.parent).update(
+                teardown_duration=F("teardown_duration") - before_duration
             )
 
     return text(str(suite_record.suiteID), status=201 if added_task else 200)
@@ -205,7 +208,7 @@ async def update_test_session_details(request: Request) -> HTTPResponse:
 
 
 # NOTE: this API was made specifically to support a registering describeBlocks
-# NOTE: Planning to depreciate this in near future.
+# NOTE: Planning to depreciate this soon.
 @update_service.put("/registerParentEntities")
 @definition(
     summary="Registers a set of parent suites starting from root hierarchy",

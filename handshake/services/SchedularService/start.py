@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Optional
 from loguru import logger
 from tortoise.expressions import Q, Subquery
-from ANSIToHTML.parser import Parser
+from ansitohtml.parser import Parser
 from handshake.services.DBService.models.result_base import RunBase
 from tortoise import connections, BaseDBAsyncClient
 from handshake.services.DBService.models.config_base import (

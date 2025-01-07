@@ -1,4 +1,4 @@
-from ANSIToHTML.parser import Parser
+from ansitohtml.parser import Parser
 from loguru import logger
 from typing import Optional
 from abc import ABC, abstractmethod
