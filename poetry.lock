@@ -2200,5 +2200,5 @@ print-tables = ["tabulate"]
 
 [metadata]
 lock-version = "2.1"
-python-versions = "^3.11,<3.13"
-content-hash = "f1af3cb199e85500f4a4bfff580cae38809feddcccf159943e570957ad854d78"
+python-versions = ">=3.11,<3.13"
+content-hash = "000901d2f7a2bf300a81da310adccb2309ba0e7c7486782bf3eebd81ca25cbfa"
