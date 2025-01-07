@@ -1,6 +1,6 @@
 [project]
 name = "handshakes"
-version = "0.7.15"
+version = "0.7.17"
 description = "A service that's keen to process your test results"
 authors = [
     {name = "Rahul",email = "saihanumarahul66@gmail.com"}
@@ -60,3 +60,6 @@ pytest-asyncio = "^0.25.1"
 "Homepage" = "https://github.com/RahulARanger/handshake"
 "Bug Reports" = "https://github.com/RahulARanger/handshake/issues"
 "Source" = "https://github.com/RahulARanger/handshake"
+
+[tool.poetry.plugins."pytest11"]
+"handshakes" = "handshake.reporters.pytest_hooks"
