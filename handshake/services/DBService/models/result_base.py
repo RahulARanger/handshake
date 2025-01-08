@@ -44,7 +44,7 @@ class CommonDetailedFields(CommandReportFields):
 class EntityBaseSpecific:
     standing = CharEnumField(
         Status,
-        description="status of the test run based on the test cases executed",
+        description="observed status of the test run based on the test cases executed",
         default=Status.PENDING,
     )
     retried = IntField(
@@ -109,6 +109,11 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     attachments = ReverseRelation["AttachmentBase"]
     retries = ReverseRelation["RetriedBase"]
     rolled_up = ReverseRelation["RollupBase"]
+    expected = CharEnumField(
+        Status,
+        description="expected status of the test run based on the test cases executed",
+        default=Status.PASSED,
+    )
 
     suiteID = UUIDField(pk=True)
     suiteType = CharEnumField(
