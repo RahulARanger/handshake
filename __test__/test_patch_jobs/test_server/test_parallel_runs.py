@@ -8,6 +8,13 @@ from pathlib import Path
 from tortoise import Tortoise, connections
 from handshake.services.DBService.models import RunBase, SessionBase, SuiteBase
 from shutil import rmtree
+from socket import socket
+
+
+def find_free_port():
+    with socket() as sock:
+        sock.bind(("", 0))  # Bind to a free port provided by the host.
+        return sock.getsockname()[1]  # Return the port number assigned.
 
 
 @fixture()
@@ -20,20 +27,22 @@ async def shakes(get_db_path, root_dir_server):
     if root_dir_server.exists():
         rmtree(root_dir_server)
 
+    first_sock = find_free_port()
+    second_sock = find_free_port()
     result = Popen(
-        f'handshake run-app test-app-1 "{root_dir_server}" -p 6590', shell=True
+        f'handshake run-app test-app-1 "{root_dir_server}" -p {first_sock}', shell=True
     )
     result_2 = Popen(
-        f'handshake run-app test-app-1 "{root_dir_server}" -p 6591', shell=True
+        f'handshake run-app test-app-1 "{root_dir_server}" -p {second_sock}', shell=True
     )
 
     _session = Session()
 
     retries = Retry(total=15, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
     _session.mount("http://", HTTPAdapter(max_retries=retries))
-    response = _session.get("http://127.0.0.1:6590/")
+    response = _session.get(f"http://127.0.0.1:{first_sock}/")
     assert response.text == "1"
-    response = _session.get("http://127.0.0.1:6591/")
+    response = _session.get(f"http://127.0.0.1:{second_sock}/")
     assert response.text == "1"
     _session.close()
 
@@ -57,14 +66,14 @@ async def shakes(get_db_path, root_dir_server):
 
     connection = connections.get(root_dir_server.name)
 
-    yield result, result_2, (6590, 6591), session, connection
+    yield result, result_2, (first_sock, second_sock), session, connection
 
     try:
         if result.poll() is not None:
-            post("http://127.0.0.1:6590/bye")
+            post(f"http://127.0.0.1:{first_sock}/bye")
 
         if result_2.poll() is not None:
-            post("http://127.0.0.1:6591/bye")
+            post(f"http://127.0.0.1:{second_sock}/bye")
     except Exception as error:
         ...
 
@@ -141,9 +150,9 @@ async def test_multiple_sessions(
             resp = session.post(createPts(port, "Suite"), json=payload)
             assert resp.status_code == 201, resp.text
 
-    response = post("http://127.0.0.1:6590/bye")
+    response = post(f"http://127.0.0.1:{ports[0]}/bye")
     assert response.text == "1"
-    response = post("http://127.0.0.1:6591/bye")
+    response = post(f"http://127.0.0.1:{ports[1]}/bye")
     assert response.text == "1"
 
     assert (await RunBase.all(using_db=connection).count()) == 2
