@@ -17,7 +17,7 @@ class TestSaveEndpoints:
             specs=["test.spec.js", "test2.spec.js"],
             started=datetime.datetime.now().isoformat(),
         )
-        request, response = await client.put("/save/registerSession", json=payload)
+        request, response = await client.post("/create/Session", json=payload)
         assert response.status == 201
 
     # async def test_register_suite
@@ -34,7 +34,7 @@ class TestSaveEndPoints:
         await self.set_test_run(app, (await helper_create_test_run()))
 
         payload = dict(simplified="sample")
-        request, response = await client.put("/save/updateSession", json=payload)
+        request, response = await client.put("/save/Session", json=payload)
 
         result = response.json
         assert response.status == 400

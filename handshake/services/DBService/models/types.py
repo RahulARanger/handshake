@@ -32,6 +32,7 @@ class RegisterSuite(CommonRegisterCols):
     retried: int
     description: Optional[str] = ""
     suiteType: SuiteType
+    expected: Optional[Status] = Status.PASSED
     session_id: uuid.UUID
     file: str
     parent: str
