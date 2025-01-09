@@ -50,7 +50,6 @@ class TestRegisterSuite:
             session_id=str(sample_test_session.sessionID),
             file="test.spec.js",
             started=datetime.datetime.now().isoformat(),
-            expected=Status.FAILED,
             tags=[dict(label="sample-tag", desc="sample tag for testing")],
             parent=parent_suite,
             is_processing=False,
@@ -70,5 +69,5 @@ class TestRegisterSuite:
 
         assert test_record.suiteType == SuiteType.TEST
         assert test_record.standing == Status.PENDING
-        assert test_record.expected == Status.FAILED
+        assert test_record.expected == Status.PASSED
         assert test_record.title == "Sample Test"

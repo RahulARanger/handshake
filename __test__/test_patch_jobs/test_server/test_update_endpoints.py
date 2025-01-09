@@ -39,13 +39,11 @@ class TestUpdateEndpoints:
             session.sessionID, is_test=True, parent=parent_suite.suiteID
         )
         suite_2 = await create_suite(
-            session.sessionID, is_test=True, parent=parent_suite.suiteID
+            session.sessionID,
+            is_test=True,
+            parent=parent_suite.suiteID,
+            expected=Status.FAILED,
         )
-        await suite_2.update_from_dict({"expected": Status.FAILED})
-        await suite_2.save()
-
-        assert suite.expected == Status.PASSED
-        assert suite_2.expected == Status.FAILED
 
         for _ in (suite, suite_2):
             payload = dict(
@@ -62,8 +60,10 @@ class TestUpdateEndpoints:
         assert (
             suite.expected == Status.SKIPPED
         ), "test's expectation must now be skipped state"
+        assert suite.expected == Status.PASSED
 
         suite = await SuiteBase.filter(suiteID=suite_2.suiteID).first()
+        assert suite.expected == Status.FAILED
         assert (
             suite.expected == Status.FAILED
         ), "test's expectation must remain as failed, since it's expectation is not to pass"

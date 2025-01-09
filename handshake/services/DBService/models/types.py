@@ -45,7 +45,6 @@ class CreatePickedSuiteOrTest(BaseModel):
     started: Optional[datetime] = None
     description: Optional[str] = ""
     suiteType: SuiteType
-    expected: Optional[Status] = Status.PASSED
     session_id: uuid.UUID
     file: str
     parent: str
@@ -91,6 +90,7 @@ class UpdateSuite(BaseModel):
     suiteID: uuid.UUID
     duration: float
     started: Optional[datetime] = None
+    expected: Optional[Status] = Status.PASSED
     ended: datetime
     errors: Optional[List[Error]] = []
     standing: Status
