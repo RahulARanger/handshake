@@ -4,33 +4,20 @@ from handshake.services.DBService.models.result_base import (
     RunBase,
 )
 from handshake.services.DBService.models.types import (
-    RegisterSession,
     RegisterSuite,
     PunchInSuite,
     UpdateSuite,
-    MarkSuite,
     UpdateSession,
-    MarkSession,
-    AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
     PydanticModalForTestRunUpdate,
     WrittenAttachmentForEntity,
     MarkTestRun,
 )
 from handshake.services.Endpoints.blueprints.utils import (
-    attachError,
-    extractPayload,
-    attachWarn,
-    extractPydanticErrors,
     prune_nones,
-)
-from handshake.services.DBService.models.static_base import (
-    AttachmentBase,
-    AttachmentType,
 )
 from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
-from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import (
     Status,
     SuiteType,
@@ -39,28 +26,16 @@ from handshake.services.DBService.models.static_base import StaticBase
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
-from typing import List
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import (
     register_patch_suite,
     register_patch_test_run,
 )
-from pydantic import ValidationError
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
 from tortoise.expressions import F
 
 update_service = Blueprint("UpdateService", url_prefix="/save")
-
-
-@update_service.on_response
-async def handle_response(request: Request, response: JSONResponse):
-    if 200 <= response.status < 300:
-        return response
-
-    payload = extractPayload(request, response)
-    await attachError(payload, request.url)
-    return JSONResponse(body=payload, status=response.status)
 
 
 @update_service.put("/PunchInSuite", error_format="json")
@@ -113,6 +88,9 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             suite.standing.lower(): 1,
             "tests": 1,
         }
+        if suite.standing == Status.SKIPPED and suite_record.expected == Status.PASSED:
+            note["expected"] = Status.SKIPPED
+
         if (
             suite_record.suiteType == SuiteType.TEARDOWN
             or suite_record.suiteType == SuiteType.SETUP

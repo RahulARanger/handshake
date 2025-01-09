@@ -12,7 +12,7 @@ from datetime import datetime
 from typing_extensions import TypedDict
 
 
-# send iso-format for the datetime string
+# send an iso-format for the datetime string
 
 
 class CommonRegisterCols(BaseModel):
@@ -45,6 +45,7 @@ class CreatePickedSuiteOrTest(BaseModel):
     started: Optional[datetime] = None
     description: Optional[str] = ""
     suiteType: SuiteType
+    expected: Optional[Status] = Status.PASSED
     session_id: uuid.UUID
     file: str
     parent: str
