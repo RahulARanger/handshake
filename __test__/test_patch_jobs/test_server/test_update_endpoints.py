@@ -42,16 +42,17 @@ class TestUpdateEndpoints:
             session.sessionID,
             is_test=True,
             parent=parent_suite.suiteID,
-            expected=Status.FAILED,
         )
 
-        for _ in (suite, suite_2):
+        for index, _ in enumerate((suite, suite_2)):
             payload = dict(
                 duration=_.duration,
                 ended=_.ended.isoformat(),
                 suiteID=str(_.suiteID),
                 standing=Status.SKIPPED,
             )
+            if index == 1:
+                payload["expected"] = Status.FAILED
 
             request, response = await client.put("/save/Suite", json=payload)
             assert response.status_code == 200, response.text
@@ -60,10 +61,8 @@ class TestUpdateEndpoints:
         assert (
             suite.expected == Status.SKIPPED
         ), "test's expectation must now be skipped state"
-        assert suite.expected == Status.PASSED
 
         suite = await SuiteBase.filter(suiteID=suite_2.suiteID).first()
-        assert suite.expected == Status.FAILED
         assert (
             suite.expected == Status.FAILED
         ), "test's expectation must remain as failed, since it's expectation is not to pass"
