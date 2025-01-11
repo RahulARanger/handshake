@@ -88,12 +88,6 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             suite.standing.lower(): 1,
             "tests": 1,
         }
-        if (
-            suite_record.suiteType == SuiteType.TEST
-            and suite.standing == Status.SKIPPED
-            and suite.expected == Status.PASSED
-        ):
-            suite.expected = Status.SKIPPED
 
         if (
             suite_record.suiteType == SuiteType.TEARDOWN

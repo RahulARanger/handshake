@@ -64,10 +64,8 @@ class TestRegisterSuite:
 
         assert suite_record.suiteType == SuiteType.SUITE
         assert suite_record.standing == Status.PROCESSING
-        assert suite_record.expected == Status.PASSED
         assert suite_record.title == "Sample Suite"
 
         assert test_record.suiteType == SuiteType.TEST
         assert test_record.standing == Status.PENDING
-        assert test_record.expected == Status.PASSED
         assert test_record.title == "Sample Test"

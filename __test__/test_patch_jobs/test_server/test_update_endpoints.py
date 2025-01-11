@@ -51,21 +51,15 @@ class TestUpdateEndpoints:
                 suiteID=str(_.suiteID),
                 standing=Status.SKIPPED,
             )
-            if index == 1:
-                payload["expected"] = Status.FAILED
 
             request, response = await client.put("/save/Suite", json=payload)
             assert response.status_code == 200, response.text
 
         suite = await SuiteBase.filter(suiteID=suite.suiteID).first()
-        assert (
-            suite.expected == Status.SKIPPED
-        ), "test's expectation must now be skipped state"
+        assert suite.standing == Status.SKIPPED, "test's status must skipped state"
 
         suite = await SuiteBase.filter(suiteID=suite_2.suiteID).first()
-        assert (
-            suite.expected == Status.FAILED
-        ), "test's expectation must remain as failed, since it's expectation is not to pass"
+        assert suite.standing == Status.SKIPPED, "test's status must skipped state"
 
     async def test_setup_and_teardown_duration_update(
         self, client, sample_test_session, helper_create_test_run, create_suite, app

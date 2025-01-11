@@ -21,6 +21,99 @@ from handshake.services.SchedularService.handlePending import patch_jobs
 from datetime import datetime, timedelta
 
 
+async def helper_test_many_retries(
+    sample_test_session, create_session, create_hierarchy, attach_config, create_suite
+):
+    session = await sample_test_session
+    session_id = session.sessionID
+    test = await session.test
+
+    second_session = await create_session(test.testID)
+    third_session = await create_session(test.testID)
+
+    await attach_config(str(test.testID), 2)
+
+    parent_suite = await create_suite(session_id)
+    first_tests, first_suites = await create_hierarchy(
+        session_id, parent_suite.suiteID, test.testID, started=parent_suite.started
+    )
+
+    parent_suite_2 = await create_suite(
+        second_session.sessionID, retried=1, started=parent_suite.ended
+    )
+    second_tests, second_suites = await create_hierarchy(
+        second_session.sessionID,
+        parent_suite_2.suiteID,
+        test.testID,
+        retried=1,
+        started=parent_suite_2.started,
+    )
+
+    parent_suite_3 = await create_suite(
+        third_session.sessionID, retried=2, started=parent_suite_2.ended
+    )
+    third_tests, third_suites = await create_hierarchy(
+        third_session.sessionID,
+        parent_suite_3.suiteID,
+        test.testID,
+        retried=2,
+        started=parent_suite_3.started,
+    )
+
+    for _ in [parent_suite, parent_suite_2, parent_suite_3]:
+        await register_patch_suite(_.suiteID, test.testID)
+
+    await patch_jobs()
+
+    # trying to re-patching things which were already patched
+    for index, suite in enumerate(
+        [
+            *first_suites,
+            parent_suite.suiteID,
+            *second_suites,
+            parent_suite_2.suiteID,
+            *third_suites,
+            parent_suite_3.suiteID,
+        ]
+    ):
+        result = await patchTestSuite(str(suite), str(test.testID)) is True
+        assert (
+            result is False
+        ), f"entity at index: {index} must have already been patched"
+
+    for index, suite in enumerate(
+        [
+            parent_suite.suiteID,
+            *first_suites,
+            parent_suite_2.suiteID,
+            *second_suites,
+        ]
+    ):
+        result = await RetriedBase.exists(suite_id=suite)
+        assert await retried_later(suite)
+        assert result is False, index
+
+    for index, suites in enumerate(
+        [
+            [parent_suite.suiteID, parent_suite_2.suiteID, parent_suite_3.suiteID],
+            *[
+                [first_suites[_], second_suites[_], third_suites[_]]
+                for _ in range(len(first_suites))
+            ],
+        ],
+    ):
+        record = await RetriedBase.filter(suite_id=suites[-1]).first()
+        assert record is not None, "record should exist"
+        assert record.tests == [str(_) for _ in suites]
+        assert record.length == 3
+
+    for session in await SessionBase.filter(test_id=test.testID).all():
+        await session.update_from_dict(dict(tests=9, passed=3, failed=3, skipped=3))
+        await session.save()
+
+    return test
+
+
 async def retried_later(test_id):
     t_record = await SuiteBase.filter(suiteID=test_id).first()
     return t_record.retried_later
@@ -65,6 +158,8 @@ class TestPatchSuiteJob:
             == parent_suite.failed
             == parent_suite.skipped
             == parent_suite.tests
+            == parent_suite.xpassed
+            == parent_suite.xfailed
             == 0
         ), "Patching any empty suite has 0s with passed as status"
 
@@ -127,6 +222,60 @@ class TestPatchSuiteJob:
             == 3
         )
         assert parent_rollup_suite.tests == 9
+
+    async def test_xfailed(self, sample_test_session, create_suite):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        # initial suite
+        suite = await create_suite(session_id, started=None)
+        test_1 = await create_suite(
+            session_id, standing=Status.XFAILED, parent=suite.suiteID, is_test=True
+        )
+        await register_patch_suite(suite.suiteID, test.testID)
+
+        assert await patchTestSuite(suite.suiteID, test.testID)
+
+        processed = await SuiteBase.filter(suiteID=suite.suiteID).first()
+        assert processed.standing == Status.XFAILED
+
+        r_record = await RollupBase.filter(suite_id=suite.suiteID).first()
+        assert r_record.tests == 1
+        assert r_record.xfailed == 1
+        assert (
+            r_record.passed
+            == r_record.failed
+            == r_record.skipped
+            == r_record.xpassed
+            == 0
+        )
+
+    async def test_xpassed(self, sample_test_session, create_suite):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        # initial suite
+        suite = await create_suite(session_id, started=None)
+        test_1 = await create_suite(
+            session_id, standing=Status.XPASSED, parent=suite.suiteID, is_test=True
+        )
+        test_2 = await create_suite(
+            session_id, standing=Status.PASSED, parent=suite.suiteID, is_test=True
+        )
+        await register_patch_suite(suite.suiteID, test.testID)
+
+        assert await patchTestSuite(suite.suiteID, test.testID)
+
+        processed = await SuiteBase.filter(suiteID=suite.suiteID).first()
+        assert processed.standing == Status.XPASSED
+
+        r_record = await RollupBase.filter(suite_id=suite.suiteID).first()
+        assert r_record.tests == 2
+        assert r_record.xpassed == 1
+        assert r_record.passed == 1
+        assert r_record.xfailed == r_record.failed == r_record.skipped == 0
 
     async def test_rollup_errors(
         self, sample_test_session, create_suite, create_hierarchy
@@ -342,94 +491,13 @@ class TestPatchSuiteJob:
         create_suite,
         create_session,
     ):
-        session = await sample_test_session
-        session_id = session.sessionID
-        test = await session.test
-
-        second_session = await create_session(test.testID)
-        third_session = await create_session(test.testID)
-
-        await attach_config(str(test.testID), 2)
-
-        parent_suite = await create_suite(session_id)
-        first_tests, first_suites = await create_hierarchy(
-            session_id, parent_suite.suiteID, test.testID, started=parent_suite.started
+        await helper_test_many_retries(
+            sample_test_session,
+            create_session,
+            create_hierarchy,
+            attach_config,
+            create_suite,
         )
-
-        parent_suite_2 = await create_suite(
-            second_session.sessionID, retried=1, started=parent_suite.ended
-        )
-        second_tests, second_suites = await create_hierarchy(
-            second_session.sessionID,
-            parent_suite_2.suiteID,
-            test.testID,
-            retried=1,
-            started=parent_suite_2.started,
-        )
-
-        parent_suite_3 = await create_suite(
-            third_session.sessionID, retried=2, started=parent_suite_2.ended
-        )
-        third_tests, third_suites = await create_hierarchy(
-            third_session.sessionID,
-            parent_suite_3.suiteID,
-            test.testID,
-            retried=2,
-            started=parent_suite_3.started,
-        )
-
-        for _ in [parent_suite, parent_suite_2, parent_suite_3]:
-            await register_patch_suite(_.suiteID, test.testID)
-
-        await patch_jobs()
-
-        # trying to re-patching things which were already patched
-        for index, suite in enumerate(
-            [
-                *first_suites,
-                parent_suite.suiteID,
-                *second_suites,
-                parent_suite_2.suiteID,
-                *third_suites,
-                parent_suite_3.suiteID,
-            ]
-        ):
-            result = await patchTestSuite(str(suite), str(test.testID)) is True
-            assert (
-                result is False
-            ), f"entity at index: {index} must have already been patched"
-
-        for index, suite in enumerate(
-            [
-                parent_suite.suiteID,
-                *first_suites,
-                parent_suite_2.suiteID,
-                *second_suites,
-            ]
-        ):
-            result = await RetriedBase.exists(suite_id=suite)
-            assert await retried_later(suite)
-            assert result is False, index
-
-        for index, suites in enumerate(
-            [
-                [parent_suite.suiteID, parent_suite_2.suiteID, parent_suite_3.suiteID],
-                *[
-                    [first_suites[_], second_suites[_], third_suites[_]]
-                    for _ in range(len(first_suites))
-                ],
-            ],
-        ):
-            record = await RetriedBase.filter(suite_id=suites[-1]).first()
-            assert record is not None, "record should exist"
-            assert record.tests == [str(_) for _ in suites]
-            assert record.length == 3
-
-        for session in await SessionBase.filter(test_id=test.testID).all():
-            await session.update_from_dict(dict(tests=9, passed=3, failed=3, skipped=3))
-            await session.save()
-
-        return test
 
     async def test_retried_label_for_retried_entities(
         self, sample_test_session, attach_config, create_suite

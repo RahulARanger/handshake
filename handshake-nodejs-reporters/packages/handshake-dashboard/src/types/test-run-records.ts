@@ -15,6 +15,10 @@ export default interface OnlyTestRunRecord {
     tags: string;
     specStructure: string;
     suiteSummary: string;
+    passedSuites: number;
+    failedSuites: number;
+    skippedSuites: number;
+    suites: number;
     framework: string;
 }
 export interface TestRunRecord extends OnlyTestRunRecord {

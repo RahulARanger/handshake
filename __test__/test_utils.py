@@ -141,4 +141,9 @@ def test_status_from_values():
     assert fetch_key_from_status(2, 2, 0) == Status.FAILED
     assert fetch_key_from_status(2, 2, 2) == Status.FAILED
     assert fetch_key_from_status(2, 0, 2) == Status.PASSED
-    assert fetch_key_from_status(0, 0, 2) == Status.SKIPPED
+    assert fetch_key_from_status(0, 0, 2, 0, 0) == Status.SKIPPED
+    assert fetch_key_from_status(1, 0, 0, 0, 1) == Status.XPASSED
+    assert fetch_key_from_status(1, 1, 0, 0, 1) == Status.FAILED
+    assert fetch_key_from_status(0, 0, 0, 1, 0) == Status.XFAILED
+    assert fetch_key_from_status(1, 0, 0, 1, 0) == Status.PASSED
+    assert fetch_key_from_status(0, 0, 0, 0, 1) == Status.XPASSED
