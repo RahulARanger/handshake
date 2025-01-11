@@ -11,7 +11,9 @@ export type statusOfEntity =
     | 'FAILED'
     | 'PENDING'
     | 'SKIPPED'
-    | 'RETRIED';
+    | 'RETRIED'
+    | 'XFAILED'
+    | 'XPASSED';
 
 export type RunStatus =
     | 'COMPLETED'

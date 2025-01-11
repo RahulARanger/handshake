@@ -9,9 +9,9 @@ from uuid import UUID
 
 async def pruneTasks(task_id: Optional[str] = ""):
     if task_id:
-        logger.error("Deleting Few Tasks as per request")
+        logger.warning("Deleting Few Tasks as per request")
     else:
-        logger.warning("Pruning some Tasks, which are related to error test runs")
+        logger.debug("Pruning some old tasks")
 
     to_prune = await TaskBase.filter(
         Q(
