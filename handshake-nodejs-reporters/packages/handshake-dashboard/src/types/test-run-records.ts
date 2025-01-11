@@ -16,7 +16,6 @@ export default interface OnlyTestRunRecord {
     retried: number;
     tags: string;
     specStructure: string;
-    suiteSummary: string;
     passedSuites: number;
     failedSuites: number;
     skippedSuites: number;
@@ -46,13 +45,6 @@ export type specNode = {
     current: string;
     suites?: number;
 };
-
-export interface SuiteSummary {
-    passed: number;
-    skipped: number;
-    count: number;
-    failed: number;
-}
 
 export type possibleFrameworks =
     | 'webdriverio'

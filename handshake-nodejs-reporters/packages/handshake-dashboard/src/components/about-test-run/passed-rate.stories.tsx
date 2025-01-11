@@ -16,28 +16,42 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const Mixed: Story = {
     args: {
-        rate: [100, 20, 20],
+        rate: [100, 20, 20, 20, 20],
         text: 'Tests',
     },
 };
 
 export const OnlyFailed: Story = {
     args: {
-        rate: [0, 0, 100],
+        rate: [0, 0, 100, 0, 0],
         text: 'Suites',
     },
 };
 
 export const OnlyPassed: Story = {
     args: {
-        rate: [100, 0, 0],
+        rate: [100, 0, 0, 0, 0],
         text: 'Tests',
     },
 };
 
 export const OnlySkipped: Story = {
     args: {
-        rate: [0, 100, 0],
+        rate: [0, 100, 0, 0, 0],
+        text: 'Tests',
+    },
+};
+
+export const OnlyXFailed: Story = {
+    args: {
+        rate: [0, 0, 0, 3, 0],
+        text: 'Tests',
+    },
+};
+
+export const OnlyXPassed: Story = {
+    args: {
+        rate: [0, 0, 0, 0, 4],
         text: 'Tests',
     },
 };

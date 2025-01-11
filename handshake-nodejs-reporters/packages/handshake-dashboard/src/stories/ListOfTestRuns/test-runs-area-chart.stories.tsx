@@ -1,10 +1,11 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import AreaChartForTestRuns from 'components/about-test-runs/area-test-runs';
 import dayjs from 'dayjs';
+import { generator } from 'stories/TestData/test-case';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
-    title: 'AboutTestRun/ListOfTestRuns/AreaChart',
+    title: 'AboutTestRuns/AreaChart',
     component: AreaChartForTestRuns,
     parameters: {
         // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
@@ -25,17 +26,44 @@ export const MultipleRuns: Story = {
         Rates: [
             {
                 id: 'sample-1',
-                rate: [10, 1, 1],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(3, 'day'),
             },
             {
                 id: 'sample-2',
-                rate: [20, 2, 5],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(2, 'day'),
             },
-            { id: 'sample-3', rate: [24, 4, 10], date: dayjs().add(1, 'hour') },
-            { id: 'sample-4', rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
-            { id: 'sample-5', rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
+            {
+                id: 'sample-3',
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
+                date: dayjs().add(1, 'hour'),
+            },
+            {
+                id: 'sample-4',
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
+                date: dayjs().add(2, 'hour'),
+            },
+            {
+                id: 'sample-5',
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
+                date: dayjs().add(3, 'hour'),
+            },
         ],
     },
 };
@@ -45,17 +73,44 @@ export const MultipleRunsStackedPercent: Story = {
         Rates: [
             {
                 id: 'sample-1',
-                rate: [10, 1, 1],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(3, 'day'),
             },
             {
                 id: 'sample-2',
-                rate: [20, 2, 5],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(2, 'day'),
             },
-            { id: 'sample-3', rate: [24, 4, 10], date: dayjs().add(1, 'hour') },
-            { id: 'sample-4', rate: [27, 1, 15], date: dayjs().add(2, 'hour') },
-            { id: 'sample-5', rate: [27, 1, 15], date: dayjs().add(3, 'hour') },
+            {
+                id: 'sample-3',
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
+                date: dayjs().add(1, 'hour'),
+            },
+            {
+                id: 'sample-4',
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
+                date: dayjs().add(2, 'hour'),
+            },
+            {
+                id: 'sample-5',
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
+                date: dayjs().add(3, 'hour'),
+            },
         ],
         percentStack: true,
     },
@@ -66,12 +121,18 @@ export const LargeNumberOfRuns: Story = {
         Rates: [
             {
                 id: 'sample-1',
-                rate: [10, 1, 1],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(3, 'day'),
             },
             {
                 id: 'sample-2',
-                rate: [20, 2, 5],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(2, 'day'),
             },
             {
@@ -110,7 +171,10 @@ export const SingleRun: Story = {
         Rates: [
             {
                 id: 'sample-1',
-                rate: [10, 1, 1],
+                rate: generator.n(
+                    () => generator.integer({ min: 10, max: 20 }),
+                    5,
+                ),
                 date: dayjs().subtract(3, 'day'),
             },
         ],
