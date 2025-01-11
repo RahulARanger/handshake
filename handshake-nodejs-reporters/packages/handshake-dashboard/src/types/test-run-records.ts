@@ -8,6 +8,8 @@ export default interface OnlyTestRunRecord {
     failed: number;
     skipped: number;
     tests: number;
+    xpassed: number;
+    xfailed: number;
     duration: number;
     started: string;
     ended: string;
@@ -18,6 +20,8 @@ export default interface OnlyTestRunRecord {
     passedSuites: number;
     failedSuites: number;
     skippedSuites: number;
+    xfailedSuites: number;
+    xpassedSuites: number;
     suites: number;
     framework: string;
 }

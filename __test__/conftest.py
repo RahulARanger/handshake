@@ -217,7 +217,7 @@ async def test_session(test_id: str, connection=None, manual_insert=False):
             0,
             0,
             0,
-            test_id,
+            str(test_id),
         ],
     )
 

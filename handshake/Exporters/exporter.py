@@ -105,10 +105,14 @@ WHERE rb.ended <> '' order by rb.started;
                             passed=test_run.passed,
                             failed=test_run.failed,
                             skipped=test_run.skipped,
+                            xfailed=test_run.xfailed,
+                            xpassed=test_run.xpassed,
                             tests=test_run.tests,
                             passedSuites=test_run.passedSuites,
                             failedSuites=test_run.failedSuites,
                             skippedSuites=test_run.skippedSuites,
+                            xfailedSuites=test_run.xfailedSuites,
+                            xpassedSuites=test_run.xpassedSuites,
                             suites=test_run.suites,
                             duration=test_run.duration,
                         )
@@ -157,6 +161,8 @@ WHERE rb.ended <> '' order by rb.started;
                     "passed",
                     "failed",
                     "skipped",
+                    "xfailed",
+                    "xpassed",
                     "duration",
                     suiteID="id",
                     started="s",
@@ -237,6 +243,8 @@ WHERE rb.ended <> '' order by rb.started;
                 "title",
                 "passed",
                 "failed",
+                "xpassed",
+                "xfailed",
                 "aliasID",
                 "standing",
                 "tests",
@@ -268,6 +276,8 @@ WHERE rb.ended <> '' order by rb.started;
                 rollup_passed="rollup__passed",
                 rollup_failed="rollup__failed",
                 rollup_skipped="rollup__skipped",
+                rollup_xpassed="rollup__xpassed",
+                rollup_xfailed="rollup__xfailed",
                 rollup_tests="rollup__tests",
             )
         )
@@ -353,6 +363,8 @@ WHERE rb.ended <> '' order by rb.started;
                 rollup_failed="rollup__failed",
                 rollup_skipped="rollup__skipped",
                 rollup_tests="rollup__tests",
+                rollup_xpassed="rollup__xpassed",
+                rollup_xfailed="rollup__xfailed",
             )
         )
 
