@@ -20,13 +20,13 @@ export default interface BasicDetails {
     Status: statusOfEntity;
     Title: string;
     Duration: Duration;
-    Rate: [number, number, number];
+    Rate: [number, number, number, number, number]; // passed, failed, skipped, xfailed, xpassed
     Id: string;
     Tests: number;
 }
 
 export interface DetailedTestRecord extends BasicDetails {
-    SuitesSummary: [number, number, number];
+    SuitesSummary: [number, number, number, number, number]; // passed, failed, skipped, xfailed, xpassed
     Suites: number;
     Link: string;
     projectName: string;

@@ -4,33 +4,20 @@ from handshake.services.DBService.models.result_base import (
     RunBase,
 )
 from handshake.services.DBService.models.types import (
-    RegisterSession,
     RegisterSuite,
     PunchInSuite,
     UpdateSuite,
-    MarkSuite,
     UpdateSession,
-    MarkSession,
-    AddAttachmentForEntity,
     PydanticModalForTestRunConfigBase,
     PydanticModalForTestRunUpdate,
     WrittenAttachmentForEntity,
     MarkTestRun,
 )
 from handshake.services.Endpoints.blueprints.utils import (
-    attachError,
-    extractPayload,
-    attachWarn,
-    extractPydanticErrors,
     prune_nones,
-)
-from handshake.services.DBService.models.static_base import (
-    AttachmentBase,
-    AttachmentType,
 )
 from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
-from handshake.services.DBService.models.attachmentBase import AssertBase
 from handshake.services.DBService.models.enums import (
     Status,
     SuiteType,
@@ -39,64 +26,16 @@ from handshake.services.DBService.models.static_base import StaticBase
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
 from loguru import logger
-from typing import List
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import (
     register_patch_suite,
     register_patch_test_run,
 )
-from pydantic import ValidationError
 from handshake.services.DBService.lifecycle import attachment_folder, db_path
 from tortoise.expressions import F
 
 update_service = Blueprint("UpdateService", url_prefix="/save")
-
-
-@update_service.on_response
-async def handle_response(request: Request, response: JSONResponse):
-    if 200 <= response.status < 300:
-        return response
-
-    payload = extractPayload(request, response)
-    await attachError(payload, request.url)
-    return JSONResponse(body=payload, status=response.status)
-
-
-@update_service.put("/registerSession")
-@definition(
-    summary="Registers a Session",
-    description="Registers a session with state datetime on the currently running Test Run.",
-    tag="register",
-    body={"application/json": RegisterSession.model_json_schema()},
-)
-async def register_session(request: Request) -> HTTPResponse:
-    try:
-        session = RegisterSession.model_validate(request.json)
-        session_record = await SessionBase.create(
-            **session.model_dump(), test_id=get_test_id()
-        )
-        await session_record.save()
-    except Exception as error:
-        logger.error("Failed to create a session due to exception: {}", str(error))
-        return text(str(error), status=404)
-
-    return text(str(session_record.sessionID), status=201)
-
-
-@update_service.put("/registerSuite")
-@definition(
-    summary="Registers a Suite under a session",
-    description="Registers a suite/test with provided meta details of suite/test and session id",
-    tag="register",
-    body={"application/json": RegisterSuite},
-)
-async def register_suite(request: Request) -> HTTPResponse:
-    suite = RegisterSuite.model_validate(request.json)
-    suite_record = await SuiteBase.create(**suite.model_dump())
-    await suite_record.save()
-
-    return text(str(suite_record.suiteID), status=201)
 
 
 @update_service.put("/PunchInSuite", error_format="json")
@@ -149,6 +88,7 @@ async def update_suite_details(request: Request) -> HTTPResponse:
             suite.standing.lower(): 1,
             "tests": 1,
         }
+
         if (
             suite_record.suiteType == SuiteType.TEARDOWN
             or suite_record.suiteType == SuiteType.SETUP
@@ -234,125 +174,6 @@ async def register_parent_entities(request: Request) -> HTTPResponse:
         store.append(prev_parent)
 
     return JSONResponse(body=store, status=201)
-
-
-@update_service.put("/updateSuite", error_format="json")
-@definition(
-    summary="Updates the suite past the test suite's execution",
-    description="Once the Test suite/test gets executed, through this endpoint "
-    "we would updates its status and timings on the registered suite/test",
-    tag="update",
-    body={"application/json": MarkSuite.model_json_schema()},
-)
-async def updateSuite(request: Request) -> HTTPResponse:
-    suite = MarkSuite.model_validate(request.json)
-
-    suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
-    if not suite_record:
-        logger.error("Was not able to found {} suite", str(suite.suiteID))
-        return text(f"Suite {suite.suiteID} was not found", status=404)
-
-    if suite_record.suiteType == SuiteType.SUITE:
-        suite.standing = Status.YET_TO_CALCULATE
-    else:
-        note = {
-            suite.standing.lower(): 1,
-            "tests": 1,
-        }
-        await suite_record.update_from_dict(note)
-
-    await suite_record.update_from_dict(suite.model_dump())
-    await suite_record.save()
-
-    match suite_record.suiteType:
-        case SuiteType.SUITE:
-            await register_patch_suite(suite_record.suiteID, get_test_id())
-        case SuiteType.SETUP:
-            await SuiteBase.filter(suiteID=suite_record.parent).update(
-                setup_duration=F("setup_duration") + suite_record.duration
-            )
-        case SuiteType.TEARDOWN:
-            await SuiteBase.filter(suiteID=suite_record.parent).update(
-                teardown_duration=F("teardown_duration") + suite_record.duration
-            )
-
-    return text(
-        f"Suite: {suite_record.title} - {suite_record.suiteID} was updated", status=201
-    )
-
-
-@update_service.put("/updateSession", error_format="json")
-@definition(
-    summary="Updates the session past the test session's execution",
-    description="Once the Test session gets executed, through this endpoint "
-    "we would updates its status and timings on the registered session",
-    tag="update",
-    body={"application/json": MarkSession.model_json_schema()},
-)
-async def update_session(request: Request) -> HTTPResponse:
-    session = MarkSession.model_validate(request.json)
-    test_session = await SessionBase.filter(sessionID=session.sessionID).first()
-    if not test_session:
-        logger.error("Expected {} session was not found", str(session.sessionID))
-        return text(f"Session {session.sessionID} was not found", status=404)
-
-    await test_session.update_from_dict(session.model_dump())
-    await test_session.save()
-    return text(f"{session.sessionID} was updated", status=201)
-
-
-@update_service.put("/addAttachmentsForEntities")
-@definition(
-    summary="adds multiple attachments to the specified entities",
-    description="provide the list of attachments (assertion/link/description) as mentioned in the body, "
-    "and attachments would be inserted in their respective tables",
-    tag="add",
-    body={"application/json": List[AddAttachmentForEntity]},
-)
-async def addAttachmentForEntity(request: Request) -> HTTPResponse:
-    attachments = []
-    note = []
-    assertions = []
-
-    for _ in request.json:
-        try:
-            if _["type"] == AttachmentType.ASSERT:
-                value = _.get("value", dict())
-                value["wait"] = value.get("wait", -1)
-                value["interval"] = value.get("interval", -1)
-
-            attachment = AddAttachmentForEntity.model_validate(_)
-        except ValidationError as error:
-            note.append(_.get("entityID", False))
-            url = "/addAttachmentsForEntities"
-            await attachWarn(extractPydanticErrors(url, _, error), url)
-            continue
-
-        match attachment.type:
-            case AttachmentType.ASSERT:
-                assertions.append(
-                    await AssertBase(
-                        **dict(
-                            entity_id=attachment.entity_id,
-                            title=attachment.title,
-                            message=attachment.value["message"],
-                            passed=attachment.value["passed"],
-                            interval=attachment.value["interval"],
-                            wait=attachment.value["wait"],
-                        )
-                    )
-                )
-
-            case _:
-                attachments.append(AttachmentBase(**attachment.model_dump()))
-
-    if attachments:
-        await AttachmentBase.bulk_create(attachments)
-    if assertions:
-        await AssertBase.bulk_create(assertions)
-    return text(
-        "Attachments was added successfully", status=201 if not len(note) else 206
-    )
 
 
 @update_service.put("/Run")

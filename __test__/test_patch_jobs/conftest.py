@@ -2,7 +2,6 @@ from typing import Optional
 from pytest import fixture
 from handshake.services.DBService.models import (
     SuiteBase,
-    TestConfigBase,
     SessionBase,
     AssertBase,
     StaticBase,
@@ -12,6 +11,7 @@ from handshake.services.DBService.shared import db_path as shared_db_path
 from handshake.services.Endpoints.blueprints.writeServices import (
     writtenAttachmentFolderName,
 )
+from __test__.conftest import test_session
 from tortoise.connection import connections
 from handshake.services.SchedularService.register import register_patch_suite
 import datetime
@@ -136,24 +136,36 @@ async def helper_create_session_with_hierarchy_with_no_retries(
 
     # 3 suites with each suite having 9 tests with 3 in failed, 2 passed, 3 skipped
     for thing in suite_files:
-        session = await helper_create_session(test_id, connection=connection)
+        session_id = await test_session(
+            test_id, connection=connection, manual_insert=manual_insert
+        )
+        if not manual_insert:
+            session_id = session_id.sessionID
+
         suite = await helper_create_suite(
-            session.sessionID,
+            session_id,
             parent=parent_suite,
             started=started,
             file=thing,
             connection=connection,
             manual_insert=manual_insert,
         )
-        to_return.append(str(session.sessionID))
+        to_return.append(str(session_id))
         await helper_create_all_types_of_tests(
-            session.sessionID,
+            session_id,
             suite[0] if manual_insert else suite.suiteID,
             connection=connection,
             manual_insert=manual_insert,
         )
-        await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
-        await session.save(using_db=connection)
+        if not manual_insert:
+            session = (
+                await SessionBase.all(using_db=connection)
+                .filter(sessionID=str(session_id))
+                .first()
+            )
+            await session.update_from_dict(dict(passed=3, failed=3, skipped=3, tests=9))
+            await session.save(using_db=connection)
+
         if not skip_register:
             await register_patch_suite(
                 suite[0] if manual_insert else suite.suiteID,
@@ -258,18 +270,6 @@ async def helper_create_written_attachment(
     return record
 
 
-async def helper_create_session(test_id: str, entityName="sample", connection=None):
-    await sleep(0.0025)
-    started = datetime.datetime.now(datetime.UTC)
-    return await SessionBase.create(
-        started=started,
-        entityName=entityName,
-        test_id=test_id,
-        ended=started + datetime.timedelta(milliseconds=24),
-        using_db=connection,
-    )
-
-
 @fixture
 def create_suite():
     return helper_create_suite
@@ -292,7 +292,7 @@ def add_assertion():
 
 @fixture
 def create_session():
-    return helper_create_session
+    return test_session
 
 
 @fixture

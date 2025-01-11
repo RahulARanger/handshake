@@ -5,7 +5,6 @@ import { testRunPage } from 'components/links';
 import type {
     possibleFrameworks,
     specStructure,
-    SuiteSummary,
     TestRunRecord,
 } from 'types/test-run-records';
 import type { Duration } from 'dayjs/plugin/duration';
@@ -19,8 +18,6 @@ dayjs.extend(duration);
 export default function transformTestRunRecord(
     testRunRecord: TestRunRecord,
 ): DetailedTestRecord {
-    const suiteSummary = JSON.parse(testRunRecord.suiteSummary) as SuiteSummary;
-
     return {
         Started: dayjs(testRunRecord.started),
         Ended: dayjs(testRunRecord.ended),
@@ -34,15 +31,19 @@ export default function transformTestRunRecord(
             testRunRecord.passed,
             testRunRecord.failed,
             testRunRecord.skipped,
+            testRunRecord.xfailed,
+            testRunRecord.xpassed,
         ],
         Duration: dayjs.duration({ milliseconds: testRunRecord.duration }),
         Tests: testRunRecord.tests,
         SuitesSummary: [
-            suiteSummary.passed,
-            suiteSummary.failed,
-            suiteSummary.skipped,
+            testRunRecord.passedSuites,
+            testRunRecord.failedSuites,
+            testRunRecord.skippedSuites,
+            testRunRecord.xfailedSuites,
+            testRunRecord.xpassedSuites,
         ],
-        Suites: suiteSummary.count,
+        Suites: testRunRecord.suites,
         Link: testRunPage(testRunRecord.testID),
         projectName: testRunRecord.projectName.trim(),
         specStructure: JSON.parse(testRunRecord.specStructure) as specStructure,

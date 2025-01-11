@@ -7,6 +7,7 @@ from handshake.services.DBService.models import (
     TaskBase,
     MigrationBase,
     SuiteBase,
+    SessionBase,
     RunBase,
 )
 from .conftest import get_version, get_config_value
@@ -60,7 +61,9 @@ class TestMigrationScripts:
         db_path,
     ):
         await get_vth_connection(db_path, 5)
-        session = await helper_to_create_test_and_session(manual_insert_test_run=True)
+        test_id, session_id = await helper_to_create_test_and_session(
+            manual_insert_test_run=True, return_id=True
+        )
 
         # based on the previous test, we are now in version: 5
         assert int(await get_version()) == 5
@@ -68,7 +71,7 @@ class TestMigrationScripts:
         script = scripts / "bump-v5.sql"
         assert script.exists()
 
-        suite = await create_suite(session.sessionID, manual_insert=True)
+        suite = await create_suite(session_id, manual_insert=True)
         await tortoise.connections.get("default").execute_query(
             'INSERT INTO "taskbase" ("ticketID","type","dropped","meta","picked","test_id") VALUES (?,?,?,?,?,?)',
             [
@@ -77,7 +80,7 @@ class TestMigrationScripts:
                 "2024-02-07 19:46:39.059284+00:00",
                 "{}",
                 0,
-                str(session.test_id),
+                str(test_id),
             ],
         )
         # you cannot use this because processed col is not there yet.
@@ -247,6 +250,41 @@ class TestMigrationScripts:
         assert migrated_run.failedSuites == 3
         assert migrated_run.suites == 6
         assert migrated_run.skippedSuites == 1
+
+    async def test_bump_v13(
+        self,
+        get_vth_connection,
+        scripts,
+        db_path,
+        helper_to_create_test_and_session,
+        create_suite,
+    ):
+        connection = await get_vth_connection(db_path, 13)
+        test_id, sample_session = await helper_to_create_test_and_session(
+            manual_insert_test_run=True, connection=connection, return_id=True
+        )
+        suite = await create_suite(sample_session, manual_insert=True)
+
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            13, 14, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+
+        sample_session = await SessionBase.filter(sessionID=sample_session).first()
+        suite = await SuiteBase.filter(suiteID=suite[0]).first()
+
+        assert sample_session.xpassed == sample_session.xfailed == 0
+        assert suite.xpassed == suite.xfailed == 0
+
+        run_record = await RunBase.filter(testID=test_id).first()
+        assert (
+            run_record.xpassed
+            == run_record.xfailed
+            == run_record.xfailedSuites
+            == run_record.xpassedSuites
+        )
 
     # say you are in v8 and have reverted your python build to an older version which uses v7
     # question: how does migrate function work?

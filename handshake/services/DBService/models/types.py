@@ -12,7 +12,7 @@ from datetime import datetime
 from typing_extensions import TypedDict
 
 
-# send iso-format for the datetime string
+# send an iso-format for the datetime string
 
 
 class CommonRegisterCols(BaseModel):
@@ -32,6 +32,7 @@ class RegisterSuite(CommonRegisterCols):
     retried: int
     description: Optional[str] = ""
     suiteType: SuiteType
+    expected: Optional[Status] = Status.PASSED
     session_id: uuid.UUID
     file: str
     parent: str
@@ -89,6 +90,7 @@ class UpdateSuite(BaseModel):
     suiteID: uuid.UUID
     duration: float
     started: Optional[datetime] = None
+    expected: Optional[Status] = Status.PASSED
     ended: datetime
     errors: Optional[List[Error]] = []
     standing: Status

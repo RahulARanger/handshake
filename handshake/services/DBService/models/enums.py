@@ -29,6 +29,8 @@ class Status(StrEnum):
     # yet_to_calc is mostly seen for the suite
     RETRIED = "RETRIED"
     PROCESSING = "PROCESSING"
+    XPASSED = "XPASSED"
+    XFAILED = "XFAILED"
 
 
 class RunStatus(StrEnum):

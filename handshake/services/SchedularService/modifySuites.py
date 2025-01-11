@@ -19,12 +19,19 @@ from itertools import chain
 from asyncio import gather
 
 
-def fetch_key_from_status(passed, failed, skipped):
-    return (
-        Status.FAILED
-        if failed > 0
-        else Status.PASSED if passed > 0 or skipped == 0 else Status.SKIPPED
-    )
+def fetch_key_from_status(passed, failed, skipped, xfailed=0, xpassed=0):
+    if failed > 0:
+        return Status.FAILED
+    if xpassed > 0:
+        return Status.XPASSED
+    elif passed > 0:
+        return Status.PASSED
+    elif xfailed > 0:
+        return Status.XFAILED
+    elif skipped > 0:
+        return Status.SKIPPED
+    else:
+        return Status.PASSED
 
 
 def is_non_test_related():
@@ -156,6 +163,8 @@ class PatchTestSuite:
             results.get("passed", 0),
             results.get("failed", 0),
             results.get("skipped", 0),
+            results.get("xfailed", 0),
+            results.get("xpassed", 0),
         )
         results["tests"] = await self.test_entities.count()
 
@@ -191,7 +200,7 @@ class PatchTestSuite:
         await self.suite.save()
 
     async def patch_rollup_table(self):
-        required = ("passed", "failed", "skipped", "tests")
+        required = ("passed", "failed", "skipped", "tests", "xfailed", "xpassed")
 
         # we are only considering tests for these values
         direct_entities = (

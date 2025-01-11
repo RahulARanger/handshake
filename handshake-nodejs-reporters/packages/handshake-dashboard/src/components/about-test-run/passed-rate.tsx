@@ -3,12 +3,17 @@ import type { ReactNode } from 'react';
 import React from 'react';
 
 export default function PassedRate(properties: {
-    rate: [number, number, number];
+    rate: [number, number, number, number, number];
     width?: number | string;
     text: string;
     minWidth?: number | string;
 }): ReactNode {
-    const total = properties.rate[0] + properties.rate[1] + properties.rate[2];
+    const total =
+        properties.rate[0] +
+        properties.rate[1] +
+        properties.rate[2] +
+        properties.rate[3] +
+        properties.rate[4];
     const toPercent = (_: number) => Number(((_ / total) * 100).toFixed(2));
     return (
         <Progress.Root
@@ -19,49 +24,33 @@ export default function PassedRate(properties: {
                 textAlign: 'center',
             }}
         >
-            <Tooltip
-                label={`Passed ${properties.text} - ${properties.rate[0]} - ${toPercent(properties.rate[0]) + '%'}`}
-                color="green"
-            >
-                <Progress.Section
-                    striped
-                    value={toPercent(properties.rate[0])}
-                    color="green"
+            {[
+                ['Passed', 'green'],
+                ['Skipped', 'yellow'],
+                ['Failed', 'red'],
+                ['XFailed', 'orange'],
+                ['XPassed', 'blue'],
+            ].map(([label, color], index) => (
+                <Tooltip
+                    label={`${label} ${properties.text} - ${properties.rate[index]} - ${toPercent(properties.rate[index]) + '%'}`}
+                    color={color}
                 >
-                    <Progress.Label>
-                        {toPercent(properties.rate[0]) + '%'}
-                    </Progress.Label>
-                </Progress.Section>
-            </Tooltip>
-
-            <Tooltip
-                label={`Skipped ${properties.text} - ${properties.rate[2]} - ${toPercent(properties.rate[2]) + '%'}`}
-                color="yellow"
-            >
-                <Progress.Section
-                    value={toPercent(properties.rate[2])}
-                    color="yellow"
-                >
-                    <Progress.Label>
-                        {toPercent(properties.rate[2]) + '%'}
-                    </Progress.Label>
-                </Progress.Section>
-            </Tooltip>
-
-            <Tooltip
-                label={`Failed ${properties.text} - ${properties.rate[1]} - ${toPercent(properties.rate[1]) + '%'}`}
-                color="red"
-            >
-                <Progress.Section
-                    value={toPercent(properties.rate[1])}
-                    color="red"
-                    animated
-                >
-                    <Progress.Label>
-                        {toPercent(properties.rate[1]) + '%'}
-                    </Progress.Label>
-                </Progress.Section>
-            </Tooltip>
+                    <Progress.Section
+                        striped={
+                            color === 'red' ||
+                            color === 'green' ||
+                            color === 'blue'
+                        }
+                        value={toPercent(properties.rate[index])}
+                        color={color}
+                        animated={color === 'red'}
+                    >
+                        <Progress.Label>
+                            {toPercent(properties.rate[index]) + '%'}
+                        </Progress.Label>
+                    </Progress.Section>
+                </Tooltip>
+            ))}
         </Progress.Root>
     );
 }

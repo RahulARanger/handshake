@@ -11,6 +11,8 @@ interface Feeder {
     failed?: number;
     skipped?: number;
     tests?: number;
+    xpassed?: number;
+    xfailed?: number;
     avoidParentSuitesInCount?: boolean;
     fileRetries?: number;
     maxInstances?: number;
@@ -18,6 +20,8 @@ interface Feeder {
     passedSuites?: number;
     failedSuites?: number;
     skippedSuites?: number;
+    xpassedSuites?: number;
+    xfailedSuites?: number;
 }
 
 export function getStatus(
@@ -35,8 +39,11 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
 
     const tests = feed.tests ?? generator.integer({ min: 3, max: 100 });
     const passed = feed.passed ?? generator.integer({ min: 0, max: tests });
+    const xpassed = feed.xpassed ?? generator.integer({ min: 0, max: tests });
     const failed =
         feed.failed ?? generator.integer({ min: 0, max: tests - passed });
+    const xfailed =
+        feed.xfailed ?? generator.integer({ min: 0, max: tests - passed });
 
     const skipped = tests - (passed + failed);
 
@@ -57,7 +64,20 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
             min: 0,
             max: suites - passedSuites,
         });
-    const skippedSuites = suites - (passedSuites + failedSuites);
+    const xfailedSuites =
+        feed.xfailedSuites ??
+        generator.integer({
+            min: 0,
+            max: suites - (passedSuites + failedSuites),
+        });
+    const xpassedSuites =
+        feed.xpassedSuites ??
+        generator.integer({
+            min: 0,
+            max: suites - (passedSuites + failedSuites + xfailedSuites),
+        });
+    const skippedSuites =
+        suites - (xfailedSuites + xpassedSuites + passedSuites + failedSuites);
 
     const platform = generator.pickone([
         'windows',
@@ -108,6 +128,8 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         framework: feed.framework ?? 'webdriverio,mocha',
         passed,
         failed,
+        xpassed,
+        xfailed,
         skipped,
         platform,
         avoidParentSuitesInCount: feed.avoidParentSuitesInCount || false,
@@ -115,12 +137,12 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         fileRetries,
         maxInstances,
         bail,
-        suiteSummary: JSON.stringify({
-            count: suites,
-            failed: failedSuites,
-            skipped: skippedSuites,
-            passed: passedSuites,
-        }),
+        suites: suites,
+        passedSuites: passedSuites,
+        failedSuites: failedSuites,
+        xpassedSuites: xpassedSuites,
+        xfailedSuites: xfailedSuites,
+        skippedSuites: skippedSuites,
         duration: dayjs(ended).diff(dayjs(started)),
         projectName: generator.company(),
         testID: crypto.randomUUID(),

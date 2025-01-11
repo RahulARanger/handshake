@@ -1,6 +1,6 @@
 from handshake.services.Endpoints.internalEndpoints import one_liners
 from handshake.services.DBService.shared import APP_NAME
-from handshake.services.Endpoints.blueprints.coreEndpoints import update_service
+from handshake.services.Endpoints.blueprints.updateEndpoints import update_service
 from handshake.services.Endpoints.blueprints.createService import create_service
 from handshake.services.Endpoints.blueprints.writeServices import writeServices
 from handshake.services.Endpoints.errorHandling import handle_validation_error
