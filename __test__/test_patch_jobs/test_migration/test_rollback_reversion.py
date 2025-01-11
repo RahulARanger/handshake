@@ -21,7 +21,7 @@ async def test_rollback_revert(get_vth_connection, db_path, root_dir):
     await connection.execute_query(
         "drop table taskbase;",
     )
-    # we will run the wrong reversion script and see what would happen 😈
+    # we will run the wrong reversion script and see what would happen. 😈
 
     # oldest version: v5, but we are trying to revert v6 to v5
     assert not revert_step_back(
