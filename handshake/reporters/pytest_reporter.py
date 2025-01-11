@@ -10,6 +10,7 @@ from handshake.services.DBService.models.enums import (
     LogType,
     RunStatus,
     SuiteType,
+    Status,
 )
 from handshake.reporters.markers import meta_data_mark
 from pytest import Session, Item, ExitCode, TestReport
@@ -181,11 +182,17 @@ class PyTestHandshakeReporter(CommonReporter):
             else report.when
         )
 
+        outcome = (
+            (Status.XPASSED if report.passed else Status.XFAILED)
+            if report.when == PointToAtPhase.CALL and report.keywords["xfail"] == 1
+            else report.outcome
+        ).upper()
+
         payload = dict(
             duration=report.duration * 1e3,  # it is in seconds
             ended=to_acceptable_date_format(datetime.fromtimestamp(report.stop)),
             started=to_acceptable_date_format(datetime.fromtimestamp(report.start)),
-            standing=report.outcome.upper(),
+            standing=outcome,
             errors=(
                 [dict(name="Error", stack="", message=report.longreprtext)]
                 if report.failed

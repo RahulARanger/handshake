@@ -433,11 +433,11 @@ class TestMerger:
         # we would be merging the data in default connection and root_dir_1 connection and
         # save it in second_connection
 
-        session_1 = await helper_to_create_test_and_session(
-            manual_insert_test_run=True, connection=first_connection
+        test_id, session_1 = await helper_to_create_test_and_session(
+            manual_insert_test_run=True, connection=first_connection, return_id=True
         )
         await create_session_with_hierarchy_with_no_retries(
-            session_1.test_id,
+            test_id,
             connection=first_connection,
             skip_register=True,
             manual_insert=True,

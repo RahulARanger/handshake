@@ -1,3 +1,4 @@
+import json
 from datetime import timedelta
 from pytest import mark
 from handshake.services.DBService.models import (
@@ -6,6 +7,7 @@ from handshake.services.DBService.models import (
     AttachmentBase,
     TestLogBase,
     AssertBase,
+    TestConfigBase,
     EntityLogBase,
 )
 from handshake.services.DBService.models.enums import SuiteType, Status
@@ -25,6 +27,39 @@ class TestUpdateEndpoints:
     async def set_test_run(app: Sanic, test_run: RunBase):
         app.config.TEST_ID = test_run.testID
         return test_run
+
+    async def test_expectation_for_skipped_test(
+        self, client, sample_test_session, helper_create_test_run, create_suite, app
+    ):
+        await self.set_test_run(app, (await helper_create_test_run()))
+        session = await sample_test_session
+
+        parent_suite = await create_suite(session.sessionID)
+        suite = await create_suite(
+            session.sessionID, is_test=True, parent=parent_suite.suiteID
+        )
+        suite_2 = await create_suite(
+            session.sessionID,
+            is_test=True,
+            parent=parent_suite.suiteID,
+        )
+
+        for index, _ in enumerate((suite, suite_2)):
+            payload = dict(
+                duration=_.duration,
+                ended=_.ended.isoformat(),
+                suiteID=str(_.suiteID),
+                standing=Status.SKIPPED,
+            )
+
+            request, response = await client.put("/save/Suite", json=payload)
+            assert response.status_code == 200, response.text
+
+        suite = await SuiteBase.filter(suiteID=suite.suiteID).first()
+        assert suite.standing == Status.SKIPPED, "test's status must skipped state"
+
+        suite = await SuiteBase.filter(suiteID=suite_2.suiteID).first()
+        assert suite.standing == Status.SKIPPED, "test's status must skipped state"
 
     async def test_setup_and_teardown_duration_update(
         self, client, sample_test_session, helper_create_test_run, create_suite, app
@@ -344,3 +379,67 @@ class TestUpdateEndpoints:
 
             assert "missing" in first.feed["reason"]
             assert "entity_id" in second.feed["reason"]
+
+
+@mark.usefixtures("sample_test_session")
+class TestSaveEndPoints:
+    @staticmethod
+    async def set_test_run(app: Sanic, test_run: RunBase):
+        app.config.TEST_ID = test_run.testID
+        return test_run
+
+    async def test_we_have_pydantic_in_place(self, client, helper_create_test_run, app):
+        await self.set_test_run(app, (await helper_create_test_run()))
+
+        payload = dict(simplified="sample")
+        request, response = await client.put("/save/Session", json=payload)
+
+        result = response.json
+        assert response.status == 400
+
+        required = {
+            "duration",
+            "skipped",
+            "passed",
+            "failed",
+            "tests",
+            "entityName",
+            "entityVersion",
+            "ended",
+            "hooks",
+            "sessionID",
+        }
+
+        reasons = json.loads(result["reason"])
+        assert len(reasons) == len(required)
+
+        for missing in reasons:
+            assert missing["type"] == "missing"
+            assert missing["loc"][0] in required
+            assert missing["msg"] == "Field required"
+            assert missing["input"] == payload
+
+    async def test_set_config_api(self, client, helper_create_test_run, app):
+        test = await self.set_test_run(app, (await helper_create_test_run()))
+
+        payload = dict(
+            maxInstances=1,
+            fileRetries=1,
+            framework="pytest",
+            exitCode=1,
+            bail=1,
+            platformName="windows",
+            tags=[{"label": "*.py", "desc": "only py file"}],
+            avoidParentSuitesInCount=False,
+        )
+        request, response = await client.put("/save/currentRun", json=payload)
+        assert response.status == 200, response.text
+
+        record = await TestConfigBase.filter(test_id=test.testID).first()
+        assert record is not None
+        test = await record.test
+        assert test.exitCode == 1
+        assert record.platform == "windows"
+        assert record.maxInstances == 1
+        assert record.fileRetries == 1
+        assert record.avoidParentSuitesInCount is False

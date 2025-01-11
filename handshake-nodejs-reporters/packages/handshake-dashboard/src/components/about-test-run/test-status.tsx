@@ -2,6 +2,8 @@ import type { TooltipProps } from '@mantine/core';
 import { Tooltip } from '@mantine/core';
 import {
     IconCheck,
+    IconDropletCheck,
+    IconDropletX,
     IconFlagPause,
     IconRefreshDot,
     IconX,
@@ -76,6 +78,26 @@ export default function TestStatusIcon(properties: {
             icon = (
                 <IconFlagPause
                     color="var(--mantine-color-yellow-filled)"
+                    stroke={3}
+                />
+            );
+            break;
+        }
+
+        case 'XFAILED': {
+            icon = (
+                <IconDropletX
+                    color="var(--mantine-color-orange-filled)"
+                    stroke={3}
+                />
+            );
+            break;
+        }
+
+        case 'XPASSED': {
+            icon = (
+                <IconDropletCheck
+                    color="var(--mantine-color-blue-filled)"
                     stroke={3}
                 />
             );

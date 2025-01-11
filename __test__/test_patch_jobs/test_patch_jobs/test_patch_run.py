@@ -13,7 +13,9 @@ from handshake.services.SchedularService.register import (
     register_patch_test_run,
     register_patch_suite,
 )
-from __test__.test_patch_jobs.test_patch_jobs.test_patch_suite import TestPatchSuiteJob
+from __test__.test_patch_jobs.test_patch_jobs.test_patch_suite import (
+    helper_test_many_retries,
+)
 from handshake.services.SchedularService.handlePending import patch_jobs
 from tortoise.expressions import Q
 from handshake.services.SchedularService.constants import JobType
@@ -29,14 +31,23 @@ class TestPatchRunJob:
 
         empty = await RunBase.filter(testID=test.testID).first()
         assert empty.standing == Status.PASSED
-        assert empty.passed == empty.failed == empty.skipped == empty.tests == 0
+        assert (
+            empty.passed
+            == empty.failed
+            == empty.skipped
+            == empty.tests
+            == empty.xpassed
+            == empty.xfailed
+            == 0
+        )
         assert (
             empty.passedSuites
             == empty.failedSuites
             == empty.skippedSuites
+            == empty.xpassedSuites
+            == empty.xfailedSuites
             == empty.suites
         )
-        assert empty.tests == empty.passed == empty.failed == empty.skipped == 0
 
     async def test_avoidParentSuitesInCount(
         self,
@@ -81,6 +92,8 @@ class TestPatchRunJob:
         assert record.passedSuites == 0
         assert record.failedSuites == 3
         assert record.skippedSuites == 0
+        assert record.xpassedSuites == 0
+        assert record.xfailedSuites == 0
 
         assert check_for in record.specStructure
         assert (
@@ -91,6 +104,7 @@ class TestPatchRunJob:
         # no changes in the test cases count calculated
         assert record.tests == 9
         assert record.passed == record.failed == record.skipped == 3
+        assert record.xpassed == record.xfailed == 0
 
     async def test_normal_run(
         self, sample_test_session, create_hierarchy, create_session
@@ -125,12 +139,15 @@ class TestPatchRunJob:
         # test cases count calculated
         assert test_record.tests == 9 + 9
         assert test_record.passed == test_record.failed == test_record.skipped == 3 + 3
+        assert test_record.xfailed == test_record.xpassed == 0
 
         # job related
         assert test_record.standing == Status.FAILED
         assert test_record.passedSuites == 0
         assert test_record.failedSuites == 3 + 3
         assert test_record.skippedSuites == 0
+        assert test_record.xfailedSuites == 0
+        assert test_record.xpassedSuites == 0
         assert test_record.suites == 3 + 3
 
         # assumption
@@ -153,13 +170,12 @@ class TestPatchRunJob:
         create_suite,
         create_session,
     ):
-        tester = TestPatchSuiteJob()
-        test = await tester.test_many_retries(
+        test = await helper_test_many_retries(
             sample_test_session,
+            create_session,
             create_hierarchy,
             attach_config,
             create_suite,
-            create_session,
         )
 
         await register_patch_test_run(test.testID)
@@ -221,6 +237,76 @@ class TestPatchRunJob:
         assert not task.processed
         assert not await patchTestRun(test)
         assert (await TaskBase.filter(ticketID=test).first()).processed
+
+    async def test_xpassed(self, sample_test_session, create_suite):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        # initial suite
+        suite = await create_suite(session_id, started=None)
+        await create_suite(
+            session_id, standing=Status.XPASSED, parent=suite.suiteID, is_test=True
+        )
+        await create_suite(
+            session_id, standing=Status.PASSED, parent=suite.suiteID, is_test=True
+        )
+        await register_patch_suite(suite.suiteID, test.testID)
+        await register_patch_test_run(test.testID)
+
+        assert await patchTestSuite(suite.suiteID, test.testID)
+        await patchTestRun(test.testID)
+
+        run_record = await RunBase.filter(testID=test.testID).first()
+
+        assert run_record.xpassed == 1
+        assert run_record.xpassedSuites == 1
+        assert run_record.passed == 1
+
+        assert (
+            run_record.xfailedSuites
+            == run_record.passedSuites
+            == run_record.skippedSuites
+            == run_record.failedSuites
+            == 0
+        )
+        assert run_record.suites == 1
+        assert run_record.tests == 2
+        assert run_record.failed == run_record.skipped == run_record.xfailed == 0
+        assert run_record.standing == Status.XPASSED
+
+    async def test_xfailed(self, sample_test_session, create_suite):
+        session = await sample_test_session
+        session_id = session.sessionID
+        test = await session.test
+
+        # initial suite
+        suite = await create_suite(session_id, started=None)
+        await create_suite(
+            session_id, standing=Status.XFAILED, parent=suite.suiteID, is_test=True
+        )
+
+        await register_patch_suite(suite.suiteID, test.testID)
+        await register_patch_test_run(test.testID)
+
+        assert await patchTestSuite(suite.suiteID, test.testID)
+        await patchTestRun(test.testID)
+
+        run_record = await RunBase.filter(testID=test.testID).first()
+        assert run_record.xfailed == 1
+        assert run_record.xfailedSuites == 1
+        assert (
+            run_record.passedSuites
+            == run_record.skippedSuites
+            == run_record.failedSuites
+            == run_record.skipped
+            == run_record.failed
+            == run_record.passed
+            == 0
+        )
+
+        assert run_record.tests == run_record.suites == 1
+        assert run_record.standing == Status.XFAILED
 
 
 class TestPatchTestRunThroughScheduler:

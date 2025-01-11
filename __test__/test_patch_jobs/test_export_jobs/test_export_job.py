@@ -109,6 +109,8 @@ class TestJSONExportsWithRuns:
             "passed",
             "failed",
             "skipped",
+            "xfailed",
+            "xpassed",
             "tests",
             "passedSuites",
             "failedSuites",
@@ -127,8 +129,10 @@ class TestJSONExportsWithRuns:
             == first_run["failed"]
             == (3 * 3 * 3)
         )
+        assert first_run["xpassed"] == first_run["xfailed"] == 0
         assert first_run["passedSuites"] == first_run["skippedSuites"] == 0
         assert first_run["failedSuites"] == 3 * 3
+        assert first_run["xfailedSuites"] == first_run["xpassedSuites"] == 0
         assert first_run["duration"] == after_patch.duration
 
         # Testing the presence of the run directory
@@ -154,6 +158,8 @@ class TestJSONExportsWithRuns:
             "passedSuites",
             "failedSuites",
             "skippedSuites",
+            "xfailedSuites",
+            "xpassedSuites",
             "duration",
             "specStructure",
         ):
@@ -167,6 +173,7 @@ class TestJSONExportsWithRuns:
             == first_run["failed"]
             == (3 * 3 * 3)
         )
+        assert first_run["xfailed"] == first_run["xpassed"] == 0
         assert first_run["duration"] == after_patch.duration
 
         # TESTING Overview Page
@@ -190,6 +197,8 @@ class TestJSONExportsWithRuns:
                 "passed",
                 "failed",
                 "skipped",
+                "xfailed",
+                "xpassed",
                 "duration",
                 "suiteID",
                 "started",
@@ -201,6 +210,8 @@ class TestJSONExportsWithRuns:
             assert suite["passed"] == 3
             assert suite["failed"] == 3
             assert suite["skipped"] == 3
+            assert suite["xpassed"] == 0
+            assert suite["xfailed"] == 0
 
         not_included = (
             await SuiteBase.filter(session__test_id=test_run.testID)
@@ -210,7 +221,7 @@ class TestJSONExportsWithRuns:
             .first()
             .values_list("suiteID", flat=True)
         )
-        assert not_included not in noted  # we only latest 6 suites
+        assert not_included not in noted  # we only the latest 6 suites
 
         aggregated = feed["aggregated"]
         assert aggregated["sessions"] == 9
@@ -255,6 +266,8 @@ class TestJSONExportsWithRuns:
                 "rollup_passed",
                 "rollup_failed",
                 "rollup_skipped",
+                "rollup_xfailed",
+                "rollup_xpassed",
                 "rollup_tests",
                 "retried_later",
                 "setup_duration",

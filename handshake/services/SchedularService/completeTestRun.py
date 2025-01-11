@@ -63,7 +63,7 @@ class PatchTestRun:
             refer = SuiteBase.filter(~Q(parent=""))
 
         # we want to count the amount of suite status
-        summary = dict(passed=0, failed=0, skipped=0)
+        summary = dict(passed=0, failed=0, skipped=0, xpassed=0, xfailed=0)
         summary.update(
             await refer.filter(
                 Q(session__test_id=self.test_id)
@@ -94,9 +94,11 @@ class PatchTestRun:
                 failed=Coalesce(Sum("failed"), 0),
                 skipped=Coalesce(Sum("skipped"), 0),
                 tests=Coalesce(Sum("tests"), 0),
+                xfailed=Coalesce(Sum("xfailed"), 0),
+                xpassed=Coalesce(Sum("xpassed"), 0),
             )
             .first()
-            .values("passed", "failed", "skipped", "tests")
+            .values("passed", "failed", "skipped", "tests", "xpassed", "xfailed")
         )
         test_result.update(
             await filtered_sessions.annotate(
@@ -158,7 +160,11 @@ class PatchTestRun:
                     ]
                 ),
                 standing=fetch_key_from_status(
-                    summary["passed"], summary["failed"], summary["skipped"]
+                    summary["passed"],
+                    summary["failed"],
+                    summary["skipped"],
+                    summary["xfailed"],
+                    summary["xpassed"],
                 ),
             )
         )

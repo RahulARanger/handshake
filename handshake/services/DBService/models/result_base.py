@@ -16,27 +16,55 @@ from tortoise.fields import (
 from handshake.services.DBService.models.enums import (
     Status,
     SuiteType,
-    LogType,
     RunStatus,
 )
 
 
 class CommandReportFields(Model):
-    started = DatetimeField(descrption="Start Datetime field")
-    ended = DatetimeField(null=True, description="End Datetime field")
-    tests = IntField(default=0, null=False, description="No. of the test entries")
-    passed = IntField(default=0, null=False, description="Passed test entities")
-    failed = IntField(default=0, null=False, description="Failed test entities")
-    skipped = IntField(
-        default=0, null=False, description="test entities that were skipped"
+    tests = IntField(
+        default=0,
+        null=False,
+        description="No. of the test entries (either rolled up or direct)",
     )
-    duration = FloatField(default=0, null=False, description="duration of test entity")
+    passed = IntField(
+        default=0,
+        null=False,
+        description="Passed test entities (either rolled up or direct)",
+    )
+    failed = IntField(
+        default=0,
+        null=False,
+        description="Failed test entities (either rolled up or direct)",
+    )
+    skipped = IntField(
+        default=0,
+        null=False,
+        description="test entities that were skipped (either rolled up or direct)",
+    )
+    xfailed = IntField(
+        default=0,
+        null=False,
+        description="test entities that were supposed to fail and has failed (either rolled up or direct)",
+    )
+    xpassed = IntField(
+        default=0,
+        null=False,
+        description="test entities that were supposed to fail but has passed (either rolled up or direct)",
+    )
 
     class Meta:
         abstract = True
 
 
 class CommonDetailedFields(CommandReportFields):
+    started = DatetimeField(descrption="Start Datetime field of test entity/session")
+    ended = DatetimeField(
+        null=True, description="End Datetime field of test entity/session"
+    )
+    duration = FloatField(
+        default=0, null=False, description="duration of test entity/session"
+    )
+
     class Meta:
         abstract = True
 
@@ -44,7 +72,7 @@ class CommonDetailedFields(CommandReportFields):
 class EntityBaseSpecific:
     standing = CharEnumField(
         Status,
-        description="status of the test run based on the test cases executed",
+        description="observed status of the test run based on the test cases executed",
         default=Status.PENDING,
     )
     retried = IntField(
@@ -71,6 +99,12 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
     passedSuites = IntField(default=0, null=False, description="Passed suites")
     failedSuites = IntField(default=0, null=False, description="failed suites")
     skippedSuites = IntField(default=0, null=False, description="skipped suites")
+    xpassedSuites = IntField(
+        default=0, null=False, description="Was expected to failed but Passed suites"
+    )
+    xfailedSuites = IntField(
+        default=0, null=False, description="Was expected to fail and was failed suites"
+    )
     suites = IntField(default=0, null=False, description="total test suites")
 
     exitCode = IntField(
@@ -98,14 +132,14 @@ class SessionBase(CommonDetailedFields):
     hooks = IntField(default=0, null=False, description="Number of hooks used")
 
 
-class SuiteBase(EntityBaseSpecific, CommandReportFields):
+class SuiteBase(EntityBaseSpecific, CommonDetailedFields):
     table = "SuiteBase"
     # https://tortoise.github.io/models.html#the-db-backing-field
     # so we require session_id instead of sessionID
     session: ForeignKeyRelation[SessionBase] = ForeignKeyField(
         "models.SessionBase", related_name="suites", to_field="sessionID"
     )
-    started = DatetimeField(null=True)
+    started = DatetimeField(description="Start time of the test entity", null=True)
     attachments = ReverseRelation["AttachmentBase"]
     retries = ReverseRelation["RetriedBase"]
     rolled_up = ReverseRelation["RollupBase"]
@@ -143,17 +177,7 @@ class SuiteBase(EntityBaseSpecific, CommandReportFields):
     )
 
 
-class RollupBase(Model):
-    tests = IntField(default=0, null=False, description="Rolled up Test Entities")
-    passed = IntField(
-        default=0, null=False, description="Rolled up Passed test entities"
-    )
-    failed = IntField(
-        default=0, null=False, description="Rolled up Failed test entities"
-    )
-    skipped = IntField(
-        default=0, null=False, description="Rolled up test entities that were skipped"
-    )
+class RollupBase(CommandReportFields):
     suite: ForeignKeyRelation[SuiteBase] = ForeignKeyField(
         "models.SuiteBase", related_name="rollup", to_field="suiteID"
     )

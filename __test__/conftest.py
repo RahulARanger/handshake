@@ -171,7 +171,7 @@ async def create_test_and_session(
         test_id = (await sample_test_run(postfix, connection)).testID
 
     if return_id:
-        return test_id, await test_session(test_id, connection)
+        return test_id, await test_session(test_id, connection, True)
     else:
         return await test_session(test_id, connection)
 
@@ -191,14 +191,37 @@ async def sample_test_session(helper_create_test_run):
     return await test_session((await helper_create_test_run()).testID)
 
 
-async def test_session(test_id: str, connection=None):
+async def test_session(test_id: str, connection=None, manual_insert=False):
     started = datetime.now(UTC)
-    return await SessionBase.create(
-        started=started,
-        test_id=test_id,
-        ended=started + timedelta(milliseconds=24),
-        using_db=connection,
+    if not manual_insert:
+        return await SessionBase.create(
+            started=started,
+            test_id=test_id,
+            ended=started + timedelta(milliseconds=24),
+            using_db=connection,
+        )
+
+    session_id = str(uuid.uuid4())
+
+    await (connection if connection else connections.get("default")).execute_query(
+        'INSERT INTO "sessionbase" ("sessionID","simplified","started","ended","tests","passed","failed","skipped",'
+        '"duration","test_id") VALUES (?,?,?,?,?,?,?,'
+        "?,?,?)",
+        [
+            session_id,
+            "",
+            "2024-09-14 17:33:57.568757+00:00",
+            "2024-09-14 17:43:57.568757+00:00",
+            2,
+            2,
+            0,
+            0,
+            0,
+            str(test_id),
+        ],
     )
+
+    return session_id
 
 
 @fixture()

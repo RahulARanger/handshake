@@ -22,9 +22,13 @@ class SubSetOfRunBaseRequiredForProjectExport(BaseModel):
     passed: int
     skipped: int
     failed: int
+    xfailed: int
+    xpassed: int
     passedSuites: int
     failedSuites: int
     skippedSuites: int
+    xfailedSuites: int
+    xpassedSuites: int
     suites: int
     duration: float
     projectName: str
