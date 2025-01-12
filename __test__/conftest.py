@@ -1,4 +1,3 @@
-import random
 import subprocess
 import uuid
 from typing import Optional
@@ -18,6 +17,7 @@ from handshake.services.DBService.models import (
     TestConfigBase,
 )
 from datetime import datetime, timedelta, UTC
+from time import sleep
 from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.migrator import revert_step_back
@@ -193,7 +193,8 @@ async def sample_test_session(helper_create_test_run):
 
 
 async def test_session(test_id: str, connection=None, manual_insert=False):
-    started = datetime.now(UTC) + timedelta(seconds=random.randint(10, 20))
+    sleep(0.1)
+    started = datetime.now(UTC) + timedelta(seconds=36)
     if not manual_insert:
         _ = await SessionBase.create(
             started=started,
