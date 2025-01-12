@@ -14,7 +14,7 @@ from time import sleep
 
 def find_free_port():
     with socket() as sock:
-        sock.bind(("", 0))  # Bind to a free port provided by the host.
+        sock.bind(("localhost", 0))  # Bind to a free port provided by the host.
         return sock.getsockname()[1]  # Return the port number assigned.
 
 
