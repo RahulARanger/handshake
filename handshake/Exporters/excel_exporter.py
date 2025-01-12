@@ -115,7 +115,7 @@ class ExcelExporter(Exporter):
         )
 
     async def export_test_run_summary(self, test_id: str, summary):
-        index_sheet = self.template.get_sheet_by_name("Index")
+        index_sheet = self.template["Index"]
 
         edit_cell(
             index_sheet,
@@ -238,7 +238,7 @@ class ExcelExporter(Exporter):
     async def export_project_summary(self, run_feed, projects_feed): ...
 
     async def export_overview_of_test_run(self, run_id: str, summary):
-        index_sheet = self.template.get_sheet_by_name("Index")
+        index_sheet = self.template["Index"]
 
         edit_cell(
             index_sheet,
@@ -253,7 +253,7 @@ class ExcelExporter(Exporter):
     async def export_all_suites_of_test_run(self, run_id, all_suites):
         if not all_suites:
             return
-        suites_sheet = self.template.get_sheet_by_name("Test Scenarios")
+        suites_sheet = self.template["Test Scenarios"]
         table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
         columns = (
@@ -431,8 +431,8 @@ class ExcelExporter(Exporter):
     async def export_tests(self, run_id, suite_id, tests):
         if not tests:
             return
-        test_sheet = self.template.get_sheet_by_name("Test Cases")
-        hooks_sheet = self.template.get_sheet_by_name("Hooks")
+        test_sheet = self.template["Test Cases"]
+        hooks_sheet = self.template["Hooks"]
         table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
         columns = (
@@ -634,7 +634,7 @@ class ExcelExporter(Exporter):
     ):
         if not assertion_records:
             return
-        assertion_sheet = self.template.get_sheet_by_name("Assertions")
+        assertion_sheet = self.template["Assertions"]
         table_style = TableStyleInfo(name="TableStyleMedium23", showRowStripes=True)
 
         columns = (

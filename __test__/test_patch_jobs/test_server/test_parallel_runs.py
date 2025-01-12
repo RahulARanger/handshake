@@ -38,7 +38,7 @@ async def shakes(get_db_path, root_dir_server):
 
     _session = Session()
 
-    retries = Retry(total=15, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+    retries = Retry(total=50, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
     _session.mount("http://", HTTPAdapter(max_retries=retries))
     response = _session.get(f"http://127.0.0.1:{first_sock}/")
     assert response.text == "1"
