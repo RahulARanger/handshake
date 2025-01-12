@@ -195,13 +195,13 @@ async def sample_test_session(helper_create_test_run):
 async def test_session(test_id: str, connection=None, manual_insert=False):
     started = datetime.now(UTC) + timedelta(seconds=random.randint(10, 20))
     if not manual_insert:
-        await SessionBase.create(
+        _ = await SessionBase.create(
             started=started,
             test_id=test_id,
             ended=started + timedelta(seconds=36),
             using_db=connection,
         )
-        return
+        return _
 
     session_id = str(uuid.uuid4())
 
