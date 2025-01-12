@@ -1,3 +1,4 @@
+import random
 import subprocess
 import uuid
 from typing import Optional
@@ -192,14 +193,15 @@ async def sample_test_session(helper_create_test_run):
 
 
 async def test_session(test_id: str, connection=None, manual_insert=False):
-    started = datetime.now(UTC) + timedelta(milliseconds=3)
+    started = datetime.now(UTC) + timedelta(seconds=random.randint(10, 20))
     if not manual_insert:
-        return await SessionBase.create(
+        await SessionBase.create(
             started=started,
             test_id=test_id,
-            ended=started + timedelta(milliseconds=36),
+            ended=started + timedelta(seconds=36),
             using_db=connection,
         )
+        return
 
     session_id = str(uuid.uuid4())
 
@@ -210,8 +212,8 @@ async def test_session(test_id: str, connection=None, manual_insert=False):
         [
             session_id,
             "",
-            "2024-09-14 17:33:57.568757+00:00",
-            "2024-09-14 17:43:57.568757+00:00",
+            started.isoformat(),
+            (started + timedelta(seconds=36)).isoformat(),
             2,
             2,
             0,
