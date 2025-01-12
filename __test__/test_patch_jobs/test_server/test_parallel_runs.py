@@ -9,6 +9,7 @@ from tortoise import Tortoise, connections
 from handshake.services.DBService.models import RunBase, SessionBase, SuiteBase
 from shutil import rmtree
 from socket import socket
+from time import sleep
 
 
 def find_free_port():
@@ -32,13 +33,15 @@ async def shakes(get_db_path, root_dir_server):
     result = Popen(
         f'handshake run-app test-app-1 "{root_dir_server}" -p {first_sock}', shell=True
     )
+    sleep(0.2)
+
     result_2 = Popen(
         f'handshake run-app test-app-1 "{root_dir_server}" -p {second_sock}', shell=True
     )
 
     _session = Session()
 
-    retries = Retry(total=50, backoff_factor=0.1, status_forcelist=[500, 502, 503, 504])
+    retries = Retry(total=50, backoff_factor=0.5, status_forcelist=[500, 502, 503, 504])
     _session.mount("http://", HTTPAdapter(max_retries=retries))
     response = _session.get(f"http://127.0.0.1:{first_sock}/")
     assert response.text == "1"
