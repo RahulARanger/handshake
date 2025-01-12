@@ -25,7 +25,7 @@ async def test_rollback_migration(get_vth_connection, db_path, root_dir):
     await connection.execute_query(
         "drop table taskbase;",
     )
-    # we corrupt the database and see what would happen 😈
+    # we corrupt the database and see what would happen. 😈
 
     assert not migration(
         db_path,

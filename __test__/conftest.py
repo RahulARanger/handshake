@@ -17,6 +17,7 @@ from handshake.services.DBService.models import (
     TestConfigBase,
 )
 from datetime import datetime, timedelta, UTC
+from time import sleep
 from handshake.services.Endpoints.core import service_provider
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.migrator import revert_step_back
@@ -192,14 +193,16 @@ async def sample_test_session(helper_create_test_run):
 
 
 async def test_session(test_id: str, connection=None, manual_insert=False):
-    started = datetime.now(UTC)
+    sleep(0.1)
+    started = datetime.now(UTC) + timedelta(seconds=36)
     if not manual_insert:
-        return await SessionBase.create(
+        _ = await SessionBase.create(
             started=started,
             test_id=test_id,
-            ended=started + timedelta(milliseconds=24),
+            ended=started + timedelta(seconds=36),
             using_db=connection,
         )
+        return _
 
     session_id = str(uuid.uuid4())
 
@@ -210,8 +213,8 @@ async def test_session(test_id: str, connection=None, manual_insert=False):
         [
             session_id,
             "",
-            "2024-09-14 17:33:57.568757+00:00",
-            "2024-09-14 17:43:57.568757+00:00",
+            started.isoformat(),
+            (started + timedelta(seconds=36)).isoformat(),
             2,
             2,
             0,
