@@ -9,6 +9,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_TEST_ASSERTIONS,
     EXPORT_TEST_ENTITY_ATTACHMENTS,
     EXPORT_SUITE_RETRIED_MAP,
+    exportAttachmentFolderName,
 )
 from handshake.Exporters.exporter import Exporter
 from loguru import logger
@@ -28,7 +29,7 @@ async def write_as_plain_string(path, string):
 class JsonExporter(Exporter):
     def __init__(self, db_path: Path, save_in: Path, dev_run: bool = False):
         super().__init__(dev_run)
-        self.save_in = save_in
+        self.save_in = save_in / exportAttachmentFolderName
         self.db_path: Path = db_path
 
     def prepare(self):

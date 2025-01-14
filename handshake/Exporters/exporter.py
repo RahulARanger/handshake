@@ -35,10 +35,14 @@ class Exporter(ABC):
         refer_from[key] = self.converter.parse(refer_from[key])
 
     async def start_exporting(
-        self, run_id: Optional[str] = None, skip_project_summary: bool = False
+        self,
+        run_id: Optional[str] = None,
+        skip_project_summary: bool = False,
+        skip_prep: bool = False,
     ):
         self.connection: BaseDBAsyncClient = connections.get("default")
-        self.prepare()
+        if not skip_prep:
+            self.prepare()
         await self.export_runs_page(run_id, skip_project_summary)
         self.completed()
 

@@ -23,6 +23,23 @@ from handshake.services.SchedularService.register import (
 from subprocess import run, PIPE, TimeoutExpired
 from pytest import mark
 from handshake.Exporters.excel_exporter import excel_export
+from handshake.services.DBService.lifecycle import (
+    handshake_meta_dashboard,
+    handshake_meta,
+)
+from handshake.Exporters.html_reporter import HTMLExporter
+from handshake import __version__
+from shutil import rmtree
+from pytest import fixture
+from pathlib import Path
+
+
+@fixture()
+def clean_test_results():
+    export_results_to = Path(__file__).parent.parent.parent.parent / "TestSampleResults"
+    if export_results_to.exists():
+        rmtree(export_results_to)
+    yield export_results_to
 
 
 @mark.usefixtures("clean_close")
@@ -521,3 +538,97 @@ class TestExcelExport:
 
         test_run = await RunBase.filter(testID=test_run.testID).first()
         assert test_run.standing != Status.PENDING
+
+
+class TestHTMLExport:
+    async def test_download_html_export(self):
+        for_testing = HTMLExporter.template
+        for_testing.unlink(missing_ok=True)
+
+        await HTMLExporter.download_zip()
+
+        meta_dashboard = handshake_meta_dashboard()
+        assert meta_dashboard["version"] == __version__
+        assert (
+            meta_dashboard["browser_download_url_for_dashboard"]
+            == handshake_meta()["0"]["browser_download_url"]
+        )
+
+    async def test_with_normal_run_with_html_not_installed(
+        self,
+        helper_create_test_run,
+        helper_create_test_session,
+        create_suite,
+        root_dir,
+        report_dir,
+        zipped_build,
+        db_path,
+        clean_test_results,
+    ):
+        for_testing = HTMLExporter.template
+        for_testing.unlink(missing_ok=True)
+
+        test_run = await helper_create_test_run(add_test_config=True)
+        session = await helper_create_test_session(test_run.testID)
+
+        suite = await create_suite(session.sessionID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(suite.suiteID, test_run.testID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        await register_patch_test_run(test_run.testID)
+
+        assert not clean_test_results.exists(), "No Results before (assumption)"
+
+        await Scheduler(
+            root_dir,
+            export_mode="html",
+            out_dir=str(clean_test_results),
+        ).start()
+
+        assert HTMLExporter.template.exists(), "notice the zip file now exists"
+        assert clean_test_results.exists(), "must be exported here"
+
+        json_dir = clean_test_results / exportAttachmentFolderName
+        assert json_dir.exists(), "json export must be present"
+
+    async def test_with_normal_run_with_html_installed(
+        self,
+        helper_create_test_run,
+        helper_create_test_session,
+        create_suite,
+        root_dir,
+        report_dir,
+        zipped_build,
+        db_path,
+        clean_test_results,
+    ):
+        if HTMLExporter.template.exists():
+            await HTMLExporter.download_zip(True)
+
+        test_run = await helper_create_test_run(add_test_config=True)
+        session = await helper_create_test_session(test_run.testID)
+
+        suite = await create_suite(session.sessionID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        child = await create_suite(session.sessionID, parent=suite.suiteID)
+        await register_patch_suite(suite.suiteID, test_run.testID)
+        await register_patch_suite(child.suiteID, test_run.testID)
+        await register_patch_test_run(test_run.testID)
+
+        assert HTMLExporter.template.exists(), "zip file exists before"
+        before = handshake_meta_dashboard()["downloaded_dashboard_at"]
+
+        await Scheduler(
+            root_dir,
+            include_excel_export=False,
+            export_mode="html",
+            out_dir=str(clean_test_results),
+        ).start()
+
+        assert (
+            before == handshake_meta_dashboard()["downloaded_dashboard_at"]
+        ), "newly downloaded"
+        assert HTMLExporter.template.exists(), "zip file still exists, no impact"

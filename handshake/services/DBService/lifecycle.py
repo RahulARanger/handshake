@@ -6,13 +6,39 @@ from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, TypedDict, Dict
 from loguru import logger
 from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
 )
 
 models = ["handshake.services.DBService.models"]
+
+
+class VersionFile(TypedDict):
+    browser_download_url: str
+
+
+def handshake_meta() -> Dict["0", VersionFile]:
+    version_file = Path(__file__).parent.parent.parent / ".version"
+    return loads(version_file.read_text())
+
+
+class DashboardMetaData(TypedDict):
+    version: str
+    browser_download_url_for_dashboard: str
+
+
+def handshake_meta_dashboard() -> Union[DashboardMetaData, False]:
+    version_file = Path(__file__).parent.parent.parent / "dashboard-meta.json"
+    return False if not version_file.exists() else loads(version_file.read_text())
+
+
+def save_handshake_meta_dashboard(**kwargs):
+    version_file = Path(__file__).parent.parent.parent / "dashboard-meta.json"
+    loaded = handshake_meta_dashboard() or {}
+    loaded.update(kwargs)
+    version_file.write_text(dumps(loaded))
 
 
 def attachment_folder(provided_db_path: Path, *args):
@@ -122,7 +148,7 @@ class TestConfigManager:
         refer_from = loads(self.path.read_text())
         for record in expect_on:
             if record.key not in refer_from:
-                # since some of the keys are missing, we are going to save them
+                # since some keys are missing, we are going to save them
                 hard_save = True
                 continue
             record.value = refer_from[record.key]

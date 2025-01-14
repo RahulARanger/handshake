@@ -26,6 +26,7 @@ from handshake.services.SchedularService.flag_tasks import pruneTasks
 from handshake.services.SchedularService.handlePending import patch_jobs
 from handshake.Exporters.json_exporter import JsonExporter
 from handshake.Exporters.excel_exporter import excel_export
+from handshake.Exporters.html_reporter import HTMLExporter
 
 
 class Scheduler:
@@ -36,25 +37,33 @@ class Scheduler:
         root_dir: str,
         out_dir: Optional[str] = None,
         manual_reset: Optional[bool] = False,
-        zipped_build: Optional[str] = None,
         inside_test_results: Optional[bool] = False,
         dev: Optional[bool] = False,
         export_mode: str = "json",
         include_excel_export: Optional[bool] = False,
     ):
         self.db_path = db_path(root_dir)
+        if not export_mode and export_mode != "json" and export_mode != "html":
+            logger.warning(
+                "undefined export mode: {}, defaulting to html export", export_mode
+            )
+
         self.exporter = (
             JsonExporter(
                 self.db_path,
                 (
-                    Path(out_dir) / exportAttachmentFolderName
+                    Path(out_dir)
                     if out_dir and not inside_test_results
-                    else self.db_path.parent / exportAttachmentFolderName
+                    else self.db_path.parent
                 ),
                 dev or inside_test_results,
             )
             if export_mode == "json"
-            else ...
+            else HTMLExporter(
+                self.db_path,
+                Path(out_dir),
+                dev or inside_test_results,
+            )
         )
         self.excel_export = include_excel_export
         self.skip_export = out_dir is None and not inside_test_results
@@ -226,19 +235,3 @@ class Scheduler:
             await self.exporter.start_exporting()
 
         await close_connection()
-
-    # async def export_jobs(self):
-    #     if not self.export_dir:
-    #         logger.debug("Skipping export, as the output directory was not provided.")
-    #         if not self.include_build:
-    #             return
-    #
-    #     if self.export_dir:
-    #         logger.debug("Exporting reports...")
-    #         await to_thread(self.export_files)
-    #         logger.info("Exporting results...")
-    #
-    #     self.import_dir.mkdir(exist_ok=self.include_build)
-    #
-    #     await self.export_runs_page()
-    #     logger.info("Done!")

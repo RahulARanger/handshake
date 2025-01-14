@@ -76,7 +76,7 @@ def check_version(
     return (
         migration_required,  # migration is required or now
         version_stored < DB_VERSION,  # bump version or not
-        version_stored,  # what was the version stored
+        version_stored,  # what was the version stored?
     )
 
 
@@ -155,7 +155,7 @@ def revert_step_back(
     to_revert: int,
     db_path: Path,
 ):
-    # we do not recommend calling this function unless it is needed
+    # we do not recommend calling this function unless it is necessary
 
     logger.warning(
         "Please note we would be reverting from version: v{} to v{}",
