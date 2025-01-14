@@ -28,8 +28,9 @@ from handshake.services.DBService.merge import Merger
 from click import option
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
-from asyncio import run
 from typing import Optional
+from handshake.Exporters.html_reporter import HTMLExporter
+from asyncio import run
 
 
 @group(
@@ -154,13 +155,6 @@ def step_back(collection_path: str):
 @general_requirement
 @config_optional_path
 @option(
-    "--build",
-    "-b",
-    required=False,
-    help="builds the dashboard output at the build output folder",
-    type=C_Path(exists=True, file_okay=True, readable=True),
-)
-@option(
     "--inside",
     "-i",
     required=False,
@@ -207,7 +201,6 @@ def patch(
     collection_path,
     log_file: str,
     reset: bool = False,
-    build: str = None,
     config_path: Optional[str] = None,
     out: str = None,
     dev: bool = False,
@@ -226,7 +219,7 @@ def patch(
         raise NotADirectoryError(collection_path)
 
     scheduler = Scheduler(
-        collection_path, out, reset, build, inside, dev, export_mode, xlsx
+        collection_path, out, reset, inside, dev, export_mode.lower(), xlsx
     )
     try:
         run(scheduler.start(config_path))
@@ -314,6 +307,15 @@ def extract_results(file: str, out: str):
 def merge(output, merge_with):
     merger = Merger(output)
     merger.start(merge_with)
+
+
+@handle_cli.command(
+    short_help="downloads the dashboard build",
+    help="downloads the build for the dashboard it is required for allowing the html export,"
+    " we execute this command to forcefully download the build, it is not required to run this manually.",
+)
+def download_build():
+    run(HTMLExporter.download_zip(True))
 
 
 @handle_cli.command(

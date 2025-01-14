@@ -72,7 +72,10 @@ class ExcelExporter(Exporter):
         self.template = load_workbook(Path(__file__).parent / "Template.xlsx")
 
     async def start_exporting(
-        self, run_id: Optional[str] = None, skip_project_summary: bool = False
+        self,
+        run_id: Optional[str] = None,
+        skip_project_summary: bool = False,
+        skip_prepare: bool = False,
     ):
         if not excel_export:
             return logger.error(

@@ -89,3 +89,5 @@ TestExportedReports
 TestMultipleServerResults
 TestServerResults
 handshake/Exporters/~$Template.xlsx
+TestSampleResults/*
+/handshake/dashboard-meta.json
