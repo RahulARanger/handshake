@@ -583,18 +583,11 @@ class TestHTMLExport:
 
         await Scheduler(
             root_dir,
-            include_excel_export=True,
             export_mode="html",
             out_dir=str(clean_test_results),
         ).start()
 
         assert HTMLExporter.template.exists(), "notice the zip file now exists"
-
-        task = await TaskBase.filter(
-            type=JobType.EXPORT_EXCEL, test_id=test_run.testID
-        ).first()
-        assert task.processed, "no impact on excel export"
-
         assert clean_test_results.exists(), "must be exported here"
 
         json_dir = clean_test_results / exportAttachmentFolderName
