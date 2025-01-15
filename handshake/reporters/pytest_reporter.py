@@ -184,7 +184,11 @@ class PyTestHandshakeReporter(CommonReporter):
 
         outcome = (
             (Status.XPASSED if report.passed else Status.XFAILED)
-            if report.when == PointToAtPhase.CALL and report.keywords["xfail"] == 1
+            if report.when == PointToAtPhase.CALL
+            and report.keywords.get(
+                "xfail",
+            )
+            == 1
             else report.outcome
         ).upper()
 
