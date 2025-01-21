@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { userEvent, within, expect, fireEvent, waitFor } from '@storybook/test';
+import { userEvent, within, expect, waitFor } from '@storybook/test';
 import { PreviewOfProjectStructure } from './preview-run';
-import { specNode } from 'types/test-run-records';
 import {
     simpleStructure,
     withMoreDepth,
     withTwoDirectories,
 } from 'stories/TestData/spec-structures';
+import React from 'react';
 
 const meta = {
     title: 'AboutTestRun/PreviewOfProjectStructure',

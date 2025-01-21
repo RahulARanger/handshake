@@ -87,7 +87,6 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         'ubuntu',
     ]);
 
-    // eslint-disable-next-line unicorn/no-new-array
     const tags = new Array(generator.integer({ min: 0, max: 4 }))
         .map(() =>
             generator.bool()

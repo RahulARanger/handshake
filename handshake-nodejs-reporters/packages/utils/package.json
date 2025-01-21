@@ -1,32 +1,28 @@
 {
-	"name": "@hand-shakes/utils",
-	"version": "0.8.0",
-	"description": "util required for the handshake packages, internally used",
-	"main": "./dist/index.js",
-	"module": "./dist/index.mjs",
-	"types": "./dist/index.d.mts",
-	"type": "commonjs",
-	"scripts": {
-		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "rimraf -g ./dist && tsup index.ts --format esm,cjs --dts"
-	},
-	"keywords": [
-		"internal",
-		"eslint",
-		"tsconfig",
-		"handshake"
-	],
-	"peerDependencies": {
-		"eslint": ">= 3"
-	},
-	"author": "RahulARanger <saihanumarahul66@gmail.com>",
-	"license": "MIT",
-	"dependencies": {
-		"@tsconfig/node20": "^20.1.4",
-		"@types/react": "18.3.3",
-		"@types/react-dom": "18.3.0",
-		"cross-env": "^7.0.3",
-		"tslib": "^2.6.3",
-		"typescript": "^5.5.2"
-	}
+  "name": "@hand-shakes/utils",
+  "version": "0.8.0",
+  "description": "util required for the handshake packages, internally used",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.mts",
+  "type": "commonjs",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rimraf -g ./dist && tsup index.ts --format esm,cjs --dts"
+  },
+  "keywords": [
+    "internal",
+    "tsconfig",
+    "handshake"
+  ],
+  "author": "RahulARanger <saihanumarahul66@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@tsconfig/node20": "^20.1.4",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "cross-env": "^7.0.3",
+    "tslib": "^2.8.1",
+    "typescript": "^5.7.3"
+  }
 }

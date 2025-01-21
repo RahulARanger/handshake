@@ -26,17 +26,9 @@
 		"verify-sanity": "cd apps/test-export && npm run verify-sanity"
 	},
 	"devDependencies": {
-		"@changesets/cli": "^2.27.7",
-		"@typescript-eslint/eslint-plugin": "^7.2.0",
-		"@typescript-eslint/parser": "^7.2.0",
-		"eslint": "^8.57.0",
-		"eslint-config-airbnb": "^19.0.4",
-		"eslint-config-airbnb-typescript": "^18.0.0",
-		"eslint-plugin-unicorn": "^51.0.1",
+		"@changesets/cli": "^2.27.11",
 		"prettier": "^3.3.3",
 		"rimraf": "^6.0.1",
-		"tsconfig": "7.0.0",
-		"tsup": "^8.2.2",
 		"turbo": "^2.3.3"
 	},
 	"description": "List of packages to build nodejs-reporters for handshake",

@@ -34,6 +34,7 @@ export default function PassedRate(properties: {
                 <Tooltip
                     label={`${label} ${properties.text} - ${properties.rate[index]} - ${toPercent(properties.rate[index]) + '%'}`}
                     color={color}
+                    key={label}
                 >
                     <Progress.Section
                         striped={

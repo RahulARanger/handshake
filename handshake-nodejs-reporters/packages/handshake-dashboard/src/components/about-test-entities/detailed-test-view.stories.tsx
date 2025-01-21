@@ -1,7 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import { fn } from '@storybook/test';
 import DetailedTestView from './detailed-test-view';
-import { Chance } from 'chance';
 import {
     generateSampleAssertion,
     generateSampleTestCase,

@@ -112,7 +112,7 @@ export const HasAllOptionsIfStartedToday: Story = {
         setOfProjects: randomTestProjects(1),
         recentRunDate: dayjs(),
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         const dateFilter = await screen.findByPlaceholderText(
             'Filter by Date Range',
@@ -167,8 +167,9 @@ export const HasAllOptionsIfStartedToday: Story = {
         });
 
         await step('we can only select max of 5 options', async ({ args }) => {
-            for (let _ of optionsForDate) {
+            for (const _ of optionsForDate) {
                 //deselecting
+                console.log(`de-selecting ${_}`);
                 await (
                     await findAllByRole(
                         canvasElement.parentElement as HTMLElement,
@@ -190,7 +191,7 @@ export const HasOptionsIfRecentWasInYesterday: Story = {
         setOfProjects: randomTestProjects(1),
         recentRunDate: dayjs().subtract(1, 'day'),
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         const dateFilter = await screen.findByPlaceholderText(
             'Filter by Date Range',
@@ -267,7 +268,7 @@ export const HasOptionsIfRecentIsInLastWeek: Story = {
         setOfProjects: randomTestProjects(1),
         recentRunDate: dayjs().subtract(1, 'week'),
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         const dateFilter = await screen.findByPlaceholderText(
             'Filter by Date Range',
