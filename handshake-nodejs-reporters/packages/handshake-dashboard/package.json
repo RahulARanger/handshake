@@ -73,9 +73,10 @@
     "cross-env": "^7.0.3",
     "eslint": "^9.18.0",
     "eslint-config-next": "^15.1.5",
+    "eslint-plugin-unicorn": "^56.0.1",
     "globals": "^15.14.0",
+    "playwright": "^1.49.1",
     "storybook-dark-mode": "^4.0.2",
-    "typescript-eslint": "^8.21.0",
-    "eslint-plugin-unicorn": "^56.0.1"
+    "typescript-eslint": "^8.21.0"
   }
 }
