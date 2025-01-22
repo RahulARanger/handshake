@@ -84,6 +84,7 @@ export const ProjectsDropdown: Story = {
                 await expect(args.onProjectFilterChange).toHaveBeenCalled();
                 await expect(
                     args.onProjectFilterChange,
+                // eslint-disable-next-line unicorn/no-null
                 ).toHaveBeenLastCalledWith(null);
             },
         );
@@ -155,13 +156,12 @@ export const HasAllOptionsIfStartedToday: Story = {
             ]);
 
             //deselecting
-            (
-                await findByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                    { selected: true },
-                )
-            ).click();
+            const deselect = await findByRole(
+                canvasElement.parentElement as HTMLElement,
+                'option',
+                { selected: true },
+            )
+            await deselect.click();
 
             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([]);
         });
@@ -170,13 +170,12 @@ export const HasAllOptionsIfStartedToday: Story = {
             for (const _ of optionsForDate) {
                 //deselecting
                 console.log(`de-selecting ${_}`);
-                await (
-                    await findAllByRole(
-                        canvasElement.parentElement as HTMLElement,
-                        'option',
-                        { selected: false },
-                    )
-                )[0].click();
+                const options = await findAllByRole(
+                    canvasElement.parentElement as HTMLElement,
+                    'option',
+                    { selected: false },
+                )
+                await options[0].click();
             }
 
             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith(

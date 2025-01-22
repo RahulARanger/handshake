@@ -1,6 +1,6 @@
-import { readFileSync } from 'node:fs';
+import fs from 'node:fs';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { join } from 'node:path';
+import path from 'node:path';
 
 type ResponseData = {
     message: string;
@@ -22,8 +22,8 @@ export default async function handler(
         }
     }
 
-    const filePath = join(process.env.TEST_RESULTS ?? '', 'Import', id);
+    const filePath = path.join(process.env.TEST_RESULTS ?? '', 'Import', id);
 
-    const value = JSON.parse(readFileSync(filePath, { encoding: 'utf8' }));
+    const value = JSON.parse(fs.readFileSync(filePath, {encoding: 'binary'}));
     response.status(200).json(value);
 }

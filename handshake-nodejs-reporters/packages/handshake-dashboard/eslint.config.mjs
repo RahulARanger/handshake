@@ -8,6 +8,9 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...compat.config({
     extends: ['next', "plugin:@typescript-eslint/recommended", "plugin:unicorn/all"],
+    rules: {
+      'unicorn/prefer-string-raw': "off"
+    },
     settings: {
       next: {
         rootDir: 'src/pages',

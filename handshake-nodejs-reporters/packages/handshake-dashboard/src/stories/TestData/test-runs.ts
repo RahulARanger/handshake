@@ -87,7 +87,7 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         'ubuntu',
     ]);
 
-    const tags = new Array(generator.integer({ min: 0, max: 4 }))
+    const tags = Array.from({length: generator.integer({ min: 0, max: 4 })})
         .map(() =>
             generator.bool()
                 ? { name: generator.hashtag(), label: 'test' }
