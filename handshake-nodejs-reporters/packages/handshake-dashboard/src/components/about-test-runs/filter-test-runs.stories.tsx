@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { expect, findAllByRole, findByRole, fn, within } from '@storybook/test';
+import { expect, findAllByRole, fn, within } from '@storybook/test';
 import FilterBox, { optionsForDate } from './filter-test-runs';
 import { randomTestProjects } from 'stories/TestData/test-runs';
 import dayjs from 'dayjs';
@@ -156,12 +156,13 @@ export const HasAllOptionsIfStartedToday: Story = {
             ]);
 
             //deselecting
-            const deselect = await findByRole(
+            const deselect = await findAllByRole(
                 canvasElement.parentElement as HTMLElement,
                 'option',
                 { selected: true },
-            )
-            await deselect.click();
+            );
+            expect(deselect).toHaveLength(1);
+            deselect[0].click();
 
             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([]);
         });
