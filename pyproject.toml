@@ -1,6 +1,6 @@
 [project]
 name = "handshakes"
-version = "0.8.2"
+version = "0.8.3"
 description = "A service that's keen to process your test results"
 authors = [
     {name = "Rahul",email = "saihanumarahul66@gmail.com"}

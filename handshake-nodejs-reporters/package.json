@@ -39,6 +39,12 @@
 		"automation",
 		"test-automation"
 	],
+	
+    "pnpm": {
+        "overrides": {
+            "react-is": "^19.0.0"
+        }
+    },
 	"author": "RahulARanger <saihanumarahul66@gmail.com>",
 	"license": "MIT"
 }
