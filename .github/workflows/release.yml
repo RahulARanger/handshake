@@ -1,5 +1,3 @@
-name: 'releases'
-
 on:
   workflow_dispatch:
     inputs:
@@ -27,6 +25,13 @@ on:
         type: boolean
         default: false
 
+run-name: ${{ 
+    inputs.build_dashboard && 'Build Dashboard & Storybook' || 
+    inputs.deploy_storybook && 'Deploy Storybook' ||
+    inputs.build_python_handshakes && 'Deploy Handshake Py-Build' || 
+    inputs.release_nodejs_based_reporters && 'Deploy Custom Reporters Node' || 
+    'Releases' 
+  }}
 
 permissions:
     contents: write
