@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { userEvent, within, expect, fireEvent, waitFor } from '@storybook/test';
+import { userEvent, within, expect, waitFor } from '@storybook/test';
 import { PreviewOfProjectStructure } from './preview-run';
-import { specNode } from 'types/test-run-records';
 import {
     simpleStructure,
     withMoreDepth,
     withTwoDirectories,
 } from 'stories/TestData/spec-structures';
+import React from 'react';
 
 const meta = {
     title: 'AboutTestRun/PreviewOfProjectStructure',
@@ -25,9 +25,9 @@ export const SimpleStructure: Story = {
     args: {
         specStructure: simpleStructure,
     },
-    render: (args) => (
+    render: (arguments_) => (
         <div style={{ width: '500px' }}>
-            <PreviewOfProjectStructure specStructure={args.specStructure} />
+            <PreviewOfProjectStructure specStructure={arguments_.specStructure} />
         </div>
     ),
     play: async ({ canvasElement, step }) => {
@@ -76,9 +76,9 @@ export const TwoDirectories: Story = {
     args: {
         specStructure: withTwoDirectories,
     },
-    render: (args) => (
+    render: (arguments_) => (
         <div style={{ width: '500px' }}>
-            <PreviewOfProjectStructure specStructure={args.specStructure} />
+            <PreviewOfProjectStructure specStructure={arguments_.specStructure} />
         </div>
     ),
     play: async ({ canvasElement, step }) => {
@@ -91,10 +91,8 @@ export const TwoDirectories: Story = {
         await step(
             'testing the tooltip content of the tree parts',
             async () => {
-                const loginFeature = (
-                    await screen.findAllByText('login.feature')
-                )[0];
-                await userEvent.hover(loginFeature);
+                const loginFeatures = await screen.findAllByText('login.feature');
+                await userEvent.hover(loginFeatures[0]);
 
                 await expect(
                     screen.queryByLabelText('file-name'),
@@ -121,10 +119,10 @@ export const WithMoreDepth: Story = {
     args: {
         specStructure: withMoreDepth,
     },
-    render: (args) => (
+    render: (arguments_) => (
         <div style={{ width: '500px' }}>
             <PreviewOfProjectStructure
-                specStructure={args.specStructure}
+                specStructure={arguments_.specStructure}
                 quick
             />
         </div>

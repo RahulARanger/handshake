@@ -5,7 +5,6 @@ import {
     Text,
     Group,
     Tabs,
-    ActionIcon,
     rem,
     Button,
 } from '@mantine/core';

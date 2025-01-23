@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import PlatformEntity from './platform-entity';
-import { userEvent, within, expect, waitFor } from '@storybook/test';
+import { userEvent, within } from '@storybook/test';
 
 const meta = {
     title: 'AboutTestRun/PlatformEntity',
@@ -77,7 +77,7 @@ export const NotYetRegistered: Story = {
     args: {
         entityNames: ['safari'],
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         await step(
             'testing if we are allowing unknown keywords but we are showing a default avatar in that case',

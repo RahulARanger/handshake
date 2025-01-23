@@ -3,6 +3,7 @@ import { generateTestRunForDemo } from 'stories/TestData/test-runs';
 import { RunsPageContent } from './test-runs-page-layout';
 import { useState } from 'react';
 import { useInterval } from '@mantine/hooks';
+import React from 'react';
 
 function DemoRunsPageContent() {
     const [mockData, setMockData] = useState(generateTestRunForDemo());

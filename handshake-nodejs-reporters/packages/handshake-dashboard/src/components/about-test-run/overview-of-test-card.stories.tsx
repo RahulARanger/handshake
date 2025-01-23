@@ -6,16 +6,17 @@ import {
     mixed,
 } from 'stories/TestData/test-runs';
 import transformTestRunRecord from 'extractors/transform-run-record';
-import { Card, ScrollAreaAutosize } from '@mantine/core';
+import React from 'react';
+import { ScrollAreaAutosize } from '@mantine/core';
 
 const projects = generateRandomProjects();
-const randomProject = Array.from(Object.keys(projects))[0];
+const randomProject = Object.keys(projects).at(0) as string;
 
-function SimulateOverViewCard(args: typeof OverviewCard) {
+function SimulateOverViewCard(arguments_: typeof OverviewCard) {
     // this is to simulate the dashboard view in desktop
     return (
         <ScrollAreaAutosize w={700} m="sm">
-            <OverviewCard {...args} />
+            <OverviewCard {...arguments_} />
         </ScrollAreaAutosize>
     );
 }

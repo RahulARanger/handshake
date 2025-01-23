@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { expect, findAllByRole, findByRole, fn, within } from '@storybook/test';
+import { expect, findAllByRole, fn, within } from '@storybook/test';
 import FilterBox, { optionsForDate } from './filter-test-runs';
 import { randomTestProjects } from 'stories/TestData/test-runs';
 import dayjs from 'dayjs';
@@ -84,6 +84,7 @@ export const ProjectsDropdown: Story = {
                 await expect(args.onProjectFilterChange).toHaveBeenCalled();
                 await expect(
                     args.onProjectFilterChange,
+                // eslint-disable-next-line unicorn/no-null
                 ).toHaveBeenLastCalledWith(null);
             },
         );
@@ -112,7 +113,7 @@ export const HasAllOptionsIfStartedToday: Story = {
         setOfProjects: randomTestProjects(1),
         recentRunDate: dayjs(),
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         const dateFilter = await screen.findByPlaceholderText(
             'Filter by Date Range',
@@ -155,27 +156,27 @@ export const HasAllOptionsIfStartedToday: Story = {
             ]);
 
             //deselecting
-            (
-                await findByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                    { selected: true },
-                )
-            ).click();
+            const deselect = await findAllByRole(
+                canvasElement.parentElement as HTMLElement,
+                'option',
+                { selected: true },
+            );
+            expect(deselect).toHaveLength(1);
+            deselect[0].click();
 
             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([]);
         });
 
         await step('we can only select max of 5 options', async ({ args }) => {
-            for (let _ of optionsForDate) {
+            for (const _ of optionsForDate) {
                 //deselecting
-                await (
-                    await findAllByRole(
-                        canvasElement.parentElement as HTMLElement,
-                        'option',
-                        { selected: false },
-                    )
-                )[0].click();
+                console.log(`de-selecting ${_}`);
+                const options = await findAllByRole(
+                    canvasElement.parentElement as HTMLElement,
+                    'option',
+                    { selected: false },
+                )
+                await options[0].click();
             }
 
             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith(
@@ -190,7 +191,7 @@ export const HasOptionsIfRecentWasInYesterday: Story = {
         setOfProjects: randomTestProjects(1),
         recentRunDate: dayjs().subtract(1, 'day'),
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         const dateFilter = await screen.findByPlaceholderText(
             'Filter by Date Range',
@@ -267,7 +268,7 @@ export const HasOptionsIfRecentIsInLastWeek: Story = {
         setOfProjects: randomTestProjects(1),
         recentRunDate: dayjs().subtract(1, 'week'),
     },
-    play: async ({ canvasElement, step, args }) => {
+    play: async ({ canvasElement, step }) => {
         const screen = within(canvasElement);
         const dateFilter = await screen.findByPlaceholderText(
             'Filter by Date Range',

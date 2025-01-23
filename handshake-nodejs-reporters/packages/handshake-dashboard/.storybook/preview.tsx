@@ -8,6 +8,7 @@ import type { Preview } from '@storybook/react';
 // import { addons } from '@storybook/preview-api';
 // import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode';
 import { useMantineColorScheme } from '@mantine/core';
+import { ReactNode } from 'react';
 
 // const channel = addons.getChannel();
 
@@ -26,10 +27,10 @@ function ColorSchemeWrapper({ children }: { children: React.ReactNode }) {
 }
 
 export const decorators = [
-    (renderStory: any) => (
+    (renderStory: () => ReactNode) => (
         <ColorSchemeWrapper>{renderStory()}</ColorSchemeWrapper>
     ),
-    (renderStory: any) => <OurApp Component={renderStory()} />,
+    (renderStory: () => ReactNode) => <OurApp Component={renderStory()} />,
 ];
 
 const preview: Preview = {

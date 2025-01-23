@@ -274,7 +274,6 @@ export default function OverviewCard(properties: {
         run === undefined ||
         loadingProjects ||
         fetchProjectsError !== undefined;
-    run === undefined || projects === undefined;
 
     const totalEntity = (showTests ? run?.Tests : run?.Suites) as number;
     const rateValues = (showTests ? run?.Rate : run?.SuitesSummary) as number[];

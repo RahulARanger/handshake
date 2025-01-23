@@ -76,7 +76,7 @@ jobs:
         id: release
         with:
           files: dashboard.tar.bz2
-          body: ":rocket: Bump Handshake-server version to `${{ steps.version.outputs.VERSION }}`"
+          body: ":rocket: Bump Handshake dashboard version to `${{ steps.version.outputs.VERSION }}`"
           tag_name: ${{ steps.version.outputs.VERSION }}
           name: "Handshake v${{ steps.version.outputs.VERSION }}"
           generate_release_notes: true
@@ -149,7 +149,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     permissions: write-all
 
-    # if (dashboard-build and py-build) has not failed (if triggered) then only run this job (if needed)
+    # if (dashboard-build and py-build) have not failed (if triggered) then only run this job (if needed)
     if: ${{ !failure() && inputs.release_nodejs_based_reporters }}
 
     steps:

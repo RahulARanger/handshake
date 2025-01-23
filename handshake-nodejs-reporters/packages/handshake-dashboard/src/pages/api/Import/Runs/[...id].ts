@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { join } from 'node:path';
+import path from 'node:path';
 
 type ResponseData = {
     message: string;
@@ -12,7 +12,7 @@ export default async function handler(
 ) {
     const { id } = request.query;
 
-    const filePath = join(
+    const filePath = path.join(
         process.env.TEST_RESULTS ?? '',
         'Import',
         ...(id as string[]),

@@ -91,3 +91,4 @@ TestServerResults
 handshake/Exporters/~$Template.xlsx
 TestSampleResults/*
 /handshake/dashboard-meta.json
+tsconfig.tsbuildinfo
