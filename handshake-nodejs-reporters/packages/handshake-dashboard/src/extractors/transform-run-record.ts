@@ -68,7 +68,7 @@ export interface OverviewOfEntities {
 export interface MiniSuitePreview {
     Started: Dayjs;
     Title: string;
-    Rate: [number, number, number];
+    Rate: [number, number, number, number, number];
     Duration: Duration;
     Id: string;
 }
@@ -82,7 +82,7 @@ function transformMiniSuite(suite: SuiteRecordDetails): MiniSuitePreview {
         Started: dayjs(suite.started),
         Duration: dayjs.duration({ milliseconds: suite.duration }),
         Title: suite.title,
-        Rate: [suite.passed, suite.failed, suite.skipped],
+        Rate: [suite.passed, suite.failed, suite.skipped, suite.xfailed, suite.xpassed],
         Id: suite.suiteID,
     };
 }

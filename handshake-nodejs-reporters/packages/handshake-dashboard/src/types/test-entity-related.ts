@@ -11,6 +11,8 @@ export interface RecurringFields {
     retried: number;
     standing: statusOfEntity;
     tests: number;
+    xfailed: number;
+    xpassed: number;
     numberOfErrors: number;
     suiteID: string;
     session_id: string;

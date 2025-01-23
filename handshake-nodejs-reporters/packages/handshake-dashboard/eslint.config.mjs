@@ -13,7 +13,7 @@ const eslintConfig = [
     },
     settings: {
       next: {
-        rootDir: 'src/pages',
+        rootDir: 'src',
       },
     },
   }),

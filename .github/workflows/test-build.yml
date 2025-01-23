@@ -8,6 +8,13 @@ on:
         required: false
         type: boolean
         default: false
+
+      force_run_dashboard_tests:
+        description: 'force run test cases for handshake dashboard build'
+        required: false
+        type: boolean
+        default: false
+
   push:
     branches:
       - build
@@ -28,7 +35,7 @@ jobs:
       # TODO: skip decide job if manually triggered
       runs-on: ubuntu-latest
       outputs:
-#        dashboard: ${{ steps.filter.outputs.dashboard }}
+        dashboard: ${{ steps.filter.outputs.dashboard }}
         py: ${{ steps.filter.outputs.py }}
 #        common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
 #        wdio_reporter: ${{ steps.filter.outputs.wdio_reporter }}
@@ -57,7 +64,7 @@ jobs:
       needs: decide
       name: testing the dashboard build
       runs-on: 'ubuntu-latest'
-      if: ${{ needs.decide.outputs.dashboard == 'true' }}
+      if: ${{ inputs.force_run_dashboard_tests || needs.decide.outputs.dashboard == 'true' }}
 
       steps:
         - uses: actions/checkout@v4
@@ -77,7 +84,7 @@ jobs:
 
         - name: Installing node packages
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-          run: pnpm install && pnpm install @swc/cli @swc/core wait-on concurrently http-server playwright && npx playwright install --with-deps
+          run: pnpm install && pnpm install @swc/cli @swc/core wait-on concurrently http-server && npx playwright install --with-deps
 
         - name: Building storybook
           working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
