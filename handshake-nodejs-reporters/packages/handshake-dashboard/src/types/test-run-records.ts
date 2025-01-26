@@ -61,9 +61,13 @@ export interface Project {
     tests: number;
     passed: number;
     failed: number;
+    xfailed: number;
+    xpassed: number;
     skipped: number;
     passedSuites: number;
     failedSuites: number;
+    xfailedSuites: number;
+    xpassedSuites: number;
     skippedSuites: number;
     testID: string;
     suites: number;

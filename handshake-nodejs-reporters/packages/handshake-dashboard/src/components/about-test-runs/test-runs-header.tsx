@@ -22,6 +22,7 @@ import MarkdownPreview from '@uiw/react-markdown-preview';
 import { useDisclosure } from '@mantine/hooks';
 import useSWRImmutable from 'swr/immutable';
 import { IconX } from '@tabler/icons-react';
+import { dateTimeFormatUsed } from 'components/timings/format';
 
 export function TestRunsPageHeader(properties: {
     totalRuns: number;
@@ -79,15 +80,29 @@ export function TestRunsPageHeader(properties: {
                         )}
                     </Group>
                 </Group>
-                {isLoading ? (
-                    <Skeleton w={15} h={15} circle animate />
-                ) : (
-                    <ActionIcon variant="default" onClick={open}>
-                        <IconInfoCircle
-                            style={{ width: rem(15), height: rem(15) }}
-                        />
-                    </ActionIcon>
-                )}
+                <Group align="center">
+                    {isLoading ? (
+                        <></>
+                    ) : (
+                        <Text size="xs" c="dimmed">
+                            Last Test Ran at:&nbsp;&nbsp;
+                            <Text td="underline" component="span" c="white">
+                                {properties.recentRunDate.format(
+                                    dateTimeFormatUsed,
+                                )}
+                            </Text>
+                        </Text>
+                    )}
+                    {isLoading ? (
+                        <Skeleton w={15} h={15} circle animate />
+                    ) : (
+                        <ActionIcon variant="default" onClick={open}>
+                            <IconInfoCircle
+                                style={{ width: rem(15), height: rem(15) }}
+                            />
+                        </ActionIcon>
+                    )}
+                </Group>
                 <Modal
                     centered
                     size="lg"

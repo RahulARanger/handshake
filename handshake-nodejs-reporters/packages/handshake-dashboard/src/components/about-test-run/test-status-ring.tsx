@@ -9,8 +9,8 @@ export default function TestStatusRing(properties: {
     onHovered?: (section: number) => void;
     toLoad?: boolean;
 }): ReactNode {
-    const colors = ['green', 'red', 'yellow'];
-    const tips = ['Passed', 'Failed', 'Skipped'];
+    const colors = ['green', 'red', 'yellow', 'orange', 'blue'];
+    const tips = ['Passed', 'Failed', 'Skipped', 'XFailed', 'XPassed'];
     const rateValues = properties.rateValues as number[];
     const totalEntity = properties.totalEntity as number;
     const [hovered, setHovered] = useState<undefined | number>();

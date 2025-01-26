@@ -10,12 +10,13 @@ import {
     Text,
     Tooltip,
     Grid,
-    Table,
     Anchor,
     Box,
     Paper,
     Stack,
     ScrollAreaAutosize,
+    SimpleGrid,
+    ThemeIcon,
 } from '@mantine/core';
 import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
 import type { Dayjs } from 'dayjs';
@@ -47,6 +48,8 @@ import PlatformEntity, {
 } from 'components/about-test-entities/platform-entity';
 import { useDisclosure } from '@mantine/hooks';
 import TestStatusRing from './test-status-ring';
+import TestStatusIcon, { standingToColors } from './test-status';
+import { captialize } from 'components/meta-text';
 
 dayjs.extend(duration);
 
@@ -76,8 +79,9 @@ function getChange(
 const comparingToRecentRunLabel = 'Compared to the Recent Test Run';
 const forRecentTestRunLabel = 'Compared to the Last Test Run';
 
-function NotedValues(properties: {
+export function NotedValues(properties: {
     testRunRecord?: DetailedTestRecord;
+    rawForceFeedPlatforms?: OverviewOfEntities['platforms'];
 }): ReactNode {
     const run = properties.testRunRecord;
     const {
@@ -93,138 +97,111 @@ function NotedValues(properties: {
     );
 
     const [opened, { open, close }] = useDisclosure();
+    const platforms = properties.rawForceFeedPlatforms ?? rawFeed?.platforms;
+    const testColor = standingToColors(run?.Status ?? 'PENDING', true);
+
+    const data = [
+        {
+            value: <OnPlatform platform={run?.Platform ?? ''} size="sm" />,
+            title: 'OS',
+            description: `Ran on ${run?.Platform}`,
+        },
+        {
+            value: <TestStatusIcon status={run?.Status ?? 'PENDING'} />,
+            title: 'Exit Code',
+            description: `Current Test Run Status: ${captialize(run?.RunStatus ?? '')}`,
+        },
+        {
+            value: platforms ? (
+                <>
+                    <ActionIcon
+                        onClick={() => open()}
+                        color="gray"
+                        variant="light"
+                        w={20 + 10 * platforms.length}
+                    >
+                        <PlatformEntity
+                            entityNames={platforms.map(
+                                (entity) => entity.entityName,
+                            )}
+                            size="sm"
+                        />
+                    </ActionIcon>
+                    <DetailedPlatformVersions
+                        records={platforms}
+                        opened={opened}
+                        onClose={close}
+                        title={'Ran on Platforms:'}
+                    />
+                </>
+            ) : (
+                false
+            ),
+            title: 'Platform',
+            description: 'Ran on Platforms (Browsers/Console)',
+            skipThemeIcon: true,
+        },
+        {
+            value: <Text>{run?.MaxInstances ?? 0}</Text>,
+            title: 'Max. Instances',
+            description:
+                'Maximum Parallel Instances used inside the Test Framework',
+        },
+        {
+            value: <Text>{rawFeed?.aggregated?.files ?? 0}</Text>,
+            title: 'Files',
+            description: 'Total Number of Test files',
+        },
+        {
+            value: <Text>{run?.Bail ?? 0}</Text>,
+            title: 'Bail',
+            description: 'Bail After x failures in the test run',
+        },
+        {
+            value: (
+                <FrameworksUsed frameworks={run?.Frameworks ?? []} size="md" />
+            ),
+            title: 'Framework',
+            description: 'Test Framework',
+            skipThemeIcon: true,
+        },
+        {
+            value: <Text>{rawFeed?.aggregated?.sessions ?? 0}</Text>,
+            title: 'Sessions',
+            description: 'Number of Test sessions',
+        },
+    ];
+
+    const items = data
+        .filter((item) => item.value)
+        .map((item) => (
+            <div key={item.title}>
+                {item.skipThemeIcon ? (
+                    item.value
+                ) : (
+                    <ThemeIcon
+                        variant="light"
+                        size={40}
+                        radius={40}
+                        color={testColor}
+                    >
+                        {item.value}
+                    </ThemeIcon>
+                )}
+                <Text mt="sm" mb={7} pl={6}>
+                    {item.title}
+                </Text>
+                <Text size="sm" c="dimmed" lh={1.6} pl={12}>
+                    {item.description}
+                </Text>
+            </div>
+        ));
 
     return (
-        <Paper withBorder radius="md">
-            <Table>
-                <Table.Thead>
-                    <Table.Tr>
-                        <Table.Th>Config. Name</Table.Th>
-                        <Table.Th>Config. Value</Table.Th>
-                        <Table.Th>Configured / Observed</Table.Th>
-                    </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                    <Table.Tr>
-                        <Table.Td>OS</Table.Td>
-                        <Table.Td>
-                            <OnPlatform
-                                platform={run?.Platform ?? ''}
-                                size="sm"
-                            />
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Observed
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                    {rawFeed?.platforms ? (
-                        <Table.Tr>
-                            <Table.Td>Platforms</Table.Td>
-                            <Table.Td>
-                                <ActionIcon
-                                    onClick={() => open()}
-                                    color="gray"
-                                    variant="light"
-                                    w={20 + 10 * rawFeed.platforms.length}
-                                >
-                                    <PlatformEntity
-                                        entityNames={rawFeed.platforms.map(
-                                            (entity) => entity.entityName,
-                                        )}
-                                        size="sm"
-                                    />
-                                </ActionIcon>
-                                <DetailedPlatformVersions
-                                    records={rawFeed.platforms}
-                                    opened={opened}
-                                    onClose={close}
-                                    title={'Ran on Platforms:'}
-                                />
-                            </Table.Td>
-                            <Table.Td>
-                                <Text c="dimmed" size="sm">
-                                    Observed
-                                </Text>
-                            </Table.Td>
-                        </Table.Tr>
-                    ) : (
-                        <></>
-                    )}
-                    <Table.Tr>
-                        <Table.Td>ExitCode</Table.Td>
-                        <Table.Td>
-                            <Text c={run?.ExitCode === 0 ? 'green' : 'red'}>
-                                {run?.ExitCode ?? 0}
-                            </Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Observed
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                    <Table.Tr>
-                        <Table.Td>Max. Instances</Table.Td>
-                        <Table.Td>
-                            <Text>{run?.MaxInstances ?? 0}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Configured
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                    <Table.Tr>
-                        <Table.Td>Files</Table.Td>
-                        <Table.Td>
-                            <Text>{rawFeed?.aggregated?.files ?? 0}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Observed
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                    <Table.Tr>
-                        <Table.Td>Bail</Table.Td>
-                        <Table.Td>
-                            <Text>{run?.Bail ?? 0}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Configured
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                    <Table.Tr>
-                        <Table.Td>Sessions</Table.Td>
-                        <Table.Td>
-                            <Text>{rawFeed?.aggregated?.sessions ?? 0}</Text>
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Observed
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                    <Table.Tr>
-                        <Table.Td>Frameworks</Table.Td>
-                        <Table.Td>
-                            <FrameworksUsed
-                                frameworks={run?.Frameworks ?? []}
-                                size="sm"
-                            />
-                        </Table.Td>
-                        <Table.Td>
-                            <Text c="dimmed" size="sm">
-                                Configured
-                            </Text>
-                        </Table.Td>
-                    </Table.Tr>
-                </Table.Tbody>
-            </Table>
+        <Paper py={15}>
+            <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md" px="md">
+                {items}
+            </SimpleGrid>
         </Paper>
     );
 }
@@ -435,8 +412,6 @@ export default function OverviewCard(properties: {
                 </Card.Section>
 
                 <Stack>
-                    {/* body from here */}
-                    {/* https://uigradients.com/#RedOcean */}
                     <Card.Section p="sm">
                         <Grid columns={2}>
                             <Grid.Col span={0.8} pl={12} pt={rem('5%')}>
