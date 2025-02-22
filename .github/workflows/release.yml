@@ -3,37 +3,17 @@ name: release-workflow
 on:
   workflow_dispatch:
     inputs:
-      build_dashboard:
-        description: 'deploy dashboard & storybook'
-        required: false
-        type: boolean
-        default: false
+      deploy:
+        type: choice
+        description: 'Choose the release to deploy'
+        required: true
+        options:
+          - 'Build & Release Dashboard & Storybook'
+          - 'Release Storybook'
+          - 'Deploy Handshake Py-Build'
+          - 'Deploy Custom .js Reporters'
 
-      deploy_storybook:
-        description: 'deploy storybook'
-        required: false
-        type: boolean
-        default: false
-
-      build_python_handshakes:
-        description: 'deploy handshake py-build'
-        required: false
-        type: boolean
-        default: false
-
-      release_nodejs_based_reporters:
-        description: 'deploy custom-reporters-node'
-        required: false
-        type: boolean
-        default: false
-
-run-name: ${{ 
-    inputs.build_dashboard && 'Build & Release Dashboard & Storybook' || 
-    inputs.deploy_storybook && 'Build & Release Storybook' ||
-    inputs.build_python_handshakes && 'Deploy Handshake Py-Build' || 
-    inputs.release_nodejs_based_reporters && 'Deploy Custom Reporters Node' || 
-    'Releases' 
-  }}
+run-name: ${{inputs.deploy}}
 
 permissions:
     contents: write
@@ -44,7 +24,7 @@ jobs:
     name: Builds and Release Dashboard Static Build
     runs-on: 'ubuntu-latest'
     permissions: write-all
-    if: ${{ inputs.build_dashboard }}
+    if: ${{ inputs.deploy == 'Build & Release Dashboard & Storybook' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -106,8 +86,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     permissions: write-all
 
-    # if dashboard-build has not failed (if triggered) then only run this job (if triggered)
-    if: ${{ !failure() && inputs.build_python_handshakes }}
+    if: ${{ inputs.deploy == 'Deploy Handshake Py-Build' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -156,8 +135,7 @@ jobs:
     runs-on: 'ubuntu-latest'
     permissions: write-all
 
-    # if (dashboard-build and py-build) have not failed (if triggered) then only run this job (if needed)
-    if: ${{ !failure() && inputs.release_nodejs_based_reporters }}
+    if: ${{ inputs.deploy == 'Deploy Custom .js Reporters' }}
 
     steps:
       - name: Checkout code
@@ -213,7 +191,7 @@ jobs:
       pages: write
       id-token: write
 
-    if: ${{ !failure() && (inputs.deploy_storybook || inputs.build_dashboard) }}
+    if: ${{ inputs.deploy == 'Build & Release Dashboard & Storybook' || inputs.deploy == 'Release Storybook'}}
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
