@@ -65,7 +65,7 @@ jobs:
       needs: decide
       name: testing the dashboard build
       runs-on: 'ubuntu-latest'
-      if: ${{ inputs.force_run_dashboard_tests || (!manual_triggered && needs.decide.outputs.dashboard == 'true') }}
+      if: ${{ inputs.force_run_dashboard_tests || (!needs.decide.manual_triggered && needs.decide.outputs.dashboard == 'true') }}
 
       steps:
         - uses: actions/checkout@v4
@@ -105,7 +105,7 @@ jobs:
       needs: decide
       name: check if the py-build for handshake is stable
       runs-on: ${{ matrix.os }}
-      if: ${{ inputs.force_run_pybuild_tests || (!manual_triggered && needs.decide.outputs.py == 'true') }}
+      if: ${{ inputs.force_run_pybuild_tests || (!needs.decide.manual_triggered && needs.decide.outputs.py == 'true') }}
 
       strategy:
         matrix:
