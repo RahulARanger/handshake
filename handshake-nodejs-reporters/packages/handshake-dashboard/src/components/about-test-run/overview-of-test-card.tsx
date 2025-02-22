@@ -199,7 +199,7 @@ export function NotedValues(properties: {
 
     return (
         <Paper py={15}>
-            <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md" px="md">
+            <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md" px="lg">
                 {items}
             </SimpleGrid>
         </Paper>
@@ -246,7 +246,7 @@ export default function OverviewCard(properties: {
                 : [[], [], [], [], []];
         }, [projects, run, showTests]);
 
-    const [hovered, setHovered] = useState<undefined | number>();
+    const [hovered, setHovered] = useState<number>(-1);
     const toLoad =
         run === undefined ||
         loadingProjects ||
@@ -437,12 +437,12 @@ export default function OverviewCard(properties: {
                                                         <Text
                                                             size="xs"
                                                             fw={
-                                                                hovered
+                                                                hovered > 0
                                                                     ? 500
                                                                     : undefined
                                                             }
                                                             td={
-                                                                hovered
+                                                                hovered > 0
                                                                     ? 'undefined'
                                                                     : undefined
                                                             }

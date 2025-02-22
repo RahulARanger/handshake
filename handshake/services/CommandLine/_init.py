@@ -1,4 +1,3 @@
-import pprint
 import sqlite3
 from sqlite3 import connect, sqlite_version_info
 from click import (
@@ -23,7 +22,11 @@ from handshake.services.DBService.migrator import (
 )
 from handshake.services.SchedularService.start import Scheduler
 from loguru import logger
-from handshake.services.DBService.lifecycle import close_connection, init_tortoise_orm
+from handshake.services.DBService.lifecycle import (
+    close_connection,
+    init_tortoise_orm,
+    log_less,
+)
 from handshake.services.DBService.merge import Merger
 from click import option
 from pathlib import Path
@@ -136,12 +139,13 @@ def step_back(collection_path: str):
     "so you can see it in the way we need. you can pass the output directory to generate the report",
 )
 @option(
-    "--log-file",
-    "-l",
-    help="give me file name to store the logs for the patch command.",
-    type=C_Path(),
-    default="",
-    required=False,
+    "-v",
+    "--verbose",
+    default=False,
+    show_default=True,
+    help="shows even debug logs",
+    type=bool,
+    is_flag=True,
 )
 @option(
     "-r",
@@ -199,21 +203,17 @@ def step_back(collection_path: str):
 )
 def patch(
     collection_path,
-    log_file: str,
     reset: bool = False,
     config_path: Optional[str] = None,
     out: str = None,
+    verbose: bool = False,
     dev: bool = False,
     inside=False,
     export_mode: str = "json",
     xlsx: bool = False,
 ):
-    if log_file:
-        logger.add(
-            log_file if log_file.endswith(".log") else f"{log_file}.log",
-            backtrace=True,
-            diagnose=True,
-        )
+    if not (verbose or dev):
+        log_less()
 
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
@@ -315,7 +315,7 @@ def merge(output, merge_with):
     " we execute this command to forcefully download the build, it is not required to run this manually.",
 )
 def download_build():
-    run(HTMLExporter.download_zip(True))
+    run(HTMLExporter.download_zip())
 
 
 @handle_cli.command(
@@ -355,64 +355,28 @@ def init(collection_path, config_path=None):
 
 
 @handle_cli.group(
-    name="db",
+    name="faq",
     short_help="Commands that will/(try to) fetch mostly asked info. from db",
     help="you can query using db following the subcommands, which are created to provide mostly asked info. from db",
 )
 @version_option(DB_VERSION, prog_name="handshake-db")
 @general_requirement
-def db(collection_path: str):
+def faq(collection_path: str):
     if not Path(db_path(collection_path)).exists():
         raise FileNotFoundError(
             f"db path was not found in the collections: {collection_path}"
         )
 
 
-@db.command(short_help="fetches the timestamp of the latest run")
-@option(
-    "-p",
-    "--allow-pending",
-    default=False,
-    show_default=True,
-    help="consider runs, whose status are pending",
-    type=bool,
-    is_flag=True,
-)
-@pass_context
-def latest_run(ctx: Context, allow_pending: bool):
-    db_file = db_path(Path(ctx.parent.params["collection_path"]))
-    pipe = connect(db_file)
-    result = pipe.execute(
-        "SELECT PROJECTNAME, STRFTIME('%d/%m/%Y, %H:%M', STARTED, 'localtime') as STARTED, "
-        "STRFTIME('%d/%m/%Y, %H:%M', ENDED, 'localtime') as ENDED, TESTID"
-        " FROM RUNBASE WHERE ENDED <> '' ORDER BY STARTED LIMIT 1"
-        if not allow_pending
-        else "SELECT PROJECTNAME, STRFTIME('%d/%m/%Y, %H:%M', STARTED, 'localtime') as STARTED,"
-        " STRFTIME('%d/%m/%Y, %H:%M', ENDED, 'localtime') as ENDED, TESTID FROM RUNBASE ORDER BY STARTED LIMIT 1"
-    )
-
-    row = result.fetchone()
-    secho(
-        (
-            "No Test Runs were found"
-            if not row
-            else (pprint.pformat(list(zip(row, [_[0] for _ in result.description]))))
-        ),
-        fg="bright_yellow" if not row else "bright_magenta",
-    )
-
-    pipe.close()
-
-
-@db.command(short_help="fetches the results from the sqlite database")
+@faq.command(short_help="fetches the results from the sqlite database")
 @argument(
     "q",
     default=False,
     type=str,
 )
 @pass_context
-def query(ctx: Context, q: str):
-    db_file = db_path(Path(ctx.parent.params["collection_path"]))
+def query(ctx: Context, q: str, collection_path: Optional[str] = None):
+    db_file = db_path(Path(collection_path or ctx.parent.params["collection_path"]))
     try:
         import tabulate
     except ImportError:
@@ -451,29 +415,48 @@ def query(ctx: Context, q: str):
         secho(f"Returned {len(result)} rows.", fg="green")
 
 
-@db.command(
+@faq.command(short_help="fetches the timestamp of the latest run")
+@option(
+    "-p",
+    "--allow-pending",
+    default=False,
+    show_default=True,
+    help="consider runs, whose status are pending",
+    type=bool,
+    is_flag=True,
+)
+@pass_context
+def latest_run(ctx: Context, allow_pending: bool):
+    ctx.invoke(
+        query,
+        collection_path=ctx.parent.params["collection_path"],
+        q=(
+            "SELECT PROJECTNAME, STRFTIME('%d/%m/%Y, %H:%M', STARTED, 'localtime') as STARTED, "
+            "STRFTIME('%d/%m/%Y, %H:%M', ENDED, 'localtime') as ENDED, TESTID"
+            " FROM RUNBASE WHERE ENDED <> '' ORDER BY RUNBASE.STARTED DESC LIMIT 1"
+            if not allow_pending
+            else "SELECT PROJECTNAME, STRFTIME('%d/%m/%Y, %H:%M', STARTED, 'localtime') as STARTED,"
+            " STRFTIME('%d/%m/%Y, %H:%M', ENDED, 'localtime') as ENDED,"
+            " TESTID FROM RUNBASE ORDER BY RUNBASE.STARTED DESC LIMIT 1"
+        ),
+    )
+
+
+@faq.command(
     short_help="fetches the number of yet to patch task",
     help="returns list of tasks of form: (ticket_id, task_type, dropped_date, is_picked, test_id)",
 )
 @pass_context
 def yet_to_process(ctx: Context):
-    db_file = db_path(Path(ctx.parent.params["collection_path"]))
-    pipe = connect(db_file)
-    result = pipe.execute(
-        "SELECT ticketID, type, STRFTIME('%d/%m/%Y, %H:%M', dropped, 'localtime'), picked, test_id FROM TASKBASE WHERE "
-        "PROCESSED = 0"
-    ).fetchall()
-
-    secho(
-        (
-            "No Pending Tasks"
-            if not result
-            else f"pending tasks:\n {pprint.pformat(result)}"
+    ctx.invoke(
+        query,
+        collection_path=ctx.parent.params["collection_path"],
+        q=(
+            "SELECT ticketID, type, STRFTIME('%d/%m/%Y, %H:%M', dropped, 'localtime'),"
+            " picked, test_id FROM TASKBASE WHERE "
+            "PROCESSED = 0"
         ),
-        fg="bright_green" if not result else "bright_yellow",
     )
-
-    pipe.close()
 
 
 if __name__ == "__main__":

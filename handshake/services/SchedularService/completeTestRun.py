@@ -290,7 +290,7 @@ async def patchTestRun(test_id: str):
 
     try:
         if await patcher.patch_test():
-            logger.info("Completed the patch for test run: {}", test_id)
+            logger.debug("Completed the patch for test run: {}", test_id)
             to_return = True
     except Exception:
         await skip_coz_error(

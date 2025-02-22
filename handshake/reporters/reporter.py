@@ -130,15 +130,16 @@ class CommonReporter:
         self.url = f"http://127.0.0.1:{port}"
         self.config_path = config_path
 
-    def start_collection(self, session: Session):
+    def start_collection(self, session: Session, is_quiet: bool):
         project_name = session.config.inicfg.get("projectName") or session.path.name
+        postfix = " " + ("" if is_quiet else "-v")
         command = (
             f'handshake run-app {project_name} "{self.results}" "{self.config_path}" -p {self.port}'
             if self.config_path
             else f'handshake run-app {project_name} "{self.results}" -p {self.port}'
-        )
+        ) + postfix
         self.collector = Popen(command, shell=True, stdout=stdout, stderr=stderr)
-        logger.info("Starting handshake-server, {}", command)
+        logger.debug("Starting handshake-server, {}", command)
         self.started = self.postman.submit(self.wait_for_connection)
 
     def health_connection(self) -> bool:

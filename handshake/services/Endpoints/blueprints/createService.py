@@ -21,7 +21,7 @@ from handshake.services.Endpoints.define_api import definition
 from handshake.services.DBService.models.config_base import TestConfigBase
 from sanic.blueprints import Blueprint
 from sanic.response import text, HTTPResponse
-from loguru import logger
+from sanic.log import error_logger
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import register_bulk_patch_suites
@@ -50,7 +50,9 @@ async def register_test_session(request: Request) -> HTTPResponse:
         )
         await session_record.save()
     except Exception as error:
-        logger.error("Failed to create a session due to exception: {}", str(error))
+        error_logger.error(
+            "Failed to create a session due to exception: {}", str(error)
+        )
         return text(str(error), status=400)
 
     return text(str(session_record.sessionID), status=201)

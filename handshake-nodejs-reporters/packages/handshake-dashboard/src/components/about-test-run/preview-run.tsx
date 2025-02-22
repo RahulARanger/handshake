@@ -1,6 +1,7 @@
 import {
     Badge,
     Card,
+    darken,
     Group,
     rem,
     ScrollAreaAutosize,
@@ -32,6 +33,7 @@ import GridStyles from 'styles/data-table.module.css';
 import GradientStyles from 'styles/gradients.module.css';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import CountUpNumber from 'components/counter';
+import { TreemapNode } from 'recharts/types/util/types';
 
 type treeNode = {
     name: string;
@@ -104,6 +106,57 @@ function CustomTooltip(properties: TooltipProps<string[], 'name' | 'size'>) {
     );
 }
 
+function Leaf(properties: unknown) {
+    const properties_ = properties as TreemapNode;
+    let sliced = properties_.height < 20 ? '' : properties_.name;
+    if (sliced && properties_.width < 86) {
+        sliced = sliced.slice(0, properties_.width % 12);
+    }
+
+    return (
+        <>
+            <g>
+                <rect
+                    x={properties_.x}
+                    y={properties_.y}
+                    width={properties_.width}
+                    height={properties_.height}
+                    fill={darken(
+                        'var(--mantine-color-cyan-6)',
+                        0.1 * properties_.depth,
+                    )}
+                    stroke="white"
+                />
+
+                <text
+                    x={properties_.x + properties_.width / 2}
+                    y={properties_.y + properties_.height / 2 - 4}
+                    textAnchor="middle"
+                    fill="white"
+                    fontSize={13}
+                    // transform={`rotate(-90, ${properties_.x + properties_.width / 2}, ${properties_.y + properties_.height / 2})`}
+                    dominant-baseline="central"
+                    strokeWidth={0.01}
+                    dy={5}
+                >
+                    {sliced}
+                </text>
+                <text
+                    x={properties_.x + properties_.width - 7}
+                    y={properties_.y + 5}
+                    textAnchor="middle"
+                    fill="white"
+                    fontSize={6}
+                    strokeWidth={0.01}
+                    dy={5}
+                >
+                    {properties_.value}
+                </text>
+            </g>
+        </>
+    );
+}
+
 export function PreviewOfProjectStructure(properties: {
     specStructure?: specStructure;
     quick?: boolean;
@@ -138,6 +191,7 @@ export function PreviewOfProjectStructure(properties: {
                         fill="#820164"
                         nameKey={'name'}
                         type="flat"
+                        content={<Leaf />}
                         animationDuration={properties.quick ? 0 : undefined}
                     >
                         <RToolTip content={<CustomTooltip />} />

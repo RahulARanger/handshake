@@ -1,8 +1,11 @@
 import {
+    ActionIcon,
     Button,
     Center,
     Group,
     HoverCard,
+    Input,
+    MultiSelect,
     Skeleton,
     Text,
     Tooltip,
@@ -30,7 +33,11 @@ import type { TestRunRecord } from 'types/test-run-records';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import PlatformEntity, { DetailedPlatformVersions } from './platform-entity';
 import type { ParsedSuiteRecord } from 'types/parsed-records';
-import { IconTrendingDown2 } from '@tabler/icons-react';
+import {
+    IconFilterSearch,
+    IconSearch,
+    IconTrendingDown2,
+} from '@tabler/icons-react';
 import GridStyles from 'styles/data-table.module.css';
 import type { ColumnOrColumnGroup } from 'react-data-grid';
 import { TreeDataGrid } from 'react-data-grid';
@@ -45,67 +52,80 @@ import { useDisclosure } from '@mantine/hooks';
 import { ErrorsToShow } from './error-card';
 import RedirectToTestEntity from './redirect-to-detailed-test-entity';
 import { useRouter } from 'next/router';
+import { statusOfEntity } from 'types/session-records';
 
-export default function ListOfSuits(properties: {
-    testID?: string;
-}): ReactNode {
+interface SearchQuery {
+    search: string;
+    status: statusOfEntity[];
+}
+
+function SearchBar(properties: { setSearchQuery: (_: SearchQuery) => void }) {
+    const [toSearch, setToSearch] = useState<string>('');
+    const [filteredStatus, setFilteredStatus] = useState<string[]>([]);
+
+    return (
+        <Group justify="flex-start">
+            <Input
+                leftSection={<IconFilterSearch size={13} strokeWidth={2.5} />}
+                placeholder="Search Suites"
+                value={toSearch}
+                onChange={(event) => setToSearch(event.currentTarget.value)}
+                rightSection={
+                    toSearch === '' ? undefined : (
+                        <Input.ClearButton onClick={() => setToSearch('')} />
+                    )
+                }
+                rightSectionPointerEvents="auto"
+            />
+            <MultiSelect
+                data={['Passed', 'Failed', 'Skipped', 'XFailed', 'XPassed'].map(
+                    (label) => ({
+                        label,
+                        value: label.toUpperCase(),
+                    }),
+                )}
+                placeholder="Select Status"
+                multiple
+                onChange={setFilteredStatus}
+                clearable
+            />
+            <ActionIcon
+                onClick={() =>
+                    properties.setSearchQuery({
+                        search: toSearch,
+                        status: filteredStatus as statusOfEntity[],
+                    })
+                }
+            >
+                <IconSearch size={13} strokeWidth={2.5} />
+            </ActionIcon>
+        </Group>
+    );
+}
+
+function TreeView(properties: {
+    started?: string;
+    testID: string;
+    suites: ParsedSuiteRecord[];
+    openModal: () => void;
+    setGroupedRowsByFile: (
+        _: () => {
+            records: ParsedSuiteRecord[];
+            title: string;
+        },
+    ) => void;
+    setErrorsToShow: (_: () => ErrorRecord[]) => void;
+}) {
     const router = useRouter();
-    const {
-        data: run,
-        isLoading: runFeedLoading,
-        error: runFeedError,
-    } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
-        () =>
-            fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
-                async (response) => response.json(),
-            ),
+    const [parsedSuites, setParsedSuites] = useState<RowRecord[]>([]);
+    useMemo(
+        () => setParsedSuites(transformSuitesStructure(properties.suites)),
+        // () => setParsedSuites(toLoad ? [] : transformSuitesStructure(properties.suites)),
+        [properties.suites], // NOTE: do not remove toLoad from dependency, else react will not re-calculate once data is ready
     );
-
-    const { data, isLoading, error } = useSWRImmutable<SuiteRecordDetails[]>(
-        properties.testID
-            ? jsonFeedForListOfSuites(properties.testID)
-            : undefined,
-        () =>
-            fetch(jsonFeedForListOfSuites(properties.testID as string)).then(
-                async (response) => response.json(),
-            ),
-    );
-
-    const suites = useMemo(() => {
-        const converter = spawnConverterForAnsiToHTML();
-        return (data ?? [])
-            .filter((suite) => suite.standing !== 'RETRIED')
-            .map((suite) =>
-                transformSuiteEntity(suite, run?.tests ?? 0, converter),
-            );
-    }, [run?.tests, data]);
-
     const [expandedGroupIds, setExpandedGroupIds] = useState(
         (): ReadonlySet<unknown> => new Set<unknown>([]),
     );
-
-    const toLoad =
-        runFeedLoading ||
-        isLoading ||
-        error !== undefined ||
-        runFeedError !== undefined ||
-        run === undefined ||
-        data === undefined;
-
-    const [parsedSuites, setParsedSuites] = useState<RowRecord[]>([]);
-
-    useMemo(
-        () => setParsedSuites(toLoad ? [] : transformSuitesStructure(suites)),
-        [suites, toLoad], // NOTE: do not remove toLoad from dependency, else react will not re-calculate once data is ready
-    );
-
-    const [opened, { open, close }] = useDisclosure(false);
-    const [errorsToShow, setErrorsToShow] = useState<ErrorRecord[]>([]);
-    const [groupedRowsByFile, setGroupedRowsByFile] = useState<{
-        records: ParsedSuiteRecord[];
-        title: string;
-    }>({ records: [], title: '' });
 
     return (
         <>
@@ -311,7 +331,9 @@ export default function ListOfSuits(properties: {
                                         endTime={row.Ended}
                                         key={rowIdx}
                                         detailed
-                                        relativeFrom={dayjs(run?.started)}
+                                        relativeFrom={dayjs(
+                                            properties?.started,
+                                        )}
                                     />
                                 );
                             },
@@ -330,7 +352,9 @@ export default function ListOfSuits(properties: {
                                                 dayjs()
                                             }
                                             detailed
-                                            relativeFrom={dayjs(run?.started)}
+                                            relativeFrom={dayjs(
+                                                properties?.started,
+                                            )}
                                         />
                                     </div>
                                 );
@@ -519,20 +543,22 @@ export default function ListOfSuits(properties: {
                                         tabIndex={rows.tabIndex}
                                         w={'100%'}
                                         onClick={() => {
-                                            setGroupedRowsByFile(() => ({
-                                                records: uniqBy(
-                                                    rows.childRows,
-                                                    'simplified',
-                                                ).map((row) =>
-                                                    pick(row, [
-                                                        'entityName',
-                                                        'entityVersion',
+                                            properties.setGroupedRowsByFile(
+                                                () => ({
+                                                    records: uniqBy(
+                                                        rows.childRows,
                                                         'simplified',
-                                                    ]),
-                                                ) as ParsedSuiteRecord[],
-                                                title: `Platforms for File: ${rows.childRows?.at(0)?.File}`,
-                                            }));
-                                            open();
+                                                    ).map((row) =>
+                                                        pick(row, [
+                                                            'entityName',
+                                                            'entityVersion',
+                                                            'simplified',
+                                                        ]),
+                                                    ) as ParsedSuiteRecord[],
+                                                    title: `Platforms for File: ${rows.childRows?.at(0)?.File}`,
+                                                }),
+                                            );
+                                            properties.openModal();
                                         }}
                                     >
                                         <PlatformEntity
@@ -587,12 +613,12 @@ export default function ListOfSuits(properties: {
                     switch (cell.column.key) {
                         case 'numberOfErrors': {
                             if (!cell.row.numberOfErrors) return;
-                            setErrorsToShow(() => cell.row.errors);
-                            open();
+                            properties.setErrorsToShow(() => cell.row.errors);
+                            properties.openModal();
                             break;
                         }
                         case 'entityName': {
-                            setGroupedRowsByFile(() => ({
+                            properties.setGroupedRowsByFile(() => ({
                                 records: [
                                     pick(cell.row, [
                                         'entityName',
@@ -602,7 +628,7 @@ export default function ListOfSuits(properties: {
                                 ],
                                 title: `"${cell.row.Title.slice(0, 30) + (cell.row.Title.length > 10 ? '...' : '')}" ran on ${cell.row.entityName}`,
                             }));
-                            open();
+                            properties.openModal();
                             break;
                         }
                         case 'Id': {
@@ -630,6 +656,87 @@ export default function ListOfSuits(properties: {
                     }
                 }}
             />
+        </>
+    );
+}
+
+export default function ListOfSuits(properties: {
+    testID?: string;
+}): ReactNode {
+    const {
+        data: run,
+        isLoading: runFeedLoading,
+        error: runFeedError,
+    } = useSWRImmutable<TestRunRecord>(
+        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
+        () =>
+            fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
+                async (response) => response.json(),
+            ),
+    );
+
+    const { data, isLoading, error } = useSWRImmutable<SuiteRecordDetails[]>(
+        properties.testID
+            ? jsonFeedForListOfSuites(properties.testID)
+            : undefined,
+        () =>
+            fetch(jsonFeedForListOfSuites(properties.testID as string)).then(
+                async (response) => response.json(),
+            ),
+    );
+
+    const suites = useMemo(() => {
+        const converter = spawnConverterForAnsiToHTML();
+        return (data ?? [])
+            .filter((suite) => suite.standing !== 'RETRIED')
+            .map((suite) =>
+                transformSuiteEntity(suite, run?.tests ?? 0, converter),
+            );
+    }, [run?.tests, data]);
+
+    const toLoad =
+        runFeedLoading ||
+        isLoading ||
+        error !== undefined ||
+        runFeedError !== undefined ||
+        run === undefined ||
+        data === undefined;
+
+    const [opened, { open: openModal, close }] = useDisclosure(false);
+    const [searchQuery, setSearchQuery] = useState<SearchQuery>({
+        search: '',
+        status: [],
+    });
+
+    const [errorsToShow, setErrorsToShow] = useState<ErrorRecord[]>([]);
+    const [groupedRowsByFile, setGroupedRowsByFile] = useState<{
+        records: ParsedSuiteRecord[];
+        title: string;
+    }>({ records: [], title: '' });
+
+    const filteredSuites = useMemo(() => {
+        console.log(toLoad, suites, 'here');
+        if (toLoad) return [];
+        let p_suites = suites;
+
+        if (searchQuery.status.length > 0)
+            p_suites = suites.filter((suite) =>
+                searchQuery.status.includes(suite.Status),
+            );
+        return p_suites;
+    }, [toLoad, searchQuery]);
+
+    return (
+        <Group>
+            <SearchBar setSearchQuery={setSearchQuery} />
+            <TreeView
+                started={run?.started}
+                testID={properties.testID ?? ''}
+                suites={filteredSuites}
+                setGroupedRowsByFile={setGroupedRowsByFile}
+                setErrorsToShow={setErrorsToShow}
+                openModal={openModal}
+            />
             <ErrorsToShow
                 opened={opened && errorsToShow.length > 0}
                 onClose={() => {
@@ -647,6 +754,6 @@ export default function ListOfSuits(properties: {
                     setGroupedRowsByFile({ records: [], title: '' });
                 }}
             />
-        </>
+        </Group>
     );
 }

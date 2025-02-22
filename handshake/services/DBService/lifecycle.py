@@ -11,6 +11,7 @@ from loguru import logger
 from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
 )
+from sys import stderr
 
 models = ["handshake.services.DBService.models"]
 
@@ -118,8 +119,10 @@ class TestConfigManager:
             return
 
         if not self.path.exists():
-            logger.debug(
-                "missing handshakes.json, creating one at {}", self.path.parent
+            logger.info(
+                "Missing handshakes.json.,"
+                " creating one at {}. we would be referring this file from now on when ran from this path.",
+                self.path.parent,
             )
             return await self.save_to_file()
         await self.import_things()
@@ -155,7 +158,12 @@ class TestConfigManager:
             to_save.append(record)
         to_save and await ConfigBase.bulk_update(to_save, ("value",), 100)
         if hard_save:
-            logger.debug(
+            logger.info(
                 "Observed some of the keys are missing in handshakes.json, saving it"
             )
             await self.save_to_file()
+
+
+def log_less():
+    logger.remove(0)
+    logger.add(stderr, level="INFO")

@@ -54,11 +54,11 @@ class PatchTestSuite:
         )
 
     async def do_we_need_to_patch(self):
-        logger.info("Patching Suite: {} | {}", self.suite.suiteID, self.suite.title)
+        logger.debug("Patching Suite: {} | {}", self.suite.suiteID, self.suite.title)
 
         if self.suite.standing != Status.YET_TO_CALCULATE:
-            logger.warning(
-                "Suite: {} was not scheduled to be calculated, its status is {}",
+            logger.debug(
+                "Suite: {} was not scheduled to be calculated, its status is {}. Hence marking it as processed.",
                 self.suite.suiteID,
                 self.suite.standing,
             )
@@ -125,13 +125,24 @@ class PatchTestSuite:
 
             started, ended = self.suite.started, self.suite.ended
             if not self.suite.started:
-                logger.info("adding suite: {}'s start datetime", self.suite.title)
                 self.suite.started = info.get("actual_start", self.suite.started)
+                logger.debug(
+                    "added suite: {}[{}]'s start datetime as {}",
+                    self.suite.title,
+                    self.suite_id,
+                    self.suite.started,
+                )
                 started = self.suite.started
 
             if not self.suite.ended:
-                logger.info("adding suite: {}'s end datetime", self.suite.title)
+                logger.debug("adding suite: {}'s end datetime", self.suite.title)
                 self.suite.ended = info.get("actual_end", self.suite.ended)
+                logger.debug(
+                    "added suite: {}[{}]'s end datetime as {}",
+                    self.suite.title,
+                    self.suite_id,
+                    self.suite.ended,
+                )
                 ended = self.suite.ended
 
             self.suite.duration = (ended - started).total_seconds() * 1000
@@ -145,7 +156,7 @@ class PatchTestSuite:
             self.update_duration_drill_down(),
         )
 
-        logger.info("Successfully processed suite: {}", self.suite.suiteID)
+        logger.debug("Successfully processed suite: {}", self.suite.suiteID)
         await self.mark_processed()
         return True
 

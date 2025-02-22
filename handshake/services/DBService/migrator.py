@@ -59,7 +59,7 @@ def check_version(
         migration_required = version_stored != DB_VERSION
 
         logger.log(
-            "INFO" if not migration_required else "WARNING",
+            "DEBUG" if not migration_required else "WARNING",
             (
                 "Currently at: v{}."
                 if not migration_required
@@ -82,7 +82,7 @@ def check_version(
 
 def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> bool:
     if not path.exists():
-        logger.info("Migration check is not required, as the db does not exist.")
+        logger.debug("Migration check is not required, as the db does not exist.")
         return False
     connection = connect(path)
     stored_version = False
@@ -92,7 +92,7 @@ def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> 
         )
 
         if not is_required:
-            logger.info("Already migrated to required version.")
+            logger.debug("Already migrated to required version.")
             return False
         if not stored_version:
             return False
