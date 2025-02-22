@@ -62,7 +62,7 @@ def test(session):
     """
     session.install("poetry")
     session.run("poetry", "install")
-    session.run("pytest", "__test__")
+    session.run("pytest", "-q", "__test__")
 
 
 # nox -s zip_results

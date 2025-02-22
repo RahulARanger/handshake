@@ -81,8 +81,7 @@ jobs:
           file_pattern: '**/.version'
 
   release-handshakes:
-    needs: release-dashboard
-    name: releases handshakes to pypi
+    name: Release Handshakes to PyPI
     runs-on: 'ubuntu-latest'
     permissions: write-all
 
@@ -130,7 +129,6 @@ jobs:
           file_pattern: '**/.version'
 
   release-common-handshake-reporters:
-    needs: [ release-dashboard, release-handshakes ]
     name: releases common handshake node reporters to npm
     runs-on: 'ubuntu-latest'
     permissions: write-all
@@ -181,9 +179,7 @@ jobs:
           commit_message: Bump Handshake Dashboard Version
           file_pattern: 'handshake-nodejs-reporters/**/*.md handshake-nodejs-reporters/**/*.json'
 
-
   host-storybook:
-    needs: [ release-dashboard, release-handshakes, release-common-handshake-reporters ]
     name: deploy-storybook
     runs-on: 'ubuntu-latest'
     permissions:

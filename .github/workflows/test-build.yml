@@ -171,7 +171,7 @@ jobs:
         # for windows, we conduct tests including the ones that depend on optional dependencies but run it only on 3.11
         - name: Regression Test with optional dependencies
           if: ${{ matrix.os == 'windows-latest' }}
-          run: pytest __test__
+          run: pytest -q __test__
 
     test-common-nodejs-reporters:
       needs: [decide, test-dashboard, test-handshakes]
