@@ -25,7 +25,7 @@ from handshake.services.DBService.models.enums import (
 from handshake.services.DBService.models.static_base import StaticBase
 from sanic.blueprints import Blueprint
 from sanic.response import JSONResponse, text, HTTPResponse
-from loguru import logger
+from sanic.log import error_logger
 from sanic.request import Request
 from handshake.services.DBService.shared import get_test_id
 from handshake.services.SchedularService.register import (
@@ -52,7 +52,7 @@ async def punch_in_test_suite(request: Request) -> HTTPResponse:
     suite = PunchInSuite.model_validate(payload)
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
     if not suite_record:
-        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        error_logger.error("Was not able to found {} suite", str(suite.suiteID))
         return text(f"Suite {suite.suiteID} was not found", status=404)
 
     payload = suite.model_dump()
@@ -76,7 +76,7 @@ async def update_suite_details(request: Request) -> HTTPResponse:
     suite = UpdateSuite.model_validate(payload)
     suite_record = await SuiteBase.filter(suiteID=suite.suiteID).first()
     if not suite_record:
-        logger.error("Was not able to found {} suite", str(suite.suiteID))
+        error_logger.error("Was not able to found {} suite", str(suite.suiteID))
         return text(f"Suite {suite.suiteID} was not found", status=404)
 
     # first, we save the details that were provided
@@ -139,7 +139,7 @@ async def update_test_session_details(request: Request) -> HTTPResponse:
     session = UpdateSession.model_validate(request.json)
     test_session = await SessionBase.filter(sessionID=session.sessionID).first()
     if not test_session:
-        logger.error("Expected {} session was not found", str(session.sessionID))
+        error_logger.error("Expected {} session was not found", str(session.sessionID))
         return text(f"Session {session.sessionID} was not found", status=404)
 
     await test_session.update_from_dict(session.model_dump())

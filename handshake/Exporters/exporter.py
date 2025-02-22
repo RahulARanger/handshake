@@ -227,20 +227,20 @@ WHERE rb.ended <> '' order by rb.started;
                     "(select sb.title from suitebase sb where sb.suiteID = suitebase.parent)"
                 ),
                 nextSuite=RawSQL(
-                    "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
-                    " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
-                    " and suitebase.started <= sb.started and sb.suiteID <> suitebase.suiteID"
-                    " and 'suitebase__session'.'test_id' = ssb.test_id order by sb.started)"
+                    "(select suiteID from suitebase sb where sb.parent = suitebase.parent"
+                    " and sb.session_id = suitebase.session_id and suitebase.started <= sb.started"
+                    " and sb.suiteID <> suitebase.suiteID"
+                    " order by sb.started limit 1)"
                 ),
                 prevSuite=RawSQL(
-                    "(select suiteID from suitebase sb join sessionbase ssb on sb.session_id = ssb.sessionID"
-                    " where sb.suiteType = 'SUITE' AND sb.standing <> 'RETRIED' "
-                    " and suitebase.started >= sb.started and sb.suiteID <> suitebase.suiteID"
-                    " and 'suitebase__session'.'test_id' = ssb.test_id order by sb.started)"
+                    "(select suiteID from suitebase sb where sb.parent = suitebase.parent and sb.suiteType = 'SUITE'"
+                    " and sb.session_id = suitebase.session_id and suitebase.started >= sb.started"
+                    " and sb.suiteID <> suitebase.suiteID"
+                    " order by sb.started limit 1)"
                 ),
                 hasChildSuite=RawSQL(
-                    "(select count(*) from suitebase sb where sb.parent=suitebase.suiteID "
-                    "and sb.suiteType='SUITE' LIMIT 1)"
+                    "(select count(*) from suitebase sb where sb.parent=suitebase.suiteID and sb.suiteType = 'SUITE'"
+                    " and sb.suiteType='SUITE' LIMIT 1)"
                 ),
             )
             .values(

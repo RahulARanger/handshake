@@ -39,7 +39,7 @@ export function ListOfRuns(properties: {
                 {properties.runs.length > slicesRuns.length ? (
                     <Timeline.Item>
                         <Button
-                            radius={'xl'}
+                            variant="light"
                             onClick={() => {
                                 setCurrentPage(currentPage + 1);
                             }}

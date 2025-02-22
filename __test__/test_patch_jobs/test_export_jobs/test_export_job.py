@@ -605,7 +605,7 @@ class TestHTMLExport:
         clean_test_results,
     ):
         if HTMLExporter.template.exists():
-            await HTMLExporter.download_zip(True)
+            await HTMLExporter.download_zip()
 
         test_run = await helper_create_test_run(add_test_config=True)
         session = await helper_create_test_session(test_run.testID)

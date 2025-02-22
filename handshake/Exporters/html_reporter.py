@@ -15,6 +15,7 @@ from pathlib import Path
 from httpx import AsyncClient, RequestError, StreamError
 from tarfile import open as t_open
 from aiofiles import open as a_open
+from click import progressbar
 
 
 class HTMLExporter(JsonExporter):
@@ -79,12 +80,9 @@ class HTMLExporter(JsonExporter):
             )
 
     @staticmethod
-    async def download_zip(log: bool = False) -> bool:
+    async def download_zip() -> bool:
         """
         Downloads a zip file from a given URL and saves it to the specified location.
-
-        Parameters:
-        log (bool): A flag indicating whether to log the download process. Default is False.
 
         Returns:
         bool: True if the download is successful, False otherwise.
@@ -95,20 +93,17 @@ class HTMLExporter(JsonExporter):
         try:
             async with AsyncClient(follow_redirects=True) as client:
                 async with client.stream("GET", url) as response:
-                    async with a_open(HTMLExporter.template, "wb") as file:
-                        chunk_count = 1
-                        async for chunk in response.aiter_bytes(chunk_size=1024):
-                            if log:
-                                logger.info(
-                                    "Completed {:.2f}%",
-                                    calc_percentage(
-                                        1024 * chunk_count,
-                                        int(response.headers.get("Content-Length")),
-                                    )
-                                    * 100,
-                                )
+                    with progressbar(
+                        length=int(response.headers.get("Content-Length")),
+                        label="Downloading Build",
+                    ) as bar:
+                        bar.length = 23
+                        async with a_open(HTMLExporter.template, "wb") as file:
+                            chunk_count = 1
+                            async for chunk in response.aiter_bytes(chunk_size=1024):
+                                bar.update(1024 * chunk_count)
                                 chunk_count += 1
-                            await file.write(chunk)
+                                await file.write(chunk)
 
             downloaded = True
 

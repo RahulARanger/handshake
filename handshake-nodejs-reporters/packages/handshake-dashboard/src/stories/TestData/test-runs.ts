@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { Chance } from 'chance';
 import type { statusOfEntity } from 'types/session-records';
 import type { Project, Projects, TestRunRecord } from 'types/test-run-records';
+import { PlatformDetails } from 'components/about-test-entities/platform-entity';
 
 interface Feeder {
     started?: dayjs.Dayjs;
@@ -28,9 +29,14 @@ export function getStatus(
     passed: number,
     failed: number,
     skipped: number,
+    xfailed: number,
+    xpassed: number,
 ): statusOfEntity {
     if (failed) return 'FAILED';
-    return passed === 0 && skipped !== 0 ? 'SKIPPED' : 'PASSED';
+    else if (xpassed) return 'XPASSED';
+    else if (passed > 0) return 'PASSED';
+    else if (xfailed > 0) return 'XFAILED';
+    return 'SKIPPED';
 }
 const generator = Chance();
 
@@ -87,7 +93,7 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         'ubuntu',
     ]);
 
-    const tags = Array.from({length: generator.integer({ min: 0, max: 4 })})
+    const tags = Array.from({ length: generator.integer({ min: 0, max: 4 }) })
         .map(() =>
             generator.bool()
                 ? { name: generator.hashtag(), label: 'test' }
@@ -146,7 +152,7 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
         projectName: generator.company(),
         testID: crypto.randomUUID(),
         tests,
-        standing: getStatus(passed, failed, skipped),
+        standing: getStatus(passed, failed, skipped, xfailed, xpassed),
         tags: JSON.stringify(tags),
         specStructure: JSON.stringify({
             'features\\login.feature': {
@@ -188,6 +194,42 @@ export const allPassed = generateTestRun({
     skippedSuites: 0,
 });
 
+export const onlyFailed = generateTestRun({
+    tests: 3,
+    skipped: 0,
+    passed: 0,
+    failed: 3,
+    suites: 3,
+    passedSuites: 0,
+    failedSuites: 3,
+    skippedSuites: 0,
+});
+export const onlyXFailed = generateTestRun({
+    tests: 3,
+    xfailed: 3,
+    suites: 3,
+    xfailedSuites: 3,
+    skipped: 0,
+    passed: 0,
+    failed: 0,
+    xpassed: 0,
+    xpassedSuites: 0,
+    failedSuites: 0,
+    passedSuites: 0,
+});
+export const onlyXPassed = generateTestRun({
+    tests: 3,
+    xpassed: 3,
+    suites: 3,
+    xpassedSuites: 3,
+    passed: 0,
+    failed: 0,
+    xfailed: 0,
+    xfailedSuites: 0,
+    failedSuites: 0,
+    passedSuites: 0,
+});
+
 export const mixed = generateTestRun({});
 
 export const randomTestProjects = (length: number) => {
@@ -204,7 +246,9 @@ export function generateTestRunForDemo() {
 export function generateRandomProject(): Project {
     const tests = generator.integer({ min: 3, max: 100 });
     const passed = generator.integer({ min: 0, max: tests });
+    const xpassed = generator.integer({ min: 0, max: tests });
     const failed = generator.integer({ min: 0, max: tests - passed });
+    const xfailed = generator.integer({ min: 0, max: tests - passed });
 
     const skipped = tests - (passed + failed);
 
@@ -214,7 +258,16 @@ export function generateRandomProject(): Project {
         min: 0,
         max: suites - passedSuites,
     });
-    const skippedSuites = suites - (passedSuites + failedSuites);
+    const xfailedSuites = generator.integer({
+        min: 0,
+        max: suites - (passedSuites + failedSuites),
+    });
+    const xpassedSuites = generator.integer({
+        min: 0,
+        max: suites - (passedSuites + failedSuites + xfailedSuites),
+    });
+    const skippedSuites =
+        suites - (xfailedSuites + xpassedSuites + passedSuites + failedSuites);
 
     return {
         duration: generator.integer({ min: 10, max: 20 }) * 36e3,
@@ -222,9 +275,13 @@ export function generateRandomProject(): Project {
         passed,
         failed,
         skipped,
+        xfailed,
+        xpassed,
         passedSuites,
         failedSuites,
         skippedSuites,
+        xpassedSuites,
+        xfailedSuites,
         testID: crypto.randomUUID(),
         suites,
     };
@@ -244,4 +301,22 @@ export function generateRandomProjects() {
     }
 
     return projects_json;
+}
+
+export function generateRandomPlatforms(): PlatformDetails {
+    return generator.n(
+        () => ({
+            entityName: generator.pickone([
+                'chrome',
+                'firefox',
+                'safari',
+                'edge',
+                'chrome-headless-shell',
+                'others',
+            ]),
+            entityVersion: `v${generator.integer({ min: 2, max: 10 })}`,
+            simplified: `v${generator.integer({ min: 2, max: 10 })}`,
+        }),
+        generator.integer({ min: 2, max: 3 }),
+    );
 }

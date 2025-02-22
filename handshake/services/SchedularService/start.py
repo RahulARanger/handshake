@@ -17,9 +17,6 @@ from handshake.services.DBService.models.config_base import (
     ConfigBase,
     ConfigKeys,
 )
-from handshake.services.SchedularService.constants import (
-    exportAttachmentFolderName,
-)
 from handshake.services.SchedularService.register import register_bulk_excel_export
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
 from handshake.services.SchedularService.flag_tasks import pruneTasks
@@ -45,7 +42,9 @@ class Scheduler:
         self.db_path = db_path(root_dir)
         if not export_mode and export_mode != "json" and export_mode != "html":
             logger.warning(
-                "undefined export mode: {}, defaulting to html export", export_mode
+                "export mode was not defined, please mention it either has html or json."
+                " For example, handshake patch TestResults -e html",
+                export_mode,
             )
 
         self.exporter = (
@@ -69,13 +68,11 @@ class Scheduler:
         self.skip_export = out_dir is None and not inside_test_results
         if self.skip_export and self.exporter:
             logger.warning(
-                "Export would be skipped,"
-                " Please pass the out_dir example: handshake patch TestResults -e json -o TestReports"
+                "Calculating Results but please note Export would be skipped,"
+                " if you need the results to be exported then please pass export mode and output directory,"
+                " for example: handshake patch TestResults -e json -o TestReports"
             )
-        # self.export = out_dir is None
         self.converter = Parser()
-        # self.dashboard_build = zipped_build
-        # self.export_dir = Path(out_dir) if out_dir and zipped_build else None
         self.db_path = db_path(root_dir)
         self.reset = manual_reset
         self.connection: Optional[BaseDBAsyncClient] = None
@@ -111,8 +108,11 @@ class Scheduler:
             ),
         )
 
-        logger.warning(
-            "Deleted {} test runs of this project {}", will_be_deleted, projectName
+        logger.info(
+            "We have deleted {} test runs under the project name: {}. due to the max. threshold of {} test runs",
+            will_be_deleted,
+            projectName,
+            to_delete,
         )
         return will_be_deleted
 
@@ -142,7 +142,7 @@ class Scheduler:
                 key=ConfigKeys.recentlyDeleted, value=str(recently_deleted)
             )
 
-        logger.info("Delete job is completed.")
+        logger.debug("Delete job is completed.")
 
     async def init_jobs(self):
         await pruneTasks()
@@ -155,7 +155,9 @@ class Scheduler:
         self.reset = self.reset or reset_from_config.value
 
         if self.reset:
-            logger.info("It was requested to reset all of the completed test runs")
+            logger.debug(
+                "we would be processing the test runs again, we can expect updated results."
+            )
 
         to_reset = (
             (Q(type=JobType.MODIFY_TEST_RUN) | Q(type=JobType.EXPORT_EXCEL))
@@ -172,8 +174,8 @@ class Scheduler:
 
         async def pick_old_tasks():
             for task in to_pick:
-                logger.info(
-                    "scheduling old task {} : {} for this iteration",
+                logger.debug(
+                    "This unfinished task: {}[{}] would run in this iteration",
                     task.type,
                     task.ticketID,
                 )
@@ -193,7 +195,7 @@ class Scheduler:
                 runs.append(test)
 
             if runs:
-                logger.info("Reset done for {} test runs!", len(runs))
+                logger.debug("Reset done for {} test runs!", len(runs))
                 await RunBase.bulk_update(runs, ("standing",), 100)
 
             if reset_from_config:
@@ -230,7 +232,9 @@ class Scheduler:
         self.connection = connections.get("default")
         await self.rotate_test_runs()
         await self.init_jobs()
+
         await patch_jobs(self.excel_export, self.db_path)
+
         if not self.skip_export:
             await self.exporter.start_exporting()
 
