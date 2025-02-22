@@ -41,7 +41,7 @@ jobs:
 #        common_nodejs_reporters: ${{ steps.filter.outputs.common_nodejs_reporters }}
 #        wdio_reporter: ${{ steps.filter.outputs.wdio_reporter }}
 
-      name: decides which job to run based on the file changes
+      name: Auto-Decide to run tests
       steps:
         - uses: actions/checkout@v4
         - uses: dorny/paths-filter@v3
@@ -63,9 +63,9 @@ jobs:
 
     test-dashboard:
       needs: decide
-      name: testing the dashboard build
+      name: Test Dashboard Build
       runs-on: 'ubuntu-latest'
-      if: ${{ inputs.force_run_dashboard_tests || (!needs.decide.manual_triggered && needs.decide.outputs.dashboard == 'true') }}
+      if: ${{ inputs.force_run_dashboard_tests || (!needs.decide.outputs.manual_triggered && needs.decide.outputs.dashboard == 'true') }}
 
       steps:
         - uses: actions/checkout@v4
@@ -103,9 +103,9 @@ jobs:
 
     test-handshakes:
       needs: decide
-      name: check if the py-build for handshake is stable
+      name: Test Handshake Py-Build
       runs-on: ${{ matrix.os }}
-      if: ${{ inputs.force_run_pybuild_tests || (!needs.decide.manual_triggered && needs.decide.outputs.py == 'true') }}
+      if: ${{ inputs.force_run_pybuild_tests || (!needs.decide.outputs.manual_triggered && needs.decide.outputs.py == 'true') }}
 
       strategy:
         matrix:
@@ -175,7 +175,7 @@ jobs:
 
     test-common-nodejs-reporters:
       needs: [decide, test-dashboard, test-handshakes]
-      name: test the common-nodejs-reporters build
+      name: Test .js Custom Reporters
       runs-on: "windows-latest"
       if: ${{ !failure() && ( needs.decide.outputs.common_nodejs_reporters == 'true' || needs.decide.outputs.wdio_reporter == 'true' ) }}
 
