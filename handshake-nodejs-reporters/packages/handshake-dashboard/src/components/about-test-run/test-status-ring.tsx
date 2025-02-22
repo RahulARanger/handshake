@@ -9,12 +9,15 @@ export default function TestStatusRing(properties: {
     onHovered?: (section: number) => void;
     toLoad?: boolean;
 }): ReactNode {
-    const colors = ['green', 'red', 'yellow'];
-    const tips = ['Passed', 'Failed', 'Skipped'];
+    const colors = ['green', 'red', 'yellow', 'orange', 'blue'];
+    const tips = ['Passed', 'Failed', 'Skipped', 'XFailed', 'XPassed'];
     const rateValues = properties.rateValues as number[];
     const totalEntity = properties.totalEntity as number;
     const [hovered, setHovered] = useState<undefined | number>();
-    const reset = () => setHovered(undefined);
+    const reset = () => {
+        setHovered(undefined);
+        properties.onHovered?.(-1);
+    };
 
     return properties.toLoad ? (
         <Skeleton circle height={205} animate m="lg" color="orange" />
@@ -42,7 +45,10 @@ export default function TestStatusRing(properties: {
                 value: (value / totalEntity) * 100,
                 color: colors[index],
                 tooltip: tips[index],
-                onMouseEnter: () => setHovered(index),
+                onMouseEnter: () => {
+                    setHovered(index);
+                    properties.onHovered?.(-1);
+                },
                 onMouseLeave: reset,
                 style: {
                     cursor: 'pointer',

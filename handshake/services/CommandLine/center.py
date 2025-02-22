@@ -10,6 +10,7 @@ from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     close_connection,
     create_run,
+    log_less,
 )
 from handshake import __version__
 from typing import Union
@@ -73,6 +74,7 @@ def setup_app(
         port=port,
         workers=max(2, workers),
         host="127.0.0.1",
+        motd=dev,
         motd_display=dict(version=__version__),
         dev=dev,
     )
@@ -109,6 +111,15 @@ ports.
     type=int,
 )
 @option(
+    "-v",
+    "--verbose",
+    default=False,
+    show_default=True,
+    help="shows even debug logs",
+    type=bool,
+    is_flag=True,
+)
+@option(
     "-d",
     "--dev",
     default=False,
@@ -123,10 +134,14 @@ def run_app(
     version: Union[str, bool],
     port: int,
     workers: int,
+    verbose: bool,
     dev: bool,
     config_path: Optional[str] = None,
 ):
     break_if_mismatch(version)
+    if not (verbose or dev):
+        log_less()
+
     if workers < 2:
         logger.warning(
             "we have set default of 2 workers, if it's less than that, server might miss results sent from the runner."
@@ -165,6 +180,8 @@ def display(
     port: int = 8000,
     host: str = "localhost",
 ):
+    log_less()
+
     if static_path:
         static_path = P_Path(static_path)
 

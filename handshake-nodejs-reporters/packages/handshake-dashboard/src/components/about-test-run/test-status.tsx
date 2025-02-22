@@ -8,28 +8,35 @@ import {
     IconRefreshDot,
     IconX,
 } from '@tabler/icons-react';
+import { captialize } from 'components/meta-text';
 import React, { type ReactNode } from 'react';
 import type { statusOfEntity } from 'types/session-records';
 
 export function standingToColors(
     status: statusOfEntity,
+    bgColor?: boolean,
 ): TooltipProps['color'] {
     switch (status) {
         case 'PASSED': {
-            return 'green';
+            return bgColor ? 'lime' : 'green';
         }
         case 'FAILED': {
-            return 'red';
+            return bgColor ? 'red' : 'red';
         }
-
         case 'SKIPPED': {
-            return 'yellow';
+            return bgColor ? 'yellow' : 'yellow';
         }
         case 'PENDING': {
-            return 'gray';
+            return bgColor ? 'orange' : 'gray';
         }
         case 'RETRIED': {
-            return 'orange';
+            return bgColor ? 'orange' : 'indigo';
+        }
+        case 'XFAILED': {
+            return bgColor ? 'orange' : 'orange';
+        }
+        case 'XPASSED': {
+            return bgColor ? 'indigo' : 'blue';
         }
     }
 }
@@ -107,7 +114,7 @@ export default function TestStatusIcon(properties: {
 
     return (
         <Tooltip
-            label={properties.status}
+            label={captialize(properties.status)}
             color={standingToColors(properties.status)}
         >
             {icon}

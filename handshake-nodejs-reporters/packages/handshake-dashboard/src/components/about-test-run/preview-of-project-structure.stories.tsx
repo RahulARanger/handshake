@@ -2,6 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { userEvent, within, expect, waitFor } from '@storybook/test';
 import { PreviewOfProjectStructure } from './preview-run';
 import {
+    evenMoreDepth,
     simpleStructure,
     withMoreDepth,
     withTwoDirectories,
@@ -27,7 +28,9 @@ export const SimpleStructure: Story = {
     },
     render: (arguments_) => (
         <div style={{ width: '500px' }}>
-            <PreviewOfProjectStructure specStructure={arguments_.specStructure} />
+            <PreviewOfProjectStructure
+                specStructure={arguments_.specStructure}
+            />
         </div>
     ),
     play: async ({ canvasElement, step }) => {
@@ -78,7 +81,9 @@ export const TwoDirectories: Story = {
     },
     render: (arguments_) => (
         <div style={{ width: '500px' }}>
-            <PreviewOfProjectStructure specStructure={arguments_.specStructure} />
+            <PreviewOfProjectStructure
+                specStructure={arguments_.specStructure}
+            />
         </div>
     ),
     play: async ({ canvasElement, step }) => {
@@ -91,7 +96,8 @@ export const TwoDirectories: Story = {
         await step(
             'testing the tooltip content of the tree parts',
             async () => {
-                const loginFeatures = await screen.findAllByText('login.feature');
+                const loginFeatures =
+                    await screen.findAllByText('login.feature');
                 await userEvent.hover(loginFeatures[0]);
 
                 await expect(
@@ -192,4 +198,18 @@ export const LoadingState: Story = {
             ).toBeInTheDocument();
         });
     },
+};
+
+export const EvenMoreDepth: Story = {
+    args: {
+        specStructure: evenMoreDepth,
+    },
+    render: (arguments_) => (
+        <div style={{ width: '500px' }}>
+            <PreviewOfProjectStructure
+                specStructure={arguments_.specStructure}
+                quick
+            />
+        </div>
+    ),
 };

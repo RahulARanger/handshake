@@ -14,7 +14,7 @@ async def health_status(request: Request) -> HTTPResponse:
     return text("1", status=200)
 
 
-# bye is core request, so make sure to handle it carefully
+# bye is a core request, so make sure to handle it carefully
 @one_liners.post("/bye")
 async def bye(request: Request) -> HTTPResponse:
     await close_connection()

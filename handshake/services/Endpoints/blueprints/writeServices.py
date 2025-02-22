@@ -1,7 +1,7 @@
 import base64
 from sanic.blueprints import Blueprint
 from sanic.response import text, HTTPResponse
-from loguru import logger
+from sanic.log import logger
 from sanic.request import Request
 from handshake.services.DBService.models.types import (
     AddAttachmentForEntity,
@@ -35,7 +35,7 @@ async def saveImage(request: Request) -> HTTPResponse:
     )
 
     file_name = f"{record.attachmentID}.{record.type.lower()}"
-    logger.info("Received a file from user, saving it as {}", file_name)
+    logger.debug("Received a file from user, saving it as {}", file_name)
     root = root_dir() / writtenAttachmentFolderName
     root.mkdir(exist_ok=True)
     test_root = root / str((await (await record.entity).session).test_id)

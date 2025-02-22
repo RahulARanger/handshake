@@ -1,7 +1,8 @@
-from pytest import Session, Item
+from pytest import Session, Item, Parser
 from _pytest.fixtures import FixtureDef, FixtureValue, SubRequest
 from datetime import datetime
 from loguru import logger
+from handshake.services.DBService.lifecycle import log_less
 from handshake.reporters.pytest_reporter import PyTestHandshakeReporter, PointToAtPhase
 
 reporter = PyTestHandshakeReporter()
@@ -14,10 +15,37 @@ def pytest_configure(config):
     )
 
 
+def pytest_addoption(parser: Parser):
+    parser.addini(
+        "save_results_in",
+        "saves the test results [db file] in the give path [note this is not where the html export would be generated]",
+        type="string",
+    )
+    parser.addini(
+        "save_handshake_config_dir",
+        "saves the handshake configuration in this path, once generated. you can configure the reporter",
+        type="string",
+    )
+    parser.addini(
+        "disable_handshakes",
+        "disable handshake reporter, set it as either 1/true or false",
+        type="bool",
+    )
+    parser.addini(
+        "handshake_port",
+        "port number that handshake should use to collect test results",
+        type="string",
+    )
+
+
 def pytest_sessionstart(session: Session):
     if reporter.parse_config(session):
         return
-    reporter.start_collection(session)
+    is_quiet = session.config.getoption("q", session.config.getoption("quiet", False))
+    if is_quiet:
+        log_less()
+
+    reporter.start_collection(session, is_quiet)
     reporter.create_session(datetime.now())
     reporter.put_test_config()
 

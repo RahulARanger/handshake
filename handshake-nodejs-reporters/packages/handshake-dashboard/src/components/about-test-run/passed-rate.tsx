@@ -26,8 +26,8 @@ export default function PassedRate(properties: {
         >
             {[
                 ['Passed', 'green'],
-                ['Skipped', 'yellow'],
                 ['Failed', 'red'],
+                ['Skipped', 'yellow'],
                 ['XFailed', 'orange'],
                 ['XPassed', 'blue'],
             ].map(([label, color], index) => (

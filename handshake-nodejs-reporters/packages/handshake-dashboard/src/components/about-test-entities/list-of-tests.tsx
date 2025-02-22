@@ -1,4 +1,12 @@
-import { ActionIcon, Badge, Center, rem, Skeleton } from '@mantine/core';
+import {
+    ActionIcon,
+    Badge,
+    Center,
+    Modal,
+    Paper,
+    rem,
+    Skeleton,
+} from '@mantine/core';
 import type { RowsChangeData } from 'react-data-grid';
 import DataGrid from 'react-data-grid';
 import {
@@ -36,7 +44,9 @@ import { IconCaretRightFilled } from '@tabler/icons-react';
 import type { ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
 import { ShowImage } from './image-carousel';
-import DetailedTestView from './detailed-test-view';
+import DetailedTestView, {
+    detailedTestViewPortalTarget,
+} from './detailed-test-view';
 
 export default function ListOfTests(properties: {
     testID?: string;
@@ -105,6 +115,7 @@ export default function ListOfTests(properties: {
     );
 
     const [rows, setRows] = useState<ParsedTestRecord[]>([]);
+    const [expanded, setExpanded] = useState<string | undefined>();
 
     useMemo(() => {
         const converter = spawnConverterForAnsiToHTML();
@@ -187,6 +198,7 @@ export default function ListOfTests(properties: {
                                         assertionsAreLoading={
                                             simulateLoadingForAssertions
                                         }
+                                        setExpanded={setExpanded}
                                     />
                                 );
                             return (
@@ -432,6 +444,17 @@ export default function ListOfTests(properties: {
                 feed={imagePreview}
                 onClose={() => setImagePreview(undefined)}
             />
+            <Modal
+                opened={!!expanded}
+                onClose={() => setExpanded(undefined)}
+                keepMounted={true}
+                size="xl"
+                withCloseButton={false}
+                fullScreen
+                closeOnClickOutside={false}
+            >
+                <Paper id={detailedTestViewPortalTarget}></Paper>
+            </Modal>
         </>
     );
 }

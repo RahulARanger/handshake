@@ -1,3 +1,5 @@
+name: release-workflow
+
 on:
   workflow_dispatch:
     inputs:
@@ -26,8 +28,8 @@ on:
         default: false
 
 run-name: ${{ 
-    inputs.build_dashboard && 'Build Dashboard & Storybook' || 
-    inputs.deploy_storybook && 'Deploy Storybook' ||
+    inputs.build_dashboard && 'Build & Release Dashboard & Storybook' || 
+    inputs.deploy_storybook && 'Build & Release Storybook' ||
     inputs.build_python_handshakes && 'Deploy Handshake Py-Build' || 
     inputs.release_nodejs_based_reporters && 'Deploy Custom Reporters Node' || 
     'Releases' 

@@ -25,7 +25,7 @@ async def reset_sqlite_sequence(output_db_path):
 
 
 def prep_minis(zipped_results: Path) -> Path:
-    logger.info("preparing a temp. copy of {}...", zipped_results.name)
+    logger.debug("preparing a temp. copy of {}...", zipped_results.name)
     temp_folder = Path(mkdtemp(prefix="handshake-merge-"))
     is_zip = zipped_results.is_file()
 
@@ -36,15 +36,15 @@ def prep_minis(zipped_results: Path) -> Path:
             temp_folder.mkdir()
             unpack_archive(zipped_results, temp_folder, "bztar")
             logger.debug("checking for possible migration for {}", db_path(temp_folder))
-            logger.warning("running migrator on {}", db_path(temp_folder))
+            logger.debug("running migrator on {}", db_path(temp_folder))
         else:
             logger.debug("copying provided folder {} to a temp folder", zipped_results)
             temp_folder /= zipped_results.name
             copytree(zipped_results, temp_folder)
             logger.debug("{} is now copied to {}", zipped_results, temp_folder)
-            logger.warning("running migrator on {}", db_path(temp_folder))
+            logger.debug("running migrator on {}", db_path(temp_folder))
     except Exception as error:
-        logger.warning("cleaning temp folders")
+        logger.warning("cleaning temp folders as it failed.")
         rmtree(temp_folder.parent)
         raise error
 
@@ -109,7 +109,7 @@ class Merger:
                 for collection in paths:
                     cleaner.submit(rmtree, collection.parent)
             logger.debug("temp folders have been removed successfully")
-        logger.info("merge operation completed!")
+        logger.info("Merge Completed, saved to {}!", self.output_db_path.parent)
 
     def merge_internals(self, paths: List[Path]):
         with connect(self.output_db_path) as connection:
@@ -133,7 +133,7 @@ class Merger:
             connection.rollback()
         else:
             connection.commit()
-            logger.info(
+            logger.debug(
                 "Merged {} with output db successfully.",
                 child_db_path.parent.name,
             )
