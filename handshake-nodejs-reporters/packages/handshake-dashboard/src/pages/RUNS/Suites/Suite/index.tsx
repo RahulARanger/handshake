@@ -7,7 +7,7 @@ import OverviewCard from 'components/about-test-entities/overview-of-test-entity
 import ListOfTests from 'components/about-test-entities/list-of-tests';
 import { Stack } from '@mantine/core';
 
-export default function OverviewPage(): ReactNode {
+export default function EntityView(): ReactNode {
     const router = useRouter();
     const { testID, suiteID } = router.query as {
         testID?: string;

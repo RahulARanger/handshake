@@ -3,28 +3,32 @@ import Head from 'next/head';
 import { TEXT } from '@hand-shakes/utils';
 import { useRouter } from 'next/router';
 import RunPageContent from 'components/about-test-run/test-run-page-layout';
-import { Grid } from '@mantine/core';
-import OverviewCard from 'components/about-test-run/overview-of-test-card';
-import PreviewTestRun from 'components/about-test-run/preview-run';
+import { OverviewBoard } from 'components/about-test-run/overview-of-test-card';
 import { jsonFeedAboutTestRun } from 'components/links';
 import transformTestRunRecord from 'extractors/transform-run-record';
-import type { TestRunRecord } from 'types/test-run-records';
+import type { Projects, TestRunRecord } from 'types/test-run-records';
 import useSWRImmutable from 'swr/immutable';
 
-export default function OverviewPage(): ReactNode {
+export default function OverviewPage(properties: {
+    mockRun?: TestRunRecord;
+    mockProjects?: Projects;
+}): ReactNode {
     const router = useRouter();
     const { testID } = router.query as { testID?: string };
     const {
-        data: rawRun,
+        data: _rawRun,
         // isLoading,
         // error,
     } = useSWRImmutable<TestRunRecord>(
-        testID ? jsonFeedAboutTestRun(testID) : undefined,
+        testID && !properties.mockRun
+            ? jsonFeedAboutTestRun(testID)
+            : undefined,
         () =>
             fetch(jsonFeedAboutTestRun(testID as string)).then(
                 async (response) => response.json(),
             ),
     );
+    const rawRun = _rawRun ?? properties.mockRun;
 
     const run = useMemo(
         () => rawRun && transformTestRunRecord(rawRun),
@@ -40,19 +44,11 @@ export default function OverviewPage(): ReactNode {
                 <meta name="description" content={TEXT.OVERVIEW.description} />
             </Head>
             <RunPageContent
-                testID={testID}
-                // NOTE: do not send object: run else it will not refresh when pushing a new route
+                // NOTE: do not send object: run, else it will not refresh when pushing a new route
                 where={'Overview'}
-                avoidScrollWindow
+                run={run}
             >
-                <Grid columns={2}>
-                    <Grid.Col span={1}>
-                        <OverviewCard run={run} />
-                    </Grid.Col>
-                    <Grid.Col span={1}>
-                        <PreviewTestRun run={run} />
-                    </Grid.Col>
-                </Grid>
+                <OverviewBoard run={run} mockData={properties.mockProjects} />
             </RunPageContent>
         </>
     );

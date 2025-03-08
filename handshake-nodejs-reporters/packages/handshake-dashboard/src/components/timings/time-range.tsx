@@ -10,17 +10,20 @@ dayjs.extend(relativeTime);
 
 export function TimeRange(properties: {
     startTime: dayjs.Dayjs;
-    endTime: dayjs.Dayjs;
+    endTime?: dayjs.Dayjs;
     size?: TextProps['size'];
     detailed?: boolean;
     relativeFrom?: dayjs.Dayjs;
     cn?: string;
 }): ReactNode {
-    const rangeText = `${properties.startTime.format(timeFormatUsed)} - ${properties.endTime.format(timeFormatUsed)}`;
-    const relative = properties.relativeFrom
-        ? properties.endTime.from(properties.relativeFrom) +
-          ` relative from ${properties.relativeFrom.format(timeFormatUsed)}`
-        : properties.startTime.fromNow();
+    const rangeText = properties.endTime
+        ? `${properties.startTime.format(timeFormatUsed)} - ${properties.endTime.format(timeFormatUsed)}`
+        : properties.startTime.format(timeFormatUsed);
+    const relative =
+        properties.relativeFrom && properties.endTime
+            ? properties.endTime.from(properties.relativeFrom) +
+              ` relative from ${properties.relativeFrom.format(timeFormatUsed)}`
+            : properties.startTime.fromNow();
 
     return (
         <Tooltip

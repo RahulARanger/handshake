@@ -6,6 +6,7 @@ import {
     HoverCard,
     Input,
     MultiSelect,
+    Paper,
     Skeleton,
     Text,
     Tooltip,
@@ -53,6 +54,9 @@ import { ErrorsToShow } from './error-card';
 import RedirectToTestEntity from './redirect-to-detailed-test-entity';
 import { useRouter } from 'next/router';
 import { statusOfEntity } from 'types/session-records';
+import { DataTable } from 'mantine-datatable';
+import '@mantine/core/styles.layer.css';
+import 'mantine-datatable/styles.layer.css';
 
 interface SearchQuery {
     search: string;
@@ -660,23 +664,122 @@ function TreeView(properties: {
     );
 }
 
+function TableOfSuites(properties: {
+    suites: ParsedSuiteRecord[];
+    started?: string;
+}) {
+    return (
+        <Paper withBorder shadow="xl">
+            <DataTable
+                withTableBorder
+                withRowBorders
+                withColumnBorders
+                striped
+                highlightOnHover
+                records={properties.suites}
+                columns={[
+                    {
+                        accessor: 'Status',
+                        render: (row, rowIndex) => (
+                            <TestEntityStatus
+                                status={row.Status}
+                                key={rowIndex}
+                            />
+                        ),
+                        textAlign: 'center',
+                    },
+                    {
+                        accessor: 'Title',
+                        width: 150,
+                        ellipsis: true,
+                    },
+                    {
+                        accessor: 'File',
+                    },
+                    {
+                        accessor: 'Range',
+                        render: (row, rowIndex) => {
+                            return (
+                                <TimeRange
+                                    startTime={row.Started}
+                                    endTime={row.Ended}
+                                    key={rowIndex}
+                                    detailed
+                                    relativeFrom={dayjs(properties?.started)}
+                                />
+                            );
+                        },
+                    },
+                    {
+                        accessor: 'Start Time',
+                        render: (row, rowIndex) => {
+                            return (
+                                <TimeRange
+                                    startTime={row.Started}
+                                    key={rowIndex}
+                                    detailed
+                                    relativeFrom={dayjs(properties?.started)}
+                                />
+                            );
+                        },
+                    },
+                    {
+                        accessor: 'End Time',
+                        render: (row, rowIndex) => {
+                            return (
+                                <TimeRange
+                                    startTime={row.Ended}
+                                    key={rowIndex}
+                                    detailed
+                                    relativeFrom={dayjs(properties?.started)}
+                                />
+                            );
+                        },
+                    },
+                    {
+                        accessor: 'Duration',
+                        render: (row, rowIndex) => {
+                            return (
+                                <HumanizedDuration
+                                    duration={row.Duration}
+                                    key={rowIndex}
+                                />
+                            );
+                        },
+                    },
+                    { accessor: 'totalRollupValue', title: 'Tests' },
+                ]}
+            />
+        </Paper>
+    );
+}
+
 export default function ListOfSuits(properties: {
     testID?: string;
+    mockSuites?: SuiteRecordDetails[];
+    mockRun?: TestRunRecord;
 }): ReactNode {
     const {
-        data: run,
+        data: _run,
         isLoading: runFeedLoading,
         error: runFeedError,
     } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
+        properties.testID && !properties.mockRun
+            ? jsonFeedAboutTestRun(properties.testID)
+            : undefined,
         () =>
             fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
                 async (response) => response.json(),
             ),
     );
+    const run = _run ?? properties.mockRun;
 
-    const { data, isLoading, error } = useSWRImmutable<SuiteRecordDetails[]>(
-        properties.testID
+    const {
+        data: _data,
+        isLoading,
+        error,
+    } = useSWRImmutable<SuiteRecordDetails[]>(
+        properties.testID && !properties.mockSuites
             ? jsonFeedForListOfSuites(properties.testID)
             : undefined,
         () =>
@@ -684,6 +787,7 @@ export default function ListOfSuits(properties: {
                 async (response) => response.json(),
             ),
     );
+    const data = _data ?? properties.mockSuites;
 
     const suites = useMemo(() => {
         const converter = spawnConverterForAnsiToHTML();
@@ -717,7 +821,7 @@ export default function ListOfSuits(properties: {
     const filteredSuites = useMemo(() => {
         console.log(toLoad, suites, 'here');
         if (toLoad) return [];
-        let p_suites = suites;
+        let p_suites = suites.filter((suite) => suite.Parent === '');
 
         if (searchQuery.status.length > 0)
             p_suites = suites.filter((suite) =>
@@ -754,6 +858,7 @@ export default function ListOfSuits(properties: {
                     setGroupedRowsByFile({ records: [], title: '' });
                 }}
             />
+            <TableOfSuites started={run?.started} suites={filteredSuites} />
         </Group>
     );
 }

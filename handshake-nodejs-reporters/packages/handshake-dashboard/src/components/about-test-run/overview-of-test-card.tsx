@@ -1,4 +1,4 @@
-import type { TextProps } from '@mantine/core';
+import type { DefaultMantineColor } from '@mantine/core';
 import {
     Badge,
     Card,
@@ -9,207 +9,287 @@ import {
     Skeleton,
     Text,
     Tooltip,
-    Grid,
     Anchor,
-    Box,
     Paper,
     Stack,
-    ScrollAreaAutosize,
-    SimpleGrid,
-    ThemeIcon,
+    Center,
+    Divider,
+    SegmentedControl,
 } from '@mantine/core';
-import { IconChevronLeft, IconChevronRight } from '@tabler/icons-react';
+import {
+    IconArrowDownRight,
+    IconArrowUpRight,
+    IconChevronLeft,
+    IconChevronRight,
+} from '@tabler/icons-react';
 import type { Dayjs } from 'dayjs';
 import type { Duration } from 'dayjs/plugin/duration';
-import type { ReactNode } from 'react';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import duration from 'dayjs/plugin/duration';
 import dayjs from 'dayjs';
 import CountUpNumber from 'components/counter';
-import { Sparkline } from '@mantine/charts';
 import {
-    durationText,
-    HumanizedDuration,
-} from 'components/timings/humanized-duration';
+    AreaChart,
+    getFilteredChartTooltipPayload,
+    PieChart,
+} from '@mantine/charts';
+import Confetti from 'react-confetti-boom';
+import { HumanizedDuration } from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
 import useSWRImmutable from 'swr/immutable';
-import {
-    jsonFeedForOverviewOfTestRun,
-    jsonFeedForProjects,
-    testRunPage,
-} from 'components/links';
+import { jsonFeedForProjects, testRunPage } from 'components/links';
 import type { Projects } from 'types/test-run-records';
 import type { DetailedTestRecord } from 'types/parsed-records';
-import { FrameworksUsed } from './framework-icons';
-import { OnPlatform } from './platform-icon';
-import type { OverviewOfEntities } from 'extractors/transform-run-record';
-import PlatformEntity, {
-    DetailedPlatformVersions,
-} from 'components/about-test-entities/platform-entity';
-import { useDisclosure } from '@mantine/hooks';
-import TestStatusRing from './test-status-ring';
-import TestStatusIcon, { standingToColors } from './test-status';
-import { captialize } from 'components/meta-text';
+import { useInterval } from '@mantine/hooks';
+import { standingToColors } from './test-status';
+import { captialize, getRandomInt } from 'components/meta-text';
+import PassedRate from './passed-rate';
+import { statusOfEntity } from 'types/session-records';
+import { Payload } from 'recharts/types/component/DefaultTooltipContent';
 
 dayjs.extend(duration);
 
-function colorFromChange(change: number, reverse?: boolean): TextProps['c'] {
-    if (change === 0) return 'gray';
-    const colors = ['red', 'green'];
-    const colorIndex = Number(change > 0) ^ Number(reverse); // XOR operation
-    return colors[colorIndex];
-}
-function indicateNumber(change: number, forceText?: string): string | number {
-    if (change === 0) return change;
-    return `${change > 0 ? '+' : ''}${forceText ?? change}`;
-}
+const gen = () => [
+    { name: 'P', value: getRandomInt(0, 10), color: 'orange' },
+    { name: 'S', value: getRandomInt(0, 10), color: 'green' },
+    { name: 'A', value: getRandomInt(0, 10), color: 'red' },
+    { name: 'D', value: getRandomInt(0, 10), color: 'blue' },
+];
 
-function getChange(
-    values: number[],
-    isRecentRun: boolean,
-    referFrom?: number,
-): number {
-    const referPrevious = referFrom !== undefined && isRecentRun;
+export function LoadingPie() {
+    const [mockData, setMockData] = useState(gen());
+    useInterval(
+        () => {
+            setMockData(() => gen());
+        },
+        3000,
+        { autoInvoke: true },
+    );
+
     return (
-        (values?.at(referPrevious ? -1 : (referFrom as number)) ?? 0) -
-        (values.at(referPrevious ? -2 : -1) ?? 0)
+        <Center p="xl" m="xl">
+            <Stack align="center">
+                <PieChart
+                    size={160}
+                    data={mockData}
+                    title="Loading..."
+                    withTooltip={false}
+                    pieProps={{ isAnimationActive: true }}
+                />
+                <Text>Loading...</Text>
+            </Stack>
+        </Center>
     );
 }
 
-const comparingToRecentRunLabel = 'Compared to the Recent Test Run';
-const forRecentTestRunLabel = 'Compared to the Last Test Run';
+function PieViewOfStatus(properties: {
+    rate: [number, number, number, number, number];
+    text: string;
+}) {
+    const rate = properties.rate;
+    const data = useMemo(() => {
+        return ['PASSED', 'FAILED', 'SKIPPED', 'XFAILED', 'XPASSED'].map(
+            (status, index) => ({
+                name: captialize(status),
+                value: rate[index],
+                color: standingToColors(
+                    status as statusOfEntity,
+                ) as DefaultMantineColor,
+            }),
+        );
+    }, [rate]);
 
-export function NotedValues(properties: {
-    testRunRecord?: DetailedTestRecord;
-    rawForceFeedPlatforms?: OverviewOfEntities['platforms'];
-}): ReactNode {
-    const run = properties.testRunRecord;
-    const {
-        data: rawFeed,
-        // isLoading: overviewFeed,
-        // error,
-    } = useSWRImmutable<OverviewOfEntities>(
-        run?.Id ? jsonFeedForOverviewOfTestRun(run.Id) : undefined,
-        () =>
-            fetch(jsonFeedForOverviewOfTestRun(run?.Id as string)).then(
-                async (response) => response.json(),
-            ),
+    return (
+        <Paper>
+            <Stack align="center">
+                <PieChart
+                    size={250}
+                    withLabelsLine
+                    labelsType="value"
+                    paddingAngle={6}
+                    withLabels
+                    tooltipDataSource="segment"
+                    data={data}
+                    withTooltip
+                    pieProps={{ isAnimationActive: true }}
+                />
+            </Stack>
+        </Paper>
     );
+}
+interface ChartTooltipProperties {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    payload: Payload<any, any>[] | undefined;
+    reference: number;
+    unit?: string;
+    invertReference?: boolean;
+}
+const nth = (d: number) => {
+    const last = +String(d).slice(-2);
+    if (last > 3 && last < 21) return 'th';
+    const remainder = last % 10;
+    if (remainder === 1) return 'st';
+    if (remainder === 2) return 'nd';
+    if (remainder === 3) return 'rd';
+    return 'th';
+};
 
-    const [opened, { open, close }] = useDisclosure();
-    const platforms = properties.rawForceFeedPlatforms ?? rawFeed?.platforms;
-    const testColor = standingToColors(run?.Status ?? 'PENDING', true);
+const colorForChange = (value: number) => (value === 0 ? 'bright' : 'teal');
 
-    const data = [
-        {
-            value: <OnPlatform platform={run?.Platform ?? ''} size="sm" />,
-            title: 'OS',
-            description: `Ran on ${run?.Platform}`,
-        },
-        {
-            value: <TestStatusIcon status={run?.Status ?? 'PENDING'} />,
-            title: 'Exit Code',
-            description: `Current Test Run Status: ${captialize(run?.RunStatus ?? '')}`,
-        },
-        {
-            value: platforms ? (
-                <>
-                    <ActionIcon
-                        onClick={() => open()}
-                        color="gray"
-                        variant="light"
-                        w={20 + 10 * platforms.length}
-                    >
-                        <PlatformEntity
-                            entityNames={platforms.map(
-                                (entity) => entity.entityName,
+function ChartTooltip({
+    reference,
+    payload,
+    invertReference,
+    unit,
+}: ChartTooltipProperties) {
+    if (!payload) return;
+
+    const isPostiveChange = (value: number) => value >= 0 === !invertReference;
+
+    return (
+        <Paper px="md" py="sm" withBorder shadow="md" radius="md">
+            {getFilteredChartTooltipPayload(payload).map((item) => (
+                <Stack key={item.name}>
+                    <Text size="sm">
+                        {item.payload.index + 1}
+                        <sup>{nth(item.payload.index + 1)}</sup>
+                        &nbsp;&nbsp;
+                        {'Test Run'}
+                    </Text>
+                    <Text size="sm">
+                        {item.name}:&nbsp;&nbsp;
+                        <Text
+                            c={
+                                isPostiveChange(item.value)
+                                    ? colorForChange(item.value)
+                                    : 'red'
+                            }
+                            fz="sm"
+                            fw={500}
+                            component="span"
+                        >
+                            <span>
+                                {item.value}
+                                {unit ?? ''}
+                            </span>
+                            {item.value >= 0 ? (
+                                <IconArrowUpRight size={16} stroke={1.5} />
+                            ) : (
+                                <IconArrowDownRight size={16} stroke={1.5} />
                             )}
-                            size="sm"
-                        />
-                    </ActionIcon>
-                    <DetailedPlatformVersions
-                        records={platforms}
-                        opened={opened}
-                        onClose={close}
-                        title={'Ran on Platforms:'}
-                    />
-                </>
-            ) : (
-                false
-            ),
-            title: 'Platform',
-            description: 'Ran on Platforms (Browsers/Console)',
-            skipThemeIcon: true,
-        },
-        {
-            value: <Text>{run?.MaxInstances ?? 0}</Text>,
-            title: 'Max. Instances',
-            description:
-                'Maximum Parallel Instances used inside the Test Framework',
-        },
-        {
-            value: <Text>{rawFeed?.aggregated?.files ?? 0}</Text>,
-            title: 'Files',
-            description: 'Total Number of Test files',
-        },
-        {
-            value: <Text>{run?.Bail ?? 0}</Text>,
-            title: 'Bail',
-            description: 'Bail After x failures in the test run',
-        },
-        {
-            value: (
-                <FrameworksUsed frameworks={run?.Frameworks ?? []} size="md" />
-            ),
-            title: 'Framework',
-            description: 'Test Framework',
-            skipThemeIcon: true,
-        },
-        {
-            value: <Text>{rawFeed?.aggregated?.sessions ?? 0}</Text>,
-            title: 'Sessions',
-            description: 'Number of Test sessions',
-        },
-    ];
-
-    const items = data
-        .filter((item) => item.value)
-        .map((item) => (
-            <div key={item.title}>
-                {item.skipThemeIcon ? (
-                    item.value
-                ) : (
-                    <ThemeIcon
-                        variant="light"
-                        size={40}
-                        radius={40}
-                        color={testColor}
-                    >
-                        {item.value}
-                    </ThemeIcon>
-                )}
-                <Text mt="sm" mb={7} pl={6}>
-                    {item.title}
-                </Text>
-                <Text size="sm" c="dimmed" lh={1.6} pl={12}>
-                    {item.description}
-                </Text>
-            </div>
-        ));
-
-    return (
-        <Paper py={15}>
-            <SimpleGrid cols={{ base: 1, xs: 2 }} spacing="md" px="lg">
-                {items}
-            </SimpleGrid>
+                        </Text>
+                        &nbsp;&nbsp;({item.value + reference}
+                        {unit ?? ''})
+                    </Text>
+                </Stack>
+            ))}
         </Paper>
     );
 }
 
-export default function OverviewCard(properties: {
-    run?: DetailedTestRecord;
+function RateOfChangeChart(properties: {
+    label: string;
+    c: DefaultMantineColor;
+    rc?: DefaultMantineColor;
+    counts: number[];
+    index: number;
+    showLineText?: boolean;
+    referenceIndex: number;
+    unit?: string;
+}) {
+    return (
+        <AreaChart
+            h={100}
+            data={properties.counts.map((value, index) => ({
+                index,
+                [properties.label]:
+                    value -
+                    (properties.counts[properties.referenceIndex ?? 0] ?? 0),
+            }))}
+            w={385}
+            pl="xs"
+            pt="xs"
+            withYAxis={false}
+            dataKey="value"
+            tickLine="none"
+            gridAxis="none"
+            strokeWidth={1}
+            unit={`+${properties.counts[properties.referenceIndex ?? 0] ?? 0}`}
+            type="split"
+            splitColors={[properties.c, properties.rc ?? 'red']}
+            areaChartProps={{ syncId: 'rate-of-change-chart' }}
+            areaProps={{ isAnimationActive: true }}
+            referenceLines={[
+                {
+                    x: properties.index,
+                    label: properties.showLineText ? 'Current Test Run' : '',
+                },
+            ]}
+            series={[
+                {
+                    name: properties.label,
+                    color: 'bright',
+                },
+            ]}
+            tooltipProps={{
+                content: ({ payload }) => (
+                    <ChartTooltip
+                        reference={
+                            properties.counts[properties.referenceIndex ?? 0]
+                        }
+                        unit={properties.unit ?? ''}
+                        payload={payload}
+                        invertReference={(properties.rc ?? 'red') !== 'red'}
+                    />
+                ),
+            }}
+        />
+    );
+}
+
+function RateOfChangeCharts(properties: {
+    passedCounts: number[];
+    failedCounts: number[];
+    testCounts: number[];
+    durations: number[];
+    showTests: boolean;
+    index: number;
+    referenceIndex: number;
+}) {
+    return (
+        <Stack>
+            <RateOfChangeChart
+                label="Passed Tests"
+                c={standingToColors('PASSED') as DefaultMantineColor}
+                counts={properties.passedCounts}
+                index={properties.index}
+                showLineText
+                referenceIndex={properties.referenceIndex}
+            />
+            <RateOfChangeChart
+                label="Failed Tests"
+                c={standingToColors('FAILED') as DefaultMantineColor}
+                counts={properties.failedCounts}
+                index={properties.index}
+                rc="green"
+                referenceIndex={properties.referenceIndex}
+            />
+            <RateOfChangeChart
+                label="Tests"
+                c={'lime'}
+                counts={properties.testCounts}
+                index={properties.index}
+                referenceIndex={properties.referenceIndex}
+            />
+        </Stack>
+    );
+}
+
+function OverviewFromRestOfTheProjects(properties: {
+    run: DetailedTestRecord;
     mockData?: Projects;
-}): ReactNode {
+    showTests: boolean;
+}) {
     const {
         data: _projects,
         isLoading: loadingProjects,
@@ -221,453 +301,301 @@ export default function OverviewCard(properties: {
                 response.json(),
             ),
     );
-    const projects = properties.mockData ?? _projects;
-
     const run = properties.run;
-    const [showTests, setShowTests] = useState(false);
+    const [rIndex, setRIndex] = useState<number | undefined>();
 
-    const [passedCounts, failedCounts, testCounts, durations, ids] =
+    const projects = properties.mockData ?? _projects;
+    const toLoad = loadingProjects || fetchProjectsError !== undefined;
+
+    const [passedCounts, failedCounts, testCounts, durations, ids, options] =
         useMemo(() => {
-            const required = projects && projects[run?.projectName ?? ''];
+            const required =
+                projects && projects[run?.projectName ?? ''].toReversed();
+            const dOptions = [];
+            if (run.projectIndex !== (required ?? []).length - 1)
+                dOptions.push('First');
+            dOptions.push('Current');
+            if (run.projectIndex > 0) dOptions.push('Last');
+
             return required
                 ? [
                       required.map((project) =>
-                          showTests ? project.passed : project.passedSuites,
+                          properties.showTests
+                              ? project.passed
+                              : project.passedSuites,
                       ),
                       required.map((project) =>
-                          showTests ? project.failed : project.failedSuites,
+                          properties.showTests
+                              ? project.failed
+                              : project.failedSuites,
                       ),
                       required.map((project) =>
-                          showTests ? project.tests : project.suites,
+                          properties.showTests ? project.tests : project.suites,
                       ),
-                      required.map((project) => project.duration),
+                      required.map((project) =>
+                          Number((project.duration / 1e3).toFixed(2)),
+                      ),
                       required.map((project) => project.testID),
+                      dOptions,
                   ]
-                : [[], [], [], [], []];
-        }, [projects, run, showTests]);
+                : [[], [], [], [], [], ['Current']];
+        }, [projects, run, properties.showTests]);
 
-    const [hovered, setHovered] = useState<number>(-1);
-    const toLoad =
-        run === undefined ||
-        loadingProjects ||
-        fetchProjectsError !== undefined;
+    if (toLoad) return <LoadingPie />;
 
-    const totalEntity = (showTests ? run?.Tests : run?.Suites) as number;
-    const rateValues = (showTests ? run?.Rate : run?.SuitesSummary) as number[];
-
-    const isRecentRun = run?.projectIndex === 0;
-    const relativeIndex =
-        run?.projectIndex === undefined ? undefined : -(run.projectIndex + 1);
-
+    const relativeIndex = passedCounts.length - (run.projectIndex + 1);
     const previousProject =
         relativeIndex && relativeIndex < 0 && ids.at(relativeIndex - 1);
+    const isRecentRun = run?.projectIndex === 0;
     const nextProject =
         !isRecentRun && relativeIndex && ids.at(relativeIndex + 1);
 
-    const improvedCount =
-        (rateValues && getChange(testCounts, isRecentRun, relativeIndex)) ??
-        '--';
-    const improvedDuration =
-        durations && getChange(durations, isRecentRun, relativeIndex);
-
-    const improvedPassedCount =
-        passedCounts && getChange(passedCounts, isRecentRun, relativeIndex);
-    const improvedFailedCount =
-        failedCounts && getChange(failedCounts, isRecentRun, relativeIndex);
     return (
-        <ScrollAreaAutosize
-            h={'calc(100vh - var(--app-shell-header-height, 0px))'}
-            pt="md"
-            pb="sm"
-            pl="sm"
-            scrollbars="y"
-        >
-            <Card p="sm" withBorder shadow="lg" radius="lg">
-                <Card.Section
-                    withBorder
-                    p="sm"
-                    px="md"
-                    style={{ height: rem(53) }}
-                >
-                    <Group justify="space-between" align="center" wrap="nowrap">
-                        <Group align="baseline" wrap="nowrap">
-                            <Text mr={-6}>Executed</Text>
-                            {toLoad ? (
-                                <Skeleton animate width={25} height={12} />
-                            ) : (
-                                <CountUpNumber
-                                    endNumber={totalEntity}
-                                    maxDigitsOf={run?.Tests ?? 1}
-                                    style={{
-                                        fontSize: rem(20),
-                                        fontWeight: 'bold',
-                                    }}
-                                />
-                            )}
-                            <Select
-                                clearable={false}
-                                unselectable="off"
-                                allowDeselect={false}
-                                value={String(showTests)}
-                                variant="unstyled"
-                                w={73}
-                                ml={-6}
-                                mr={-18}
-                                comboboxProps={{ width: rem(85) }}
-                                withCheckIcon={false}
-                                data={[
-                                    { value: 'true', label: 'Tests' },
-                                    { value: 'false', label: 'Suites' },
-                                ]}
-                                onChange={(_) => setShowTests(_ === 'true')}
-                            />
-                            {toLoad ? (
-                                <Skeleton animate width={110} height={15} />
-                            ) : (
-                                <HumanizedDuration
-                                    duration={run?.Duration as Duration}
-                                    prefix="for "
-                                />
-                            )}
-                        </Group>
-                        <Group align="center" wrap="nowrap">
-                            {run?.RunStatus === 'COMPLETED' ? (
-                                <></>
-                            ) : (
-                                <Badge
-                                    color={
-                                        run?.RunStatus === 'INTERNAL_ERROR'
-                                            ? 'red.9'
-                                            : 'orange.9'
-                                    }
-                                    variant="light"
-                                    title={run?.RunStatus}
+        <>
+            <Card withBorder maw={450}>
+                <Group wrap="nowrap" align="flex-start">
+                    <Text size="sm">
+                        Please explore the current test run stats. and its
+                        comparsion with rest of the runs.
+                    </Text>
+                    <Group wrap="nowrap" mt="sm">
+                        <Tooltip label="Previous Test Run" color="teal">
+                            <Anchor
+                                href={testRunPage(previousProject || '')}
+                                component="a"
+                            >
+                                <ActionIcon
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!previousProject}
+                                    mr={0}
+                                    radius={'sm'}
                                 >
-                                    {run?.RunStatus?.replaceAll('_', ' ')}
-                                </Badge>
-                            )}
-                            {toLoad ? (
-                                <Skeleton animate width={100} height={18} />
-                            ) : (
-                                <Badge
-                                    color="orange.8"
-                                    variant="light"
-                                    tt="none"
-                                >
-                                    <TimeRange
-                                        startTime={run?.Started as Dayjs}
-                                        endTime={run?.Ended as Dayjs}
-                                        size="xs"
+                                    <IconChevronLeft
+                                        style={{
+                                            width: rem(16),
+                                            height: rem(16),
+                                        }}
+                                        stroke={1.5}
                                     />
-                                </Badge>
-                            )}
-                            <Group wrap="nowrap">
-                                <Tooltip label="Previous Test Run" color="teal">
-                                    <Anchor
-                                        href={testRunPage(
-                                            previousProject || '',
-                                        )}
-                                    >
-                                        <ActionIcon
-                                            size="sm"
-                                            variant="subtle"
-                                            disabled={!previousProject}
-                                            mr={0}
-                                            radius={'sm'}
-                                        >
-                                            <IconChevronLeft
-                                                style={{
-                                                    width: rem(16),
-                                                    height: rem(16),
-                                                }}
-                                                stroke={1.5}
-                                            />
-                                        </ActionIcon>
-                                    </Anchor>
-                                </Tooltip>
-                                <Tooltip label="Next Test Run" color="teal">
-                                    <Anchor
-                                        href={testRunPage(nextProject || '')}
-                                    >
-                                        <ActionIcon
-                                            size="sm"
-                                            variant="subtle"
-                                            disabled={!nextProject}
-                                            radius={'sm'}
-                                            ml={0}
-                                        >
-                                            <IconChevronRight
-                                                style={{
-                                                    width: rem(16),
-                                                    height: rem(16),
-                                                }}
-                                                stroke={1.5}
-                                            />
-                                        </ActionIcon>
-                                    </Anchor>
-                                </Tooltip>
-                            </Group>
-                        </Group>
+                                </ActionIcon>
+                            </Anchor>
+                        </Tooltip>
+                        <Tooltip label="Next Test Run" color="teal">
+                            <Anchor
+                                href={testRunPage(nextProject || '')}
+                                component="a"
+                            >
+                                <ActionIcon
+                                    size="sm"
+                                    variant="outline"
+                                    disabled={!nextProject}
+                                    radius={'sm'}
+                                    ml={0}
+                                >
+                                    <IconChevronRight
+                                        style={{
+                                            width: rem(16),
+                                            height: rem(16),
+                                        }}
+                                        stroke={1.5}
+                                    />
+                                </ActionIcon>
+                            </Anchor>
+                        </Tooltip>
                     </Group>
-                </Card.Section>
+                </Group>
+                <RateOfChangeChart
+                    label="Duration"
+                    c={'orange'}
+                    rc="green"
+                    showLineText
+                    index={relativeIndex}
+                    counts={durations}
+                    referenceIndex={rIndex ?? relativeIndex}
+                    unit="s"
+                />
 
-                <Stack>
-                    <Card.Section p="sm">
-                        <Grid columns={2}>
-                            <Grid.Col span={0.8} pl={12} pt={rem('5%')}>
-                                <Card.Section>
-                                    <TestStatusRing
-                                        labelText={
-                                            showTests ? 'Tests' : 'Suites'
-                                        }
-                                        rateValues={rateValues}
-                                        totalEntity={totalEntity}
-                                        onHovered={setHovered}
-                                        toLoad={toLoad}
-                                    />
-                                </Card.Section>
-                            </Grid.Col>
-                            <Grid.Col span={1.1} pt={rem('5%')} pl={3}>
-                                <Card.Section>
-                                    <Grid columns={2} title="Trend">
-                                        <Grid.Col span={1}>
-                                            <Box p="xs">
-                                                <Card.Section withBorder p="xs">
-                                                    <Group justify="space-between">
-                                                        <Text
-                                                            size="xs"
-                                                            fw={
-                                                                hovered > 0
-                                                                    ? 500
-                                                                    : undefined
-                                                            }
-                                                            td={
-                                                                hovered > 0
-                                                                    ? 'undefined'
-                                                                    : undefined
-                                                            }
-                                                        >
-                                                            {showTests
-                                                                ? 'Tests'
-                                                                : 'Suites'}{' '}
-                                                            Trend
-                                                        </Text>
-                                                        <Text
-                                                            size="xs"
-                                                            c={colorFromChange(
-                                                                improvedCount,
-                                                            )}
-                                                        >
-                                                            {indicateNumber(
-                                                                improvedCount,
-                                                            )}
-                                                        </Text>
-                                                    </Group>
-                                                </Card.Section>
-                                                {toLoad ? (
-                                                    <Skeleton h={70} w={150} />
-                                                ) : (
-                                                    <Sparkline
-                                                        data={testCounts}
-                                                        w={150}
-                                                        trendColors={{
-                                                            positive: 'green.6',
-                                                            negative: 'red.6',
-                                                            neutral: 'gray.5',
-                                                        }}
-                                                        h={70}
-                                                    />
-                                                )}
-                                            </Box>
-                                        </Grid.Col>
-                                        <Grid.Col span={1}>
-                                            <Box p="xs">
-                                                <Card.Section withBorder p="xs">
-                                                    <Group justify="space-between">
-                                                        <Text size="xs">
-                                                            Duration Trend
-                                                        </Text>
-                                                        <Tooltip
-                                                            label={
-                                                                isRecentRun
-                                                                    ? forRecentTestRunLabel
-                                                                    : comparingToRecentRunLabel
-                                                            }
-                                                        >
-                                                            <Tooltip
-                                                                label={
-                                                                    isRecentRun
-                                                                        ? forRecentTestRunLabel
-                                                                        : comparingToRecentRunLabel
-                                                                }
-                                                            >
-                                                                <Text
-                                                                    size="xs"
-                                                                    c={colorFromChange(
-                                                                        improvedDuration,
-                                                                        true,
-                                                                    )}
-                                                                >
-                                                                    {indicateNumber(
-                                                                        improvedDuration,
-                                                                        durationText(
-                                                                            Number(
-                                                                                (
-                                                                                    improvedDuration /
-                                                                                    1e3
-                                                                                ).toFixed(
-                                                                                    2,
-                                                                                ),
-                                                                            ),
-                                                                        ),
-                                                                    )}
-                                                                </Text>
-                                                            </Tooltip>
-                                                        </Tooltip>
-                                                    </Group>
-                                                </Card.Section>
-                                                {toLoad ? (
-                                                    <Skeleton h={70} w={150} />
-                                                ) : (
-                                                    <Sparkline
-                                                        data={durations}
-                                                        w={150}
-                                                        trendColors={{
-                                                            negative: 'green.6',
-                                                            positive: 'red.6',
-                                                            neutral: 'gray.5',
-                                                        }}
-                                                        h={70}
-                                                    />
-                                                )}
-                                            </Box>
-                                        </Grid.Col>
-                                        <Grid.Col span={1}>
-                                            <Box p="xs">
-                                                <Card.Section withBorder p="xs">
-                                                    <Group justify="space-between">
-                                                        <Text
-                                                            size="xs"
-                                                            fw={
-                                                                hovered === 0
-                                                                    ? 500
-                                                                    : undefined
-                                                            }
-                                                            td={
-                                                                hovered === 0
-                                                                    ? 'undefined'
-                                                                    : undefined
-                                                            }
-                                                        >
-                                                            Passed Trend
-                                                        </Text>
-                                                        <Tooltip
-                                                            label={
-                                                                isRecentRun
-                                                                    ? forRecentTestRunLabel
-                                                                    : comparingToRecentRunLabel
-                                                            }
-                                                        >
-                                                            <Text
-                                                                size="xs"
-                                                                c={colorFromChange(
-                                                                    improvedPassedCount,
-                                                                )}
-                                                            >
-                                                                {indicateNumber(
-                                                                    improvedPassedCount,
-                                                                )}
-                                                            </Text>
-                                                        </Tooltip>
-                                                    </Group>
-                                                </Card.Section>
-                                                {toLoad ? (
-                                                    <Skeleton h={70} w={150} />
-                                                ) : (
-                                                    <Sparkline
-                                                        data={passedCounts}
-                                                        w={150}
-                                                        trendColors={{
-                                                            positive: 'green.6',
-                                                            negative: 'red.6',
-                                                            neutral: 'gray.5',
-                                                        }}
-                                                        h={70}
-                                                    />
-                                                )}
-                                            </Box>
-                                        </Grid.Col>
-                                        <Grid.Col span={1}>
-                                            <Box p="xs">
-                                                <Card.Section withBorder p="xs">
-                                                    <Group justify="space-between">
-                                                        <Text
-                                                            size="xs"
-                                                            fw={
-                                                                hovered === 2
-                                                                    ? 500
-                                                                    : undefined
-                                                            }
-                                                            td={
-                                                                hovered === 2
-                                                                    ? 'undefined'
-                                                                    : undefined
-                                                            }
-                                                        >
-                                                            Failed Trend
-                                                        </Text>
-                                                        <Tooltip
-                                                            label={
-                                                                isRecentRun
-                                                                    ? forRecentTestRunLabel
-                                                                    : comparingToRecentRunLabel
-                                                            }
-                                                        >
-                                                            <Text
-                                                                size="xs"
-                                                                c={colorFromChange(
-                                                                    improvedFailedCount,
-                                                                    true,
-                                                                )}
-                                                            >
-                                                                {indicateNumber(
-                                                                    improvedFailedCount,
-                                                                )}
-                                                            </Text>
-                                                        </Tooltip>
-                                                    </Group>
-                                                </Card.Section>
-                                                {toLoad ? (
-                                                    <Skeleton h={70} w={150} />
-                                                ) : (
-                                                    <Sparkline
-                                                        data={failedCounts}
-                                                        w={150}
-                                                        trendColors={{
-                                                            negative: 'green.6',
-                                                            positive: 'red.6',
-                                                            neutral: 'gray.5',
-                                                        }}
-                                                        h={70}
-                                                    />
-                                                )}
-                                            </Box>
-                                        </Grid.Col>
-                                    </Grid>
-                                </Card.Section>
-                            </Grid.Col>
-                        </Grid>
-                    </Card.Section>
-
-                    <Card.Section
-                        mt={passedCounts.length > 1 ? -15 : -25}
-                        withBorder
-                        p="md"
-                    >
-                        <NotedValues testRunRecord={run} />
-                    </Card.Section>
-                </Stack>
+                <Group mt="xs" align="center">
+                    <Text size="sm">Take reference from: </Text>
+                    <SegmentedControl
+                        data={options}
+                        size="sm"
+                        color="orange"
+                        defaultValue="Current"
+                        onChange={(value) => {
+                            if (value === 'Current') setRIndex(relativeIndex);
+                            else
+                                setRIndex(
+                                    value === 'First'
+                                        ? 0
+                                        : passedCounts.length - 1,
+                                );
+                        }}
+                    />
+                    <Text size="sm">Test Run</Text>
+                </Group>
+                <Text size="sm" mt="xs">
+                    {'We are currently at '}
+                    {relativeIndex + 1}
+                    <sup>{nth(relativeIndex + 1)}</sup>&nbsp;&nbsp;
+                    {'Test Run.'}
+                </Text>
             </Card>
-        </ScrollAreaAutosize>
+            <RateOfChangeCharts
+                passedCounts={passedCounts}
+                failedCounts={failedCounts}
+                showTests={properties.showTests}
+                durations={durations}
+                testCounts={testCounts}
+                index={relativeIndex}
+                referenceIndex={rIndex ?? relativeIndex}
+            />
+        </>
+    );
+}
+
+export function OverviewBoard(properties: {
+    run?: DetailedTestRecord;
+    mockData?: Projects;
+}) {
+    const run = properties.run;
+    const [showTests, setShowTests] = useState(false);
+    const textReference = useRef<HTMLDivElement>(null);
+
+    const toLoad = run === undefined;
+    if (toLoad) {
+        return <LoadingPie />;
+    }
+    const totalEntity = (showTests ? run?.Tests : run?.Suites) as number;
+
+    return (
+        <Stack align="center" mb="md">
+            {run.Status === 'PASSED' ? (
+                <Confetti
+                    particleCount={50}
+                    mode="fall"
+                    colors={['#ff577f', '#ff884b']}
+                />
+            ) : (
+                <></>
+            )}
+            <Group align="baseline" wrap="nowrap" pl="xs">
+                <Badge
+                    ref={textReference}
+                    variant="light"
+                    color={standingToColors(run.Status)}
+                >
+                    {run.Status}!
+                </Badge>
+                <Text>Executed</Text>
+                <CountUpNumber
+                    endNumber={totalEntity}
+                    maxDigitsOf={run?.Tests ?? 1}
+                    style={{
+                        fontSize: rem(20),
+                        fontWeight: 'bold',
+                    }}
+                />
+                <Select
+                    clearable={false}
+                    unselectable="off"
+                    allowDeselect={false}
+                    value={String(showTests)}
+                    variant="unstyled"
+                    w={75}
+                    ml={-6}
+                    mr={-18}
+                    comboboxProps={{ width: rem(85) }}
+                    withCheckIcon={false}
+                    data={[
+                        { value: 'true', label: 'Tests' },
+                        { value: 'false', label: 'Suites' },
+                    ]}
+                    onChange={(_) => setShowTests(_ === 'true')}
+                />
+
+                <HumanizedDuration
+                    duration={run?.Duration as Duration}
+                    prefix="for "
+                />
+                {toLoad ? (
+                    <Skeleton animate width={100} height={18} />
+                ) : (
+                    <Badge color="orange.8" variant="light" tt="none">
+                        <TimeRange
+                            startTime={run?.Started as Dayjs}
+                            endTime={run?.Ended as Dayjs}
+                            size="xs"
+                        />
+                    </Badge>
+                )}
+
+                <Group align="center" wrap="nowrap">
+                    {properties.run?.projectIndex === 0 ? (
+                        <Badge
+                            color="blue.9"
+                            variant="light"
+                            title={
+                                run?.timelineIndex === 0
+                                    ? 'Recent Test Run'
+                                    : `Recent Test Run of ${run?.projectName}`
+                            }
+                        >
+                            Recent Run
+                        </Badge>
+                    ) : (
+                        <></>
+                    )}
+                    {run?.RunStatus === 'COMPLETED' ? (
+                        <></>
+                    ) : (
+                        <Badge
+                            color={
+                                run?.RunStatus === 'INTERNAL_ERROR'
+                                    ? 'red.9'
+                                    : 'orange.9'
+                            }
+                            variant="light"
+                            title={run?.RunStatus}
+                        >
+                            {run?.RunStatus?.replaceAll('_', ' ')}
+                        </Badge>
+                    )}
+                </Group>
+            </Group>
+            {run.Tags ? (
+                <Group>
+                    {run.Tags.map((tag) => (
+                        <Tooltip key={tag.name} label={tag.label} color="cyan">
+                            <Badge size="sm" variant="light" color="cyan.9">
+                                {tag.name}
+                            </Badge>
+                        </Tooltip>
+                    ))}
+                </Group>
+            ) : (
+                <></>
+            )}
+            <PassedRate
+                rate={showTests ? run.Rate : run.SuitesSummary}
+                text={showTests ? 'Tests' : 'Suites'}
+                width={'85%'}
+                height={20}
+            />
+            <Divider orientation="horizontal" w="100%" />
+            <Group gap="lg" justify="space-around">
+                <PieViewOfStatus
+                    text={showTests ? 'Tests' : 'Suites'}
+                    rate={showTests ? run.Rate : run.SuitesSummary}
+                />
+                <OverviewFromRestOfTheProjects
+                    run={run}
+                    showTests={showTests}
+                    mockData={properties.mockData}
+                />
+            </Group>
+            <Divider orientation="horizontal" w="100%" />
+        </Stack>
     );
 }

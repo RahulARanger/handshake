@@ -16,7 +16,7 @@ export function standingToColors(
     status: statusOfEntity,
     bgColor?: boolean,
 ): TooltipProps['color'] {
-    switch (status) {
+    switch (status.toUpperCase()) {
         case 'PASSED': {
             return bgColor ? 'lime' : 'green';
         }
@@ -37,6 +37,9 @@ export function standingToColors(
         }
         case 'XPASSED': {
             return bgColor ? 'indigo' : 'blue';
+        }
+        default: {
+            return 'orange';
         }
     }
 }
