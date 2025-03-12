@@ -13,13 +13,13 @@ export default function RunPageContent(properties: {
     run?: DetailedTestRecord;
 }): ReactNode {
     return (
-        <AppShell header={{ height: 50 }} w={'100vw'} ml={-16}>
+        <AppShell header={{ height: 45 }} w={'100vw'} ml={-16}>
             <Header
                 inSuiteOf={properties.inSuiteOf}
                 where={properties.where}
                 run={properties.run}
             />
-            <AppShell.Main mx={0} pb="xl">
+            <AppShell.Main mx={0} pb="xl" pt={0}>
                 {properties.avoidScrollWindow ? (
                     properties.children
                 ) : (
@@ -27,8 +27,10 @@ export default function RunPageContent(properties: {
                         py="sm"
                         pl="sm"
                         pr={4}
+                        viewportProps={{ style: { paddingTop: '42px' } }}
                         style={{ overflowX: 'hidden' }}
-                        h={'calc(100vh - var(--app-shell-header-height, 0px))'}
+                        h={'98vh'}
+                        mb={15}
                     >
                         {properties.children}
                     </ScrollAreaAutosize>
