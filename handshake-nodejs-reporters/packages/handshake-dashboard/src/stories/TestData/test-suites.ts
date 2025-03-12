@@ -2,6 +2,8 @@ import { Chance } from 'chance';
 import dayjs from 'dayjs';
 import { SuiteRecordDetails } from 'types/test-entity-related';
 import { generateTestRun, getStatus } from './test-runs';
+import { minBy, sortBy, sumBy } from 'lodash-es';
+import { TestRunRecord } from 'types/test-run-records';
 
 const generator = Chance();
 
@@ -151,7 +153,6 @@ export function generateTestSuiteFromTestRun() {
             duration: durationsForParentSuites[1] - Math.random(),
         }),
     ];
-    console.log(passedSuites, failedSuites, skippedSuites);
     return {
         run,
         suites: [
@@ -179,23 +180,9 @@ export function generateTestSuiteFromTestRun() {
     };
 }
 
-interface Feeder {
-    started?: dayjs.Dayjs;
-    ended?: dayjs.Dayjs;
-    duration?: number;
-    file?: string;
-    parent?: string;
-    passed?: number;
-    failed?: number;
-    skipped?: number;
-    tests?: number;
-    xpassed?: number;
-    xfailed?: number;
-    suites?: number;
-    hasChildSuite?: boolean;
-}
-
-function generateTestSuite(feeder: Feeder): SuiteRecordDetails {
+function generateTestSuite(
+    feeder: Partial<SuiteRecordDetails>,
+): SuiteRecordDetails {
     const tests = feeder.tests ?? generator.integer({ min: 5, max: 45 });
     const parent = feeder.parent ?? '';
     let rest = tests;
@@ -234,18 +221,14 @@ function generateTestSuite(feeder: Feeder): SuiteRecordDetails {
     ]) as dayjs.ManipulateType;
 
     const back = generator.integer({ min: 0, max: 3 });
-    const started = (
+    const started =
         feeder.started ??
         dayjs()
             .subtract(back, backBy)
             .subtract(generator.integer({ min: 10, max: 20 }), durationFor)
-    ).toISOString();
-    const ended = (
-        feeder.ended ??
-        dayjs()
-            .subtract(back, backBy)
-            .subtract(generator.integer({ min: 5, max: 9 }), durationFor)
-    ).toISOString();
+            .toISOString();
+
+    const ended = feeder.ended ?? dayjs(started).add(duration).toISOString();
 
     const tags = Array.from({ length: generator.integer({ min: 0, max: 4 }) })
         .map(() =>
@@ -268,7 +251,7 @@ function generateTestSuite(feeder: Feeder): SuiteRecordDetails {
         rollup_passed: passed,
         rollup_failed: failed,
         rollup_skipped: skipped,
-        rollup_tests: tests,
+        rollup_tests: (feeder.rollup_tests ?? 0) + tests,
         hooks: generator.integer({ min: 0, max: 10 }),
         duration,
         file: feeder.file ?? generator.name() + '.js',
@@ -284,5 +267,107 @@ function generateTestSuite(feeder: Feeder): SuiteRecordDetails {
         tags,
         errors: [],
         standing: getStatus(passed, failed, skipped, xfailed, xpassed),
+    };
+}
+
+export function generateTestHierarchyWithSuites(
+    storeMap?: Record<string, SuiteRecordDetails>,
+    feeder?: Partial<SuiteRecordDetails>,
+    tillNow?: number,
+    childSuites?: SuiteRecordDetails[],
+    limit?: number,
+): {
+    suitesMap?: Record<string, SuiteRecordDetails>;
+    suites?: SuiteRecordDetails[];
+    run?: TestRunRecord;
+} {
+    const currentLevelSuites: SuiteRecordDetails[] = [];
+    const detailsMap = storeMap ?? {};
+
+    if (feeder && childSuites && tillNow && limit) {
+        if (tillNow > limit) {
+            return { suitesMap: detailsMap };
+        }
+        const parentSuite = generateTestSuite(feeder);
+        for (const childSuite of childSuites) {
+            childSuite.parent = parentSuite.suiteID;
+        }
+        detailsMap[parentSuite.suiteID] = parentSuite;
+
+        const started = dayjs(parentSuite.started).subtract(
+            dayjs.duration({
+                seconds: generator.integer({ min: 0, max: 1e3 }),
+            }),
+        );
+
+        const ended = dayjs(parentSuite.ended).add(
+            dayjs.duration({
+                seconds: generator.integer({ min: 0, max: 1e3 }),
+            }),
+        );
+        generateTestHierarchyWithSuites(
+            detailsMap,
+            {
+                rollup_tests: parentSuite.rollup_tests,
+                file: parentSuite.file,
+                rollup_passed: parentSuite.rollup_passed,
+                rollup_failed: parentSuite.rollup_failed,
+                rollup_skipped: parentSuite.rollup_skipped,
+                started: started.toISOString(),
+                ended: ended.toISOString(),
+                duration: ended.diff(started),
+                hasChildSuite: true,
+            },
+            tillNow + 1,
+            [parentSuite],
+            limit,
+        );
+        return { suitesMap: detailsMap };
+    }
+
+    const numberOfTrees = generator.integer({ min: 1, max: 60 });
+    const firstLimit = generator.integer({ min: 10, max: 100 });
+    let firstTillNow = 0;
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    for (const _ of Array.from({ length: numberOfTrees })) {
+        const leafs = generator.integer({ min: 1, max: 5 });
+
+        let reference;
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const __ of Array.from({ length: leafs })) {
+            const childSuite = generateTestSuite(reference ?? {});
+
+            if (!reference) {
+                reference = { file: childSuite.file };
+            }
+
+            detailsMap[childSuite.suiteID] = childSuite;
+            currentLevelSuites.push(childSuite);
+            firstTillNow += 1;
+        }
+
+        generateTestHierarchyWithSuites(
+            detailsMap,
+            {
+                rollup_tests: sumBy(currentLevelSuites, 'tests'),
+                file: currentLevelSuites[0].file,
+                rollup_passed: sumBy(currentLevelSuites, 'passed'),
+                rollup_failed: sumBy(currentLevelSuites, 'failed'),
+                rollup_skipped: sumBy(currentLevelSuites, 'skipped'),
+                started: minBy(currentLevelSuites, 'started')?.started,
+                duration: sumBy(currentLevelSuites, 'duration'),
+                hasChildSuite: true,
+            },
+            firstTillNow,
+            currentLevelSuites,
+            firstLimit,
+        );
+    }
+
+    return {
+        run: generateTestRun(),
+        suites: sortBy(Object.values(detailsMap ?? {}), 'started'),
     };
 }

@@ -45,11 +45,9 @@ export default function Header(properties: {
     );
 
     const toLoad =
-        loadingSuiteInfo ||
-        Boolean(run) ||
-        errorWhileFetchingSuiteDetails !== undefined;
-
-    console.log(toLoad, loadingSuiteInfo, properties);
+        Boolean(properties.inSuiteOf && loadingSuiteInfo) ||
+        !run ||
+        Boolean(errorWhileFetchingSuiteDetails);
 
     const router = useRouter();
     return (

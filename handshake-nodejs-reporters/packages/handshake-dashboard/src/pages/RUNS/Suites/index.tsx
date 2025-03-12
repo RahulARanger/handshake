@@ -6,6 +6,7 @@ import RunPageContent from 'components/about-test-run/test-run-page-layout';
 import ListOfSuits from 'components/about-test-entities/list-of-suites';
 import { SuiteRecordDetails } from 'types/test-entity-related';
 import { TestRunRecord } from 'types/test-run-records';
+import { useProcessedTestRun } from 'hooks/get-test-run';
 
 export default function EntitiesView(properties: {
     mockSuites?: SuiteRecordDetails[];
@@ -13,6 +14,11 @@ export default function EntitiesView(properties: {
 }): ReactNode {
     const router = useRouter();
     const { testID } = router.query as { testID?: string };
+    const { run } = useProcessedTestRun({
+        mockRun: properties.mockRun,
+        testID,
+    });
+
     return (
         <>
             <Head>
@@ -21,14 +27,10 @@ export default function EntitiesView(properties: {
                 <meta name="author" content={TEXT.AUTHOR} />
                 <meta name="description" content={TEXT.OVERVIEW.description} />
             </Head>
-            <RunPageContent
-                testID={testID}
-                where={'Suites'}
-                mockData={properties.mockRun}
-            >
+            <RunPageContent where={'Suites'} run={run}>
                 <ListOfSuits
                     testID={testID}
-                    mockRun={properties.mockRun}
+                    run={run}
                     mockSuites={properties.mockSuites}
                 />
             </RunPageContent>

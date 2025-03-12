@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import React from 'react';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { timeFormatUsed } from './format';
+import { dateFormatUsed, dateTimeFormatUsed, timeFormatUsed } from './format';
 
 dayjs.extend(relativeTime);
 
@@ -27,7 +27,13 @@ export function TimeRange(properties: {
 
     return (
         <Tooltip
-            label={properties.detailed ? relative : rangeText}
+            label={
+                (properties.detailed ? relative : rangeText) +
+                ` (${properties.startTime.format(dateFormatUsed)})` +
+                (properties.endTime
+                    ? ` - (${properties.endTime.format(dateFormatUsed)})`
+                    : '')
+            }
             color="blue"
             className={properties.cn}
         >

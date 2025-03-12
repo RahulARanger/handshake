@@ -1,13 +1,11 @@
-import React, { useMemo, type ReactNode } from 'react';
+import React, { type ReactNode } from 'react';
 import Head from 'next/head';
 import { TEXT } from '@hand-shakes/utils';
 import { useRouter } from 'next/router';
 import RunPageContent from 'components/about-test-run/test-run-page-layout';
 import { OverviewBoard } from 'components/about-test-run/overview-of-test-card';
-import { jsonFeedAboutTestRun } from 'components/links';
-import transformTestRunRecord from 'extractors/transform-run-record';
 import type { Projects, TestRunRecord } from 'types/test-run-records';
-import useSWRImmutable from 'swr/immutable';
+import { useProcessedTestRun } from 'hooks/get-test-run';
 
 export default function OverviewPage(properties: {
     mockRun?: TestRunRecord;
@@ -15,25 +13,10 @@ export default function OverviewPage(properties: {
 }): ReactNode {
     const router = useRouter();
     const { testID } = router.query as { testID?: string };
-    const {
-        data: _rawRun,
-        // isLoading,
-        // error,
-    } = useSWRImmutable<TestRunRecord>(
-        testID && !properties.mockRun
-            ? jsonFeedAboutTestRun(testID)
-            : undefined,
-        () =>
-            fetch(jsonFeedAboutTestRun(testID as string)).then(
-                async (response) => response.json(),
-            ),
-    );
-    const rawRun = _rawRun ?? properties.mockRun;
-
-    const run = useMemo(
-        () => rawRun && transformTestRunRecord(rawRun),
-        [rawRun],
-    );
+    const { run } = useProcessedTestRun({
+        mockRun: properties.mockRun,
+        testID,
+    });
 
     return (
         <>

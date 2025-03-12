@@ -1,11 +1,14 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import EntitiesView from 'pages/RUNS/Suites';
 import { allPassed, generateRandomProjects } from 'stories/TestData/test-runs';
-import { generateTestSuiteFromTestRun } from 'stories/TestData/test-suites';
+import {
+    generateTestHierarchyWithSuites,
+    generateTestSuiteFromTestRun,
+} from 'stories/TestData/test-suites';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
-    title: 'AboutTestRun/EntitiesView',
+    title: 'Pages/Suites',
     component: EntitiesView,
     parameters: {
         // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
@@ -25,7 +28,7 @@ type Story = StoryObj<typeof meta>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 
-const randomRunWithSuites = generateTestSuiteFromTestRun();
+const randomRunWithSuites = generateTestHierarchyWithSuites();
 
 export const randomRun: Story = {
     args: {
