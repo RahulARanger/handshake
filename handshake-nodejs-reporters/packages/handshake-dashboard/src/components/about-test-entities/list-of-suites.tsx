@@ -3,13 +3,11 @@ import {
     Anchor,
     Breadcrumbs,
     Group,
-    Input,
     Menu,
     MenuDropdown,
     MenuItem,
     MenuTarget,
     MultiSelect,
-    Paper,
     rem,
     Skeleton,
     Stack,
@@ -19,8 +17,8 @@ import {
 import { TimeRange } from 'components/timings/time-range';
 import dayjs, { Dayjs } from 'dayjs';
 
-import React, { Suspense, useState } from 'react';
-import type { ReactNode } from 'react';
+import React, { Suspense, useMemo, useState } from 'react';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import type {
@@ -28,16 +26,11 @@ import type {
     ParsedSuiteRecord,
 } from 'types/parsed-records';
 import {
-    IconClearAll,
     IconDots,
     IconFilter,
-    IconFilterSearch,
-    IconSearch,
     IconSquareRoundedArrowRightFilled,
 } from '@tabler/icons-react';
-import TestEntityStatus from './test-entity-status';
 import { statusOfEntity } from 'types/session-records';
-import { DataTable } from 'mantine-datatable';
 import '@mantine/core/styles.layer.css';
 import 'mantine-datatable/styles.layer.css';
 import useFilteredSuites, {
@@ -45,48 +38,14 @@ import useFilteredSuites, {
     SearchQuery,
 } from 'hooks/filter-test-suites';
 import { useProcessedTestSuites } from 'hooks/get-test-suites';
-
-function SearchBar(properties: {
-    setSearchQuery: React.Dispatch<React.SetStateAction<SearchQuery>>;
-}) {
-    const [toSearch, setToSearch] = useState<string>('');
-
-    return (
-        <Group justify="flex-start">
-            <Input
-                leftSection={<IconFilterSearch size={13} strokeWidth={2.5} />}
-                placeholder="Search Suites"
-                value={toSearch}
-                onChange={(event) => setToSearch(event.currentTarget.value)}
-                rightSection={
-                    toSearch === '' ? undefined : (
-                        <Input.ClearButton onClick={() => setToSearch('')} />
-                    )
-                }
-                rightSectionPointerEvents="auto"
-            />
-
-            <ActionIcon
-                onClick={() =>
-                    properties.setSearchQuery((_: SearchQuery) => {
-                        return {
-                            ..._,
-                            search: toSearch,
-                            parent: _.parent,
-                        };
-                    })
-                }
-            >
-                <IconSearch size={13} strokeWidth={2.5} />
-            </ActionIcon>
-            <ActionIcon
-                onClick={() => properties.setSearchQuery(DEFAULT_QUERY)}
-            >
-                <IconClearAll size={13} strokeWidth={2.5} />
-            </ActionIcon>
-        </Group>
-    );
-}
+import TestStatusIcon from 'components/about-test-run/test-status';
+import TestEntityStatusMetrics from './test-entity-status';
+import {
+    MantineReactTable,
+    MRT_ColumnDef,
+    useMantineReactTable,
+} from 'mantine-react-table';
+import 'mantine-react-table/styles.css';
 
 function FilterStatus(properties: {
     onStatusChange: (_: statusOfEntity[]) => void;
@@ -146,159 +105,232 @@ function FilterStatus(properties: {
 function TableOfSuites(properties: {
     suites: ParsedSuiteRecord[];
     started?: Dayjs;
-    statusFiltered?: statusOfEntity[];
+    levels: SearchQuery['levels'];
+    setSearchQuery: Dispatch<SetStateAction<SearchQuery>>;
     onParentFilter: (parentID: string, suiteName: string) => void;
-    onStatusChange: (modifiedStatus: statusOfEntity[]) => void;
 }) {
-    return (
-        <Paper withBorder shadow="xl">
-            <DataTable
-                withTableBorder
-                withRowBorders
-                withColumnBorders
-                striped
-                highlightOnHover
-                records={properties.suites}
-                pinFirstColumn
-                columns={[
-                    {
-                        accessor: 'hasChildSuite',
-                        title: '',
-                        render: (row) => {
-                            return row.hasChildSuite ? (
-                                <ActionIcon
-                                    variant="light"
-                                    onClick={() =>
-                                        properties.onParentFilter(
-                                            row.Id,
-                                            row.Title,
-                                        )
-                                    }
-                                >
-                                    <IconFilter
-                                        style={{
-                                            width: rem(12),
-                                            height: rem(12),
-                                        }}
-                                    />
-                                </ActionIcon>
-                            ) : (
-                                <></>
-                            );
-                        },
-                        textAlign: 'center',
-                    },
-                    {
-                        accessor: 'Status',
-                        render: (row, rowIndex) => (
-                            <TestEntityStatus
-                                status={row.Status}
-                                key={rowIndex}
-                            />
-                        ),
-                        textAlign: 'center',
-                        filter: (
-                            <FilterStatus
-                                onStatusChange={properties.onStatusChange}
-                            />
-                        ),
-                        filtering:
-                            properties.statusFiltered &&
-                            properties.statusFiltered.length > 0,
-                    },
-                    {
-                        accessor: 'Title',
-                        width: 150,
-                        ellipsis: true,
-                    },
-                    {
-                        accessor: 'File',
-                    },
-                    {
-                        accessor: 'Range',
-                        render: (row, rowIndex) => {
-                            return (
-                                <TimeRange
-                                    startTime={row.Started}
-                                    endTime={row.Ended}
-                                    key={rowIndex}
-                                    detailed
-                                    relativeFrom={dayjs(properties?.started)}
+    const columns = useMemo<MRT_ColumnDef<ParsedSuiteRecord>[]>(
+        () => [
+            {
+                accessorKey: 'hasChildSuite',
+                header: '',
+                enableSorting: false,
+                maxSize: 12,
+                enableHiding: false,
+                Cell: ({ row }) => {
+                    return row.original.hasChildSuite ? (
+                        <Tooltip
+                            label={`Drilldown to find tests/suites grouped under this suite`}
+                            withArrow
+                            color="cyan"
+                        >
+                            <ActionIcon
+                                variant="light"
+                                size="sm"
+                                onClick={() =>
+                                    properties.onParentFilter(
+                                        row.original.Id,
+                                        row.original.Title,
+                                    )
+                                }
+                            >
+                                <IconFilter
+                                    style={{
+                                        width: rem(12),
+                                        height: rem(12),
+                                    }}
                                 />
-                            );
-                        },
-                    },
-                    {
-                        accessor: 'Start Time',
-                        render: (row, rowIndex) => {
-                            return (
-                                <TimeRange
-                                    startTime={row.Started}
-                                    key={rowIndex}
-                                    detailed
-                                    relativeFrom={dayjs(properties?.started)}
-                                />
-                            );
-                        },
-                    },
-                    {
-                        accessor: 'End Time',
-                        render: (row, rowIndex) => {
-                            return (
-                                <TimeRange
-                                    startTime={row.Ended}
-                                    key={rowIndex}
-                                    detailed
-                                    relativeFrom={dayjs(properties?.started)}
-                                />
-                            );
-                        },
-                    },
-                    {
-                        accessor: 'Duration',
-                        render: (row, rowIndex) => {
-                            return (
-                                <HumanizedDuration
-                                    duration={row.Duration}
-                                    key={rowIndex}
-                                />
-                            );
-                        },
-                    },
-                    { accessor: 'totalRollupValue', title: 'Tests' },
-                ]}
-            />
-        </Paper>
+                            </ActionIcon>
+                        </Tooltip>
+                    ) : (
+                        <></>
+                    );
+                },
+                textAlign: 'center',
+            },
+            {
+                accessorKey: 'Status',
+                header: 'Status',
+                maxSize: 50,
+                mantineTableBodyCellProps: {
+                    align: 'center',
+                },
+                Cell: ({ row, renderedRowIndex }) => (
+                    <TestStatusIcon
+                        status={row.original.Status}
+                        key={renderedRowIndex}
+                    />
+                ),
+            },
+            {
+                accessorKey: 'Title',
+                header: 'Title',
+                maxSize: 150,
+                enableClickToCopy: true,
+            },
+            {
+                accessorKey: 'File',
+                header: 'File',
+                enableClickToCopy: true,
+            },
+            {
+                accessorKey: 'Range',
+                header: 'Range',
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <TimeRange
+                            startTime={row.original.Started}
+                            endTime={row.original.Ended}
+                            key={renderedRowIndex}
+                            detailed
+                            relativeFrom={dayjs(properties?.started)}
+                        />
+                    );
+                },
+            },
+            {
+                accessorKey: 'Start Time',
+                header: 'Start Time',
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <TimeRange
+                            startTime={row.original.Started}
+                            key={renderedRowIndex}
+                            detailed
+                            relativeFrom={dayjs(properties?.started)}
+                        />
+                    );
+                },
+            },
+            {
+                accessorKey: 'End Time',
+                header: 'End Time',
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <TimeRange
+                            startTime={row.original.Ended}
+                            key={renderedRowIndex}
+                            detailed
+                            relativeFrom={dayjs(properties?.started)}
+                        />
+                    );
+                },
+            },
+            {
+                accessorKey: 'Duration',
+                header: 'Duration',
+                maxSize: 60,
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <HumanizedDuration
+                            duration={row.original.Duration}
+                            key={renderedRowIndex}
+                        />
+                    );
+                },
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+            {
+                accessorKey: 'totalRollupValue',
+                header: 'Tests',
+                maxSize: 60,
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+            {
+                accessorKey: 'RollupValues',
+                header: 'Entities',
+                maxSize: 100,
+                Cell: ({ row, renderedRowIndex }) => (
+                    <TestEntityStatusMetrics
+                        key={renderedRowIndex}
+                        passed={row.original.RollupValues[0]}
+                        failed={row.original.RollupValues[1]}
+                        skipped={row.original.RollupValues[2]}
+                    />
+                ),
+                mantineTableBodyCellProps: {
+                    align: 'center',
+                },
+            },
+            {
+                accessorKey: 'numberOfErrors',
+                header: 'Errors',
+                maxSize: 60,
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+        ],
+        [],
     );
+
+    const table = useMantineReactTable({
+        columns,
+        data: properties.suites,
+        initialState: {
+            density: 'xs',
+            columnPinning: { left: ['hasChildSuite'] },
+        },
+        enablePagination: true,
+        enableDensityToggle: false,
+        enableColumnPinning: true,
+        mantineTableHeadCellProps: {
+            style: {
+                padding: '10px 5px',
+            },
+        },
+        mantineTableBodyCellProps: {
+            style: {
+                padding: '10px 4px',
+                borderRight: '1.5px solid var(--mantine-color-gray-filled)',
+            },
+        },
+        mantinePaperProps: {
+            withBorder: true,
+            shadow: 'xl',
+            mr: 'md',
+            maw: '98vw',
+        },
+        renderTopToolbarCustomActions: () => (
+            <BreadcrumbsForDrilldownSuites
+                levels={properties.levels}
+                setSearchQuery={properties.setSearchQuery}
+            />
+        ),
+    });
+
+    return <MantineReactTable table={table} />;
 }
 
 function BreadcrumbsForDrilldownSuites(properties: {
-    searchQuery: SearchQuery;
-    setSearchQuery: (_: SearchQuery) => void;
+    levels: SearchQuery['levels'];
+    setSearchQuery: Dispatch<SetStateAction<SearchQuery>>;
 }) {
-    const insertMid = properties.searchQuery.levels.length > 6;
+    const insertMid = properties.levels.length > 6;
     const showLevels = insertMid
-        ? properties.searchQuery.levels.slice(0, 3)
-        : properties.searchQuery.levels;
+        ? properties.levels.slice(0, 3)
+        : properties.levels;
 
     if (showLevels.length === 1) {
         return <></>;
     }
 
-    const menuOptions = insertMid
-        ? properties.searchQuery.levels.slice(3, -3)
-        : false;
+    const menuOptions = insertMid ? properties.levels.slice(3, -3) : false;
 
     const onClickOptionNav = (index: number) => {
-        const q = properties.searchQuery.levels ?? DEFAULT_QUERY;
+        const q = properties.levels ?? DEFAULT_QUERY;
         if (q.length - 1 === index) return;
         const nq = q.slice(0, index + 1);
 
-        properties.setSearchQuery({
-            ...properties.searchQuery,
+        properties.setSearchQuery((_: SearchQuery) => ({
+            ..._,
             levels: nq,
             parent: nq.at(-1)?.value ?? '',
-        });
+        }));
     };
 
     const options = (
@@ -309,18 +341,12 @@ function BreadcrumbsForDrilldownSuites(properties: {
             variant="text"
             size="sm"
             underline={
-                index === properties.searchQuery.levels.length - 1
-                    ? 'never'
-                    : 'hover'
+                index === properties.levels.length - 1 ? 'never' : 'hover'
             }
-            c={
-                index === properties.searchQuery.levels.length - 1
-                    ? 'bright'
-                    : undefined
-            }
+            c={index === properties.levels.length - 1 ? 'bright' : undefined}
             onClick={() =>
-                properties.searchQuery.levels.length > 1 &&
-                !(index === properties.searchQuery.levels.length - 1) &&
+                properties.levels.length > 1 &&
+                !(index === properties.levels.length - 1) &&
                 onClickOptionNav(index)
             }
             key={level.value}
@@ -351,12 +377,11 @@ function BreadcrumbsForDrilldownSuites(properties: {
                     ))}
                 </MenuDropdown>
             </Menu>,
-            properties.searchQuery.levels
+            properties.levels
                 .slice(-3)
                 .map((level, index) =>
                     options(
-                        properties.searchQuery.levels.length -
-                            (showLevels.length - index),
+                        properties.levels.length - (showLevels.length - index),
                         level,
                     ),
                 ),
@@ -364,7 +389,7 @@ function BreadcrumbsForDrilldownSuites(properties: {
     }
 
     return (
-        <Breadcrumbs>
+        <Breadcrumbs p="md">
             {showLevels.map((level, index) => options(index, level))}
             {...comps}
         </Breadcrumbs>
@@ -388,41 +413,23 @@ export default function ListOfSuits(properties: {
         useFilteredSuites(suites);
 
     return (
-        <Stack>
-            <Group justify="space-between">
-                <SearchBar setSearchQuery={setSearchQuery} />
-                {searchQuery.levels === undefined ? (
-                    <></>
-                ) : (
-                    <BreadcrumbsForDrilldownSuites
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                    />
-                )}
-            </Group>
-            <Suspense fallback={<Skeleton height={'40%'} />}>
-                <TableOfSuites
-                    started={run?.Started}
-                    suites={filteredSuites}
-                    onParentFilter={(suiteID, suiteName) =>
-                        setSearchQuery({
-                            ...searchQuery,
-                            parent: suiteID,
-                            levels: [
-                                ...searchQuery.levels,
-                                { label: suiteName, value: suiteID },
-                            ],
-                        })
-                    }
-                    onStatusChange={(status: statusOfEntity[]) => {
-                        setSearchQuery({
-                            ...searchQuery,
-                            status,
-                        });
-                    }}
-                    statusFiltered={searchQuery.status}
-                />
-            </Suspense>
-        </Stack>
+        <Suspense fallback={<Skeleton height={'40%'} />}>
+            <TableOfSuites
+                started={run?.Started}
+                suites={filteredSuites}
+                levels={searchQuery.levels}
+                setSearchQuery={setSearchQuery}
+                onParentFilter={(suiteID, suiteName) =>
+                    setSearchQuery({
+                        ...searchQuery,
+                        parent: suiteID,
+                        levels: [
+                            ...searchQuery.levels,
+                            { label: suiteName, value: suiteID },
+                        ],
+                    })
+                }
+            />
+        </Suspense>
     );
 }
