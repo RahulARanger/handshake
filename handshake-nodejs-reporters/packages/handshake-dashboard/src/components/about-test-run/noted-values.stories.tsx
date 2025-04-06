@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { NotedValues } from './overview-of-test-card';
+import { NotedValues } from './overview-page';
 import {
     allPassed,
     generateRandomPlatforms,

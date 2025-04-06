@@ -40,3 +40,9 @@ export const RunWithInternalError: Story = {
         run: transformTestRunRecord({ ...mixed, status: 'INTERNAL_ERROR' }),
     },
 };
+
+export const RunCardWithExcelExport: Story = {
+    args: {
+        run: transformTestRunRecord({ ...allPassed, excelExport: '/' }),
+    },
+};

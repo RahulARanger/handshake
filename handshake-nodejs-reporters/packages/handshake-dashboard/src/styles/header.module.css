@@ -7,4 +7,5 @@
     -webkit-backdrop-filter: blur(7px);
     backdrop-filter: blur(7px);
     border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom-color: "transparent" !important;
 }

@@ -51,10 +51,7 @@ export default function Header(properties: {
 
     const router = useRouter();
     return (
-        <AppShellHeader
-            style={{ borderBottomColor: 'transparent' }}
-            className={MirrorHeader.mirrorHeader}
-        >
+        <AppShellHeader className={MirrorHeader.mirrorHeader}>
             <Group
                 justify="space-between"
                 px="md"

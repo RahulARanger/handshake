@@ -3,7 +3,7 @@ import Head from 'next/head';
 import { TEXT } from '@hand-shakes/utils';
 import { useRouter } from 'next/router';
 import RunPageContent from 'components/about-test-run/test-run-page-layout';
-import { OverviewBoard } from 'components/about-test-run/overview-of-test-card';
+import { OverviewBoard } from 'components/about-test-run/overview-page';
 import type { Projects, TestRunRecord } from 'types/test-run-records';
 import { useProcessedTestRun } from 'hooks/get-test-run';
 

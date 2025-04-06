@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useInterval } from '@mantine/hooks';
 import React from 'react';
 
-function DemoRunsPageContent() {
+function DemoRunsPageContent(properties: { stopLoop?: boolean }) {
     const [mockData, setMockData] = useState(generateTestRunForDemo());
 
     useInterval(
@@ -13,7 +13,7 @@ function DemoRunsPageContent() {
             setMockData(() => generateTestRunForDemo());
         },
         3000,
-        { autoInvoke: true },
+        { autoInvoke: !properties.stopLoop },
     );
 
     return <RunsPageContent mockData={mockData} />;
@@ -42,3 +42,5 @@ type Story = StoryObj<typeof meta>;
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 
 export const DemoPage: Story = {};
+
+export const Fixed: Story = { args: { stopLoop: true } };

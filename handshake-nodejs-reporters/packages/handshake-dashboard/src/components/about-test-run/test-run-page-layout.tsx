@@ -4,7 +4,6 @@ import React from 'react';
 import type { TestRunTab } from './current-location';
 import Header from './header';
 import { DetailedTestRecord } from 'types/parsed-records';
-import BackgroundGradiant from 'styles/gradients.module.css';
 
 export default function RunPageContent(properties: {
     children: ReactNode;
@@ -14,13 +13,7 @@ export default function RunPageContent(properties: {
     run?: DetailedTestRecord;
 }): ReactNode {
     return (
-        <AppShell
-            header={{ height: 45 }}
-            w={'100vw'}
-            classNames={{
-                main: BackgroundGradiant.darkGradiant,
-            }}
-        >
+        <AppShell header={{ height: 45 }} w={'100vw'}>
             <Header
                 inSuiteOf={properties.inSuiteOf}
                 where={properties.where}

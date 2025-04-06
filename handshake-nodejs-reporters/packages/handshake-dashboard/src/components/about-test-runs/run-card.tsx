@@ -11,6 +11,7 @@ import {
     MenuTarget,
     MenuDropdown,
     MenuItem,
+    Divider,
 } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
@@ -20,33 +21,33 @@ import { HumanizedDuration } from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
 import { dateFormatUsed } from 'components/timings/format';
 import { OnPlatform } from 'components/about-test-run/platform-icon';
-import cardStyle from 'styles/gradients.module.css';
 import {
     IconExclamationCircle,
     IconFileExcel,
     IconFlagPause,
 } from '@tabler/icons-react';
+import dayjs from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+
+dayjs.extend(advancedFormat);
 
 export default function TestRunCard(properties: {
     run: DetailedTestRecord;
 }): ReactNode {
     const [isTests, setTests] = useState(false);
-    const unexpected =
-        properties.run.RunStatus === 'INTERNAL_ERROR' ||
-        properties.run.RunStatus === 'INTERRUPTED';
+
+    const hasOptions = Boolean(properties.run.ExcelExportUrl);
     return (
-        <Card
-            shadow="lg"
-            withBorder
-            radius="md"
-            pt="xs"
-            className={cardStyle.mirrorCard}
-        >
+        <Card shadow="lg" withBorder radius="md" pt="xs">
             <Card.Section inheritPadding pb={2} pt={0}>
                 <Group justify="space-between" mt="md" mb="xs" wrap="nowrap">
                     <Menu trigger="hover" shadow="xl">
                         <MenuTarget>
-                            <Anchor href={properties.run.Link} size="sm">
+                            <Anchor
+                                href={properties.run.Link}
+                                size="sm"
+                                underline={hasOptions ? 'always' : 'hover'}
+                            >
                                 {properties.run.Started.format(dateFormatUsed)}
                             </Anchor>
                         </MenuTarget>
@@ -77,16 +78,16 @@ export default function TestRunCard(properties: {
                     <Badge
                         size="xs"
                         variant="light"
-                        color="pink.9"
-                        maw={'50%'}
-                        title={properties.run.projectName}
+                        radius={'sm'}
+                        color="violet"
+                        tt="none"
                     >
-                        {properties.run.projectName}
+                        <TimeRange
+                            startTime={properties.run.Started}
+                            endTime={properties.run.Ended}
+                            size="xs"
+                        />
                     </Badge>
-                </Group>
-            </Card.Section>
-            <Card.Section p="sm" pt={0}>
-                <Group justify="space-between" wrap="nowrap">
                     {properties.run.RunStatus === 'INTERRUPTED' ? (
                         <Tooltip label="This run was interrupted">
                             <Avatar size="sm" color="gray">
@@ -119,8 +120,14 @@ export default function TestRunCard(properties: {
                     ) : (
                         <></>
                     )}
+                </Group>
+                <Divider mt={-5} pb={10} />
+            </Card.Section>
+
+            <Card.Section p="sm" pt={0}>
+                <Group justify="space-between" wrap="nowrap">
                     <PassedRate
-                        width={unexpected ? 180 : 231}
+                        width={231}
                         text={isTests ? ' Tests' : 'Suites'}
                         rate={
                             isTests
@@ -137,19 +144,6 @@ export default function TestRunCard(properties: {
             <Card.Section px="sm" pb="sm">
                 <Group justify="space-between" wrap="nowrap" align="center">
                     <Badge
-                        size="xs"
-                        variant="light"
-                        radius={'sm'}
-                        color="violet"
-                        tt="none"
-                    >
-                        <TimeRange
-                            startTime={properties.run.Started}
-                            endTime={properties.run.Ended}
-                            size="xs"
-                        />
-                    </Badge>
-                    <Badge
                         tt="none"
                         size="xs"
                         variant="light"
@@ -161,6 +155,15 @@ export default function TestRunCard(properties: {
                             prefix="Ran for "
                             size="xs"
                         />
+                    </Badge>
+                    <Badge
+                        size="xs"
+                        variant="light"
+                        color="pink.9"
+                        maw={'50%'}
+                        title={properties.run.projectName}
+                    >
+                        {properties.run.projectName}
                     </Badge>
                     <OnPlatform platform={properties.run.Platform} size="sm" />
                 </Group>

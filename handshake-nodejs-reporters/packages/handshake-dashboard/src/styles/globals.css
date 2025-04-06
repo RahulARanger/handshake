@@ -28,6 +28,11 @@ body {
     margin: 0;
 }
 
+body {
+    background-color: #221e22;
+    background-image: linear-gradient(124deg, #221e22 0%, #220107 100%);
+}
+
 ::selection {
     color: lightyellow;
     background-color: orangered;
@@ -57,9 +62,9 @@ body {
     /* Rounded corners for the thumb */
 }
 
-.smooth-box {
-    border-radius: 25px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(256, 256, 256, 0.13);
+.mirror {
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(10px);
+    background-color: transparent !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.08);
 }

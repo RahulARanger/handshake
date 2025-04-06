@@ -4,11 +4,7 @@ import { Button, ScrollAreaAutosize, Timeline } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
 import TestRunCard from 'components/about-test-runs/run-card';
-import dayjs from 'dayjs';
-import advancedFormat from 'dayjs/plugin/advancedFormat';
 import TestStatusIcon from '../about-test-run/test-status';
-
-dayjs.extend(advancedFormat);
 
 export function ListOfRuns(properties: {
     runs: DetailedTestRecord[];

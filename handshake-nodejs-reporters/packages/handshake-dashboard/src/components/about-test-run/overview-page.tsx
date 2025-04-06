@@ -25,8 +25,6 @@ import {
 import type { Dayjs } from 'dayjs';
 import type { Duration } from 'dayjs/plugin/duration';
 import React, { useMemo, useRef, useState } from 'react';
-import duration from 'dayjs/plugin/duration';
-import dayjs from 'dayjs';
 import CountUpNumber from 'components/counter';
 import {
     AreaChart,
@@ -46,8 +44,6 @@ import { captialize, getRandomInt } from 'components/meta-text';
 import PassedRate from './passed-rate';
 import { statusOfEntity } from 'types/session-records';
 import { Payload } from 'recharts/types/component/DefaultTooltipContent';
-
-dayjs.extend(duration);
 
 const gen = () => [
     { name: 'P', value: getRandomInt(0, 10), color: 'orange' },
@@ -122,6 +118,7 @@ interface ChartTooltipProperties {
     payload: Payload<any, any>[] | undefined;
     reference: number;
     unit?: string;
+    currentIndex: number;
     invertReference?: boolean;
 }
 const nth = (d: number) => {
@@ -140,6 +137,7 @@ function ChartTooltip({
     reference,
     payload,
     invertReference,
+    currentIndex,
     unit,
 }: ChartTooltipProperties) {
     if (!payload) return;
@@ -155,6 +153,19 @@ function ChartTooltip({
                         <sup>{nth(item.payload.index + 1)}</sup>
                         &nbsp;&nbsp;
                         {'Test Run'}
+                        {item.payload.index === currentIndex ? (
+                            <Text
+                                component="span"
+                                fs="italic"
+                                size="xs"
+                                c="indigo"
+                                pl="xs"
+                            >
+                                (Current Test Run)
+                            </Text>
+                        ) : (
+                            <></>
+                        )}
                     </Text>
                     <Text size="sm">
                         {item.name}:&nbsp;&nbsp;
@@ -223,6 +234,7 @@ function RateOfChangeChart(properties: {
                 {
                     x: properties.index,
                     label: properties.showLineText ? 'Current Test Run' : '',
+                    labelPosition: 'centerBottom',
                 },
             ]}
             series={[
@@ -237,6 +249,7 @@ function RateOfChangeChart(properties: {
                         reference={
                             properties.counts[properties.referenceIndex ?? 0]
                         }
+                        currentIndex={properties.index}
                         unit={properties.unit ?? ''}
                         payload={payload}
                         invertReference={(properties.rc ?? 'red') !== 'red'}

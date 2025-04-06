@@ -19,6 +19,7 @@ export function HumanizedDuration(properties: {
         <DurationText
             prefix={properties.prefix}
             seconds={properties.duration.asSeconds()}
+            size={properties.size}
         />
     );
 }
@@ -45,6 +46,7 @@ export function durationText(seconds: number): string {
 
 export function DurationText(properties: {
     seconds: number;
+    size?: TextProps['size'];
     prefix?: string;
 }): ReactNode {
     let seconds = properties.seconds;
@@ -94,7 +96,7 @@ export function DurationText(properties: {
     }
 
     return (
-        <Text title={label}>
+        <Text title={label} size={properties.size}>
             {properties.prefix ?? ''}
             {valueToShow}&nbsp;
             <Text size="xs" component="span">
