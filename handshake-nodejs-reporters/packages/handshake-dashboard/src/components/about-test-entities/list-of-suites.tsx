@@ -2,15 +2,12 @@ import {
     ActionIcon,
     Anchor,
     Breadcrumbs,
-    Group,
     Menu,
     MenuDropdown,
     MenuItem,
     MenuTarget,
-    MultiSelect,
     rem,
     Skeleton,
-    Stack,
     Text,
     Tooltip,
 } from '@mantine/core';
@@ -25,12 +22,7 @@ import type {
     DetailedTestRecord,
     ParsedSuiteRecord,
 } from 'types/parsed-records';
-import {
-    IconDots,
-    IconFilter,
-    IconSquareRoundedArrowRightFilled,
-} from '@tabler/icons-react';
-import { statusOfEntity } from 'types/session-records';
+import { IconDots, IconFilter } from '@tabler/icons-react';
 import '@mantine/core/styles.layer.css';
 import 'mantine-datatable/styles.layer.css';
 import useFilteredSuites, {
@@ -46,61 +38,9 @@ import {
     useMantineReactTable,
 } from 'mantine-react-table';
 import 'mantine-react-table/styles.css';
-
-function FilterStatus(properties: {
-    onStatusChange: (_: statusOfEntity[]) => void;
-}) {
-    const [statusSelected, onStatusSelected] = useState<string[]>([]);
-
-    return (
-        <Stack>
-            <Text size="sm">Select Status for filtering:</Text>
-            <Group wrap="nowrap">
-                <MultiSelect
-                    data={[
-                        'Passed',
-                        'Failed',
-                        'Skipped',
-                        'XFailed',
-                        'XPassed',
-                    ].map((label) => ({
-                        label,
-                        value: label.toUpperCase(),
-                    }))}
-                    value={statusSelected}
-                    onChange={onStatusSelected}
-                    comboboxProps={{ withinPortal: false }}
-                    placeholder="Select Status"
-                    multiple
-                    clearable
-                />
-                <Tooltip
-                    label="Click on this button to set the filter"
-                    defaultOpened
-                    color="orange"
-                    arrowPosition="center"
-                    position="bottom"
-                    offset={13}
-                    withArrow
-                    withinPortal
-                >
-                    <ActionIcon
-                        variant="light"
-                        onClick={() =>
-                            properties.onStatusChange(
-                                statusSelected as statusOfEntity[],
-                            )
-                        }
-                    >
-                        <IconSquareRoundedArrowRightFilled
-                            style={{ width: rem(15), height: rem(15) }}
-                        />
-                    </ActionIcon>
-                </Tooltip>
-            </Group>
-        </Stack>
-    );
-}
+import useTableConfigurationsForListOfSuites from 'hooks/get-saved-filters';
+import CountUpNumber from 'components/counter';
+import DetailedTestView, { DetailedViewForSuites } from './detailed-test-view';
 
 function TableOfSuites(properties: {
     suites: ParsedSuiteRecord[];
@@ -140,6 +80,11 @@ function TableOfSuites(properties: {
                                         height: rem(12),
                                     }}
                                 />
+                                <sub>
+                                    <Text size="xs">
+                                        ({`${row.original.Tests}`})
+                                    </Text>
+                                </sub>
                             </ActionIcon>
                         </Tooltip>
                     ) : (
@@ -161,6 +106,20 @@ function TableOfSuites(properties: {
                         key={renderedRowIndex}
                     />
                 ),
+                filterVariant: 'multi-select',
+                mantineFilterMultiSelectProps: {
+                    data: [
+                        'Passed',
+                        'Failed',
+                        'Skipped',
+                        'Xfailed',
+                        'Xpassed',
+                    ].map((label) => ({
+                        label,
+                        value: label.toUpperCase(),
+                    })),
+                },
+                filterFn: 'equals',
             },
             {
                 accessorKey: 'Title',
@@ -172,6 +131,7 @@ function TableOfSuites(properties: {
                 accessorKey: 'File',
                 header: 'File',
                 enableClickToCopy: true,
+                filterVariant: 'autocomplete',
             },
             {
                 accessorKey: 'Range',
@@ -233,6 +193,25 @@ function TableOfSuites(properties: {
                 },
             },
             {
+                accessorKey: 'Contribution',
+                header: 'Contri.',
+                maxSize: 60,
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <CountUpNumber
+                            endNumber={row.original.Contribution}
+                            suffix="%"
+                            key={renderedRowIndex}
+                            size="sm"
+                            decimalPoints={2}
+                        />
+                    );
+                },
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+            {
                 accessorKey: 'totalRollupValue',
                 header: 'Tests',
                 maxSize: 60,
@@ -265,8 +244,12 @@ function TableOfSuites(properties: {
                 },
             },
         ],
-        [],
+        [properties.started],
     );
+    const [maxWidth, setMaxWidth] = useState('98vw');
+
+    const { columnsShown, setColumnsShown } =
+        useTableConfigurationsForListOfSuites();
 
     const table = useMantineReactTable({
         columns,
@@ -285,22 +268,36 @@ function TableOfSuites(properties: {
         },
         mantineTableBodyCellProps: {
             style: {
-                padding: '10px 4px',
-                borderRight: '1.5px solid var(--mantine-color-gray-filled)',
+                padding: '10px 6px',
+                borderRight: '1.5px solid rgba(255, 255, 255, 0.08) ',
             },
         },
         mantinePaperProps: {
             withBorder: true,
             shadow: 'xl',
             mr: 'md',
-            maw: '98vw',
+            maw: maxWidth,
         },
+        onIsFullScreenChange: () =>
+            setMaxWidth((width) => (width === '100vw' ? '98vw' : '100vw')),
+
+        onColumnVisibilityChange: setColumnsShown,
+
+        state: {
+            isFullScreen: maxWidth == '100vw',
+            columnVisibility: columnsShown,
+        },
+
         renderTopToolbarCustomActions: () => (
             <BreadcrumbsForDrilldownSuites
                 levels={properties.levels}
                 setSearchQuery={properties.setSearchQuery}
             />
         ),
+
+        renderDetailPanel: ({ row }) => {
+            return <DetailedViewForSuites suite={row.original} />;
+        },
     });
 
     return <MantineReactTable table={table} />;
