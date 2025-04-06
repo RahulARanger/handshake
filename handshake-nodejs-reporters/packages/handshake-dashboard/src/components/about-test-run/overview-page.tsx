@@ -1,7 +1,6 @@
 import type { DefaultMantineColor } from '@mantine/core';
 import {
     Badge,
-    Card,
     Group,
     rem,
     ActionIcon,
@@ -105,6 +104,7 @@ function PieViewOfStatus(properties: {
                     paddingAngle={6}
                     withLabels
                     tooltipDataSource="segment"
+                    classNames={{ tooltip: 'mirror' }}
                     data={data}
                     withTooltip
                     pieProps={{ isAnimationActive: true }}
@@ -365,7 +365,8 @@ function OverviewFromRestOfTheProjects(properties: {
 
     return (
         <>
-            <Card withBorder maw={450}>
+            {/* NOTE: using card causes issue with RateOfChangeChart's tooltip's bg */}
+            <Paper withBorder maw={450} p="sm">
                 <Group wrap="nowrap" align="flex-start">
                     <Text size="sm">
                         Please explore the current test run stats. and its
@@ -454,7 +455,7 @@ function OverviewFromRestOfTheProjects(properties: {
                     <sup>{nth(relativeIndex + 1)}</sup>&nbsp;&nbsp;
                     {'Test Run.'}
                 </Text>
-            </Card>
+            </Paper>
             <RateOfChangeCharts
                 passedCounts={passedCounts}
                 failedCounts={failedCounts}

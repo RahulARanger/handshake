@@ -57,6 +57,7 @@ export default function AreaChartForTestRuns(properties: {
             withTooltip
             withDots
             dataKey="date"
+            classNames={{ tooltip: 'mirror' }}
             series={[
                 { name: 'Passed', color: 'green' },
                 { name: 'Skipped', color: 'yellow' },

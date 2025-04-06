@@ -81,11 +81,6 @@ const theme = createTheme({
                 className: className,
             },
         },
-        Avatar: {
-            defaultProps: {
-                className: className,
-            },
-        },
     },
 });
 
