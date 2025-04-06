@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import React from 'react';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import { dateFormatUsed, dateTimeFormatUsed, timeFormatUsed } from './format';
+import { dateFormatUsed, timeFormatUsed } from './format';
 
 dayjs.extend(relativeTime);
 

@@ -1,10 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import EntitiesView from 'pages/RUNS/Suites';
-import { allPassed, generateRandomProjects } from 'stories/TestData/test-runs';
-import {
-    generateTestHierarchyWithSuites,
-    generateTestSuiteFromTestRun,
-} from 'stories/TestData/test-suites';
+import { generateTestHierarchyWithSuites } from 'stories/TestData/test-suites';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {

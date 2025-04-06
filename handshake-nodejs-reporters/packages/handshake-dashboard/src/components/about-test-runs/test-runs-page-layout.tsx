@@ -133,7 +133,7 @@ export function RunsPageContent(properties: {
             {toLoad || filteredRuns.length > 0 ? (
                 <>
                     <AppShell.Main
-                        pt={'calc(var(--app-shell-header-height, 0px) - 5px)'}
+                        pt={'calc(var(--app-shell-header-height, 0px))'}
                         pr="sm"
                         pb="xs"
                     >

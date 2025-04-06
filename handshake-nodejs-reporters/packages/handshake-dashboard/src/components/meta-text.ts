@@ -13,14 +13,6 @@ export function captialize(x: string) {
     return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase();
 }
 
-/**
- * Get a random integer between `min` and `max`.
- * https://gist.github.com/kerimdzhanov/7529623
- *
- * @param {number} min - min number
- * @param {number} max - max number
- * @return {number} a random integer
- */
-export function getRandomInt(mini, maxi) {
+export function getRandomInt(mini: number, maxi: number) {
     return Math.floor(Math.random() * (maxi - mini + 1) + mini);
 }

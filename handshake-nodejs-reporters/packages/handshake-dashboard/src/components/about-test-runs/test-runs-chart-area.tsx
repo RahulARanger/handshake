@@ -19,7 +19,7 @@ export default function TestRunsChartArea(properties: {
     }>({ showTests: false, showPercentStack: false });
     const toLoad = Boolean(properties.toLoad);
     return (
-        <Stack pr="xs" pb="sm">
+        <Stack pr="xs" pb="sm" pl="sm" pt="sm">
             <Card p="lg" shadow="lg" withBorder>
                 <Card.Section withBorder p={0}>
                     <Group justify="space-between" p="xs">

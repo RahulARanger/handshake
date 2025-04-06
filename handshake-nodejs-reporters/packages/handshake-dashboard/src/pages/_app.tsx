@@ -81,6 +81,11 @@ const theme = createTheme({
                 className: className,
             },
         },
+        Timeline: {
+            styles: {
+                backgroundColor: 'transparent',
+            },
+        },
     },
 });
 

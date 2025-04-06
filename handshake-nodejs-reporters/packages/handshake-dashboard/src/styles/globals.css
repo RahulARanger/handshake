@@ -5,6 +5,7 @@
     --bg: oklch(35% 0.3 var(--hue));
     --text: oklch(85% 0.1 var(--hue));
     --shadow: oklch(25% 0.2 var(--hue));
+    --row-bg: rgba(37, 7, 1, 0.196);
     --highlight: oklch(98% 0.05 var(--hue));
     --thick-box: rgba(0, 0, 0, 0.4) 0px 2px 4px,
         rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
@@ -67,4 +68,8 @@ body {
     backdrop-filter: blur(10px);
     background-color: transparent !important;
     border: 1.5px solid rgba(255, 255, 255, 0.08);
+}
+
+tr.mantine-Table-tr:hover {
+    background-color: var(--row-bg) !important;
 }

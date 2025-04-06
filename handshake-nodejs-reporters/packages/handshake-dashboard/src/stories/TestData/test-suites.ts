@@ -2,7 +2,7 @@ import { Chance } from 'chance';
 import dayjs from 'dayjs';
 import { SuiteRecordDetails } from 'types/test-entity-related';
 import { generateTestRun, getStatus } from './test-runs';
-import { minBy, sortBy, sumBy } from 'lodash-es';
+import { sortBy } from 'lodash-es';
 import { TestRunRecord } from 'types/test-run-records';
 
 const generator = Chance();
@@ -111,6 +111,12 @@ function generateTestSuite(
         tags,
         errors: [],
         standing: getStatus(passed, failed, skipped, xfailed, xpassed),
+        retried: 0,
+        session_id: '',
+        Parent: '',
+        type: 'SUITE',
+        totalRollupValue: 0,
+        Desc: '',
     };
 }
 

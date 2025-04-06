@@ -27,7 +27,7 @@ import {
     IconTestPipe,
     IconX,
 } from '@tabler/icons-react';
-import type { ParsedTestRecord } from 'types/parsed-records';
+import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
 import ImageCarousel, { NoThingsWereAdded } from './image-carousel';
 import Assertions from './assertions';
@@ -37,7 +37,7 @@ import { useDisclosure } from '@mantine/hooks';
 export const detailedTestViewPortalTarget = '#detailed-test-view';
 
 export function DetailedViewForTestEntity(properties: {
-    test: ParsedTestRecord;
+    test: ParsedSuiteRecord;
 }) {
     const iconStyle = { width: rem(12), height: rem(12) };
     return (
@@ -65,7 +65,9 @@ export function DetailedViewForTestEntity(properties: {
     );
 }
 
-export function DetailedViewForSuites(properties: { suite: ParsedTestRecord }) {
+export function DetailedViewForSuites(properties: {
+    suite: ParsedSuiteRecord;
+}) {
     return (
         <Box w="96vw" pos="sticky" style={{ overflow: 'auto', left: 12 }}>
             <DetailedViewForTestEntity

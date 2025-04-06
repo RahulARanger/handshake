@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/no-keyword-prefix */
 import {
     ActionIcon,
     Anchor,
@@ -8,7 +9,6 @@ import {
     MenuTarget,
     rem,
     Skeleton,
-    Text,
     Tooltip,
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';
@@ -24,7 +24,6 @@ import type {
 } from 'types/parsed-records';
 import { IconDots, IconFilter } from '@tabler/icons-react';
 import '@mantine/core/styles.layer.css';
-import 'mantine-datatable/styles.layer.css';
 import useFilteredSuites, {
     DEFAULT_QUERY,
     SearchQuery,
@@ -40,7 +39,8 @@ import {
 import 'mantine-react-table/styles.css';
 import useTableConfigurationsForListOfSuites from 'hooks/get-saved-filters';
 import CountUpNumber from 'components/counter';
-import DetailedTestView, { DetailedViewForSuites } from './detailed-test-view';
+import { DetailedViewForSuites } from './detailed-test-view';
+import GridStyles from 'styles/data-table.module.css';
 
 function TableOfSuites(properties: {
     suites: ParsedSuiteRecord[];
@@ -80,11 +80,6 @@ function TableOfSuites(properties: {
                                         height: rem(12),
                                     }}
                                 />
-                                <sub>
-                                    <Text size="xs">
-                                        ({`${row.original.Tests}`})
-                                    </Text>
-                                </sub>
                             </ActionIcon>
                         </Tooltip>
                     ) : (
@@ -204,6 +199,7 @@ function TableOfSuites(properties: {
                             key={renderedRowIndex}
                             size="sm"
                             decimalPoints={2}
+                            avoideAnimation
                         />
                     );
                 },
@@ -275,8 +271,8 @@ function TableOfSuites(properties: {
         mantinePaperProps: {
             withBorder: true,
             shadow: 'xl',
-            mr: 'md',
             maw: maxWidth,
+            className: GridStyles.dataTable,
         },
         onIsFullScreenChange: () =>
             setMaxWidth((width) => (width === '100vw' ? '98vw' : '100vw')),
@@ -410,7 +406,7 @@ export default function ListOfSuits(properties: {
         useFilteredSuites(suites);
 
     return (
-        <Suspense fallback={<Skeleton height={'40%'} />}>
+        <Suspense fallback={<Skeleton mt="55px" height={'40%'} />}>
             <TableOfSuites
                 started={run?.Started}
                 suites={filteredSuites}
