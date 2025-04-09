@@ -13,7 +13,6 @@ import {
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';
 import dayjs, { Dayjs } from 'dayjs';
-
 import React, { Suspense, useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
@@ -23,7 +22,6 @@ import type {
     ParsedSuiteRecord,
 } from 'types/parsed-records';
 import { IconDots, IconFilter } from '@tabler/icons-react';
-import '@mantine/core/styles.layer.css';
 import useFilteredSuites, {
     DEFAULT_QUERY,
     SearchQuery,
@@ -31,12 +29,12 @@ import useFilteredSuites, {
 import { useProcessedTestSuites } from 'hooks/get-test-suites';
 import TestStatusIcon from 'components/about-test-run/test-status';
 import TestEntityStatusMetrics from './test-entity-status';
+import 'mantine-react-table/styles.css';
 import {
     MantineReactTable,
     MRT_ColumnDef,
     useMantineReactTable,
 } from 'mantine-react-table';
-import 'mantine-react-table/styles.css';
 import useTableConfigurationsForListOfSuites from 'hooks/get-saved-filters';
 import CountUpNumber from 'components/counter';
 import { DetailedViewForSuites } from './detailed-test-view';

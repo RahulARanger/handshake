@@ -8,6 +8,11 @@ import { SuiteRecordDetails } from 'types/test-entity-related';
 import { TestRunRecord } from 'types/test-run-records';
 import { useProcessedTestRun } from 'hooks/get-test-run';
 
+// for mantine data table styles
+import '@mantine/core/styles.css';
+import '@mantine/dates/styles.css';
+import 'mantine-react-table/styles.css';
+
 export default function EntitiesView(properties: {
     mockSuites?: SuiteRecordDetails[];
     mockRun?: TestRunRecord;

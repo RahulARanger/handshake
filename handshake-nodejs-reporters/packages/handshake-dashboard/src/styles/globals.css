@@ -64,10 +64,10 @@ body {
 }
 
 .mirror {
-    -webkit-backdrop-filter: blur(7px);
-    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
     background-color: transparent !important;
-    border: 1.5px solid rgba(255, 255, 255, 0.08);
+    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 tr.mantine-Table-tr:hover {

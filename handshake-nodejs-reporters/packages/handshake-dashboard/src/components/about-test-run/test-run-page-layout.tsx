@@ -25,7 +25,7 @@ export default function RunPageContent(properties: {
                 ) : (
                     <ScrollAreaAutosize
                         py="sm"
-                        mr="md"
+                        mx="xs"
                         viewportProps={{ style: { marginTop: '40px' } }}
                         style={{
                             overflowX: 'hidden',

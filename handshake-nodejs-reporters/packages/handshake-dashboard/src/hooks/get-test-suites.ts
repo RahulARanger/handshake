@@ -13,8 +13,8 @@ export function useProcessedTestSuites(
 ) {
     const {
         data: _data,
-        // isLoading,
-        // error,
+        isLoading,
+        error,
     } = useSWRImmutable<SuiteRecordDetails[]>(
         testID && !mockSuites ? jsonFeedForListOfSuites(testID) : undefined,
         () =>
@@ -31,5 +31,5 @@ export function useProcessedTestSuites(
             .map((suite) => transformSuiteEntity(suite, tests ?? 0, converter));
     }, [tests, data]);
 
-    return { suites };
+    return { suites, isLoading, error };
 }

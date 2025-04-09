@@ -14,6 +14,7 @@ import {
     Center,
     Divider,
     SegmentedControl,
+    Card,
 } from '@mantine/core';
 import {
     IconArrowDownRight,
@@ -31,7 +32,10 @@ import {
     PieChart,
 } from '@mantine/charts';
 import Confetti from 'react-confetti-boom';
-import { HumanizedDuration } from 'components/timings/humanized-duration';
+import {
+    durationText,
+    HumanizedDuration,
+} from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
 import useSWRImmutable from 'swr/immutable';
 import { jsonFeedForProjects, testRunPage } from 'components/links';
@@ -95,30 +99,35 @@ function PieViewOfStatus(properties: {
     }, [rate]);
 
     return (
-        <Paper>
-            <Stack align="center">
-                <PieChart
-                    size={250}
-                    withLabelsLine
-                    labelsType="value"
-                    paddingAngle={6}
-                    withLabels
-                    tooltipDataSource="segment"
-                    classNames={{ tooltip: 'mirror' }}
-                    data={data}
-                    withTooltip
-                    pieProps={{ isAnimationActive: true }}
-                />
-            </Stack>
-        </Paper>
+        <Card p="sm">
+            <Card.Section withBorder p="sm">
+                <Text size="sm">Status of the {properties.text}</Text>
+            </Card.Section>
+            <Card.Section px="sm">
+                <Stack align="center">
+                    <PieChart
+                        size={200}
+                        withLabelsLine
+                        labelsType="value"
+                        paddingAngle={6}
+                        withLabels
+                        tooltipDataSource="segment"
+                        classNames={{ tooltip: 'mirror' }}
+                        data={data}
+                        withTooltip
+                        pieProps={{ isAnimationActive: true }}
+                    />
+                </Stack>
+            </Card.Section>
+        </Card>
     );
 }
 interface ChartTooltipProperties {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     payload: Payload<any, any>[] | undefined;
     reference: number;
-    unit?: string;
     currentIndex: number;
+    formatValue?: (x: number) => string;
     invertReference?: boolean;
 }
 const nth = (d: number) => {
@@ -138,7 +147,7 @@ function ChartTooltip({
     payload,
     invertReference,
     currentIndex,
-    unit,
+    formatValue,
 }: ChartTooltipProperties) {
     if (!payload) return;
 
@@ -180,8 +189,13 @@ function ChartTooltip({
                             component="span"
                         >
                             <span>
-                                {item.value}
-                                {unit ?? ''}
+                                {formatValue
+                                    ? formatValue(
+                                          +Number.parseFloat(
+                                              item.value,
+                                          ).toFixed(2),
+                                      )
+                                    : +Number.parseFloat(item.value).toFixed(2)}
                             </span>
                             {item.value >= 0 ? (
                                 <IconArrowUpRight size={16} stroke={1.5} />
@@ -189,8 +203,8 @@ function ChartTooltip({
                                 <IconArrowDownRight size={16} stroke={1.5} />
                             )}
                         </Text>
-                        &nbsp;&nbsp;({item.value + reference}
-                        {unit ?? ''})
+                        &nbsp;&nbsp;(
+                        {+Number.parseFloat(item.value + reference).toFixed(2)})
                     </Text>
                 </Stack>
             ))}
@@ -206,7 +220,7 @@ function RateOfChangeChart(properties: {
     index: number;
     showLineText?: boolean;
     referenceIndex: number;
-    unit?: string;
+    formatValue?: (x: number) => string;
 }) {
     return (
         <AreaChart
@@ -225,10 +239,21 @@ function RateOfChangeChart(properties: {
             tickLine="none"
             gridAxis="none"
             strokeWidth={1}
+            xAxisProps={{
+                label: {
+                    value: 'Latest Runs →',
+                    position: 'insideBottom',
+                    offset: 5,
+                    style: { fontSize: 12 },
+                },
+                reversed: true, // important, as we have from latest runs at starting index.
+            }}
             unit={`+${properties.counts[properties.referenceIndex ?? 0] ?? 0}`}
             type="split"
             splitColors={[properties.c, properties.rc ?? 'red']}
-            areaChartProps={{ syncId: 'rate-of-change-chart' }}
+            areaChartProps={{
+                syncId: 'rate-of-change-chart',
+            }}
             areaProps={{ isAnimationActive: true }}
             referenceLines={[
                 {
@@ -250,9 +275,9 @@ function RateOfChangeChart(properties: {
                             properties.counts[properties.referenceIndex ?? 0]
                         }
                         currentIndex={properties.index}
-                        unit={properties.unit ?? ''}
                         payload={payload}
                         invertReference={(properties.rc ?? 'red') !== 'red'}
+                        formatValue={properties.formatValue}
                     />
                 ),
             }}
@@ -356,12 +381,12 @@ function OverviewFromRestOfTheProjects(properties: {
 
     if (toLoad) return <LoadingPie />;
 
-    const relativeIndex = passedCounts.length - (run.projectIndex + 1);
+    const relativeIndex = run.projectIndex;
+    // ids are from latest project to the old project
+    const nextProject = run.projectIndex > 0 && ids.at(run.projectIndex - 1);
     const previousProject =
-        relativeIndex && relativeIndex < 0 && ids.at(relativeIndex - 1);
-    const isRecentRun = run?.projectIndex === 0;
-    const nextProject =
-        !isRecentRun && relativeIndex && ids.at(relativeIndex + 1);
+        passedCounts.length !== run.projectIndex + 1 &&
+        ids.at(run.projectIndex + 1);
 
     return (
         <>
@@ -427,7 +452,7 @@ function OverviewFromRestOfTheProjects(properties: {
                     index={relativeIndex}
                     counts={durations}
                     referenceIndex={rIndex ?? relativeIndex}
-                    unit="s"
+                    formatValue={(x) => durationText(x)}
                 />
 
                 <Group mt="xs" align="center">
