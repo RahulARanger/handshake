@@ -10,8 +10,8 @@ export function useProcessedTestRun(properties_: {
 }) {
     const {
         data: _rawRun,
-        // isLoading,
-        // error,
+        isLoading,
+        error,
     } = useSWRImmutable<TestRunRecord>(
         properties_.testID && !properties_.mockRun
             ? jsonFeedAboutTestRun(properties_.testID)
@@ -27,5 +27,5 @@ export function useProcessedTestRun(properties_: {
         () => rawRun && transformTestRunRecord(rawRun),
         [rawRun],
     );
-    return { run };
+    return { run, isLoading, error };
 }
