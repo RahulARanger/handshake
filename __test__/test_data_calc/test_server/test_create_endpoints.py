@@ -7,7 +7,7 @@ from handshake.services.DBService.models import (
 )
 from handshake.services.DBService.models.enums import Status, SuiteType
 from sanic import Sanic
-from __test__.test_patch_jobs.test_server.commons import set_config
+from __test__.test_data_calc.test_server.commons import set_config
 
 
 @mark.usefixtures("sample_test_session")

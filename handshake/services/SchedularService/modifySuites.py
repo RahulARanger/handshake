@@ -108,7 +108,7 @@ class PatchTestSuite:
     returns true if suite is patched else false
     """
 
-    @atomic()
+    @atomic("default")
     async def patch_suite(self) -> bool:
         await self.fetch_records()
         if not await self.do_we_need_to_patch():

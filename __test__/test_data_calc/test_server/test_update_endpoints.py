@@ -13,7 +13,7 @@ from handshake.services.DBService.models import (
 from handshake.services.DBService.models.enums import SuiteType, Status
 from sanic import Sanic
 from asyncio import gather
-from __test__.test_patch_jobs.test_server.commons import set_config
+from __test__.test_data_calc.test_server.commons import set_config
 from handshake.services.DBService.models.enums import (
     LogType,
     AttachmentType,
