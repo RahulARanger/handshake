@@ -512,7 +512,7 @@ export function OverviewBoard(properties: {
         <Stack align="center" mb="md">
             {run.Status === 'PASSED' ? (
                 <Confetti
-                    particleCount={50}
+                    particleCount={6}
                     mode="fall"
                     colors={['#ff577f', '#ff884b']}
                 />

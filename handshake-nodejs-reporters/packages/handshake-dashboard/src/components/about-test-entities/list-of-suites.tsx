@@ -8,12 +8,11 @@ import {
     MenuItem,
     MenuTarget,
     rem,
-    Skeleton,
     Tooltip,
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';
 import dayjs, { Dayjs } from 'dayjs';
-import React, { Suspense, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
@@ -112,7 +111,6 @@ function TableOfSuites(properties: {
                         value: label.toUpperCase(),
                     })),
                 },
-                filterFn: 'equals',
             },
             {
                 accessorKey: 'Title',
@@ -144,6 +142,7 @@ function TableOfSuites(properties: {
             {
                 accessorKey: 'Start Time',
                 header: 'Start Time',
+                maxSize: 100,
                 Cell: ({ row, renderedRowIndex }) => {
                     return (
                         <TimeRange
@@ -158,6 +157,7 @@ function TableOfSuites(properties: {
             {
                 accessorKey: 'End Time',
                 header: 'End Time',
+                maxSize: 100,
                 Cell: ({ row, renderedRowIndex }) => {
                     return (
                         <TimeRange
@@ -241,7 +241,6 @@ function TableOfSuites(properties: {
         [properties.started],
     );
     const [maxWidth, setMaxWidth] = useState('98vw');
-
     const { columnsShown, setColumnsShown } =
         useTableConfigurationsForListOfSuites();
 
@@ -387,7 +386,7 @@ function BreadcrumbsForDrilldownSuites(properties: {
     );
 }
 
-export default function ListOfSuits(properties: {
+export default function ListOfSuitesNonDynamic(properties: {
     testID?: string;
     mockSuites?: SuiteRecordDetails[];
     run?: DetailedTestRecord;
@@ -404,23 +403,21 @@ export default function ListOfSuits(properties: {
         useFilteredSuites(suites);
 
     return (
-        <Suspense fallback={<Skeleton mt="55px" height={'40%'} />}>
-            <TableOfSuites
-                started={run?.Started}
-                suites={filteredSuites}
-                levels={searchQuery.levels}
-                setSearchQuery={setSearchQuery}
-                onParentFilter={(suiteID, suiteName) =>
-                    setSearchQuery({
-                        ...searchQuery,
-                        parent: suiteID,
-                        levels: [
-                            ...searchQuery.levels,
-                            { label: suiteName, value: suiteID },
-                        ],
-                    })
-                }
-            />
-        </Suspense>
+        <TableOfSuites
+            started={run?.Started}
+            suites={filteredSuites}
+            levels={searchQuery.levels}
+            setSearchQuery={setSearchQuery}
+            onParentFilter={(suiteID, suiteName) =>
+                setSearchQuery({
+                    ...searchQuery,
+                    parent: suiteID,
+                    levels: [
+                        ...searchQuery.levels,
+                        { label: suiteName, value: suiteID },
+                    ],
+                })
+            }
+        />
     );
 }

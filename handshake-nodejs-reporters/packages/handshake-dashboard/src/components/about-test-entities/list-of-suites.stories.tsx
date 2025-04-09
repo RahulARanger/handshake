@@ -1,11 +1,18 @@
+import { Box } from '@mantine/core';
 import type { Meta, StoryObj } from '@storybook/react';
 import EntitiesView from 'pages/RUNS/Suites';
 import { generateTestHierarchyWithSuites } from 'stories/TestData/test-suites';
 
+const WindowComp = (properties: typeof EntitiesView) => (
+    <Box ml="-10px">
+        <EntitiesView {...properties} />
+    </Box>
+);
+
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
     title: 'Pages/Suites',
-    component: EntitiesView,
+    component: WindowComp,
     parameters: {
         // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
         layout: 'centered',

@@ -70,6 +70,18 @@ body {
     border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
 }
 
+/* adding this to highlight the rows only with bg on hover */
+tr.mantine-Table-tr {
+    transition: all ease 0.2s;
+}
+
 tr.mantine-Table-tr:hover {
     background-color: var(--row-bg) !important;
+}
+
+/* adding this here to match the skeleton with the theme */
+.mantine-Skeleton-root[data-visible="true"] {
+    background-color: #2e2e2e;
+    opacity: .4;
+    border-radius: 8px;
 }

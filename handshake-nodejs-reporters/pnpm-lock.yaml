@@ -54,8 +54,8 @@ importers:
         specifier: ^19.1.0
         version: 19.1.0
       '@types/react-dom':
-        specifier: 18.3.0
-        version: 18.3.0
+        specifier: ^19.1.0
+        version: 19.1.1(@types/react@19.1.0)
       '@types/react-highlight-words':
         specifier: ^0.20.0
         version: 0.20.0
@@ -176,7 +176,7 @@ importers:
         version: 6.6.3
       '@testing-library/react':
         specifier: ^16.3.0
-        version: 16.3.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.0)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
+        version: 16.3.0(@testing-library/dom@10.4.0)(@types/react-dom@19.1.1)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
       '@tsconfig/node18':
         specifier: ^18.2.4
         version: 18.2.4
@@ -3763,7 +3763,7 @@ packages:
       redent: 3.0.0
     dev: true
 
-  /@testing-library/react@16.3.0(@testing-library/dom@10.4.0)(@types/react-dom@18.3.0)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0):
+  /@testing-library/react@16.3.0(@testing-library/dom@10.4.0)(@types/react-dom@19.1.1)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0):
     resolution: {integrity: sha512-kFSyxiEDwv1WLl2fgsq6pPBbw5aWKrsY2/noi1Id0TK0UParSF62oFQFGHXIyaG4pp2tEub/Zlel+fjjZILDsw==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -3781,7 +3781,7 @@ packages:
       '@babel/runtime': 7.27.0
       '@testing-library/dom': 10.4.0
       '@types/react': 19.1.0
-      '@types/react-dom': 18.3.0
+      '@types/react-dom': 19.1.1(@types/react@19.1.0)
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
     dev: true
@@ -4029,6 +4029,14 @@ packages:
 
   /@types/react-dom@18.3.0:
     resolution: {integrity: sha512-EhwApuTmMBmXuFOikhQLIBUn6uFg81SwLMOAUgodJF14SOBOCMdU04gDoYi0WOJJHD144TL32z4yDqCW3dnkQg==}
+    dependencies:
+      '@types/react': 19.1.0
+    dev: false
+
+  /@types/react-dom@19.1.1(@types/react@19.1.0):
+    resolution: {integrity: sha512-jFf/woGTVTjUJsl2O7hcopJ1r0upqoq/vIOoCj0yLh3RIXxWcljlpuZ+vEBRXsymD1jhfeJrlyTy/S1UW+4y1w==}
+    peerDependencies:
+      '@types/react': ^19.0.0
     dependencies:
       '@types/react': 19.1.0
 
