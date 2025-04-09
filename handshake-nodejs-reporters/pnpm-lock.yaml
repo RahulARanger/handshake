@@ -30,20 +30,20 @@ importers:
         specifier: workspace:*
         version: link:../utils
       '@mantine/carousel':
-        specifier: ^7.17.3
-        version: 7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(embla-carousel-react@8.6.0)(react-dom@19.1.0)(react@19.1.0)
+        specifier: ^7.17.4
+        version: 7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(embla-carousel-react@8.6.0)(react-dom@19.1.0)(react@19.1.0)
       '@mantine/charts':
-        specifier: ^7.17.3
-        version: 7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(react-dom@19.1.0)(react@19.1.0)(recharts@2.15.2)
+        specifier: ^7.17.4
+        version: 7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(react-dom@19.1.0)(react@19.1.0)(recharts@2.15.2)
       '@mantine/core':
-        specifier: ^7.17.3
-        version: 7.17.3(@mantine/hooks@7.17.3)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
+        specifier: ^7.17.4
+        version: 7.17.4(@mantine/hooks@7.17.4)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
       '@mantine/dates':
-        specifier: ^7.17.3
-        version: 7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0)
+        specifier: ^7.17.4
+        version: 7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0)
       '@mantine/hooks':
-        specifier: ^7.17.3
-        version: 7.17.3(react@19.1.0)
+        specifier: ^7.17.4
+        version: 7.17.4(react@19.1.0)
       '@tabler/icons-react':
         specifier: ^3.31.0
         version: 3.31.0(react@19.1.0)
@@ -85,7 +85,7 @@ importers:
         version: 4.17.21
       mantine-react-table:
         specifier: 2.0.0-beta.9
-        version: 2.0.0-beta.9(@mantine/core@7.17.3)(@mantine/dates@7.17.3)(@mantine/hooks@7.17.3)(@tabler/icons-react@3.31.0)(clsx@2.1.1)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0)
+        version: 2.0.0-beta.9(@mantine/core@7.17.4)(@mantine/dates@7.17.4)(@mantine/hooks@7.17.4)(@tabler/icons-react@3.31.0)(clsx@2.1.1)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0)
       next:
         specifier: 15.2.4
         version: 15.2.4(@babel/core@7.26.10)(react-dom@19.1.0)(react@19.1.0)
@@ -133,8 +133,8 @@ importers:
         specifier: ^3.2.6
         version: 3.2.6(react@19.1.0)(storybook@8.6.12)
       '@next/bundle-analyzer':
-        specifier: ^15.2.4
-        version: 15.2.4
+        specifier: ^15.2.5
+        version: 15.3.0
       '@storybook/addon-coverage':
         specifier: ^1.0.5
         version: 1.0.5
@@ -193,8 +193,8 @@ importers:
         specifier: ^9.24.0
         version: 9.24.0
       eslint-config-next:
-        specifier: ^15.2.4
-        version: 15.2.4(eslint@9.24.0)(typescript@5.8.3)
+        specifier: ^15.2.5
+        version: 15.3.0(eslint@9.24.0)(typescript@5.8.3)
       eslint-plugin-unicorn:
         specifier: ^56.0.1
         version: 56.0.1(eslint@9.24.0)
@@ -208,8 +208,8 @@ importers:
         specifier: ^4.0.2
         version: 4.0.2(react-dom@19.1.0)(react@19.1.0)(storybook@8.6.12)
       typescript-eslint:
-        specifier: ^8.29.0
-        version: 8.29.0(eslint@9.24.0)(typescript@5.8.3)
+        specifier: ^8.29.1
+        version: 8.29.1(eslint@9.24.0)(typescript@5.8.3)
 
   packages/utils:
     dependencies:
@@ -2618,77 +2618,77 @@ packages:
       - supports-color
     dev: true
 
-  /@mantine/carousel@7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(embla-carousel-react@8.6.0)(react-dom@19.1.0)(react@19.1.0):
-    resolution: {integrity: sha512-WAt1DvV5WFaLz7BWCqIWiWbmJRe4LXP4SjKATb1lETAnmZqxMeE6VpSe80XGt65kKFaEeLhgMwSnEJX61wFYpg==}
+  /@mantine/carousel@7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(embla-carousel-react@8.6.0)(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-BMetQKrKI9zLqIUepm1b+1ZtTl7672F0g7njlxKbG/V/GgnggtyklZ+CfjAABDa6r6yyLNTsI/j7QQJXqHjP5w==}
     peerDependencies:
-      '@mantine/core': 7.17.3
-      '@mantine/hooks': 7.17.3
+      '@mantine/core': 7.17.4
+      '@mantine/hooks': 7.17.4
       embla-carousel-react: '>=7.0.0'
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
     dependencies:
-      '@mantine/core': 7.17.3(@mantine/hooks@7.17.3)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
-      '@mantine/hooks': 7.17.3(react@19.1.0)
+      '@mantine/core': 7.17.4(@mantine/hooks@7.17.4)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
+      '@mantine/hooks': 7.17.4(react@19.1.0)
       embla-carousel-react: 8.6.0(react@19.1.0)
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
     dev: false
 
-  /@mantine/charts@7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(react-dom@19.1.0)(react@19.1.0)(recharts@2.15.2):
-    resolution: {integrity: sha512-YGx8hLi4E3yyiRx9fNAoPPF+YrFkLWM+fnzqKIVvRbWqMbUw920AU+K5XSDjPmNB7cuYWSVwxxA/hIstQ8x3VA==}
+  /@mantine/charts@7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(react-dom@19.1.0)(react@19.1.0)(recharts@2.15.2):
+    resolution: {integrity: sha512-datvi9GkMRrL9SY2R5Pd7MpP6d7QxRFYMY7DcdE/V3JnwMmg+gCg+QfzvrT947R8sEiBZECirTI0yNLWDSwkGw==}
     peerDependencies:
-      '@mantine/core': 7.17.3
-      '@mantine/hooks': 7.17.3
+      '@mantine/core': 7.17.4
+      '@mantine/hooks': 7.17.4
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
       recharts: ^2.13.3
     dependencies:
-      '@mantine/core': 7.17.3(@mantine/hooks@7.17.3)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
-      '@mantine/hooks': 7.17.3(react@19.1.0)
+      '@mantine/core': 7.17.4(@mantine/hooks@7.17.4)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
+      '@mantine/hooks': 7.17.4(react@19.1.0)
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       recharts: 2.15.2(react-dom@19.1.0)(react@19.1.0)
     dev: false
 
-  /@mantine/core@7.17.3(@mantine/hooks@7.17.3)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0):
-    resolution: {integrity: sha512-N/AfV5eMnfEMx9WzI7AU5pNFBEzAfT/KtE2XDKS+0ht6RifUmolIxyIvoGMYz2yUEsCBMJZqmBq33Rabf5W7Ug==}
+  /@mantine/core@7.17.4(@mantine/hooks@7.17.4)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-Ea4M/98jxgIWCuxCdM0YIotVYjfLTGQsfIA6zDg0LsClgjo/ZLnnh4zbi+bLNgM+GGjP4ju7gv4MZvaTKuLO8g==}
     peerDependencies:
-      '@mantine/hooks': 7.17.3
+      '@mantine/hooks': 7.17.4
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
     dependencies:
       '@floating-ui/react': 0.26.28(react-dom@19.1.0)(react@19.1.0)
-      '@mantine/hooks': 7.17.3(react@19.1.0)
+      '@mantine/hooks': 7.17.4(react@19.1.0)
       clsx: 2.1.1
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
       react-number-format: 5.4.3(react-dom@19.1.0)(react@19.1.0)
       react-remove-scroll: 2.6.3(@types/react@19.1.0)(react@19.1.0)
-      react-textarea-autosize: 8.5.6(@types/react@19.1.0)(react@19.1.0)
+      react-textarea-autosize: 8.5.9(@types/react@19.1.0)(react@19.1.0)
       type-fest: 4.39.1
     transitivePeerDependencies:
       - '@types/react'
     dev: false
 
-  /@mantine/dates@7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0):
-    resolution: {integrity: sha512-gegLSlK7mi3jAaL/JMLdy6oK9CmY08nXoLvbeO03i+751bmbbbzpoFAaxMzbR6vkP9tPuoapOxJqgDzn2Jm+Dw==}
+  /@mantine/dates@7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-6oqcmcJb0Pypju+/z6s9nEVa3B9Pdj5DTrdj/FP/RD7RFx4k7nHi+jFstn4qcso6nghRRROKMHErfqrBybjzKA==}
     peerDependencies:
-      '@mantine/core': 7.17.3
-      '@mantine/hooks': 7.17.3
+      '@mantine/core': 7.17.4
+      '@mantine/hooks': 7.17.4
       dayjs: '>=1.0.0'
       react: ^18.x || ^19.x
       react-dom: ^18.x || ^19.x
     dependencies:
-      '@mantine/core': 7.17.3(@mantine/hooks@7.17.3)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
-      '@mantine/hooks': 7.17.3(react@19.1.0)
+      '@mantine/core': 7.17.4(@mantine/hooks@7.17.4)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
+      '@mantine/hooks': 7.17.4(react@19.1.0)
       clsx: 2.1.1
       dayjs: 1.11.13
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
     dev: false
 
-  /@mantine/hooks@7.17.3(react@19.1.0):
-    resolution: {integrity: sha512-6o65Rbfl8jd1C1nF9icvungqL0qZViEOmrZgkyKXxBYkC3x91fz4zftwQgNjt1tZHWDNO6Bo4GpRjJyAdwl48g==}
+  /@mantine/hooks@7.17.4(react@19.1.0):
+    resolution: {integrity: sha512-PBcJxDAfGm8k1/JJmaDcxzRVQ3JSE1iXGktbgGz+qEOJmCxwbbAYe+CtGFFgi1xX2bPZ+7dtRr/+XFhnKtt/aw==}
     peerDependencies:
       react: ^18.x || ^19.x
     dependencies:
@@ -2736,8 +2736,8 @@ packages:
     dev: true
     optional: true
 
-  /@next/bundle-analyzer@15.2.4:
-    resolution: {integrity: sha512-72OXS/+r3Q6PW9oCBlkxogsEJ9DIoD64dGe8OZc2nKcHu3HbKKaXoDkutC8u7cxmBFd+ERt3D0/MoP7eZkhhog==}
+  /@next/bundle-analyzer@15.3.0:
+    resolution: {integrity: sha512-t1dn32bTBJTfksh2xLfpaw6hNNNrw1rsr1GlVSkRbJ5626YgEMFBjuos5tHr6l9/b+jKz1HFYFlWNgrIHqCslw==}
     dependencies:
       webpack-bundle-analyzer: 4.10.1
     transitivePeerDependencies:
@@ -2748,8 +2748,8 @@ packages:
   /@next/env@15.2.4:
     resolution: {integrity: sha512-+SFtMgoiYP3WoSswuNmxJOCwi06TdWE733D+WPjpXIe4LXGULwEaofiiAy6kbS0+XjM5xF5n3lKuBwN2SnqD9g==}
 
-  /@next/eslint-plugin-next@15.2.4:
-    resolution: {integrity: sha512-O8ScvKtnxkp8kL9TpJTTKnMqlkZnS+QxwoQnJwPGBxjBbzd6OVVPEJ5/pMNrktSyXQD/chEfzfFzYLM6JANOOQ==}
+  /@next/eslint-plugin-next@15.3.0:
+    resolution: {integrity: sha512-511UUcpWw5GWTyKfzW58U2F/bYJyjLE9e3SlnGK/zSXq7RqLlqFO8B9bitJjumLpj317fycC96KZ2RZsjGNfBw==}
     dependencies:
       fast-glob: 3.3.1
     dev: true
@@ -4121,6 +4121,30 @@ packages:
       - supports-color
     dev: true
 
+  /@typescript-eslint/eslint-plugin@8.29.1(@typescript-eslint/parser@8.29.1)(eslint@9.24.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-ba0rr4Wfvg23vERs3eB+P3lfj2E+2g3lhWcCVukUuhtcdUx5lSIFZlGFEBHKr+3zizDa/TvZTptdNHVZWAkSBg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      '@typescript-eslint/parser': ^8.0.0 || ^8.0.0-alpha.0
+      eslint: ^8.57.0 || ^9.0.0
+      typescript: '>=4.8.4 <5.9.0'
+    dependencies:
+      '@eslint-community/regexpp': 4.12.1
+      '@typescript-eslint/parser': 8.29.1(eslint@9.24.0)(typescript@5.8.3)
+      '@typescript-eslint/scope-manager': 8.29.1
+      '@typescript-eslint/type-utils': 8.29.1(eslint@9.24.0)(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.29.1(eslint@9.24.0)(typescript@5.8.3)
+      '@typescript-eslint/visitor-keys': 8.29.1
+      eslint: 9.24.0
+      graphemer: 1.4.0
+      ignore: 5.3.2
+      natural-compare: 1.4.0
+      ts-api-utils: 2.1.0(typescript@5.8.3)
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@typescript-eslint/parser@8.29.0(eslint@9.24.0)(typescript@5.8.3):
     resolution: {integrity: sha512-8C0+jlNJOwQso2GapCVWWfW/rzaq7Lbme+vGUFKE31djwNncIpgXD7Cd4weEsDdkoZDjH0lwwr3QDQFuyrMg9g==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
@@ -4139,12 +4163,38 @@ packages:
       - supports-color
     dev: true
 
+  /@typescript-eslint/parser@8.29.1(eslint@9.24.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-zczrHVEqEaTwh12gWBIJWj8nx+ayDcCJs06yoNMY0kwjMWDM6+kppljY+BxWI06d2Ja+h4+WdufDcwMnnMEWmg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0
+      typescript: '>=4.8.4 <5.9.0'
+    dependencies:
+      '@typescript-eslint/scope-manager': 8.29.1
+      '@typescript-eslint/types': 8.29.1
+      '@typescript-eslint/typescript-estree': 8.29.1(typescript@5.8.3)
+      '@typescript-eslint/visitor-keys': 8.29.1
+      debug: 4.4.0
+      eslint: 9.24.0
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@typescript-eslint/scope-manager@8.29.0:
     resolution: {integrity: sha512-aO1PVsq7Gm+tcghabUpzEnVSFMCU4/nYIgC2GOatJcllvWfnhrgW0ZEbnTxm36QsikmCN1K/6ZgM7fok2I7xNw==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       '@typescript-eslint/types': 8.29.0
       '@typescript-eslint/visitor-keys': 8.29.0
+    dev: true
+
+  /@typescript-eslint/scope-manager@8.29.1:
+    resolution: {integrity: sha512-2nggXGX5F3YrsGN08pw4XpMLO1Rgtnn4AzTegC2MDesv6q3QaTU5yU7IbS1tf1IwCR0Hv/1EFygLn9ms6LIpDA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    dependencies:
+      '@typescript-eslint/types': 8.29.1
+      '@typescript-eslint/visitor-keys': 8.29.1
     dev: true
 
   /@typescript-eslint/type-utils@8.29.0(eslint@9.24.0)(typescript@5.8.3):
@@ -4164,8 +4214,30 @@ packages:
       - supports-color
     dev: true
 
+  /@typescript-eslint/type-utils@8.29.1(eslint@9.24.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-DkDUSDwZVCYN71xA4wzySqqcZsHKic53A4BLqmrWFFpOpNSoxX233lwGu/2135ymTCR04PoKiEEEvN1gFYg4Tw==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0
+      typescript: '>=4.8.4 <5.9.0'
+    dependencies:
+      '@typescript-eslint/typescript-estree': 8.29.1(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.29.1(eslint@9.24.0)(typescript@5.8.3)
+      debug: 4.4.0
+      eslint: 9.24.0
+      ts-api-utils: 2.1.0(typescript@5.8.3)
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@typescript-eslint/types@8.29.0:
     resolution: {integrity: sha512-wcJL/+cOXV+RE3gjCyl/V2G877+2faqvlgtso/ZRbTCnZazh0gXhe+7gbAnfubzN2bNsBtZjDvlh7ero8uIbzg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    dev: true
+
+  /@typescript-eslint/types@8.29.1:
+    resolution: {integrity: sha512-VT7T1PuJF1hpYC3AGm2rCgJBjHL3nc+A/bhOp9sGMKfi5v0WufsX/sHCFBfNTx2F+zA6qBc/PD0/kLRLjdt8mQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dev: true
 
@@ -4177,6 +4249,25 @@ packages:
     dependencies:
       '@typescript-eslint/types': 8.29.0
       '@typescript-eslint/visitor-keys': 8.29.0
+      debug: 4.4.0
+      fast-glob: 3.3.3
+      is-glob: 4.0.3
+      minimatch: 9.0.5
+      semver: 7.7.1
+      ts-api-utils: 2.1.0(typescript@5.8.3)
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@typescript-eslint/typescript-estree@8.29.1(typescript@5.8.3):
+    resolution: {integrity: sha512-l1enRoSaUkQxOQnbi0KPUtqeZkSiFlqrx9/3ns2rEDhGKfTa+88RmXqedC1zmVTOWrLc2e6DEJrTA51C9iLH5g==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      typescript: '>=4.8.4 <5.9.0'
+    dependencies:
+      '@typescript-eslint/types': 8.29.1
+      '@typescript-eslint/visitor-keys': 8.29.1
       debug: 4.4.0
       fast-glob: 3.3.3
       is-glob: 4.0.3
@@ -4205,11 +4296,36 @@ packages:
       - supports-color
     dev: true
 
+  /@typescript-eslint/utils@8.29.1(eslint@9.24.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-QAkFEbytSaB8wnmB+DflhUPz6CLbFWE2SnSCrRMEa+KnXIzDYbpsn++1HGvnfAsUY44doDXmvRkO5shlM/3UfA==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    peerDependencies:
+      eslint: ^8.57.0 || ^9.0.0
+      typescript: '>=4.8.4 <5.9.0'
+    dependencies:
+      '@eslint-community/eslint-utils': 4.5.1(eslint@9.24.0)
+      '@typescript-eslint/scope-manager': 8.29.1
+      '@typescript-eslint/types': 8.29.1
+      '@typescript-eslint/typescript-estree': 8.29.1(typescript@5.8.3)
+      eslint: 9.24.0
+      typescript: 5.8.3
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@typescript-eslint/visitor-keys@8.29.0:
     resolution: {integrity: sha512-Sne/pVz8ryR03NFK21VpN88dZ2FdQXOlq3VIklbrTYEt8yXtRFr9tvUhqvCeKjqYk5FSim37sHbooT6vzBTZcg==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     dependencies:
       '@typescript-eslint/types': 8.29.0
+      eslint-visitor-keys: 4.2.0
+    dev: true
+
+  /@typescript-eslint/visitor-keys@8.29.1:
+    resolution: {integrity: sha512-RGLh5CRaUEf02viP5c1Vh1cMGffQscyHe7HPAzGpfmfflFg1wUz2rYxd+OZqwpeypYvZ8UxSxuIpF++fmOzEcg==}
+    engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    dependencies:
+      '@typescript-eslint/types': 8.29.1
       eslint-visitor-keys: 4.2.0
     dev: true
 
@@ -6459,8 +6575,8 @@ packages:
     resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
     engines: {node: '>=12'}
 
-  /eslint-config-next@15.2.4(eslint@9.24.0)(typescript@5.8.3):
-    resolution: {integrity: sha512-v4gYjd4eYIme8qzaJItpR5MMBXJ0/YV07u7eb50kEnlEmX7yhOjdUdzz70v4fiINYRjLf8X8TbogF0k7wlz6sA==}
+  /eslint-config-next@15.3.0(eslint@9.24.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-+Z3M1W9MnJjX3W4vI9CHfKlEyhTWOUHvc5dB89FyRnzPsUkJlLWZOi8+1pInuVcSztSM4MwBFB0hIHf4Rbwu4g==}
     peerDependencies:
       eslint: ^7.23.0 || ^8.0.0 || ^9.0.0
       typescript: '>=3.3.1'
@@ -6468,7 +6584,7 @@ packages:
       typescript:
         optional: true
     dependencies:
-      '@next/eslint-plugin-next': 15.2.4
+      '@next/eslint-plugin-next': 15.3.0
       '@rushstack/eslint-patch': 1.11.0
       '@typescript-eslint/eslint-plugin': 8.29.0(@typescript-eslint/parser@8.29.0)(eslint@9.24.0)(typescript@5.8.3)
       '@typescript-eslint/parser': 8.29.0(eslint@9.24.0)(typescript@5.8.3)
@@ -9018,7 +9134,7 @@ packages:
       tmpl: 1.0.5
     dev: true
 
-  /mantine-react-table@2.0.0-beta.9(@mantine/core@7.17.3)(@mantine/dates@7.17.3)(@mantine/hooks@7.17.3)(@tabler/icons-react@3.31.0)(clsx@2.1.1)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0):
+  /mantine-react-table@2.0.0-beta.9(@mantine/core@7.17.4)(@mantine/dates@7.17.4)(@mantine/hooks@7.17.4)(@tabler/icons-react@3.31.0)(clsx@2.1.1)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0):
     resolution: {integrity: sha512-ZdfcwebWaPERoDvAuk43VYcBCzamohARVclnbuepT0PHZ0wRcDPMBR+zgaocL+pFy8EXUGwvWTOKNh25ITpjNQ==}
     engines: {node: '>=16'}
     peerDependencies:
@@ -9031,9 +9147,9 @@ packages:
       react: '>=18.0'
       react-dom: '>=18.0'
     dependencies:
-      '@mantine/core': 7.17.3(@mantine/hooks@7.17.3)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
-      '@mantine/dates': 7.17.3(@mantine/core@7.17.3)(@mantine/hooks@7.17.3)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0)
-      '@mantine/hooks': 7.17.3(react@19.1.0)
+      '@mantine/core': 7.17.4(@mantine/hooks@7.17.4)(@types/react@19.1.0)(react-dom@19.1.0)(react@19.1.0)
+      '@mantine/dates': 7.17.4(@mantine/core@7.17.4)(@mantine/hooks@7.17.4)(dayjs@1.11.13)(react-dom@19.1.0)(react@19.1.0)
+      '@mantine/hooks': 7.17.4(react@19.1.0)
       '@tabler/icons-react': 3.31.0(react@19.1.0)
       '@tanstack/match-sorter-utils': 8.19.4
       '@tanstack/react-table': 8.20.5(react-dom@19.1.0)(react@19.1.0)
@@ -10671,8 +10787,8 @@ packages:
       tslib: 2.8.1
     dev: false
 
-  /react-textarea-autosize@8.5.6(@types/react@19.1.0)(react@19.1.0):
-    resolution: {integrity: sha512-aT3ioKXMa8f6zHYGebhbdMD2L00tKeRX1zuVuDx9YQK/JLLRSaSxq3ugECEmUB9z2kvk6bFSIoRHLkkUv0RJiw==}
+  /react-textarea-autosize@8.5.9(@types/react@19.1.0)(react@19.1.0):
+    resolution: {integrity: sha512-U1DGlIQN5AwgjTyOEnI1oCcMuEr1pv1qOtklB2l4nyMGbHzWrI0eFsYK0zos2YWqAolJyG0IWJaqWmWj5ETh0A==}
     engines: {node: '>=10'}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
@@ -12228,16 +12344,16 @@ packages:
       is-typedarray: 1.0.0
     dev: true
 
-  /typescript-eslint@8.29.0(eslint@9.24.0)(typescript@5.8.3):
-    resolution: {integrity: sha512-ep9rVd9B4kQsZ7ZnWCVxUE/xDLUUUsRzE0poAeNu+4CkFErLfuvPt/qtm2EpnSyfvsR0S6QzDFSrPCFBwf64fg==}
+  /typescript-eslint@8.29.1(eslint@9.24.0)(typescript@5.8.3):
+    resolution: {integrity: sha512-f8cDkvndhbQMPcysk6CUSGBWV+g1utqdn71P5YKwMumVMOG/5k7cHq0KyG4O52nB0oKS4aN2Tp5+wB4APJGC+w==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
     peerDependencies:
       eslint: ^8.57.0 || ^9.0.0
       typescript: '>=4.8.4 <5.9.0'
     dependencies:
-      '@typescript-eslint/eslint-plugin': 8.29.0(@typescript-eslint/parser@8.29.0)(eslint@9.24.0)(typescript@5.8.3)
-      '@typescript-eslint/parser': 8.29.0(eslint@9.24.0)(typescript@5.8.3)
-      '@typescript-eslint/utils': 8.29.0(eslint@9.24.0)(typescript@5.8.3)
+      '@typescript-eslint/eslint-plugin': 8.29.1(@typescript-eslint/parser@8.29.1)(eslint@9.24.0)(typescript@5.8.3)
+      '@typescript-eslint/parser': 8.29.1(eslint@9.24.0)(typescript@5.8.3)
+      '@typescript-eslint/utils': 8.29.1(eslint@9.24.0)(typescript@5.8.3)
       eslint: 9.24.0
       typescript: 5.8.3
     transitivePeerDependencies:
