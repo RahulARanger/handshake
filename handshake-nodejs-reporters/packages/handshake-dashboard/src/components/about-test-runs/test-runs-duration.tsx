@@ -22,6 +22,7 @@ export default function AreaWithTestRunDuration(properties: {
             withXAxis={false}
             withDots
             curveType="bump"
+            classNames={{ tooltip: 'mirror' }}
             areaProps={{ isAnimationActive: true }}
             areaChartProps={{ syncId: 'Id' }}
         />

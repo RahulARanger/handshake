@@ -5,6 +5,7 @@
     --bg: oklch(35% 0.3 var(--hue));
     --text: oklch(85% 0.1 var(--hue));
     --shadow: oklch(25% 0.2 var(--hue));
+    --row-bg: rgba(37, 7, 1, 0.196);
     --highlight: oklch(98% 0.05 var(--hue));
     --thick-box: rgba(0, 0, 0, 0.4) 0px 2px 4px,
         rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
@@ -18,12 +19,19 @@ body {
     max-width: 100vw;
     height: 100%;
     overflow: hidden;
+    padding: 0px;
+    margin: 0px;
 }
 
 * {
     box-sizing: border-box;
     padding: 0;
     margin: 0;
+}
+
+body {
+    background-color: #221e22;
+    background-image: linear-gradient(124deg, #221e22 0%, #220107 100%);
 }
 
 ::selection {
@@ -35,6 +43,7 @@ body {
     color: lightyellow;
     background-color: orangered;
 }
+
 ::-webkit-scrollbar-track {
     -webkit-box-shadow: inset 0 0 3px rgba(0, 0, 0, 0.3);
     border-radius: 10px;
@@ -42,18 +51,37 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 0.4rem; /* Width of the scrollbar track */
+    width: 0.4rem;
+    /* Width of the scrollbar track */
     height: 0.5rem;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: #888; /* Color of the scrollbar thumb */
-    border-radius: 6px; /* Rounded corners for the thumb */
+    background-color: #888;
+    /* Color of the scrollbar thumb */
+    border-radius: 6px;
+    /* Rounded corners for the thumb */
 }
 
-.smooth-box {
-    border-radius: 25px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(256, 256, 256, 0.13);
+.mirror {
+    -webkit-backdrop-filter: blur(10px) !important;
+    backdrop-filter: blur(10px) !important;
+    background-color: transparent !important;
+    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+}
+
+/* adding this to highlight the rows only with bg on hover */
+tr.mantine-Table-tr {
+    transition: all ease 0.2s;
+}
+
+tr.mantine-Table-tr:hover {
+    background-color: var(--row-bg) !important;
+}
+
+/* adding this here to match the skeleton with the theme */
+.mantine-Skeleton-root[data-visible="true"] {
+    background-color: #2e2e2e;
+    opacity: .4;
+    border-radius: 8px;
 }

@@ -1,5 +1,6 @@
 from loguru import logger
 from handshake.services.DBService.models.dynamic_base import TaskBase, JobType
+from handshake.services.DBService.models.result_base import RunBase, RunStatus
 from uuid import uuid4, UUID
 from typing import Union, List
 from handshake.services.DBService.models.attachmentBase import (
@@ -26,6 +27,12 @@ async def register_patch_test_run(testID: str, connection=None) -> TaskBase:
         using_db=connection,
     )
     return _
+
+
+async def mark_as_interrupted(test_id: str):
+    record = await RunBase.filter(testID=test_id).first()
+    record.status = RunStatus.INTERRUPTED
+    await record.save()
 
 
 async def register_bulk_patch_suites(
@@ -72,7 +79,11 @@ async def mark_for_prune_task(test_id: str):
 
 
 async def cancel_patch_for_test_run(
-    test_id: Union[str, UUID], reason: str, generated_by: str, **extra
+    test_id: Union[str, UUID],
+    reason: str,
+    was_interrupted: bool,
+    generated_by: str,
+    **extra,
 ) -> False:
     logger.error(reason)
     await TestLogBase.create(
@@ -85,6 +96,9 @@ async def cancel_patch_for_test_run(
         generatedBy=generated_by,
     )
     await mark_for_prune_task(test_id)
+    if was_interrupted:
+        await mark_as_interrupted(test_id)
+
     return False
 
 
@@ -93,7 +107,7 @@ async def warn_about_test_run(
     about: str,
     generated_by: str,
     bulk=False,
-    **extra
+    **extra,
 ) -> True:
     logger.warning(about)
     if not bulk:

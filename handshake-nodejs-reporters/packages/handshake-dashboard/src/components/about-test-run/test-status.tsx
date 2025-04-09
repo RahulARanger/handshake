@@ -2,10 +2,11 @@ import type { TooltipProps } from '@mantine/core';
 import { Tooltip } from '@mantine/core';
 import {
     IconCheck,
-    IconDropletCheck,
-    IconDropletX,
     IconFlagPause,
+    IconPlayerSkipForwardFilled,
     IconRefreshDot,
+    IconRosetteDiscountCheckOff,
+    IconTestPipe,
     IconX,
 } from '@tabler/icons-react';
 import { captialize } from 'components/meta-text';
@@ -16,7 +17,7 @@ export function standingToColors(
     status: statusOfEntity,
     bgColor?: boolean,
 ): TooltipProps['color'] {
-    switch (status) {
+    switch (status.toUpperCase()) {
         case 'PASSED': {
             return bgColor ? 'lime' : 'green';
         }
@@ -36,7 +37,10 @@ export function standingToColors(
             return bgColor ? 'orange' : 'orange';
         }
         case 'XPASSED': {
-            return bgColor ? 'indigo' : 'blue';
+            return bgColor ? 'indigo' : 'teal';
+        }
+        default: {
+            return 'orange';
         }
     }
 }
@@ -63,7 +67,7 @@ export default function TestStatusIcon(properties: {
 
         case 'SKIPPED': {
             icon = (
-                <IconFlagPause
+                <IconPlayerSkipForwardFilled
                     color="var(--mantine-color-yellow-filled)"
                     stroke={1.5}
                 />
@@ -93,7 +97,7 @@ export default function TestStatusIcon(properties: {
 
         case 'XFAILED': {
             icon = (
-                <IconDropletX
+                <IconTestPipe
                     color="var(--mantine-color-orange-filled)"
                     stroke={3}
                 />
@@ -103,9 +107,9 @@ export default function TestStatusIcon(properties: {
 
         case 'XPASSED': {
             icon = (
-                <IconDropletCheck
-                    color="var(--mantine-color-blue-filled)"
-                    stroke={3}
+                <IconRosetteDiscountCheckOff
+                    color="var(--mantine-color-teal-filled)"
+                    stroke={2}
                 />
             );
             break;

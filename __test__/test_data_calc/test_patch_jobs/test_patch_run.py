@@ -13,7 +13,7 @@ from handshake.services.SchedularService.register import (
     register_patch_test_run,
     register_patch_suite,
 )
-from __test__.test_patch_jobs.test_patch_jobs.test_patch_suite import (
+from __test__.test_data_calc.test_patch_jobs.test_patch_suite import (
     helper_test_many_retries,
 )
 from handshake.services.SchedularService.handlePending import patch_jobs

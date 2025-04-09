@@ -12,3 +12,7 @@ export default TEXTS;
 export function captialize(x: string) {
     return x.charAt(0).toUpperCase() + x.slice(1).toLowerCase();
 }
+
+export function getRandomInt(mini: number, maxi: number) {
+    return Math.floor(Math.random() * (maxi - mini + 1) + mini);
+}

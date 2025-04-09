@@ -1,15 +1,22 @@
+import { Box } from '@mantine/core';
 import type { Meta, StoryObj } from '@storybook/react';
-import { allPassed, mixed } from 'stories/TestData/test-runs';
-import TestRunCard from './run-card';
-import transformTestRunRecord from 'extractors/transform-run-record';
+import EntitiesView from 'pages/RUNS/Suites';
+import { generateTestHierarchyWithSuites } from 'stories/TestData/test-suites';
+
+const WindowComp = (properties: typeof EntitiesView) => (
+    <Box ml="-10px">
+        <EntitiesView {...properties} />
+    </Box>
+);
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export
 const meta = {
-    title: 'AboutTestRuns/RunCard',
-    component: TestRunCard,
+    title: 'Pages/Suites',
+    component: WindowComp,
     parameters: {
         // Optional parameter to center the component in the Canvas. More info: https://storybook.js.org/docs/configure/story-layout
         layout: 'centered',
+        fullscreen: true,
     },
     // This component will have an automatically generated Autodocs entry: https://storybook.js.org/docs/writing-docs/autodocs
     tags: ['autodocs'],
@@ -17,32 +24,18 @@ const meta = {
     argTypes: {},
     args: {},
     // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
-} satisfies Meta<typeof TestRunCard>;
+} satisfies Meta<typeof EntitiesView>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
 // More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
-export const PassedRun: Story = {
-    args: {
-        run: transformTestRunRecord(allPassed),
-    },
-};
 
-export const InterruptedRun: Story = {
-    args: {
-        run: transformTestRunRecord({ ...mixed, status: 'INTERRUPTED' }),
-    },
-};
+const randomRunWithSuites = generateTestHierarchyWithSuites();
 
-export const RunWithInternalError: Story = {
+export const randomRun: Story = {
     args: {
-        run: transformTestRunRecord({ ...mixed, status: 'INTERNAL_ERROR' }),
-    },
-};
-
-export const RunCardWithExcelExport: Story = {
-    args: {
-        run: transformTestRunRecord({ ...allPassed, excelExport: '/' }),
+        mockRun: randomRunWithSuites.run,
+        mockSuites: randomRunWithSuites.suites,
     },
 };

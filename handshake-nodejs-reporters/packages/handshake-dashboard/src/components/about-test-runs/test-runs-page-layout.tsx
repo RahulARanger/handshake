@@ -4,6 +4,7 @@ import {
     Affix,
     AppShell,
     Notification,
+    ScrollAreaAutosize,
     Skeleton,
     Stack,
     Text,
@@ -18,6 +19,7 @@ import TestRunsChartArea from './test-runs-chart-area';
 import useSWRImmutable from 'swr/immutable';
 import { jsonFeedForRunsPage } from 'components/links';
 import { IconX } from '@tabler/icons-react';
+import MirrorHeader from 'styles/header.module.css';
 import type { TestRunRecord } from 'types/test-run-records';
 import transformTestRunRecord from 'extractors/transform-run-record';
 
@@ -86,6 +88,7 @@ export function RunsPageContent(properties: {
     return (
         <AppShell
             header={{ height: 50 }}
+            w={'100vw'}
             navbar={{
                 width: 390,
                 breakpoint: 'sm',
@@ -96,7 +99,7 @@ export function RunsPageContent(properties: {
                 collapsed: { desktop: true, mobile: true },
             }}
         >
-            <AppShell.Header p="xs">
+            <AppShell.Header p="xs" className={MirrorHeader.mirrorHeader}>
                 <TestRunsPageHeader
                     totalRuns={filteredRuns?.length ?? 0}
                     allTestProjects={projectNames}
@@ -112,7 +115,10 @@ export function RunsPageContent(properties: {
             </AppShell.Header>
 
             {toLoad || filteredRuns.length > 0 ? (
-                <AppShell.Navbar p="xs">
+                <AppShell.Navbar
+                    p="xs"
+                    style={{ backgroundColor: 'transparent' }}
+                >
                     <Skeleton animate={toLoad} visible={toLoad} mih={'100%'}>
                         <ListOfRuns
                             runs={filteredRuns.toReversed()}
@@ -126,17 +132,25 @@ export function RunsPageContent(properties: {
 
             {toLoad || filteredRuns.length > 0 ? (
                 <>
-                    <AppShell.Main>
-                        <TestRunsChartArea
+                    <AppShell.Main
+                        pt={'calc(var(--app-shell-header-height, 0px))'}
+                        pr="sm"
+                        pb="xs"
+                    >
+                        <ScrollAreaAutosize
                             h={
                                 'calc(100vh - var(--app-shell-header-height, 0px))'
                             }
-                            chartWidth={
-                                'calc(95vw - var(--app-shell-navbar-width, 0px))'
-                            }
-                            runs={filteredRuns}
-                            toLoad={toLoad}
-                        />
+                            mb={15}
+                        >
+                            <TestRunsChartArea
+                                chartWidth={
+                                    'calc(95vw - var(--app-shell-navbar-width, 0px))'
+                                }
+                                runs={filteredRuns}
+                                toLoad={toLoad}
+                            />
+                        </ScrollAreaAutosize>
                     </AppShell.Main>
                     {error ? (
                         <Affix position={{ bottom: '2%', left: '30%' }}>

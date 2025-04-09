@@ -7,6 +7,7 @@ export default function PassedRate(properties: {
     width?: number | string;
     text: string;
     minWidth?: number | string;
+    height?: number;
 }): ReactNode {
     const total =
         properties.rate[0] +
@@ -18,6 +19,7 @@ export default function PassedRate(properties: {
     return (
         <Progress.Root
             size="xl"
+            h={properties.height}
             style={{
                 minWidth: properties.minWidth,
                 width: rem(properties.width ?? 200),

@@ -1,0 +1,11 @@
+.mirrorHeader {
+    align-items: center;
+    z-index: 100 !important;
+    overflow: hidden !important;
+    background-color: transparent !important;
+    box-shadow: 0 0 20px 0 rgba(5, 16, 59, 0.3);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+    border-bottom-color: "transparent" !important;
+}

@@ -109,6 +109,7 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
                         await cancel_patch_for_test_run(
                             task.test_id,
                             "Failed to find a way to process a parent suite, as the child suite was not registered.",
+                            True,
                             "patcher-for-next-test-run-patch",
                             parent_suite=task.ticketID,
                             job=task.type,

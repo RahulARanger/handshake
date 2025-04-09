@@ -19,8 +19,15 @@
     border: 1.5px solid rgba(255, 255, 255, 0.08);
 }
 
-.mirrorCard {
-    -webkit-backdrop-filter: blur(7px);
-    backdrop-filter: blur(7px);
-    border: 1.5px solid rgba(255, 255, 255, 0.08);
+
+
+
+.darkGradiant {
+    background-color: #1c0112;
+    background-image: linear-gradient(4deg, #1c0112 0%, #320556 50%, #01141a 100%);
+}
+
+.whiteGradiant {
+    background-color: #1c0112;
+    background-image: linear-gradient(4deg, #1c0112 0%, #320556 50%, #01141a 100%);
 }

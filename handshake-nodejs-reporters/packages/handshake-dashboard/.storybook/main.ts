@@ -20,12 +20,10 @@ const config: StorybookConfig = {
         getAbsolutePath('@storybook/addon-interactions'),
     ],
     framework: {
-        name: '@storybook/nextjs',
+        name: getAbsolutePath("@storybook/nextjs"),
         options: { nextConfigPath: '../next.config.js' },
     },
-    docs: {
-        autodocs: 'tag',
-    },
+    docs: {},
     staticDirs: ['../public'],
 };
 export default config;

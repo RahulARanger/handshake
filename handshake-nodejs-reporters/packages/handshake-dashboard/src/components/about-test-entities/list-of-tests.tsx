@@ -31,7 +31,6 @@ import type {
     SuiteRecordDetails,
     TestRecordDetails,
 } from 'types/test-entity-related';
-import TestEntityStatus from './test-entity-status';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import { TimeRange } from 'components/timings/time-range';
 import CountUpNumber from 'components/counter';
@@ -47,6 +46,7 @@ import { ShowImage } from './image-carousel';
 import DetailedTestView, {
     detailedTestViewPortalTarget,
 } from './detailed-test-view';
+import TestStatusIcon from 'components/about-test-run/test-status';
 
 export default function ListOfTests(properties: {
     testID?: string;
@@ -258,7 +258,7 @@ export default function ListOfTests(properties: {
                                     width: '100%',
                                 }}
                             >
-                                <TestEntityStatus
+                                <TestStatusIcon
                                     status={row.Status}
                                     key={rowIdx}
                                 />

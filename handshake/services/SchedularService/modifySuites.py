@@ -16,6 +16,7 @@ from handshake.services.SchedularService.register import (
     JobType,
 )
 from itertools import chain
+from tortoise.transactions import atomic
 from asyncio import gather
 
 
@@ -73,7 +74,7 @@ class PatchTestSuite:
         if pending_child_test_tasks:
             await self.fall_back(
                 f"There are some child suites/tests for suite: {self.suite.suiteID}; Which are not yet updated,"
-                " which is not ideal case, as we are trying to patch suite before updating its child entities"
+                " would happen if the test run was interrupted."
             )
             return
 
@@ -107,6 +108,7 @@ class PatchTestSuite:
     returns true if suite is patched else false
     """
 
+    @atomic("default")
     async def patch_suite(self) -> bool:
         await self.fetch_records()
         if not await self.do_we_need_to_patch():
@@ -348,7 +350,9 @@ class PatchTestSuite:
         await self.suite.update_from_dict(results)
         await self.suite.save()
 
-    async def fall_back(self, reason: Optional[str] = None):
+    async def fall_back(
+        self, reason: Optional[str] = None, was_interrupted: bool = False
+    ):
         await cancel_patch_for_test_run(
             self.test_id,
             (
@@ -356,6 +360,7 @@ class PatchTestSuite:
                 if reason
                 else f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}"
             ),
+            was_interrupted,
             JobType.MODIFY_SUITE,
             suiteID=self.suite_id,
             job=JobType.MODIFY_SUITE,

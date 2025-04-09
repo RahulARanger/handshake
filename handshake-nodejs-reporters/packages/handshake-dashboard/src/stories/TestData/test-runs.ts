@@ -43,15 +43,23 @@ const generator = Chance();
 export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
     const feed: Feeder = rawFeed ?? {};
 
-    const tests = feed.tests ?? generator.integer({ min: 3, max: 100 });
-    const passed = feed.passed ?? generator.integer({ min: 0, max: tests });
-    const xpassed = feed.xpassed ?? generator.integer({ min: 0, max: tests });
-    const failed =
-        feed.failed ?? generator.integer({ min: 0, max: tests - passed });
-    const xfailed =
-        feed.xfailed ?? generator.integer({ min: 0, max: tests - passed });
+    let tests = feed.tests ?? generator.integer({ min: 30, max: 100 });
+    let rest = tests;
 
-    const skipped = tests - (passed + failed);
+    const passed = feed.passed ?? generator.integer({ min: 0, max: rest });
+    rest -= Math.min(rest, passed);
+
+    const xpassed = feed.xpassed ?? generator.integer({ min: 0, max: rest });
+    rest -= Math.min(rest, xpassed);
+
+    const failed = feed.failed ?? generator.integer({ min: 0, max: rest });
+    rest -= Math.min(rest, failed);
+
+    const xfailed = feed.xfailed ?? generator.integer({ min: 0, max: rest });
+    rest -= Math.min(rest, xfailed);
+
+    const skipped = rest;
+    tests = passed + failed + skipped + xpassed + xfailed + skipped;
 
     const fileRetries =
         feed.fileRetries ?? generator.integer({ min: 0, max: 2 });
@@ -61,29 +69,45 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
 
     const bail = generator.integer({ min: 0, max: 3 });
 
-    const suites = feed.suites ?? generator.integer({ min: 1, max: tests });
+    let suites =
+        feed.suites ?? generator.integer({ min: 1, max: Math.min(20, tests) });
+    rest = suites;
+
     const passedSuites =
-        feed.passedSuites ?? generator.integer({ min: 0, max: suites });
+        feed.passedSuites ?? generator.integer({ min: 0, max: rest });
+    rest -= Math.min(rest, passedSuites);
+
     const failedSuites =
         feed.failedSuites ??
         generator.integer({
             min: 0,
-            max: suites - passedSuites,
+            max: rest,
         });
+    rest -= Math.min(rest, failedSuites);
+
     const xfailedSuites =
         feed.xfailedSuites ??
         generator.integer({
             min: 0,
-            max: suites - (passedSuites + failedSuites),
+            max: rest,
         });
+    rest -= Math.min(rest, xfailedSuites);
+
     const xpassedSuites =
         feed.xpassedSuites ??
         generator.integer({
             min: 0,
-            max: suites - (passedSuites + failedSuites + xfailedSuites),
+            max: rest,
         });
-    const skippedSuites =
-        suites - (xfailedSuites + xpassedSuites + passedSuites + failedSuites);
+    rest -= Math.min(rest, xpassedSuites);
+
+    const skippedSuites = rest;
+    suites =
+        passedSuites +
+        failedSuites +
+        skippedSuites +
+        xfailedSuites +
+        xpassedSuites;
 
     const platform = generator.pickone([
         'windows',
@@ -188,7 +212,9 @@ export const allPassed = generateTestRun({
     skipped: 0,
     passed: 10,
     failed: 0,
+    xpassed: 0,
     suites: 3,
+    xpassedSuites: 0,
     passedSuites: 3,
     failedSuites: 0,
     skippedSuites: 0,
@@ -200,8 +226,10 @@ export const onlyFailed = generateTestRun({
     passed: 0,
     failed: 3,
     suites: 3,
+    xpassed: 0,
     passedSuites: 0,
     failedSuites: 3,
+    xpassedSuites: 0,
     skippedSuites: 0,
 });
 export const onlyXFailed = generateTestRun({
@@ -287,17 +315,48 @@ export function generateRandomProject(): Project {
     };
 }
 
-export function generateRandomProjects() {
+function projectFromRun(current: TestRunRecord) {
+    return {
+        duration: current.duration,
+        tests: current.tests,
+        passed: current.passed,
+        failed: current.failed,
+        skipped: current.skipped,
+        xfailed: current.xfailed,
+        xpassed: current.xpassed,
+        passedSuites: current.passedSuites,
+        failedSuites: current.failedSuites,
+        skippedSuites: current.skippedSuites,
+        xpassedSuites: current.xpassedSuites,
+        xfailedSuites: current.xfailedSuites,
+        testID: current.testID,
+        suites: current.suites,
+    };
+}
+
+export function generateRandomProjects(current?: TestRunRecord) {
     const projects = generator.n(
         () => generator.company(),
         generator.integer({ min: 2, max: 3 }),
     );
+    projects[1] = current?.projectName ?? projects[1];
+
     const projects_json: Projects = {};
     for (const project of projects) {
         projects_json[project] = generator.n(
             generateRandomProject,
             generator.integer({ min: 3, max: 4 }),
         );
+    }
+
+    if (current) {
+        current.projectIndex = Math.min(
+            current.projectIndex,
+            projects.length - 1,
+        );
+        projects_json[current.projectName][
+            generator.integer({ min: 1, max: 2 })
+        ] = projectFromRun(current);
     }
 
     return projects_json;

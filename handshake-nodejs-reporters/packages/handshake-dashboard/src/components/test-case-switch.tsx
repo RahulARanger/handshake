@@ -18,7 +18,7 @@ export default function SwitchTestCases(properties: SwitchTestCasesProperties) {
     return (
         <Switch
             styles={{
-                track: { width: rem(properties.trackWidth ?? 58) },
+                track: { width: rem(properties.trackWidth ?? 60) },
                 trackLabel: { fontSize: rem(9.6), paddingInline: rem(10) },
             }}
             onLabel={prefix + (properties.replaceTestLabel ?? 'Tests')}

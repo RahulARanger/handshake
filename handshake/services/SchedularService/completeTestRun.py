@@ -213,6 +213,7 @@ async def skip_coz_error(test_id: Union[str, UUID], reason: str, **extra) -> Fal
     return await cancel_patch_for_test_run(
         test_id,
         reason,
+        False,
         JobType.MODIFY_TEST_RUN,
         type=JobType.MODIFY_TEST_RUN,
         **extra,

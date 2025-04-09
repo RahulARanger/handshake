@@ -5,6 +5,7 @@ import type { ReactNode } from 'react';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useMemo } from 'react';
 
+// rarely used in other pages so extending here (whenever necessary)
 dayjs.extend(isBetween);
 
 export type optionForDateRange =

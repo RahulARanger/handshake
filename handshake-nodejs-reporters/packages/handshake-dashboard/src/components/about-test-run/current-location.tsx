@@ -60,6 +60,7 @@ export default function CurrentLocation(properties: {
 }): ReactNode {
     const toLoad = Boolean(properties.toLoad);
     const router = useRouter();
+
     return (
         <Group align="center" mb="xs">
             <Breadcrumbs mb={4}>
@@ -117,7 +118,7 @@ export default function CurrentLocation(properties: {
                     </Text>
                 ) : undefined}
             </Breadcrumbs>
-            <Text size="xs" mb={-9} ml={-3.5}>
+            <Text size="xs" mb={-9} ml={-3.5} visibleFrom="md">
                 {testRunTabDescription(
                     properties.where,
                     properties.isSuiteDetailedView,

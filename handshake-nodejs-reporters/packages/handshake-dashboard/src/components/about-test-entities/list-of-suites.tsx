@@ -1,759 +1,423 @@
+/* eslint-disable unicorn/no-keyword-prefix */
 import {
     ActionIcon,
-    Button,
-    Center,
-    Group,
-    HoverCard,
-    Input,
-    MultiSelect,
-    Skeleton,
-    Text,
+    Anchor,
+    Breadcrumbs,
+    Menu,
+    MenuDropdown,
+    MenuItem,
+    MenuTarget,
+    rem,
     Tooltip,
 } from '@mantine/core';
-import {
-    jsonFeedAboutTestRun,
-    jsonFeedForListOfSuites,
-    suiteDetailedPage,
-} from 'components/links';
 import { TimeRange } from 'components/timings/time-range';
-import dayjs from 'dayjs';
-import type { RowRecord } from 'extractors/transform-test-entity';
-import transformSuiteEntity, {
-    addRowsToSuiteStructure,
-    spawnConverterForAnsiToHTML,
-    topLevelSuites,
-    transformSuitesStructure,
-} from 'extractors/transform-test-entity';
+import dayjs, { Dayjs } from 'dayjs';
 import React, { useMemo, useState } from 'react';
-import type { ReactNode } from 'react';
-import useSWRImmutable from 'swr/immutable';
-import type { ErrorRecord } from 'types/test-entity-related';
+import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
-import type { TestRunRecord } from 'types/test-run-records';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
-import PlatformEntity, { DetailedPlatformVersions } from './platform-entity';
-import type { ParsedSuiteRecord } from 'types/parsed-records';
+import type {
+    DetailedTestRecord,
+    ParsedSuiteRecord,
+} from 'types/parsed-records';
+import { IconDots, IconFilter } from '@tabler/icons-react';
+import useFilteredSuites, {
+    DEFAULT_QUERY,
+    SearchQuery,
+} from 'hooks/filter-test-suites';
+import { useProcessedTestSuites } from 'hooks/get-test-suites';
+import TestStatusIcon from 'components/about-test-run/test-status';
+import TestEntityStatusMetrics from './test-entity-status';
+import 'mantine-react-table/styles.css';
 import {
-    IconFilterSearch,
-    IconSearch,
-    IconTrendingDown2,
-} from '@tabler/icons-react';
-import GridStyles from 'styles/data-table.module.css';
-import type { ColumnOrColumnGroup } from 'react-data-grid';
-import { TreeDataGrid } from 'react-data-grid';
-import { pick, groupBy as rowGrouper, sumBy, uniqBy } from 'lodash-es';
-import clsx from 'clsx';
-import { getStandingFromList } from 'extractors/transform-run-record';
-import TestEntityStatus, {
-    TestEntityStatusMetrics,
-} from './test-entity-status';
+    MantineReactTable,
+    MRT_ColumnDef,
+    useMantineReactTable,
+} from 'mantine-react-table';
+import useTableConfigurationsForListOfSuites from 'hooks/get-saved-filters';
 import CountUpNumber from 'components/counter';
-import { useDisclosure } from '@mantine/hooks';
-import { ErrorsToShow } from './error-card';
-import RedirectToTestEntity from './redirect-to-detailed-test-entity';
-import { useRouter } from 'next/router';
-import { statusOfEntity } from 'types/session-records';
+import { DetailedViewForSuites } from './detailed-test-view';
+import GridStyles from 'styles/data-table.module.css';
 
-interface SearchQuery {
-    search: string;
-    status: statusOfEntity[];
-}
-
-function SearchBar(properties: { setSearchQuery: (_: SearchQuery) => void }) {
-    const [toSearch, setToSearch] = useState<string>('');
-    const [filteredStatus, setFilteredStatus] = useState<string[]>([]);
-
-    return (
-        <Group justify="flex-start">
-            <Input
-                leftSection={<IconFilterSearch size={13} strokeWidth={2.5} />}
-                placeholder="Search Suites"
-                value={toSearch}
-                onChange={(event) => setToSearch(event.currentTarget.value)}
-                rightSection={
-                    toSearch === '' ? undefined : (
-                        <Input.ClearButton onClick={() => setToSearch('')} />
-                    )
-                }
-                rightSectionPointerEvents="auto"
-            />
-            <MultiSelect
-                data={['Passed', 'Failed', 'Skipped', 'XFailed', 'XPassed'].map(
-                    (label) => ({
+function TableOfSuites(properties: {
+    suites: ParsedSuiteRecord[];
+    started?: Dayjs;
+    levels: SearchQuery['levels'];
+    setSearchQuery: Dispatch<SetStateAction<SearchQuery>>;
+    onParentFilter: (parentID: string, suiteName: string) => void;
+}) {
+    const columns = useMemo<MRT_ColumnDef<ParsedSuiteRecord>[]>(
+        () => [
+            {
+                accessorKey: 'hasChildSuite',
+                header: '',
+                enableSorting: false,
+                maxSize: 12,
+                enableHiding: false,
+                Cell: ({ row }) => {
+                    return row.original.hasChildSuite ? (
+                        <Tooltip
+                            label={`Drilldown to find tests/suites grouped under this suite`}
+                            withArrow
+                            color="cyan"
+                        >
+                            <ActionIcon
+                                variant="light"
+                                size="sm"
+                                onClick={() =>
+                                    properties.onParentFilter(
+                                        row.original.Id,
+                                        row.original.Title,
+                                    )
+                                }
+                            >
+                                <IconFilter
+                                    style={{
+                                        width: rem(12),
+                                        height: rem(12),
+                                    }}
+                                />
+                            </ActionIcon>
+                        </Tooltip>
+                    ) : (
+                        <></>
+                    );
+                },
+                textAlign: 'center',
+            },
+            {
+                accessorKey: 'Status',
+                header: 'Status',
+                maxSize: 50,
+                mantineTableBodyCellProps: {
+                    align: 'center',
+                },
+                Cell: ({ row, renderedRowIndex }) => (
+                    <TestStatusIcon
+                        status={row.original.Status}
+                        key={renderedRowIndex}
+                    />
+                ),
+                filterVariant: 'multi-select',
+                mantineFilterMultiSelectProps: {
+                    data: [
+                        'Passed',
+                        'Failed',
+                        'Skipped',
+                        'Xfailed',
+                        'Xpassed',
+                    ].map((label) => ({
                         label,
                         value: label.toUpperCase(),
-                    }),
-                )}
-                placeholder="Select Status"
-                multiple
-                onChange={setFilteredStatus}
-                clearable
-            />
-            <ActionIcon
-                onClick={() =>
-                    properties.setSearchQuery({
-                        search: toSearch,
-                        status: filteredStatus as statusOfEntity[],
-                    })
-                }
-            >
-                <IconSearch size={13} strokeWidth={2.5} />
-            </ActionIcon>
-        </Group>
+                    })),
+                },
+            },
+            {
+                accessorKey: 'Title',
+                header: 'Title',
+                maxSize: 150,
+                enableClickToCopy: true,
+            },
+            {
+                accessorKey: 'File',
+                header: 'File',
+                enableClickToCopy: true,
+                filterVariant: 'autocomplete',
+            },
+            {
+                accessorKey: 'Range',
+                header: 'Range',
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <TimeRange
+                            startTime={row.original.Started}
+                            endTime={row.original.Ended}
+                            key={renderedRowIndex}
+                            detailed
+                            relativeFrom={dayjs(properties?.started)}
+                        />
+                    );
+                },
+            },
+            {
+                accessorKey: 'Start Time',
+                header: 'Start Time',
+                maxSize: 100,
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <TimeRange
+                            startTime={row.original.Started}
+                            key={renderedRowIndex}
+                            detailed
+                            relativeFrom={dayjs(properties?.started)}
+                        />
+                    );
+                },
+            },
+            {
+                accessorKey: 'End Time',
+                header: 'End Time',
+                maxSize: 100,
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <TimeRange
+                            startTime={row.original.Ended}
+                            key={renderedRowIndex}
+                            detailed
+                            relativeFrom={dayjs(properties?.started)}
+                        />
+                    );
+                },
+            },
+            {
+                accessorKey: 'Duration',
+                header: 'Duration',
+                maxSize: 60,
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <HumanizedDuration
+                            duration={row.original.Duration}
+                            key={renderedRowIndex}
+                        />
+                    );
+                },
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+            {
+                accessorKey: 'Contribution',
+                header: 'Contri.',
+                maxSize: 60,
+                Cell: ({ row, renderedRowIndex }) => {
+                    return (
+                        <CountUpNumber
+                            endNumber={row.original.Contribution}
+                            suffix="%"
+                            key={renderedRowIndex}
+                            size="sm"
+                            decimalPoints={2}
+                            avoideAnimation
+                        />
+                    );
+                },
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+            {
+                accessorKey: 'totalRollupValue',
+                header: 'Tests',
+                maxSize: 60,
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+            {
+                accessorKey: 'RollupValues',
+                header: 'Entities',
+                maxSize: 100,
+                Cell: ({ row, renderedRowIndex }) => (
+                    <TestEntityStatusMetrics
+                        key={renderedRowIndex}
+                        passed={row.original.RollupValues[0]}
+                        failed={row.original.RollupValues[1]}
+                        skipped={row.original.RollupValues[2]}
+                    />
+                ),
+                mantineTableBodyCellProps: {
+                    align: 'center',
+                },
+            },
+            {
+                accessorKey: 'numberOfErrors',
+                header: 'Errors',
+                maxSize: 60,
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+            },
+        ],
+        [properties.started],
     );
-}
+    const [maxWidth, setMaxWidth] = useState('98vw');
+    const { columnsShown, setColumnsShown } =
+        useTableConfigurationsForListOfSuites();
 
-function TreeView(properties: {
-    started?: string;
-    testID: string;
-    suites: ParsedSuiteRecord[];
-    openModal: () => void;
-    setGroupedRowsByFile: (
-        _: () => {
-            records: ParsedSuiteRecord[];
-            title: string;
+    const table = useMantineReactTable({
+        columns,
+        data: properties.suites,
+        initialState: {
+            density: 'xs',
+            columnPinning: { left: ['hasChildSuite'] },
         },
-    ) => void;
-    setErrorsToShow: (_: () => ErrorRecord[]) => void;
-}) {
-    const router = useRouter();
-    const [parsedSuites, setParsedSuites] = useState<RowRecord[]>([]);
-    useMemo(
-        () => setParsedSuites(transformSuitesStructure(properties.suites)),
-        // () => setParsedSuites(toLoad ? [] : transformSuitesStructure(properties.suites)),
-        [properties.suites], // NOTE: do not remove toLoad from dependency, else react will not re-calculate once data is ready
-    );
-    const [expandedGroupIds, setExpandedGroupIds] = useState(
-        (): ReadonlySet<unknown> => new Set<unknown>([]),
-    );
+        enablePagination: true,
+        enableDensityToggle: false,
+        enableColumnPinning: true,
+        mantineTableHeadCellProps: {
+            style: {
+                padding: '10px 5px',
+            },
+        },
+        mantineTableBodyCellProps: {
+            style: {
+                padding: '10px 6px',
+                borderRight: '1.5px solid rgba(255, 255, 255, 0.08) ',
+            },
+        },
+        mantinePaperProps: {
+            withBorder: true,
+            shadow: 'xl',
+            maw: maxWidth,
+            className: GridStyles.dataTable,
+        },
+        onIsFullScreenChange: () =>
+            setMaxWidth((width) => (width === '100vw' ? '98vw' : '100vw')),
 
-    return (
-        <>
-            <TreeDataGrid
-                columns={
-                    [
-                        {
-                            key: 'Status-',
-                            name: 'Status',
-                            width: 52,
-                            headerCellClass: GridStyles.cell,
-                            renderGroupCell: (rows) => {
-                                return (
-                                    <Center
-                                        style={{
-                                            height: '100%',
-                                        }}
-                                    >
-                                        <TestEntityStatus
-                                            status={getStandingFromList(
-                                                rows.childRows.map(
-                                                    (row) => row.Status,
-                                                ),
-                                            )}
-                                        />
-                                    </Center>
-                                );
-                            },
-                            renderCell: ({ row, rowIdx }) => (
-                                <Center
-                                    style={{
-                                        width: '100%',
-                                    }}
-                                >
-                                    <TestEntityStatus
-                                        status={row.Status}
-                                        key={rowIdx}
-                                    />
-                                </Center>
-                            ),
-                            cellClass: GridStyles.cell,
-                            summaryCellClass: GridStyles.cell,
-                        },
-                        {
-                            key: 'Id',
-                            name: 'Expand',
-                            width: 58,
-                            headerCellClass: GridStyles.cell,
-                            renderCell: ({ row }) => (
-                                <Center
-                                    style={{
-                                        width: '100%',
-                                    }}
-                                >
-                                    <RedirectToTestEntity
-                                        testID={properties.testID ?? ''}
-                                        suiteID={row.Id}
-                                        redirectTo={(_url) => router.push(_url)}
-                                    />
-                                </Center>
-                            ),
-                            cellClass: clsx(
-                                GridStyles.FHCell,
-                                GridStyles.clickable,
-                            ),
-                        },
-                        {
-                            key: 'Title',
-                            name: 'Title',
-                            resizable: true,
-                            cellClass: GridStyles.cell,
-                            minWidth: 150,
-                            headerCellClass: GridStyles.cell,
-                            renderCell: ({ row, rowIdx, tabIndex }) => {
-                                return (
-                                    <HoverCard
-                                        width={280}
-                                        shadow="md"
-                                        openDelay={500}
-                                    >
-                                        <HoverCard.Target>
-                                            <Group
-                                                wrap="nowrap"
-                                                style={{ width: '100%' }}
-                                                key={rowIdx}
-                                                align="flex-start"
-                                                justify="flex-start"
-                                            >
-                                                {row.hasChildSuite ||
-                                                !row.Parent ? (
-                                                    <></>
-                                                ) : (
-                                                    <IconTrendingDown2
-                                                        color="gray"
-                                                        size={18}
-                                                        strokeWidth={2.5}
-                                                    />
-                                                )}
+        onColumnVisibilityChange: setColumnsShown,
 
-                                                {row.hasChildSuite ? (
-                                                    <Button
-                                                        tabIndex={tabIndex}
-                                                        color="gray.4"
-                                                        pl={1}
-                                                        variant="subtle"
-                                                        size="sm"
-                                                        fw="normal"
-                                                        onClick={() =>
-                                                            row.hasChildSuite &&
-                                                            setParsedSuites(
-                                                                addRowsToSuiteStructure(
-                                                                    parsedSuites,
-                                                                    row.Id,
-                                                                ),
-                                                            )
-                                                        }
-                                                    >
-                                                        {row.Title}
-                                                    </Button>
-                                                ) : (
-                                                    <Text size="sm" c="gray.4">
-                                                        {row.Title}
-                                                    </Text>
-                                                )}
-                                            </Group>
-                                        </HoverCard.Target>
-                                        <HoverCard.Dropdown>
-                                            <Group
-                                                wrap="nowrap"
-                                                align="center"
-                                                justify="space-between"
-                                            >
-                                                <Text size="sm" lineClamp={6}>
-                                                    {row.Title}
-                                                </Text>
-                                                <RedirectToTestEntity
-                                                    testID={
-                                                        properties.testID ?? ''
-                                                    }
-                                                    suiteID={row.Id}
-                                                    redirectTo={(_url) =>
-                                                        router.push(_url)
-                                                    }
-                                                />
-                                            </Group>
-                                            <Text
-                                                size="xs"
-                                                fs="italic"
-                                                c="dimmed"
-                                                mt={5}
-                                            >
-                                                you can also double click to
-                                                quickly redirect
-                                            </Text>
-                                        </HoverCard.Dropdown>
-                                    </HoverCard>
-                                );
-                            },
-                        },
-                        {
-                            key: 'File',
-                            name: 'File',
-                            width: 150,
-                            resizable: true,
-                            cellClass: clsx(GridStyles.GCell, GridStyles.cell),
-                            headerCellClass: GridStyles.cell,
-                            renderGroupCell: ({ groupKey, tabIndex }) => (
-                                <Tooltip
-                                    label={groupKey as string}
-                                    color="indigo"
-                                    openDelay={500}
-                                >
-                                    <Button
-                                        size="sm"
-                                        className={GridStyles.cell}
-                                        tabIndex={tabIndex}
-                                        style={{
-                                            height: '100%',
-                                            width: '100%',
-                                        }}
-                                        p="sm"
-                                        color="gray"
-                                        td="underline"
-                                        variant="subtle"
-                                    >
-                                        {(groupKey as string).slice(
-                                            (groupKey as string).lastIndexOf(
-                                                '\\',
-                                            ) + 1,
-                                        )}
-                                    </Button>
-                                </Tooltip>
-                            ),
-                        },
-                        {
-                            key: 'Started',
-                            name: 'Range',
-                            width: 190,
-                            renderCell: ({ row, rowIdx }) => {
-                                return (
-                                    <TimeRange
-                                        startTime={row.Started}
-                                        endTime={row.Ended}
-                                        key={rowIdx}
-                                        detailed
-                                        relativeFrom={dayjs(
-                                            properties?.started,
-                                        )}
-                                    />
-                                );
-                            },
-                            cellClass: GridStyles.cell,
-                            headerCellClass: GridStyles.cell,
-                            renderGroupCell: (rows) => {
-                                return (
-                                    <div className={GridStyles.FHCell}>
-                                        <TimeRange
-                                            startTime={
-                                                rows.childRows.at(0)?.Started ??
-                                                dayjs()
-                                            }
-                                            endTime={
-                                                rows.childRows.at(-1)?.Ended ??
-                                                dayjs()
-                                            }
-                                            detailed
-                                            relativeFrom={dayjs(
-                                                properties?.started,
-                                            )}
-                                        />
-                                    </div>
-                                );
-                            },
-                        },
-                        {
-                            key: 'Duration',
-                            width: 120,
-                            name: 'Duration',
-                            renderCell: ({ row, rowIdx }) => {
-                                return (
-                                    <HumanizedDuration
-                                        duration={row.Duration}
-                                        key={rowIdx}
-                                    />
-                                );
-                            },
-                            cellClass: GridStyles.cell,
-                            headerCellClass: GridStyles.cell,
-                            renderGroupCell: (rows) => {
-                                const started =
-                                    rows.childRows.at(0)?.Started ?? dayjs();
-                                const ended =
-                                    rows.childRows.at(-1)?.Ended ?? dayjs();
+        state: {
+            isFullScreen: maxWidth == '100vw',
+            columnVisibility: columnsShown,
+        },
 
-                                return (
-                                    <div className={GridStyles.FHCell}>
-                                        <HumanizedDuration
-                                            duration={dayjs.duration({
-                                                milliseconds:
-                                                    ended.diff(started),
-                                            })}
-                                        />
-                                    </div>
-                                );
-                            },
-                        },
-                        {
-                            name: 'Metrics',
-                            headerCellClass: GridStyles.cell,
-                            key: 'metrics',
-                            width: 'max-content',
-                            children: [
-                                {
-                                    key: 'numberOfErrors',
-                                    name: 'Errors',
-                                    width: 63,
-                                    headerCellClass: GridStyles.cell,
-                                    cellClass: (row) =>
-                                        clsx(
-                                            row.Status === 'FAILED'
-                                                ? clsx(
-                                                      GridStyles.redRow,
-                                                      GridStyles.clickable,
-                                                  )
-                                                : undefined,
-                                            GridStyles.cell,
-                                        ),
-                                    renderCell: ({ row, rowIdx }) => {
-                                        return (
-                                            <CountUpNumber
-                                                smallWhenZero
-                                                endNumber={row.numberOfErrors}
-                                                style={{
-                                                    textDecoration:
-                                                        row.numberOfErrors
-                                                            ? 'underline'
-                                                            : '',
-                                                    cursor: row.numberOfErrors
-                                                        ? 'pointer'
-                                                        : '',
-                                                }}
-                                                size="sm"
-                                                key={rowIdx}
-                                            />
-                                        );
-                                    },
-                                    renderGroupCell: (rows) => (
-                                        <CountUpNumber
-                                            size="sm"
-                                            smallWhenZero
-                                            endNumber={sumBy(
-                                                topLevelSuites(rows.childRows),
-                                                'numberOfErrors',
-                                            )}
-                                            cn={GridStyles.FHCell}
-                                        />
-                                    ),
-                                },
-                                {
-                                    key: 'totalRollupValue',
-                                    name: 'Tests',
-                                    width: 63,
-
-                                    cellClass: GridStyles.cell,
-                                    headerCellClass: GridStyles.cell,
-                                    renderGroupCell: (rows) => (
-                                        <CountUpNumber
-                                            endNumber={sumBy(
-                                                topLevelSuites(rows.childRows),
-                                                'totalRollupValue',
-                                            )}
-                                            cn={GridStyles.FHCell}
-                                        />
-                                    ),
-                                },
-                                {
-                                    key: 'Entities',
-                                    name: 'Entities',
-                                    width: 110,
-                                    cellClass: GridStyles.cell,
-                                    headerCellClass: GridStyles.cell,
-                                    renderCell: ({ row, rowIdx }) => (
-                                        <TestEntityStatusMetrics
-                                            key={rowIdx}
-                                            passed={row.RollupValues[0]}
-                                            failed={row.RollupValues[1]}
-                                            skipped={row.RollupValues[2]}
-                                        />
-                                    ),
-                                    renderGroupCell: (rows) => (
-                                        <TestEntityStatusMetrics
-                                            cn={GridStyles.FHCell}
-                                            passed={sumBy(
-                                                topLevelSuites(rows.childRows),
-                                                'RollupValues.0',
-                                            )}
-                                            failed={sumBy(
-                                                topLevelSuites(rows.childRows),
-                                                'RollupValues.1',
-                                            )}
-                                            skipped={sumBy(
-                                                topLevelSuites(rows.childRows),
-                                                'RollupValues.2',
-                                            )}
-                                        />
-                                    ),
-                                },
-                                {
-                                    key: 'Contribution',
-                                    name: 'Contri.',
-                                    width: 66,
-                                    cellClass: GridStyles.cell,
-                                    headerCellClass: GridStyles.cell,
-                                    renderCell: ({ row }) => (
-                                        <CountUpNumber
-                                            endNumber={row.Contribution}
-                                            suffix="%"
-                                            size="xs"
-                                            decimalPoints={2}
-                                        />
-                                    ),
-
-                                    renderGroupCell: (rows) => (
-                                        <CountUpNumber
-                                            endNumber={sumBy(
-                                                topLevelSuites(rows.childRows),
-                                                'Contribution',
-                                            )}
-                                            cn={GridStyles.FHCell}
-                                            suffix="%"
-                                            decimalPoints={2}
-                                        />
-                                    ),
-                                },
-                            ],
-                        },
-                        {
-                            key: 'entityName',
-                            name: 'Platform',
-                            width: 110,
-                            renderCell: ({ row, rowIdx }) => {
-                                return (
-                                    <PlatformEntity
-                                        entityNames={[row.entityName]}
-                                        size="sm"
-                                        key={rowIdx}
-                                    />
-                                );
-                            },
-                            renderGroupCell: (rows) => {
-                                return (
-                                    <Button
-                                        variant="subtle"
-                                        color="violet"
-                                        tabIndex={rows.tabIndex}
-                                        w={'100%'}
-                                        onClick={() => {
-                                            properties.setGroupedRowsByFile(
-                                                () => ({
-                                                    records: uniqBy(
-                                                        rows.childRows,
-                                                        'simplified',
-                                                    ).map((row) =>
-                                                        pick(row, [
-                                                            'entityName',
-                                                            'entityVersion',
-                                                            'simplified',
-                                                        ]),
-                                                    ) as ParsedSuiteRecord[],
-                                                    title: `Platforms for File: ${rows.childRows?.at(0)?.File}`,
-                                                }),
-                                            );
-                                            properties.openModal();
-                                        }}
-                                    >
-                                        <PlatformEntity
-                                            entityNames={uniqBy(
-                                                rows.childRows,
-                                                'entityName',
-                                            ).map(
-                                                (entity) => entity.entityName,
-                                            )}
-                                            c={clsx(
-                                                GridStyles.clickable,
-                                                GridStyles.FHCell,
-                                            )}
-                                            size="sm"
-                                            moveRight
-                                        />
-                                    </Button>
-                                );
-                            },
-                            cellClass: clsx(
-                                GridStyles.cell,
-                                GridStyles.clickable,
-                            ),
-                            headerCellClass: GridStyles.cell,
-                        },
-                    ] as Array<
-                        ColumnOrColumnGroup<NoInfer<RowRecord>, unknown> & {
-                            key: string;
-                        }
-                    >
-                }
-                rows={parsedSuites}
-                rowKeyGetter={(row) => row.Id}
-                headerRowHeight={35}
-                rowHeight={45}
-                className={GridStyles.table}
-                rowClass={(_, rowIndex) =>
-                    rowIndex % 2 === 0 ? GridStyles.evenRow : GridStyles.oddRow
-                }
-                style={{
-                    height: '100%',
-                    width: '98.6vw',
-                }}
-                groupBy={['File']}
-                rowGrouper={rowGrouper}
-                renderers={{
-                    noRowsFallback: <Skeleton h={300} w={'98vw'} animate />,
-                }}
-                expandedGroupIds={expandedGroupIds}
-                onExpandedGroupIdsChange={setExpandedGroupIds}
-                onCellClick={(cell) => {
-                    switch (cell.column.key) {
-                        case 'numberOfErrors': {
-                            if (!cell.row.numberOfErrors) return;
-                            properties.setErrorsToShow(() => cell.row.errors);
-                            properties.openModal();
-                            break;
-                        }
-                        case 'entityName': {
-                            properties.setGroupedRowsByFile(() => ({
-                                records: [
-                                    pick(cell.row, [
-                                        'entityName',
-                                        'entityVersion',
-                                        'simplified',
-                                    ]) as ParsedSuiteRecord,
-                                ],
-                                title: `"${cell.row.Title.slice(0, 30) + (cell.row.Title.length > 10 ? '...' : '')}" ran on ${cell.row.entityName}`,
-                            }));
-                            properties.openModal();
-                            break;
-                        }
-                        case 'Id': {
-                            router.push(
-                                suiteDetailedPage(
-                                    properties.testID ?? '',
-                                    cell.row.Id,
-                                ),
-                            );
-                            break;
-                        }
-                    }
-                }}
-                onCellDoubleClick={(cell) => {
-                    switch (cell.column.key) {
-                        case 'Title': {
-                            router.push(
-                                suiteDetailedPage(
-                                    properties.testID ?? '',
-                                    cell.row.Id,
-                                ),
-                            );
-                            break;
-                        }
-                    }
-                }}
+        renderTopToolbarCustomActions: () => (
+            <BreadcrumbsForDrilldownSuites
+                levels={properties.levels}
+                setSearchQuery={properties.setSearchQuery}
             />
-        </>
-    );
-}
+        ),
 
-export default function ListOfSuits(properties: {
-    testID?: string;
-}): ReactNode {
-    const {
-        data: run,
-        isLoading: runFeedLoading,
-        error: runFeedError,
-    } = useSWRImmutable<TestRunRecord>(
-        properties.testID ? jsonFeedAboutTestRun(properties.testID) : undefined,
-        () =>
-            fetch(jsonFeedAboutTestRun(properties.testID as string)).then(
-                async (response) => response.json(),
-            ),
-    );
-
-    const { data, isLoading, error } = useSWRImmutable<SuiteRecordDetails[]>(
-        properties.testID
-            ? jsonFeedForListOfSuites(properties.testID)
-            : undefined,
-        () =>
-            fetch(jsonFeedForListOfSuites(properties.testID as string)).then(
-                async (response) => response.json(),
-            ),
-    );
-
-    const suites = useMemo(() => {
-        const converter = spawnConverterForAnsiToHTML();
-        return (data ?? [])
-            .filter((suite) => suite.standing !== 'RETRIED')
-            .map((suite) =>
-                transformSuiteEntity(suite, run?.tests ?? 0, converter),
-            );
-    }, [run?.tests, data]);
-
-    const toLoad =
-        runFeedLoading ||
-        isLoading ||
-        error !== undefined ||
-        runFeedError !== undefined ||
-        run === undefined ||
-        data === undefined;
-
-    const [opened, { open: openModal, close }] = useDisclosure(false);
-    const [searchQuery, setSearchQuery] = useState<SearchQuery>({
-        search: '',
-        status: [],
+        renderDetailPanel: ({ row }) => {
+            return <DetailedViewForSuites suite={row.original} />;
+        },
     });
 
-    const [errorsToShow, setErrorsToShow] = useState<ErrorRecord[]>([]);
-    const [groupedRowsByFile, setGroupedRowsByFile] = useState<{
-        records: ParsedSuiteRecord[];
-        title: string;
-    }>({ records: [], title: '' });
+    return <MantineReactTable table={table} />;
+}
 
-    const filteredSuites = useMemo(() => {
-        console.log(toLoad, suites, 'here');
-        if (toLoad) return [];
-        let p_suites = suites;
+function BreadcrumbsForDrilldownSuites(properties: {
+    levels: SearchQuery['levels'];
+    setSearchQuery: Dispatch<SetStateAction<SearchQuery>>;
+}) {
+    const insertMid = properties.levels.length > 6;
+    const showLevels = insertMid
+        ? properties.levels.slice(0, 3)
+        : properties.levels;
 
-        if (searchQuery.status.length > 0)
-            p_suites = suites.filter((suite) =>
-                searchQuery.status.includes(suite.Status),
-            );
-        return p_suites;
-    }, [toLoad, searchQuery]);
+    if (showLevels.length === 1) {
+        return <></>;
+    }
+
+    const menuOptions = insertMid ? properties.levels.slice(3, -3) : false;
+
+    const onClickOptionNav = (index: number) => {
+        const q = properties.levels ?? DEFAULT_QUERY;
+        if (q.length - 1 === index) return;
+        const nq = q.slice(0, index + 1);
+
+        properties.setSearchQuery((_: SearchQuery) => ({
+            ..._,
+            levels: nq,
+            parent: nq.at(-1)?.value ?? '',
+        }));
+    };
+
+    const options = (
+        index: number,
+        level: { label: string; value: string },
+    ) => (
+        <Anchor
+            variant="text"
+            size="sm"
+            underline={
+                index === properties.levels.length - 1 ? 'never' : 'hover'
+            }
+            c={index === properties.levels.length - 1 ? 'bright' : undefined}
+            onClick={() =>
+                properties.levels.length > 1 &&
+                !(index === properties.levels.length - 1) &&
+                onClickOptionNav(index)
+            }
+            key={level.value}
+        >
+            {level.label}
+        </Anchor>
+    );
+    const comps = [];
+
+    if (insertMid && menuOptions) {
+        comps.push(
+            <Menu shadow="xl" variant="light">
+                <MenuTarget>
+                    <ActionIcon variant="light">
+                        <IconDots />
+                    </ActionIcon>
+                </MenuTarget>
+                <MenuDropdown>
+                    {menuOptions.map((option, index) => (
+                        <MenuItem
+                            key={option.value}
+                            onClick={() =>
+                                onClickOptionNav(showLevels.length + index)
+                            }
+                        >
+                            {option.label}
+                        </MenuItem>
+                    ))}
+                </MenuDropdown>
+            </Menu>,
+            properties.levels
+                .slice(-3)
+                .map((level, index) =>
+                    options(
+                        properties.levels.length - (showLevels.length - index),
+                        level,
+                    ),
+                ),
+        );
+    }
 
     return (
-        <Group>
-            <SearchBar setSearchQuery={setSearchQuery} />
-            <TreeView
-                started={run?.started}
-                testID={properties.testID ?? ''}
-                suites={filteredSuites}
-                setGroupedRowsByFile={setGroupedRowsByFile}
-                setErrorsToShow={setErrorsToShow}
-                openModal={openModal}
-            />
-            <ErrorsToShow
-                opened={opened && errorsToShow.length > 0}
-                onClose={() => {
-                    close();
-                    setErrorsToShow(() => []);
-                }}
-                errorsToShow={errorsToShow}
-            />
-            <DetailedPlatformVersions
-                title={groupedRowsByFile.title}
-                records={groupedRowsByFile.records}
-                opened={opened && errorsToShow.length === 0}
-                onClose={() => {
-                    close();
-                    setGroupedRowsByFile({ records: [], title: '' });
-                }}
-            />
-        </Group>
+        <Breadcrumbs p="md">
+            {showLevels.map((level, index) => options(index, level))}
+            {...comps}
+        </Breadcrumbs>
+    );
+}
+
+export default function ListOfSuitesNonDynamic(properties: {
+    testID?: string;
+    mockSuites?: SuiteRecordDetails[];
+    run?: DetailedTestRecord;
+}): ReactNode {
+    const run = properties.run;
+
+    const { suites } = useProcessedTestSuites(
+        properties.mockSuites,
+        properties.testID,
+        run?.Tests,
+    );
+
+    const { filteredSuites, searchQuery, setSearchQuery } =
+        useFilteredSuites(suites);
+
+    return (
+        <TableOfSuites
+            started={run?.Started}
+            suites={filteredSuites}
+            levels={searchQuery.levels}
+            setSearchQuery={setSearchQuery}
+            onParentFilter={(suiteID, suiteName) =>
+                setSearchQuery({
+                    ...searchQuery,
+                    parent: suiteID,
+                    levels: [
+                        ...searchQuery.levels,
+                        { label: suiteName, value: suiteID },
+                    ],
+                })
+            }
+        />
     );
 }

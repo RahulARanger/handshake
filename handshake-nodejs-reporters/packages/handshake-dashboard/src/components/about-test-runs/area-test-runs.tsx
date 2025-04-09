@@ -1,12 +1,8 @@
 import type { AreaChartProps } from '@mantine/charts';
 import { AreaChart } from '@mantine/charts';
 import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import React from 'react';
-import advancedFormat from 'dayjs/plugin/advancedFormat';
-
-dayjs.extend(advancedFormat);
 
 export default function AreaChartForTestRuns(properties: {
     Rates: Array<{
@@ -61,6 +57,7 @@ export default function AreaChartForTestRuns(properties: {
             withTooltip
             withDots
             dataKey="date"
+            classNames={{ tooltip: 'mirror' }}
             series={[
                 { name: 'Passed', color: 'green' },
                 { name: 'Skipped', color: 'yellow' },
