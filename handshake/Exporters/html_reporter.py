@@ -6,10 +6,11 @@ from handshake.services.DBService.lifecycle import (
     handshake_meta,
     save_handshake_meta_dashboard,
     handshake_meta_dashboard,
+    attachment_folder,
 )
+from handshake.services.SchedularService.constants import writtenAttachmentFolderName
 from handshake.Exporters.json_exporter import JsonExporter
-from handshake.Exporters.excel_exporter import calc_percentage
-from shutil import rmtree
+from shutil import rmtree, copytree
 from loguru import logger
 from pathlib import Path
 from httpx import AsyncClient, RequestError, StreamError
@@ -57,11 +58,12 @@ class HTMLExporter(JsonExporter):
         if not self.fetch:
             if not meta:
                 self.fetch = True  # if the meta is not available, we fetch the file
-            elif meta and meta["version"] != __version__:
+            elif meta and meta.get("version", "") != __version__:
                 self.fetch = True  # if the version is not matching, we fetch the file
             else:
                 file_ready = True
-        else:
+
+        if self.fetch:
             file_ready = await self.download_zip()
 
         if file_ready:
@@ -127,4 +129,10 @@ class HTMLExporter(JsonExporter):
 
         return downloaded
 
-    def completed(self): ...
+    def completed(self):
+        logger.info("Adding Attachments to the HTML Report.")
+        copytree(
+            attachment_folder(self.db_path),
+            self.html_export_in / writtenAttachmentFolderName,
+        )
+        logger.info("Added Attachments to the HTML Report.")

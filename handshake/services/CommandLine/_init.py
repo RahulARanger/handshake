@@ -218,6 +218,12 @@ def patch(
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
+    if export_mode == "html" and out is None:
+        logger.error(
+            "HTML export requires an output folder, please provide it using --out or -o"
+        )
+        return
+
     scheduler = Scheduler(
         collection_path, out, reset, inside, dev, export_mode.lower(), xlsx
     )
@@ -457,14 +463,3 @@ def yet_to_process(ctx: Context):
             "PROCESSED = 0"
         ),
     )
-
-
-if __name__ == "__main__":
-    _scheduler = Scheduler(
-        "../../../TestResults", manual_reset=True, include_excel_export=True
-    )
-    try:
-        run(_scheduler.start())
-    except (KeyboardInterrupt, SystemExit):
-        logger.warning("Scheduler terminated explicitly...")
-        run(close_connection())
