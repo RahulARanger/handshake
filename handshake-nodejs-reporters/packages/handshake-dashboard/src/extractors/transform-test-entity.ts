@@ -7,6 +7,7 @@ import type {
 import Convert from 'ansi-to-html';
 import { findIndex } from 'lodash-es';
 import type { possibleEntityNames } from 'types/session-records';
+import { localDayjs } from 'components/timings/format';
 
 export default function transformSuiteEntity(
     testEntity: SuiteRecordDetails,
@@ -19,13 +20,19 @@ export default function transformSuiteEntity(
         return error;
     });
     return {
-        Started: dayjs(testEntity.started),
-        Ended: dayjs(testEntity.ended),
+        Started: localDayjs(testEntity.started),
+        Ended: localDayjs(testEntity.ended),
         Title: testEntity.title.trim(),
         Desc: testEntity.description.trim(),
         Id: testEntity.suiteID,
         Status: testEntity.standing,
-        Rate: [testEntity.passed, testEntity.failed, testEntity.skipped, testEntity.xfailed, testEntity.xpassed],
+        Rate: [
+            testEntity.passed,
+            testEntity.failed,
+            testEntity.skipped,
+            testEntity.xfailed,
+            testEntity.xpassed,
+        ],
         Duration: dayjs.duration({ milliseconds: testEntity.duration }),
         Tests: testEntity.tests,
         File: testEntity.file,
@@ -65,13 +72,19 @@ export function transformTestEntity(
         return error;
     });
     return {
-        Started: dayjs(testEntity.started),
-        Ended: dayjs(testEntity.ended),
+        Started: localDayjs(testEntity.started),
+        Ended: localDayjs(testEntity.ended),
         Title: testEntity.title.trim(),
         Desc: testEntity.description.trim(),
         Id: testEntity.suiteID,
         Status: testEntity.standing,
-        Rate: [testEntity.passed, testEntity.failed, testEntity.skipped, testEntity.xfailed, testEntity.xpassed],
+        Rate: [
+            testEntity.passed,
+            testEntity.failed,
+            testEntity.skipped,
+            testEntity.xfailed,
+            testEntity.xpassed,
+        ],
         Duration: dayjs.duration({ milliseconds: testEntity.duration }),
         Tests: testEntity.tests,
         errors,

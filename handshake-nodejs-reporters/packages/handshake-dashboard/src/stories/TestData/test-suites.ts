@@ -4,6 +4,7 @@ import { SuiteRecordDetails } from 'types/test-entity-related';
 import { generateTestRun, getStatus } from './test-runs';
 import { sortBy } from 'lodash-es';
 import { TestRunRecord } from 'types/test-run-records';
+import { generateErrors } from './error';
 
 const generator = Chance();
 
@@ -33,7 +34,7 @@ function splitAnInteger(number: number, n: number, min?: number, max?: number) {
     ];
 }
 
-function generateTestSuite(
+export function generateTestSuite(
     feeder: Partial<SuiteRecordDetails>,
 ): SuiteRecordDetails {
     const tests = feeder.tests ?? generator.integer({ min: 5, max: 10 });
@@ -82,6 +83,8 @@ function generateTestSuite(
         )
         .filter((index) => index !== false);
 
+    const suiteStatus = getStatus(passed, failed, skipped, xfailed, xpassed);
+
     return {
         title: generator.name(),
         description: generator.paragraph(),
@@ -109,8 +112,8 @@ function generateTestSuite(
         numberOfErrors: failed ? generator.integer({ min: 1, max: 3 }) : 0,
         suiteID: crypto.randomUUID(),
         tags,
-        errors: [],
-        standing: getStatus(passed, failed, skipped, xfailed, xpassed),
+        errors: suiteStatus === 'FAILED' ? generateErrors() : [],
+        standing: suiteStatus,
         retried: 0,
         session_id: '',
         Parent: '',
