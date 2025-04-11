@@ -11,7 +11,7 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';
-import dayjs, { Dayjs } from 'dayjs';
+import { Dayjs } from 'dayjs';
 import React, { useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
@@ -36,7 +36,7 @@ import {
 } from 'mantine-react-table';
 import useTableConfigurationsForListOfSuites from 'hooks/get-saved-filters';
 import CountUpNumber from 'components/counter';
-import { DetailedViewForSuites } from './detailed-test-view';
+import { DetailedViewForSuite } from './detailed-test-view';
 import GridStyles from 'styles/data-table.module.css';
 
 function TableOfSuites(properties: {
@@ -134,7 +134,7 @@ function TableOfSuites(properties: {
                             endTime={row.original.Ended}
                             key={renderedRowIndex}
                             detailed
-                            relativeFrom={dayjs(properties?.started)}
+                            relativeFrom={properties?.started}
                         />
                     );
                 },
@@ -149,7 +149,7 @@ function TableOfSuites(properties: {
                             startTime={row.original.Started}
                             key={renderedRowIndex}
                             detailed
-                            relativeFrom={dayjs(properties?.started)}
+                            relativeFrom={properties?.started}
                         />
                     );
                 },
@@ -164,7 +164,7 @@ function TableOfSuites(properties: {
                             startTime={row.original.Ended}
                             key={renderedRowIndex}
                             detailed
-                            relativeFrom={dayjs(properties?.started)}
+                            relativeFrom={properties?.started}
                         />
                     );
                 },
@@ -289,7 +289,12 @@ function TableOfSuites(properties: {
         ),
 
         renderDetailPanel: ({ row }) => {
-            return <DetailedViewForSuites suite={row.original} />;
+            return (
+                <DetailedViewForSuite
+                    suite={row.original}
+                    testStartedAt={properties.started}
+                />
+            );
         },
     });
 

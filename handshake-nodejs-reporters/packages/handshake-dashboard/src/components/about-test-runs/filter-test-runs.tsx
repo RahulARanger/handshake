@@ -38,7 +38,7 @@ export default function FilterBox(properties: {
 }): ReactNode {
     const options = useMemo<optionForDateRange[]>(() => {
         const optionsForDateRangeCopy = [...optionsForDate];
-        const today = dayjs();
+        const today = dayjs().utc().local();
 
         if (!today.isSame(properties.recentRunDate, 'date')) {
             // removing today
@@ -49,7 +49,6 @@ export default function FilterBox(properties: {
                     .subtract(1, 'day')
                     .isSame(properties.recentRunDate, 'date')
             ) {
-                console.log('HERE');
                 // removing yesterday
                 optionsForDateRangeCopy.pop();
 

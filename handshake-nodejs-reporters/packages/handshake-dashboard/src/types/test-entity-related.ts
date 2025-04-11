@@ -101,6 +101,7 @@ export interface ImageRecord {
 
 export interface ErrorRecord {
     message: string;
+    name: string;
     stack: string;
     mailedFrom?: string[];
 }

@@ -8,19 +8,16 @@ import type {
     TestRunRecord,
 } from 'types/test-run-records';
 import type { Duration } from 'dayjs/plugin/duration';
-import duration from 'dayjs/plugin/duration';
 import type { SuiteRecordDetails } from 'types/test-entity-related';
 import type { statusOfEntity } from 'types/session-records';
 import type { PlatformDetails } from 'components/about-test-entities/platform-entity';
-
-dayjs.extend(duration);
 
 export default function transformTestRunRecord(
     testRunRecord: TestRunRecord,
 ): DetailedTestRecord {
     return {
-        Started: dayjs(testRunRecord.started),
-        Ended: dayjs(testRunRecord.ended),
+        Started: dayjs(testRunRecord.started).utc().local(),
+        Ended: dayjs(testRunRecord.ended).utc().local(),
         Title: testRunRecord.projectName,
         Id: testRunRecord.testID,
         Status: testRunRecord.standing,
@@ -79,10 +76,16 @@ export interface TransformedOverviewOfEntities {
 
 function transformMiniSuite(suite: SuiteRecordDetails): MiniSuitePreview {
     return {
-        Started: dayjs(suite.started),
+        Started: dayjs(suite.started).utc().local(),
         Duration: dayjs.duration({ milliseconds: suite.duration }),
         Title: suite.title,
-        Rate: [suite.passed, suite.failed, suite.skipped, suite.xfailed, suite.xpassed],
+        Rate: [
+            suite.passed,
+            suite.failed,
+            suite.skipped,
+            suite.xfailed,
+            suite.xpassed,
+        ],
         Id: suite.suiteID,
     };
 }

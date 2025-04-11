@@ -20,7 +20,7 @@ export function generateSampleTestCase(): ParsedTestRecord {
         Tests: 0,
         Parent: generator.unique(generator.state, 1)[0],
         Status: generator.pickone(['FAILED', 'PASSED', 'SKIPPED']),
-        Rate: [0, 1, 0 ,1, 2],
+        Rate: [0, 1, 0, 1, 2],
         totalRollupValue: 0,
         type: 'TEST',
         Tags: generator

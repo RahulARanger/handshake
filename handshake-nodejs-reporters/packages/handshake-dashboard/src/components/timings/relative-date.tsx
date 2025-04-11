@@ -48,7 +48,7 @@ export default function RelativeDate(properties: {
             </Carousel.Slide>
             <Carousel.Slide style={{ display: 'flex', alignItems: 'center' }}>
                 <Tooltip
-                    label={`Relative from ${properties.relativeFrom ? properties.relativeFrom.format(preferredFormat) : dayjs().format(preferredFormat)} (${properties.relativeAlias ?? 'from now'})`}
+                    label={`Relative from ${properties.relativeFrom ? properties.relativeFrom.format(preferredFormat) : dayjs().utc().local().format(preferredFormat)} (${properties.relativeAlias ?? 'from now'})`}
                     color="pink"
                 >
                     <Text size={properties.size ?? 'sm'}>

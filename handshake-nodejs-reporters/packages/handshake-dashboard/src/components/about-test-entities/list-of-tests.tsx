@@ -38,7 +38,6 @@ import RedirectToTestEntity from './redirect-to-detailed-test-entity';
 import { useRouter } from 'next/router';
 import clsx from 'clsx';
 import { ErrorsToShow } from './error-card';
-import dayjs from 'dayjs';
 import { IconCaretRightFilled } from '@tabler/icons-react';
 import type { ParsedTestRecord } from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
@@ -47,6 +46,7 @@ import DetailedTestView, {
     detailedTestViewPortalTarget,
 } from './detailed-test-view';
 import TestStatusIcon from 'components/about-test-run/test-status';
+import { localDayjs } from 'components/timings/format';
 
 export default function ListOfTests(properties: {
     testID?: string;
@@ -315,7 +315,7 @@ export default function ListOfTests(properties: {
                                     endTime={row.Ended}
                                     key={rowIdx}
                                     detailed
-                                    relativeFrom={dayjs(suite?.started)}
+                                    relativeFrom={localDayjs(suite?.started)}
                                 />
                             );
                         },
