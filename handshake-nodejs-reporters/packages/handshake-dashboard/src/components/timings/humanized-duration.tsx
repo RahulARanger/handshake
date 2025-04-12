@@ -96,7 +96,7 @@ export function DurationText(properties: {
     }
 
     return (
-        <Text title={label} size={properties.size}>
+        <Text title={label} size={properties.size} component="span">
             {properties.prefix ?? ''}
             {valueToShow}&nbsp;
             <Text size="xs" component="span">

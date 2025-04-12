@@ -63,4 +63,9 @@
     --mrt-pinned-column-background-color: transparent !important;
     --mrt-pinned-row-background-color: transparent !important;
     --mrt-row-hover-background-color: var(--row-bg);
+    margin-bottom: 3rem;
+}
+
+.dataTableToolBar {
+    background: var(--back-bg);
 }

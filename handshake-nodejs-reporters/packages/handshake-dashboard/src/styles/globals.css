@@ -6,10 +6,13 @@
     --text: oklch(85% 0.1 var(--hue));
     --shadow: oklch(25% 0.2 var(--hue));
     --row-bg: rgba(37, 7, 1, 0.196);
+    --menu-hover: #5e595956;
+    --menu-selected: #5e595944;
     --highlight: oklch(98% 0.05 var(--hue));
     --thick-box: rgba(0, 0, 0, 0.4) 0px 2px 4px,
         rgba(0, 0, 0, 0.3) 0px 7px 13px -3px,
         rgba(0, 0, 0, 0.2) 0px -3px 0px inset !important;
+    --back-bg: linear-gradient(124deg, #221e22 0%, #220107 100%)
 }
 
 div#__next,
@@ -31,7 +34,7 @@ body {
 
 body {
     background-color: #221e22;
-    background-image: linear-gradient(124deg, #221e22 0%, #220107 100%);
+    background-image: var(--back-bg);
 }
 
 ::selection {
@@ -70,13 +73,35 @@ body {
     border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
 }
 
-/* adding this to highlight the rows only with bg on hover */
+
 tr.mantine-Table-tr {
     transition: all ease 0.2s;
 }
 
-tr.mantine-Table-tr:hover {
+/* adding this to highlight the rows only with bg on hover */
+tr.mantine-Table-tr:hover,
+.mantine-Tabs-tab:hover {
     background-color: var(--row-bg) !important;
+}
+
+.mantine-Select-option,
+.mantine-MultiSelect-option,
+.mantine-Menu-item,
+.mantine-Tabs-tab {
+    border: 1px solid transparent !important;
+    transition: all ease 0.2s !important;
+}
+
+.mantine-Tabs-tab[data-active="true"] {
+    background-color: var(--menu-selected) !important;
+}
+
+.mantine-MultiSelect-option:hover,
+.mantine-Select-option:hover,
+.mantine-Menu-item[ data-hovered="true"],
+.mantine-Tabs-tab:hover {
+    border: 1px solid var(--row-bg) !important;
+    background-color: var(--menu-hover) !important;
 }
 
 /* adding this here to match the skeleton with the theme */

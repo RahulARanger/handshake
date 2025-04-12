@@ -16,3 +16,8 @@ export function captialize(x: string) {
 export function getRandomInt(mini: number, maxi: number) {
     return Math.floor(Math.random() * (maxi - mini + 1) + mini);
 }
+
+export function percentage(x: number, y: number) {
+    const value = (x * 100) / y;
+    return (Number.isNaN(value) ? 0 : value).toFixed(2);
+}

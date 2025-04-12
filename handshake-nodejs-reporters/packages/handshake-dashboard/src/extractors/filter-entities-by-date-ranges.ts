@@ -8,7 +8,7 @@ export default function filterEntities(
 ) {
     let any = false;
     for (const filter of dateRange) {
-        const today = dayjs();
+        const today = dayjs().utc().local();
         const thisWeek = today.startOf('week');
         const thisMonth = today.startOf('month');
         const thisYear = today.startOf('year');

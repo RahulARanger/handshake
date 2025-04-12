@@ -1,4 +1,4 @@
-import { jsonFeedForListOfSuites } from 'components/links';
+import { jsonFeedForListOfSuites, jsonFeedForTests } from 'components/links';
 import transformSuiteEntity, {
     spawnConverterForAnsiToHTML,
 } from 'extractors/transform-test-entity';
@@ -32,4 +32,37 @@ export function useProcessedTestSuites(
     }, [tests, data]);
 
     return { suites, isLoading, error };
+}
+
+export function useProcessedTestCases(
+    mockTests?: SuiteRecordDetails[],
+    testID?: string,
+    suiteID?: string,
+    testsCount?: number,
+) {
+    const {
+        data: _data,
+        isLoading,
+        error,
+    } = useSWRImmutable<SuiteRecordDetails[]>(
+        testID && suiteID && !mockTests
+            ? jsonFeedForTests(testID, suiteID)
+            : undefined,
+        () =>
+            fetch(jsonFeedForTests(testID as string, suiteID as string)).then(
+                async (response) => response.json(),
+            ),
+    );
+    const data = _data ?? mockTests;
+
+    const tests = useMemo(() => {
+        const converter = spawnConverterForAnsiToHTML();
+        return (data ?? [])
+            .filter((test) => test.standing !== 'RETRIED')
+            .map((test) =>
+                transformSuiteEntity(test, testsCount ?? 0, converter),
+            );
+    }, [data]);
+
+    return { tests, isLoading, error };
 }

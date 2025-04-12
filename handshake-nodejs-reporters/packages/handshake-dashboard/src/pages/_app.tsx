@@ -8,10 +8,12 @@ import '@mantine/carousel/styles.css';
 import { createTheme, MantineProvider } from '@mantine/core';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
 import duration from 'dayjs/plugin/duration';
+import utc from 'dayjs/plugin/utc';
 import dayjs from 'dayjs';
 
 dayjs.extend(advancedFormat);
 dayjs.extend(duration);
+dayjs.extend(utc);
 
 const className = 'mirror';
 const defaultBg = 'transparent';

@@ -117,20 +117,11 @@ export function EmptyScreen(properties: {
     h?: PaperProps['h'];
 }) {
     return (
-        <Paper
-            h={properties.h ?? '100%'}
-            radius="sm"
-            withBorder
-            shadow="xl"
-            p="sm"
-            miw={400}
-        >
-            <Center h={'100%'}>
-                <Text size="sm" c={properties.c}>
-                    {properties.message}
-                </Text>
-            </Center>
-        </Paper>
+        <Center h={'100%'}>
+            <Text size="sm" c={properties.c}>
+                {properties.message}
+            </Text>
+        </Center>
     );
 }
 
