@@ -21,7 +21,6 @@ import React, { useMemo } from 'react';
 import useSWRImmutable from 'swr/immutable';
 import DataGrid from 'react-data-grid';
 import type { Dayjs } from 'dayjs';
-import dayjs from 'dayjs';
 import RelativeDate from 'components/timings/relative-date';
 import type { specNode, specStructure } from 'types/test-run-records';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
@@ -380,7 +379,7 @@ export default function PreviewTestRun(properties: {
                     <ScrollAreaAutosize p="sm" h={250} w={'100%'}>
                         <PreviewTestSuites
                             recentSuites={data.recentSuites}
-                            runStartedAt={dayjs(run.Started)}
+                            runStartedAt={run.Started}
                         />
                     </ScrollAreaAutosize>
                 </Card.Section>

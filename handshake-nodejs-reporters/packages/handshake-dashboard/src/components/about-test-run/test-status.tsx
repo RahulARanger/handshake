@@ -47,6 +47,7 @@ export function standingToColors(
 
 export default function TestStatusIcon(properties: {
     status: statusOfEntity;
+    size?: number;
 }): ReactNode {
     let icon = <></>;
 
@@ -56,12 +57,19 @@ export default function TestStatusIcon(properties: {
                 <IconCheck
                     color="var(--mantine-color-green-filled)"
                     stroke={5}
+                    size={properties.size}
                 />
             );
             break;
         }
         case 'FAILED': {
-            icon = <IconX color="var(--mantine-color-red-filled)" stroke={5} />;
+            icon = (
+                <IconX
+                    color="var(--mantine-color-red-filled)"
+                    stroke={5}
+                    size={properties.size}
+                />
+            );
             break;
         }
 
@@ -70,6 +78,7 @@ export default function TestStatusIcon(properties: {
                 <IconPlayerSkipForwardFilled
                     color="var(--mantine-color-yellow-filled)"
                     stroke={1.5}
+                    size={properties.size}
                 />
             );
             break;
@@ -80,6 +89,7 @@ export default function TestStatusIcon(properties: {
                 <IconRefreshDot
                     color="var(--mantine-color-orange-filled)"
                     stroke={1.5}
+                    size={properties.size}
                 />
             );
             break;
@@ -90,6 +100,7 @@ export default function TestStatusIcon(properties: {
                 <IconFlagPause
                     color="var(--mantine-color-yellow-filled)"
                     stroke={3}
+                    size={properties.size}
                 />
             );
             break;
@@ -100,6 +111,7 @@ export default function TestStatusIcon(properties: {
                 <IconTestPipe
                     color="var(--mantine-color-orange-filled)"
                     stroke={3}
+                    size={properties.size}
                 />
             );
             break;
@@ -110,6 +122,7 @@ export default function TestStatusIcon(properties: {
                 <IconRosetteDiscountCheckOff
                     color="var(--mantine-color-teal-filled)"
                     stroke={2}
+                    size={properties.size}
                 />
             );
             break;

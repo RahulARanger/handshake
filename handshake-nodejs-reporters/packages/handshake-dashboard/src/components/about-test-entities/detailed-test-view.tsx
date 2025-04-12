@@ -20,59 +20,178 @@ import type { ReactNode } from 'react';
 import type { AssertionRecord, ImageRecord } from 'types/test-entity-related';
 import { ErrorStack } from './error-card';
 import {
-    IconExternalLink,
+    IconChartBarPopular,
+    // IconExternalLink,
     IconMaximize,
     IconMinimize,
     IconPhoto,
     IconTestPipe,
     IconX,
 } from '@tabler/icons-react';
-import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
+import type {
+    DetailedTestRecord,
+    ParsedSuiteRecord,
+    ParsedTestRecord,
+} from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
 import ImageCarousel, { NoThingsWereAdded } from './image-carousel';
 import Assertions from './assertions';
 import TextStyles from 'styles/text-styles.module.css';
 import { useDisclosure } from '@mantine/hooks';
+import ShowLongText from 'components/long-text';
+import TestStatusIcon, {
+    standingToColors,
+} from 'components/about-test-run/test-status';
+import { TimeRange } from 'components/timings/time-range';
+import { DurationText } from 'components/timings/humanized-duration';
+import StatCard from './stat-card';
 
 export const detailedTestViewPortalTarget = '#detailed-test-view';
+type tabOfDetailedSuite = 'errors' | 'stats';
 
 export function DetailedViewForTestEntity(properties: {
     test: ParsedSuiteRecord;
+    testRecord: DetailedTestRecord;
 }) {
     const iconStyle = { width: rem(12), height: rem(12) };
+    const height = 240;
+    const defaultTab: tabOfDetailedSuite =
+        properties.test.errors?.length > 0 ? 'errors' : 'stats';
+
     return (
         <Card withBorder shadow="xl" p="sm" radius="sm">
             <Stack gap={0}>
                 <Card.Section withBorder p="sm">
-                    <Group justify="flex-start">
-                        <ActionIcon variant="subtle" component="a">
-                            <IconExternalLink style={iconStyle} />
-                        </ActionIcon>
-                        <Tooltip label={properties.test.Title} color="orange">
-                            <Text
-                                size="sm"
-                                px="xs"
-                                className={TextStyles.breakable}
-                                lineClamp={1}
+                    <Group justify="space-between" wrap="nowrap">
+                        <Group justify="flex-start" wrap="nowrap">
+                            {/* <ActionIcon variant="subtle" component="a">
+                                <IconExternalLink style={iconStyle} />
+                            </ActionIcon> */}
+                            <Group
+                                justify="flex-start"
+                                gap={0}
+                                align="center"
+                                wrap="nowrap"
                             >
-                                {properties.test.Title}
-                            </Text>
-                        </Tooltip>
+                                <TestStatusIcon
+                                    status={properties.test.Status}
+                                />
+                                <ShowLongText
+                                    size="sm"
+                                    px="xs"
+                                    className={TextStyles.breakable}
+                                    lineClamp={1}
+                                    text={properties.test.Title}
+                                    c={standingToColors(properties.test.Status)}
+                                />
+                                <ShowLongText
+                                    size="sm"
+                                    px="xs"
+                                    fs="italic"
+                                    className={TextStyles.breakable}
+                                    lineClamp={1}
+                                    text={`(${properties.test.File})`}
+                                />
+                            </Group>
+                        </Group>
+                        <Group justify="flex-end" wrap="nowrap">
+                            <TimeRange
+                                prefix={'Ran '}
+                                startTime={properties.test.Started}
+                                endTime={properties.test.Ended}
+                                relativeFrom={properties.testRecord.Started}
+                                suffix={
+                                    <DurationText
+                                        prefix=" for "
+                                        size="sm"
+                                        seconds={properties.test.Duration.asSeconds()}
+                                    />
+                                }
+                            />
+                        </Group>
                     </Group>
+                </Card.Section>
+                <Card.Section withBorder p="0">
+                    <Tabs
+                        variant="pills"
+                        defaultValue={defaultTab}
+                        h={'100%'}
+                        orientation="vertical"
+                        color="orange.9"
+                    >
+                        <Tabs.List
+                            justify="flex-start"
+                            pt="sm"
+                            pl="xs"
+                            mih={height}
+                        >
+                            <Tabs.Tab
+                                value="stats"
+                                leftSection={
+                                    <IconChartBarPopular style={iconStyle} />
+                                }
+                                variant="light"
+                            >
+                                Stats
+                            </Tabs.Tab>
+                            <Tabs.Tab
+                                value="errors"
+                                leftSection={<IconX style={iconStyle} />}
+                                variant="light"
+                                rightSection={
+                                    properties.test.errors?.length > 0 ? (
+                                        <Badge color="red.3" size="sm" c="dark">
+                                            {properties.test.errors?.length ??
+                                                0}
+                                        </Badge>
+                                    ) : (
+                                        <></>
+                                    )
+                                }
+                            >
+                                Errors
+                            </Tabs.Tab>
+                        </Tabs.List>
+                        <Divider mx={6} orientation="vertical" />
+                        <Tabs.Panel value="stats" h={height}>
+                            <ScrollAreaAutosize h={height - 4}>
+                                <StatCard
+                                    suite={properties.test}
+                                    testRecord={properties.testRecord}
+                                />
+                            </ScrollAreaAutosize>
+                        </Tabs.Panel>
+                        <Tabs.Panel value="errors" h={height}>
+                            {properties.test.errors.length > 0 ? (
+                                <ScrollAreaAutosize h={height - 4}>
+                                    <ErrorStack
+                                        errors={properties.test.errors}
+                                    />
+                                </ScrollAreaAutosize>
+                            ) : (
+                                <NoThingsWereAdded
+                                    message={'No Errors were found'}
+                                    c={'green'}
+                                />
+                            )}
+                        </Tabs.Panel>
+                    </Tabs>
                 </Card.Section>
             </Stack>
         </Card>
     );
 }
 
-export function DetailedViewForSuites(properties: {
+export function DetailedViewForSuite(properties: {
     suite: ParsedSuiteRecord;
+    testRecord: DetailedTestRecord;
 }) {
     return (
         <Box w="96vw" pos="sticky" style={{ overflow: 'auto', left: 12 }}>
             <DetailedViewForTestEntity
                 test={properties.suite}
-            ></DetailedViewForTestEntity>
+                testRecord={properties.testRecord}
+            />
         </Box>
     );
 }
