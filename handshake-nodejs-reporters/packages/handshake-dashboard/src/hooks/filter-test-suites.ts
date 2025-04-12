@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { ParsedSuiteRecord } from 'types/parsed-records';
 
 export interface SearchQuery {
@@ -12,16 +12,19 @@ export const DEFAULT_QUERY: SearchQuery = {
     levels: [{ label: '***', value: '' }],
 };
 
-export default function useFilteredSuites(suites?: ParsedSuiteRecord[]) {
-    const [searchQuery, setSearchQuery] = useState<SearchQuery>(DEFAULT_QUERY);
-
+export default function useFilteredSuites(
+    searchQuery: SearchQuery,
+    suites?: ParsedSuiteRecord[],
+    allRecords?: ParsedSuiteRecord[],
+) {
     const filteredSuites = useMemo(() => {
-        if (!suites) return [];
-        const p_suites = suites.filter(
+        const compounded = (allRecords ?? [])?.length > 0 ? allRecords : suites;
+        if (!compounded) return [];
+        const p_compounded = compounded.filter(
             (suite) => suite.Parent === searchQuery.parent,
         );
-        return p_suites;
-    }, [suites, searchQuery]);
+        return p_compounded;
+    }, [suites, allRecords, searchQuery]);
 
-    return { filteredSuites, searchQuery, setSearchQuery };
+    return { filteredSuites };
 }

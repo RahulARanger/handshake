@@ -52,7 +52,7 @@ export default function transformSuiteEntity(
         hooks: testEntity.hooks,
         Parent: testEntity.parent,
         Tags: testEntity.tags,
-        type: testEntity.suiteType,
+        type: testEntity.suiteType ?? 'SUITE',
         Contribution: Number(
             ((testEntity.rollup_tests / totalTestsInATestRun) * 1e2).toFixed(2),
         ),

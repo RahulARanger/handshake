@@ -2,6 +2,7 @@
 import {
     ActionIcon,
     Anchor,
+    Badge,
     Breadcrumbs,
     Menu,
     MenuDropdown,
@@ -11,7 +12,6 @@ import {
     Tooltip,
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';
-import { Dayjs } from 'dayjs';
 import React, { useMemo, useState } from 'react';
 import type { Dispatch, ReactNode, SetStateAction } from 'react';
 import { type SuiteRecordDetails } from 'types/test-entity-related';
@@ -25,7 +25,10 @@ import useFilteredSuites, {
     DEFAULT_QUERY,
     SearchQuery,
 } from 'hooks/filter-test-suites';
-import { useProcessedTestSuites } from 'hooks/get-test-suites';
+import {
+    useProcessedTestCases,
+    useProcessedTestSuites,
+} from 'hooks/get-test-suites';
 import TestStatusIcon from 'components/about-test-run/test-status';
 import TestEntityStatusMetrics from './test-entity-status';
 import 'mantine-react-table/styles.css';
@@ -41,7 +44,7 @@ import GridStyles from 'styles/data-table.module.css';
 
 function TableOfSuites(properties: {
     suites: ParsedSuiteRecord[];
-    started?: Dayjs;
+    testRecord: DetailedTestRecord;
     levels: SearchQuery['levels'];
     setSearchQuery: Dispatch<SetStateAction<SearchQuery>>;
     onParentFilter: (parentID: string, suiteName: string) => void;
@@ -55,7 +58,8 @@ function TableOfSuites(properties: {
                 maxSize: 12,
                 enableHiding: false,
                 Cell: ({ row }) => {
-                    return row.original.hasChildSuite ? (
+                    return row.original.type === 'SUITE' &&
+                        row.original.totalRollupValue > 0 ? (
                         <Tooltip
                             label={`Drilldown to find tests/suites grouped under this suite`}
                             withArrow
@@ -113,6 +117,25 @@ function TableOfSuites(properties: {
                 },
             },
             {
+                accessorKey: 'type',
+                header: 'Type',
+                maxSize: 50,
+                mantineTableBodyCellProps: {
+                    align: 'center',
+                },
+                Cell: ({ row, renderedRowIndex }) => (
+                    <Badge
+                        key={renderedRowIndex}
+                        color={
+                            row.original.type === 'SUITE' ? 'indigo' : 'pink'
+                        }
+                    >
+                        {row.original.type}
+                    </Badge>
+                ),
+                filterVariant: 'multi-select',
+            },
+            {
                 accessorKey: 'Title',
                 header: 'Title',
                 maxSize: 150,
@@ -134,7 +157,7 @@ function TableOfSuites(properties: {
                             endTime={row.original.Ended}
                             key={renderedRowIndex}
                             detailed
-                            relativeFrom={properties?.started}
+                            relativeFrom={properties?.testRecord?.Started}
                         />
                     );
                 },
@@ -149,7 +172,7 @@ function TableOfSuites(properties: {
                             startTime={row.original.Started}
                             key={renderedRowIndex}
                             detailed
-                            relativeFrom={properties?.started}
+                            relativeFrom={properties?.testRecord?.Started}
                         />
                     );
                 },
@@ -164,7 +187,7 @@ function TableOfSuites(properties: {
                             startTime={row.original.Ended}
                             key={renderedRowIndex}
                             detailed
-                            relativeFrom={properties?.started}
+                            relativeFrom={properties?.testRecord?.Started}
                         />
                     );
                 },
@@ -192,7 +215,9 @@ function TableOfSuites(properties: {
                 Cell: ({ row, renderedRowIndex }) => {
                     return (
                         <CountUpNumber
-                            endNumber={row.original.Contribution}
+                            endNumber={
+                                (row.original as ParsedSuiteRecord).Contribution
+                            }
                             suffix="%"
                             key={renderedRowIndex}
                             size="sm"
@@ -217,14 +242,17 @@ function TableOfSuites(properties: {
                 accessorKey: 'RollupValues',
                 header: 'Entities',
                 maxSize: 100,
-                Cell: ({ row, renderedRowIndex }) => (
-                    <TestEntityStatusMetrics
-                        key={renderedRowIndex}
-                        passed={row.original.RollupValues[0]}
-                        failed={row.original.RollupValues[1]}
-                        skipped={row.original.RollupValues[2]}
-                    />
-                ),
+                Cell: ({ row, renderedRowIndex }) =>
+                    row.original.type === 'SUITE' ? (
+                        <TestEntityStatusMetrics
+                            key={renderedRowIndex}
+                            passed={row.original.RollupValues[0]}
+                            failed={row.original.RollupValues[1]}
+                            skipped={row.original.RollupValues[2]}
+                        />
+                    ) : (
+                        <></>
+                    ),
                 mantineTableBodyCellProps: {
                     align: 'center',
                 },
@@ -238,7 +266,7 @@ function TableOfSuites(properties: {
                 },
             },
         ],
-        [properties.started],
+        [properties.testRecord?.Started],
     );
     const [maxWidth, setMaxWidth] = useState('98vw');
     const { columnsShown, setColumnsShown } =
@@ -258,6 +286,9 @@ function TableOfSuites(properties: {
             style: {
                 padding: '10px 5px',
             },
+        },
+        mantineTopToolbarProps: {
+            className: GridStyles.dataTableToolBar,
         },
         mantineTableBodyCellProps: {
             style: {
@@ -289,11 +320,13 @@ function TableOfSuites(properties: {
         ),
 
         renderDetailPanel: ({ row }) => {
-            return (
+            return row.original.type === 'SUITE' ? (
                 <DetailedViewForSuite
                     suite={row.original}
-                    testStartedAt={properties.started}
+                    testRecord={properties.testRecord as DetailedTestRecord}
                 />
+            ) : (
+                <></>
             );
         },
     });
@@ -397,6 +430,8 @@ export default function ListOfSuitesNonDynamic(properties: {
     run?: DetailedTestRecord;
 }): ReactNode {
     const run = properties.run;
+    const [searchQuery, setSearchQuery] = useState<SearchQuery>(DEFAULT_QUERY);
+    const suiteToQueryTests = searchQuery.levels.at(-1)?.value;
 
     const { suites } = useProcessedTestSuites(
         properties.mockSuites,
@@ -404,24 +439,30 @@ export default function ListOfSuitesNonDynamic(properties: {
         run?.Tests,
     );
 
-    const { filteredSuites, searchQuery, setSearchQuery } =
-        useFilteredSuites(suites);
+    const { tests } = useProcessedTestCases(
+        properties.mockSuites,
+        properties.testID,
+        suiteToQueryTests,
+        run?.Tests,
+    );
+
+    const { filteredSuites } = useFilteredSuites(searchQuery, suites, tests);
 
     return (
         <TableOfSuites
-            started={run?.Started}
+            testRecord={run as DetailedTestRecord}
             suites={filteredSuites}
             levels={searchQuery.levels}
             setSearchQuery={setSearchQuery}
             onParentFilter={(suiteID, suiteName) =>
-                setSearchQuery({
-                    ...searchQuery,
+                setSearchQuery((query) => ({
+                    ...query,
                     parent: suiteID,
                     levels: [
-                        ...searchQuery.levels,
+                        ...query.levels,
                         { label: suiteName, value: suiteID },
                     ],
-                })
+                }))
             }
         />
     );

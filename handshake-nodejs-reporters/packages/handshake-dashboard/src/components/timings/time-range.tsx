@@ -18,7 +18,6 @@ export function TimeRange(properties: {
     prefix?: string;
     suffix?: string | ReactNode;
 }): ReactNode {
-    console.log(properties.startTime, properties.relativeFrom, 'HERE');
     const rangeText = properties.endTime
         ? `${properties.startTime.format(timeFormatUsed)} - ${properties.endTime.format(timeFormatUsed)}`
         : properties.startTime.format(timeFormatUsed);

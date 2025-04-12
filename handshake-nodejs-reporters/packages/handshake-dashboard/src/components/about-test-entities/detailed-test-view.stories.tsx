@@ -5,6 +5,8 @@ import transformSuiteEntity, {
     spawnConverterForAnsiToHTML,
 } from 'extractors/transform-test-entity';
 import { Chance } from 'chance';
+import { generateTestRun } from 'stories/TestData/test-runs';
+import transformTestRunRecord from 'extractors/transform-run-record';
 
 const meta = {
     title: 'AboutTestCase/DetailedTestSuite',
@@ -20,6 +22,7 @@ type Story = StoryObj<typeof meta>;
 
 const generator = new Chance();
 const randSuite = generateTestSuite({});
+const testRun = transformTestRunRecord(generateTestRun());
 const parser = spawnConverterForAnsiToHTML();
 
 export const RandomSuite: Story = {
@@ -32,5 +35,6 @@ export const RandomSuite: Story = {
             }),
             parser,
         ),
+        testRecord: testRun,
     },
 };

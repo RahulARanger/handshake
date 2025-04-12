@@ -86,3 +86,5 @@ interface ParsedRetriedRecord {
 }
 
 export type ParsedRetriedRecords = Record<string, ParsedRetriedRecord>;
+
+export type ParsedEntities = ParsedTestRecord | ParsedSuiteRecord;

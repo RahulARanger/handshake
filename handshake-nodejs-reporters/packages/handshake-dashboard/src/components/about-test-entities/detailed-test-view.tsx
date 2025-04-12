@@ -21,14 +21,18 @@ import type { AssertionRecord, ImageRecord } from 'types/test-entity-related';
 import { ErrorStack } from './error-card';
 import {
     IconChartBarPopular,
-    IconExternalLink,
+    // IconExternalLink,
     IconMaximize,
     IconMinimize,
     IconPhoto,
     IconTestPipe,
     IconX,
 } from '@tabler/icons-react';
-import type { ParsedSuiteRecord, ParsedTestRecord } from 'types/parsed-records';
+import type {
+    DetailedTestRecord,
+    ParsedSuiteRecord,
+    ParsedTestRecord,
+} from 'types/parsed-records';
 import type { PreviewImageFeed } from './image-carousel';
 import ImageCarousel, { NoThingsWereAdded } from './image-carousel';
 import Assertions from './assertions';
@@ -39,18 +43,20 @@ import TestStatusIcon, {
     standingToColors,
 } from 'components/about-test-run/test-status';
 import { TimeRange } from 'components/timings/time-range';
-import { Dayjs } from 'dayjs';
 import { DurationText } from 'components/timings/humanized-duration';
+import StatCard from './stat-card';
 
 export const detailedTestViewPortalTarget = '#detailed-test-view';
+type tabOfDetailedSuite = 'errors' | 'stats';
 
 export function DetailedViewForTestEntity(properties: {
     test: ParsedSuiteRecord;
-    testStartedAt?: Dayjs;
+    testRecord: DetailedTestRecord;
 }) {
     const iconStyle = { width: rem(12), height: rem(12) };
     const height = 240;
-    const defaultTab = properties.test.errors?.length > 0 ? 'errors' : 'stats';
+    const defaultTab: tabOfDetailedSuite =
+        properties.test.errors?.length > 0 ? 'errors' : 'stats';
 
     return (
         <Card withBorder shadow="xl" p="sm" radius="sm">
@@ -58,9 +64,9 @@ export function DetailedViewForTestEntity(properties: {
                 <Card.Section withBorder p="sm">
                     <Group justify="space-between" wrap="nowrap">
                         <Group justify="flex-start" wrap="nowrap">
-                            <ActionIcon variant="subtle" component="a">
+                            {/* <ActionIcon variant="subtle" component="a">
                                 <IconExternalLink style={iconStyle} />
-                            </ActionIcon>
+                            </ActionIcon> */}
                             <Group
                                 justify="flex-start"
                                 gap={0}
@@ -93,7 +99,7 @@ export function DetailedViewForTestEntity(properties: {
                                 prefix={'Ran '}
                                 startTime={properties.test.Started}
                                 endTime={properties.test.Ended}
-                                relativeFrom={properties.testStartedAt}
+                                relativeFrom={properties.testRecord.Started}
                                 suffix={
                                     <DurationText
                                         prefix=" for "
@@ -117,7 +123,7 @@ export function DetailedViewForTestEntity(properties: {
                             justify="flex-start"
                             pt="sm"
                             pl="xs"
-                            mih={height / 2}
+                            mih={height}
                         >
                             <Tabs.Tab
                                 value="stats"
@@ -133,15 +139,28 @@ export function DetailedViewForTestEntity(properties: {
                                 leftSection={<IconX style={iconStyle} />}
                                 variant="light"
                                 rightSection={
-                                    <Badge color="red.3" size="sm" c="dark">
-                                        {properties.test.errors?.length ?? 0}
-                                    </Badge>
+                                    properties.test.errors?.length > 0 ? (
+                                        <Badge color="red.3" size="sm" c="dark">
+                                            {properties.test.errors?.length ??
+                                                0}
+                                        </Badge>
+                                    ) : (
+                                        <></>
+                                    )
                                 }
                             >
                                 Errors
                             </Tabs.Tab>
                         </Tabs.List>
                         <Divider mx={6} orientation="vertical" />
+                        <Tabs.Panel value="stats" h={height}>
+                            <ScrollAreaAutosize h={height - 4}>
+                                <StatCard
+                                    suite={properties.test}
+                                    testRecord={properties.testRecord}
+                                />
+                            </ScrollAreaAutosize>
+                        </Tabs.Panel>
                         <Tabs.Panel value="errors" h={height}>
                             {properties.test.errors.length > 0 ? (
                                 <ScrollAreaAutosize h={height - 4}>
@@ -165,14 +184,14 @@ export function DetailedViewForTestEntity(properties: {
 
 export function DetailedViewForSuite(properties: {
     suite: ParsedSuiteRecord;
-    testStartedAt?: Dayjs;
+    testRecord: DetailedTestRecord;
 }) {
     return (
         <Box w="96vw" pos="sticky" style={{ overflow: 'auto', left: 12 }}>
             <DetailedViewForTestEntity
                 test={properties.suite}
-                testStartedAt={properties.testStartedAt}
-            ></DetailedViewForTestEntity>
+                testRecord={properties.testRecord}
+            />
         </Box>
     );
 }
