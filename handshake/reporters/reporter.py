@@ -10,6 +10,7 @@ from pytest import Session
 from handshake.services.DBService.models.types import (
     MarkTestRun,
     PydanticModalForCreatingTestRunConfigBase,
+    Tag,
 )
 from threading import Lock
 from concurrent.futures.thread import ThreadPoolExecutor

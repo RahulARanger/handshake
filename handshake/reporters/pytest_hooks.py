@@ -47,7 +47,7 @@ def pytest_sessionstart(session: Session):
 
     reporter.start_collection(session, is_quiet)
     reporter.create_session(datetime.now())
-    reporter.put_test_config()
+    reporter.put_test_config(session.config.inicfg)
 
 
 def pytest_itemcollected(item: Item):

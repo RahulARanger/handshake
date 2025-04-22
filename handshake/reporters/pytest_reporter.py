@@ -56,11 +56,20 @@ class PyTestHandshakeReporter(CommonReporter):
         super().create_session(started)
         self.started_at = started
 
-    def put_test_config(self):
+    def put_test_config(self, config: dict[str, str | list[str]]):
+        test_run_tag_prefix = "handshake_tag_"
+
+        tags = []
+        for key_desc, value in config.items():
+            if not key_desc.startswith(test_run_tag_prefix):
+                continue
+            tags.append(Tag(label=value, desc=key_desc[len(test_run_tag_prefix) :]))
+
         return self.add_run_config(
             PydanticModalForCreatingTestRunConfigBase(
                 framework="pytest",
                 platform=platform(),
+                tags=tags,
                 avoidParentSuitesInCount=False,  # since we are counting packages as suites
             )
         )
@@ -110,7 +119,7 @@ class PyTestHandshakeReporter(CommonReporter):
         tags = []
 
         for tag in item.own_markers if not helper_entity else tags:
-            if tag.name == meta_data_mark:
+            if tag.name == meta_data_mark:  # if it is our tag, we ignore it
                 continue
             desc = ("" if not tag.args else f"args: {tag.args} and ") + (
                 "kwargs: {}" if not tag.kwargs else f"kwargs: {tag.kwargs}"
