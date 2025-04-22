@@ -25,7 +25,7 @@ export function generateSampleTestCase(): ParsedTestRecord {
         type: 'TEST',
         Tags: generator
             .n(generator.company, generator.integer({ min: 0, max: 3 }))
-            .map((tag) => ({ label: tag, name: 'generated-tags' })),
+            .map((tag) => ({ label: tag, desc: 'generated-tags' })),
         errors: [],
     };
 }
