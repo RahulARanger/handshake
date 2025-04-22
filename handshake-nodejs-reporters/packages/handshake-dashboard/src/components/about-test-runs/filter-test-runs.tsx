@@ -1,5 +1,16 @@
-import { Box, Group, MultiSelect, rem, Select } from '@mantine/core';
-import { IconPerspective, IconHistory } from '@tabler/icons-react';
+import {
+    Box,
+    ComboboxItemGroup,
+    Group,
+    MultiSelect,
+    rem,
+    Select,
+} from '@mantine/core';
+import {
+    IconPerspective,
+    IconHistory,
+    IconTagFilled,
+} from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import isBetween from 'dayjs/plugin/isBetween';
@@ -35,6 +46,8 @@ export default function FilterBox(properties: {
     setOfProjects: string[];
     onDateRangeChange: (dateRanges: optionForDateRange[] | null) => void;
     onProjectFilterChange: (projectName: string | null) => void;
+    onTagFilterChange: (tags: string[] | null) => void;
+    runTags?: ComboboxItemGroup[];
 }): ReactNode {
     const options = useMemo<optionForDateRange[]>(() => {
         const optionsForDateRangeCopy = [...optionsForDate];
@@ -168,6 +181,25 @@ export default function FilterBox(properties: {
                     }
                     leftSection={
                         <IconHistory
+                            style={{ width: rem(15), height: rem(15) }}
+                        />
+                    }
+                />
+                <MultiSelect
+                    size="xs"
+                    data={properties.runTags ?? []}
+                    style={{ minWidth: rem(150) }}
+                    placeholder="Filter by Tags"
+                    comboboxProps={{
+                        position: 'bottom',
+                        middlewares: { flip: false, shift: false },
+                        offset: 0,
+                    }}
+                    onChange={(_) => properties.onTagFilterChange(_)}
+                    maxValues={5}
+                    clearable
+                    leftSection={
+                        <IconTagFilled
                             style={{ width: rem(15), height: rem(15) }}
                         />
                     }

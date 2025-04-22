@@ -11,6 +11,7 @@ import {
     Skeleton,
     Text,
     Affix,
+    ComboboxItemGroup,
 } from '@mantine/core';
 import ApplicationName from 'components/about-test-runs/application-name';
 import CountUpNumber from 'components/counter';
@@ -29,8 +30,10 @@ export function TestRunsPageHeader(properties: {
     recentRunDate: Dayjs;
     onDateRangeChange: (_: optionForDateRange[] | null) => void;
     onProjectFilterChange: (_: string | null) => void;
+    onTagFilterChange: (_: string[] | null) => void;
     allTestProjects: string[];
     toLoad?: boolean;
+    runTags?: ComboboxItemGroup[];
 }): ReactNode {
     const [opened, { open, close }] = useDisclosure(false);
     const toLoad = properties.toLoad === true;
@@ -76,6 +79,8 @@ export function TestRunsPageHeader(properties: {
                                 onProjectFilterChange={
                                     properties.onProjectFilterChange
                                 }
+                                onTagFilterChange={properties.onTagFilterChange}
+                                runTags={properties.runTags}
                             />
                         )}
                     </Group>

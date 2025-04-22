@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import {
     Affix,
     AppShell,
+    ComboboxItemGroup,
     Notification,
     ScrollAreaAutosize,
     Skeleton,
@@ -50,18 +51,57 @@ export function RunsPageContent(properties: {
     const [filters, setFilters] = useState<{
         projectName: string | null | undefined;
         dateRanges: optionForDateRange[] | null | undefined;
+        tags: string[] | null | undefined;
     }>({
         projectName: undefined,
         dateRanges: undefined,
+        tags: undefined,
     });
 
-    const projectNames = useMemo(
-        () => data.map((run) => run.projectName),
-        [data],
-    );
+    const [projectNames, runTags] = useMemo(() => {
+        const projects: string[] = [];
+        const tags: Set<ComboboxItemGroup> = new Set();
+        const groups: Record<string, ComboboxItemGroup> = {};
+        data.map((run) => {
+            projects.push(run.projectName);
+            for (const tag of run.Tags) {
+                if (!tag.name) continue;
+                if (groups[tag.label]) {
+                    groups[tag.label].items.push(tag.name);
+                } else {
+                    const group = { group: tag.label, items: [tag.name] };
+                    groups[tag.label] = group;
+                    tags.add(group);
+                }
+            }
+        });
+        console.log(tags, 'here');
+        return [projects, [...tags]];
+    }, [data]);
 
     const toLoad =
         isLoading || error !== undefined || properties.forceLoading === true;
+
+    const filteredRuns = useMemo(
+        () =>
+            data.filter((run) => {
+                const projectFilter =
+                    !filters.projectName ||
+                    run.projectName === filters.projectName;
+                return (
+                    projectFilter &&
+                    (filters.tags && filters.tags?.length > 0
+                        ? run.Tags.some((tag) =>
+                              filters.tags?.includes(tag.name),
+                          )
+                        : true) &&
+                    (filters.dateRanges && filters.dateRanges?.length > 0
+                        ? filterEntities(run, filters.dateRanges)
+                        : true)
+                );
+            }),
+        [data, filters],
+    );
 
     if (!toLoad && data.length === 0) {
         return (
@@ -75,15 +115,6 @@ export function RunsPageContent(properties: {
             </Affix>
         );
     }
-
-    const filteredRuns = data.filter((run) => {
-        const projectFilter =
-            !filters.projectName || run.projectName === filters.projectName;
-        if (!filters.dateRanges || filters.dateRanges.length === 0)
-            return projectFilter;
-
-        return projectFilter && filterEntities(run, filters.dateRanges);
-    });
 
     return (
         <AppShell
@@ -107,8 +138,12 @@ export function RunsPageContent(properties: {
                     onDateRangeChange={(_) =>
                         setFilters({ ...filters, dateRanges: _ })
                     }
+                    runTags={runTags}
                     onProjectFilterChange={(_) =>
                         setFilters({ ...filters, projectName: _ })
+                    }
+                    onTagFilterChange={(_) =>
+                        setFilters({ ...filters, tags: _ })
                     }
                     toLoad={toLoad}
                 />
