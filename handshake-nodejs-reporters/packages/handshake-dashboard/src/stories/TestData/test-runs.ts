@@ -120,7 +120,7 @@ export function generateTestRun(rawFeed?: Feeder): TestRunRecord {
     const tags = Array.from({ length: generator.integer({ min: 0, max: 4 }) })
         .map(() =>
             generator.bool()
-                ? { name: generator.hashtag(), label: 'test' }
+                ? { label: generator.hashtag(), desc: 'test' }
                 : false,
         )
         .filter((index) => index !== false);

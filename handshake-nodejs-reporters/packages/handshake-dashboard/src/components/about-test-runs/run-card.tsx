@@ -12,6 +12,9 @@ import {
     MenuDropdown,
     MenuItem,
     Divider,
+    Paper,
+    Accordion,
+    Text,
 } from '@mantine/core';
 import type { ReactNode } from 'react';
 import type { DetailedTestRecord } from 'types/parsed-records';
@@ -25,6 +28,7 @@ import {
     IconExclamationCircle,
     IconFileExcel,
     IconFlagPause,
+    IconTagFilled,
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
@@ -168,6 +172,56 @@ export default function TestRunCard(properties: {
                     <OnPlatform platform={properties.run.Platform} size="sm" />
                 </Group>
             </Card.Section>
+            {(properties.run.Tags ?? []).length > 0 ? (
+                <>
+                    <Card.Section>
+                        <Accordion defaultValue="tags">
+                            <Accordion.Item value="tags">
+                                <Accordion.Control
+                                    icon={<IconTagFilled size="1.3rem" />}
+                                >
+                                    <Group justify="space-between">
+                                        <Text size="sm">Tags</Text>
+                                        <Text
+                                            size="xs"
+                                            fs="italic"
+                                        >{`(${properties.run.Tags.length})`}</Text>
+                                    </Group>
+                                </Accordion.Control>
+                                <Accordion.Panel>
+                                    <Group>
+                                        {properties.run.Tags.map((tag) => (
+                                            <Tooltip
+                                                key={tag.label}
+                                                label={tag.desc}
+                                                color="cyan"
+                                            >
+                                                <Paper
+                                                    withBorder
+                                                    p={2}
+                                                    pb={3}
+                                                    px="xs"
+                                                    className="mirror"
+                                                >
+                                                    <Badge
+                                                        size="sm"
+                                                        variant="light"
+                                                        color="cyan.9"
+                                                    >
+                                                        {tag.label}
+                                                    </Badge>
+                                                </Paper>
+                                            </Tooltip>
+                                        ))}
+                                    </Group>
+                                </Accordion.Panel>
+                            </Accordion.Item>
+                        </Accordion>
+                    </Card.Section>
+                </>
+            ) : (
+                <></>
+            )}
         </Card>
     );
 }

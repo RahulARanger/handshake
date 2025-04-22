@@ -16,7 +16,11 @@ const meta = {
     tags: ['autodocs'],
     // More on argTypes: https://storybook.js.org/docs/api/argtypes
     argTypes: {},
-    args: { onDateRangeChange: fn(), onProjectFilterChange: fn() },
+    args: {
+        onDateRangeChange: fn(),
+        onProjectFilterChange: fn(),
+        onTagFilterChange: fn(),
+    },
     // Use `fn` to spy on the onClick arg, which will appear in the actions panel once invoked: https://storybook.js.org/docs/essentials/actions#action-args
 } satisfies Meta<typeof FilterBox>;
 
@@ -84,7 +88,7 @@ export const ProjectsDropdown: Story = {
                 await expect(args.onProjectFilterChange).toHaveBeenCalled();
                 await expect(
                     args.onProjectFilterChange,
-                // eslint-disable-next-line unicorn/no-null
+                    // eslint-disable-next-line unicorn/no-null
                 ).toHaveBeenLastCalledWith(null);
             },
         );
@@ -175,7 +179,7 @@ export const HasAllOptionsIfStartedToday: Story = {
                     canvasElement.parentElement as HTMLElement,
                     'option',
                     { selected: false },
-                )
+                );
                 await options[0].click();
             }
 

@@ -32,7 +32,7 @@ class HTMLExporter(JsonExporter):
         # we reset entire export folder
         if self.html_export_in.exists():
             logger.debug("removing previous results")
-            rmtree(self.save_in)
+            rmtree(self.html_export_in)
         else:
             self.html_export_in.mkdir()
 
