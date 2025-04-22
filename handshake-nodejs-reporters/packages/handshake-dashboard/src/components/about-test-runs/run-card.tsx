@@ -192,8 +192,9 @@ export default function TestRunCard(properties: {
                                     <Group>
                                         {properties.run.Tags.map((tag) => (
                                             <Tooltip
-                                                label={tag.label}
-                                                key={tag.name}
+                                                key={tag.label}
+                                                label={tag.desc}
+                                                color="cyan"
                                             >
                                                 <Paper
                                                     withBorder
@@ -203,10 +204,11 @@ export default function TestRunCard(properties: {
                                                     className="mirror"
                                                 >
                                                     <Badge
+                                                        size="sm"
                                                         variant="light"
-                                                        size="xs"
+                                                        color="cyan.9"
                                                     >
-                                                        {tag.name}
+                                                        {tag.label}
                                                     </Badge>
                                                 </Paper>
                                             </Tooltip>

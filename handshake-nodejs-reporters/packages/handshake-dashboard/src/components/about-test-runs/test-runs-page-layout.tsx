@@ -23,6 +23,9 @@ import { IconX } from '@tabler/icons-react';
 import MirrorHeader from 'styles/header.module.css';
 import type { TestRunRecord } from 'types/test-run-records';
 import transformTestRunRecord from 'extractors/transform-run-record';
+import { Tag } from 'types/test-entity-related';
+
+const tagValue = (tag: Tag) => `${tag.label}${tag.desc}`;
 
 export function RunsPageContent(properties: {
     forceLoading?: boolean;
@@ -65,17 +68,19 @@ export function RunsPageContent(properties: {
         data.map((run) => {
             projects.push(run.projectName);
             for (const tag of run.Tags) {
-                if (!tag.name) continue;
-                if (groups[tag.label]) {
-                    groups[tag.label].items.push(tag.name);
+                if (!tag.label) continue;
+                if (groups[tag.desc]) {
+                    groups[tag.desc].items.push(tag.label);
                 } else {
-                    const group = { group: tag.label, items: [tag.name] };
-                    groups[tag.label] = group;
+                    const group: ComboboxItemGroup = {
+                        group: tag.desc,
+                        items: [{ label: tag.label, value: tagValue(tag) }],
+                    };
+                    groups[tag.desc] = group;
                     tags.add(group);
                 }
             }
         });
-        console.log(tags, 'here');
         return [projects, [...tags]];
     }, [data]);
 
@@ -92,7 +97,7 @@ export function RunsPageContent(properties: {
                     projectFilter &&
                     (filters.tags && filters.tags?.length > 0
                         ? run.Tags.some((tag) =>
-                              filters.tags?.includes(tag.name),
+                              filters.tags?.includes(tagValue(tag)),
                           )
                         : true) &&
                     (filters.dateRanges && filters.dateRanges?.length > 0

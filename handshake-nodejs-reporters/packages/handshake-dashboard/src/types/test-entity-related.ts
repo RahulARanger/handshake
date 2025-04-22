@@ -62,7 +62,7 @@ export interface TestRecordDetails extends RecurringFields, SimpleSuiteDetails {
 }
 
 export interface Tag {
-    name: string;
+    desc: string;
     label: string;
 }
 export interface AssertionRecord {

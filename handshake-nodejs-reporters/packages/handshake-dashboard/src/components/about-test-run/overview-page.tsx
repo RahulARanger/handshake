@@ -606,9 +606,9 @@ export function OverviewBoard(properties: {
             {run.Tags ? (
                 <Group>
                     {run.Tags.map((tag) => (
-                        <Tooltip key={tag.name} label={tag.label} color="cyan">
+                        <Tooltip key={tag.label} label={tag.desc} color="cyan">
                             <Badge size="sm" variant="light" color="cyan.9">
-                                {tag.name}
+                                {tag.label}
                             </Badge>
                         </Tooltip>
                     ))}
