@@ -93,3 +93,5 @@ TestSampleResults/*
 /handshake/dashboard-meta.json
 tsconfig.tsbuildinfo
 local-scheduler.py
+
+aws.xml

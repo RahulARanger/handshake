@@ -111,12 +111,11 @@ ports.
     type=int,
 )
 @option(
-    "-v",
+    "-vb",
     "--verbose",
     default=False,
     show_default=True,
     help="shows even debug logs",
-    type=bool,
     is_flag=True,
 )
 @option(
@@ -125,7 +124,6 @@ ports.
     default=False,
     show_default=True,
     help="Run the dev server ?",
-    type=bool,
     is_flag=True,
 )
 def run_app(
