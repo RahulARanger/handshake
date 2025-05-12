@@ -144,7 +144,6 @@ def step_back(collection_path: str):
     default=False,
     show_default=True,
     help="shows even debug logs",
-    type=bool,
     is_flag=True,
 )
 @option(
@@ -153,7 +152,6 @@ def step_back(collection_path: str):
     default=False,
     show_default=True,
     help="re-calculates the values for the test runs",
-    type=bool,
     is_flag=True,
 )
 @general_requirement
@@ -163,7 +161,6 @@ def step_back(collection_path: str):
     "-i",
     required=False,
     help="generates the export inside the TestResults itself",
-    type=bool,
     is_flag=True,
     default=False,
     show_default=True,
@@ -428,7 +425,6 @@ def query(ctx: Context, q: str, collection_path: Optional[str] = None):
     default=False,
     show_default=True,
     help="consider runs, whose status are pending",
-    type=bool,
     is_flag=True,
 )
 @pass_context
