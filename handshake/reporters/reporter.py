@@ -133,7 +133,7 @@ class CommonReporter:
 
     def start_collection(self, session: Session, is_quiet: bool):
         project_name = session.config.inicfg.get("projectName") or session.path.name
-        postfix = " " + ("" if is_quiet else "-v")
+        postfix = " " + ("" if is_quiet else "-vb")
         command = (
             f'handshake run-app {project_name} "{self.results}" "{self.config_path}" -p {self.port}'
             if self.config_path

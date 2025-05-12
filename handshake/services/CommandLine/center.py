@@ -111,7 +111,7 @@ ports.
     type=int,
 )
 @option(
-    "-v",
+    "-vb",
     "--verbose",
     default=False,
     show_default=True,

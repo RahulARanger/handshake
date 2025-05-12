@@ -139,7 +139,7 @@ def step_back(collection_path: str):
     "so you can see it in the way we need. you can pass the output directory to generate the report",
 )
 @option(
-    "-v",
+    "-vb",
     "--verbose",
     default=False,
     show_default=True,
