@@ -45,7 +45,9 @@ def pytest_sessionstart(session: Session):
     if is_quiet:
         log_less()
 
-    reporter.start_collection(session, is_quiet)
+    reporter.start_collection(
+        session.config.inicfg.get("projectName") or session.path.name, is_quiet
+    )
     reporter.create_session(datetime.now())
     reporter.put_test_config(session.config.inicfg)
 

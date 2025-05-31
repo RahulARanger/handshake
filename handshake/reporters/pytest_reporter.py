@@ -25,7 +25,7 @@ from pathlib import Path
 
 def relative_from_session_parent(session: Session, take_relative_for: Path):
     if not take_relative_for.is_relative_to(session.startpath.parent):
-        return
+        return None
     return take_relative_for.relative_to(session.startpath.parent)
 
 
@@ -51,6 +51,25 @@ class PyTestHandshakeReporter(CommonReporter):
         self.attachments: List[Dict[str, Any]] = []
         self.fixtures = {}
         self.func_args = {}
+
+    def parse_config(self, session: Session):
+        unregister = session.config.inicfg.get("disable_handshakes")
+        if unregister:
+            handshake_plugin = session.config.pluginmanager.get_plugin("handshakes")
+            session.config.pluginmanager.unregister(handshake_plugin)
+            return True
+
+        rel_path = session.config.inicfg.get("save_results_in")
+        port = session.config.inicfg.get("handshake_port")
+        config_path = session.config.inicfg.get("save_handshake_config_dir")
+        rel_to = Path(session.config.inipath.parent)
+
+        self.set_context(
+            True,
+            (rel_to / rel_path).resolve() if rel_path else self.results,
+            port if port else self.port,
+            (rel_to / config_path).resolve() if config_path else None,
+        )
 
     def create_session(self, started: datetime):
         super().create_session(started)

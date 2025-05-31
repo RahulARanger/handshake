@@ -4,6 +4,7 @@ from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
 from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
+from os.path import relpath
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
 from typing import Optional, Union, TypedDict, Dict
@@ -12,6 +13,9 @@ from handshake.services.SchedularService.constants import (
     writtenAttachmentFolderName,
 )
 from sys import stderr
+from click import Context
+from click.core import ParameterSource
+
 
 models = ["handshake.services.DBService.models"]
 
@@ -93,7 +97,9 @@ async def create_run(projectName: str) -> str:
 
 class TestConfigManager:
     def __init__(
-        self, test_result_db: Path, config_path: Optional[Union[str, Path]] = None
+        self,
+        test_result_db: Optional[Path] = None,
+        config_path: Optional[Union[str, Path]] = None,
     ):
         # default file
         # enhancement: Allow user to provide the path for the config file
@@ -101,7 +107,8 @@ class TestConfigManager:
             Path(config_path) if config_path else Path.cwd()
         ) / "handshake.json"
         self.db_path = test_result_db
-        attachment_folder(self.db_path).mkdir(exist_ok=True)
+        if test_result_db:
+            attachment_folder(self.db_path).mkdir(exist_ok=True)
 
     async def sync(
         self, init_script: bool = False, avoid_config: Optional[bool] = False
@@ -116,7 +123,7 @@ class TestConfigManager:
             """,
             )
         if avoid_config:
-            return
+            return None
 
         if not self.path.exists():
             logger.info(
@@ -126,23 +133,27 @@ class TestConfigManager:
             )
             return await self.save_to_file()
         await self.import_things()
+        return None
 
     async def save_to_file(self):
-        return self.path.write_text(
-            dumps(
-                dict(
-                    zip(
-                        await ConfigBase.filter(readonly=False).values_list(
-                            "key", flat=True
-                        ),
-                        await ConfigBase.filter(readonly=False).values_list(
-                            "value", flat=True
-                        ),
-                    )
-                ),
-                indent=4,
+        values = dict(
+            zip(
+                await ConfigBase.filter(readonly=False).values_list("key", flat=True),
+                await ConfigBase.filter(readonly=False).values_list("value", flat=True),
             )
         )
+        schema = {
+            "$schema": Path(
+                relpath(
+                    Path(__file__).parent.parent.parent
+                    / "handshake-config.schema.json",
+                    self.path.parent,
+                )
+            ).as_posix(),
+            "MAX_RUNS_PER_PROJECT": int(values.get("MAX_RUNS_PER_PROJECT", 100)),
+        }
+
+        return self.path.write_text(dumps(schema, indent=4))
 
     async def import_things(self):
         expect_on = await ConfigBase.filter(readonly=False)
@@ -154,7 +165,14 @@ class TestConfigManager:
                 # since some keys are missing, we are going to save them
                 hard_save = True
                 continue
-            record.value = refer_from[record.key]
+
+            # make sure to understand what was provided and convert it accordingly.
+            value = refer_from[record.key]
+            match record.key:
+                case "MAX_RUNS_PER_PROJECT":
+                    value = str(refer_from[record.key])
+
+            record.value = value
             to_save.append(record)
         to_save and await ConfigBase.bulk_update(to_save, ("value",), 100)
         if hard_save:
@@ -163,7 +181,28 @@ class TestConfigManager:
             )
             await self.save_to_file()
 
+    def get_config_for_command(self, command_name: str, quiet: bool = True):
+        if self.path.exists():
+            content = loads(self.path.read_text()).get("COMMANDS", {})
+            value = content.get(command_name, False)
+            if value:
+                return value
+
+        not quiet and logger.info(
+            "You can save the configuration for this command: {} inside the handshake.json",
+            command_name,
+        )
+        return {}
+
 
 def log_less():
     logger.remove(0)
     logger.add(stderr, level="INFO")
+
+
+def decide_value(context: Context, key: str, saved: dict, value_given):
+    if context.get_parameter_source(
+        key.lower()
+    ) == ParameterSource.DEFAULT and saved.get(key):
+        return saved[key]
+    return value_given

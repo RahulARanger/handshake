@@ -1,0 +1,69 @@
+{
+  "type": "object",
+  "title": "handshake-cfg",
+  "description": "configure commands or test results data collection here itself.",
+  "properties": {
+    "MAX_RUNS_PER_PROJECT": {
+      "title": "Max Runs Per Project",
+      "default": 100,
+      "description": "we will rotate the test runs based on the limit set here for each project.",
+      "type": "number",
+      "minimum": 1,
+      "maximum": 100,
+      "examples": [50, 1, 2, 10, 69, 66]
+    },
+    "COMMANDS": {
+      "type": "object",
+      "title": "Command Options",
+      "description": "you can save the values for the input required by handshake commands. manually provided values takes preference over the saved ones",
+      "properties": {
+        "DISPLAY": {
+          "title": "Display Command",
+          "description": "Store the default options for the display command here which display your html exported test results",
+          "properties": {
+            "PORT": {
+              "type": "number",
+              "default": 8000,
+              "title": "Port",
+              "description": "Define the port number for the display command"
+            },
+            "HOST": {
+              "type": "string",
+              "default": "localhost",
+              "title": "Host",
+              "description": "Define the host for the display command"
+            }
+          }
+        },
+        "EXPORT": {
+        "type": "object",
+        "title": "Export Options",
+        "description": "you can save the values for the input required by handshake export. manually provided values takes preference over the saved ones",
+        "properties": {
+          "OUTPUT_FOLDER": {
+            "type": "string",
+            "default": "TestReports",
+            "title": "Output Folder",
+            "description": "Define the relative path from this file for your output"
+          },
+          "INCLUDE_EXCEL": {
+            "type": "boolean",
+            "default": false,
+            "title": "Excel Export",
+            "description": "Let us know if you want to export Excel by default"
+          },
+          "EXPORT_MODE": {
+            "type": "string",
+            "default": "json",
+            "enum": [
+              "html", "json"
+            ],
+            "title": "Export Mode",
+            "description": "Can either be json export or html export."
+          }
+        }
+      }
+      }
+    }
+  }
+}
