@@ -25,6 +25,13 @@ module.exports = (phase, { defaultConfig }) => {
             unoptimized: true,
         },
         distDir: is_dev ? 'dist' : '../../../dashboard',
+        redirects: () => [
+            {
+                source: '/',
+                destination: '/RUNS',
+                permanent: true,
+            },
+        ],
     };
 
     return withBundleAnalyzer ? withBundleAnalyzer(nextConfig) : nextConfig;
