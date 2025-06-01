@@ -11,11 +11,13 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     create_run,
     log_less,
+    TestConfigManager,
+    decide_value,
 )
 from handshake import __version__
 from typing import Union
 from handshake.services.DBService.shared import set_test_id
-from click import argument, option, Path
+from click import argument, option, Path, get_current_context
 from pathlib import Path as P_Path
 from multiprocessing.sharedctypes import Array
 from sanic.worker.loader import AppLoader
@@ -179,18 +181,19 @@ def display(
     host: str = "localhost",
 ):
     log_less()
-
     if static_path:
         static_path = P_Path(static_path)
 
         if not static_path.exists():
             raise NotADirectoryError(f"{static_path} does not exist")
+    refer_from_here = TestConfigManager().get_config_for_command("DISPLAY")
+    context = get_current_context()
 
     loader = AppLoader(factory=partial(feed_static_provider, static_path))
     _app = loader.load()
     _app.prepare(
-        host=host,
-        port=port,
+        host=decide_value(context, "HOST", refer_from_here, host),
+        port=decide_value(context, "PORT", refer_from_here, port),
         access_log=False,
         motd_display=dict(version=__version__),
     )

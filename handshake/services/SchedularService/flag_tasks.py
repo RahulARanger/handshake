@@ -79,7 +79,7 @@ async def pruneTasks(task_id: Optional[str] = ""):
 #
 #     for task in to_skip:
 #         logger.error(
-#             "Skipping this: {}. will be picked in the next patch command"
+#             "Skipping this: {}. will be picked in the next export command"
 #             " Please report it as an issue if it was not expected.",
 #             task.ticketID,
 #         )

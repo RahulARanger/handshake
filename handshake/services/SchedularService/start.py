@@ -43,7 +43,7 @@ class Scheduler:
         if not export_mode and export_mode != "json" and export_mode != "html":
             logger.warning(
                 "export mode was not defined, please mention it either has html or json."
-                " For example, handshake patch TestResults -e html",
+                " For example, handshake export TestResults -e html",
                 export_mode,
             )
 
@@ -70,7 +70,7 @@ class Scheduler:
             logger.warning(
                 "Calculating Results but please note Export would be skipped,"
                 " if you need the results to be exported then please pass export mode and output directory,"
-                " for example: handshake patch TestResults -e json -o TestReports"
+                " for example: handshake export TestResults -e json -o TestReports"
             )
         self.converter = Parser()
         self.db_path = db_path(root_dir)

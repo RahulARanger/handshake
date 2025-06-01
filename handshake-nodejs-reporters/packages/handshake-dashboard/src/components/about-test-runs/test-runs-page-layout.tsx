@@ -25,7 +25,7 @@ import type { TestRunRecord } from 'types/test-run-records';
 import transformTestRunRecord from 'extractors/transform-run-record';
 import { Tag } from 'types/test-entity-related';
 
-const tagValue = (tag: Tag) => `${tag.label}${tag.desc}`;
+const tagValue = (tag: Tag) => `${tag.desc}${tag.label}`;
 
 export function RunsPageContent(properties: {
     forceLoading?: boolean;
@@ -65,22 +65,29 @@ export function RunsPageContent(properties: {
         const projects: string[] = [];
         const tags: Set<ComboboxItemGroup> = new Set();
         const groups: Record<string, ComboboxItemGroup> = {};
-        data.map((run) => {
+        const labelsUnderGroup: Record<string, Set<string>> = {};
+
+        for (const run of data) {
             projects.push(run.projectName);
             for (const tag of run.Tags) {
                 if (!tag.label) continue;
                 if (groups[tag.desc]) {
-                    groups[tag.desc].items.push(tag.label);
+                    if (!labelsUnderGroup[tag.desc].has(tag.label))
+                        groups[tag.desc].items.push({
+                            label: tag.label,
+                            value: tagValue(tag),
+                        });
                 } else {
                     const group: ComboboxItemGroup = {
                         group: tag.desc,
                         items: [{ label: tag.label, value: tagValue(tag) }],
                     };
+                    labelsUnderGroup[tag.desc] = new Set([tag.label]);
                     groups[tag.desc] = group;
                     tags.add(group);
                 }
             }
-        });
+        }
         return [projects, [...tags]];
     }, [data]);
 

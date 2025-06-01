@@ -1,16 +1,16 @@
 import { TEXT } from '@hand-shakes/utils';
 import { Html, Head, Main, NextScript } from 'next/document';
-// import Script from 'next/script';
 import type { ReactNode } from 'react';
 import React from 'react';
 import { ColorSchemeScript } from '@mantine/core';
+import Script from 'next/script';
 
 export default function Document(): ReactNode {
     return (
         <Html lang="en">
             <Head title={TEXT.applicationName}>
                 <ColorSchemeScript defaultColorScheme="auto" />
-                {/* <Script
+                <Script
                     id={`clarity-${process.env.IS_TEST ? 'test' : 'prod'}`}
                     strategy="afterInteractive"
                     dangerouslySetInnerHTML={{
@@ -21,7 +21,7 @@ t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
 y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
 })(window, document, "clarity", "script", "${process.env.CLARITY}");`,
                     }}
-                /> */}
+                />
             </Head>
             <body>
                 <Main />

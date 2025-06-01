@@ -791,7 +791,7 @@ class TestPatchSuiteScheduler:
         assert not child_task.processed
         assert not parent_task.processed
 
-        result = run(f'handshake patch "{root_dir}"', shell=True)
+        result = run(f'handshake export "{root_dir}"', shell=True)
         assert result.returncode == 0
 
         assert (await TaskBase.filter(ticketID=child_task.ticketID).first()).processed

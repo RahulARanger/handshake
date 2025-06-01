@@ -61,7 +61,7 @@ class ExcelExporter(Exporter):
     test_link = {}
 
     test_summary_row = 3
-    test_summary_col = 7
+    test_summary_col = 4
     test_summary_files_row = -1
 
     def __init__(self, db_path: Path, dev_run: bool = False):
@@ -96,11 +96,11 @@ class ExcelExporter(Exporter):
             )
             task.processed = True
             await task.save()
-            return
+            return None
 
         self.save_in.mkdir(exist_ok=True)
         if not run_id:
-            return
+            return None
 
         not (self.save_in / str(run_id)).exists() and await mkdir(
             self.save_in / str(run_id)
@@ -110,6 +110,7 @@ class ExcelExporter(Exporter):
         task.processed = True
         task.picked = False
         await task.save()
+        return None
 
     def completed(self):
         logger.info(
@@ -173,6 +174,15 @@ class ExcelExporter(Exporter):
         )
         self.test_summary_row += 1
 
+        for status in ("passed", "failed", "skipped", "xfailed", "xpassed"):
+            edit_cell(
+                index_sheet,
+                self.test_summary_row,
+                self.test_summary_col,
+                summary[status],
+            )
+            self.test_summary_row += 1  # at the end of the loop for overall percentage
+
         edit_cell(
             index_sheet,
             self.test_summary_row,
@@ -182,15 +192,7 @@ class ExcelExporter(Exporter):
                 summary["suites"],
             ),
         )
-        self.test_summary_row += 1
-
-        edit_cell(
-            index_sheet,
-            self.test_summary_row,
-            self.test_summary_col,
-            calc_percentage(summary["passed"] + summary["skipped"], summary["tests"]),
-        )
-        self.test_summary_row += 2
+        self.test_summary_row += 2  # files, platform
         self.test_summary_files_row = self.test_summary_row - 1
 
         edit_cell(

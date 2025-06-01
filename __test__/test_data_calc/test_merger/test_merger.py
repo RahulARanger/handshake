@@ -196,7 +196,7 @@ class TestMerger:
         # patching the merged db
         assert (
             call(
-                f'handshake patch "{root_dir_2}"',
+                f'handshake export "{root_dir_2}"',
                 shell=True,
             )
             == 0
@@ -256,7 +256,7 @@ class TestMerger:
 
         assert (
             call(
-                f'handshake patch "{root_dir}"',
+                f'handshake export "{root_dir}"',
                 shell=True,
             )
             == 0
@@ -264,7 +264,7 @@ class TestMerger:
 
         assert (
             call(
-                f'handshake patch "{root_dir_1}"',
+                f'handshake export "{root_dir_1}"',
                 shell=True,
             )
             == 0
@@ -391,7 +391,7 @@ class TestMerger:
         # patching the merged db
         assert (
             call(
-                f'handshake patch "{root_dir_2}"',
+                f'handshake export "{root_dir_2}"',
                 shell=True,
             )
             == 0
