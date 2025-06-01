@@ -16,7 +16,6 @@ type Story = StoryObj<typeof meta>;
 
 const generator = new Chance();
 
-// More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
 export const InOverviewTab: Story = {
     args: {
         projectName: generator.company(),

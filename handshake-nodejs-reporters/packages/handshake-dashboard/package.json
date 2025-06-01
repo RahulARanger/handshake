@@ -1,5 +1,6 @@
 {
     "name": "@hand-shakes/handshake-dashboard",
+    "description": "Dashboard for your handshake Test Results collection.",
     "version": "0.9.3",
     "license": "MIT",
     "private": "true",
