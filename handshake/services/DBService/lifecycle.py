@@ -157,7 +157,8 @@ class TestConfigManager:
             )
         )
         schema = {
-            "$schema": "https://raw.githubusercontent.com/RahulARanger/handshake/refs/heads/build/handshake/handshake-config.schema.json",
+            "$schema": "https://raw.githubusercontent.com/RahulARanger/handshake/"
+            "refs/heads/master/handshake-config.schema.json",
             "MAX_RUNS_PER_PROJECT": int(values.get("MAX_RUNS_PER_PROJECT", 100)),
         }
 
