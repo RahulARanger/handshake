@@ -1,5 +1,3 @@
-from pytest import fixture
-from pathlib import Path
 from subprocess import run
 from json import loads, dumps
 from handshake.services.DBService.models.enums import ConfigKeys
@@ -23,8 +21,9 @@ async def test_default_config_file(root_dir):
     )
     assert target.exists()
     loaded = loads(target.read_text())
-    assert loaded[ConfigKeys.maxRunsPerProject] == "10"
-    assert len(loaded.keys()) == 1
+    assert loaded[ConfigKeys.maxRunsPerProject] == 10
+    assert loaded["$schema"]
+    assert len(loaded.keys()) == 2
 
 
 async def test_import_from_handshake_file(root_dir):
@@ -38,13 +37,13 @@ async def test_import_from_handshake_file(root_dir):
     assert target.exists()
 
     loaded = loads(target.read_text())
-    loaded[ConfigKeys.maxRunsPerProject] = "10"
+    loaded[ConfigKeys.maxRunsPerProject] = 10
     loaded[ConfigKeys.recentlyDeleted] = "1999"
     target.write_text(dumps(loaded))
 
     # any command that uses our ORM example: patch, config
     run(
-        f'handshake patch "{root_dir}"',
+        f'handshake export "{root_dir}"',
         cwd=root_dir,
         shell=True,
     )

@@ -184,7 +184,7 @@ class PatchTestRun:
 
         # check: 2
         # check if any child suites are yet to be processed,
-        # this should not happen, as we are patching all the related suites before test run
+        # this should not happen, as we are exporting all the related suites before test run
 
         pending_items = (
             await SuiteBase.filter(session__test_id=self.test_id)
@@ -199,7 +199,7 @@ class PatchTestRun:
         if pending_items > 0:
             await skip_coz_error(
                 self.test_id,
-                f"Failed to patch the Test Run: {self.test_id} of project: {self.test.projectName},"
+                f"Failed to export the Test Run: {self.test_id} of project: {self.test.projectName},"
                 f" because some of the suites were not processed",
                 incomplete=self.test.projectName,
                 pending_suites=pending_items,
@@ -291,11 +291,11 @@ async def patchTestRun(test_id: str):
 
     try:
         if await patcher.patch_test():
-            logger.debug("Completed the patch for test run: {}", test_id)
+            logger.debug("Completed the export for test run: {}", test_id)
             to_return = True
     except Exception:
         await skip_coz_error(
             test_id,
-            f"Failed to patch the test run, error in calculation, {format_exc()}",
+            f"Failed to export the test run, error in calculation, {format_exc()}",
         )
     return to_return

@@ -5,6 +5,7 @@ from handshake.services.SchedularService.start import (
     attachment_folder as af,
     JobType,
 )
+from os.path import relpath
 from handshake.services.SchedularService.constants import (
     exportAttachmentFolderName,
     EXPORT_RUNS_PAGE_FILE_NAME,
@@ -14,6 +15,7 @@ from handshake.services.SchedularService.constants import (
     EXPORT_ALL_SUITES,
     exportExportFileName,
 )
+from json import dumps
 from handshake.services.DBService.models.enums import Status
 from __test__.conftest import helper_to_test_date_operator
 from handshake.services.SchedularService.register import (
@@ -323,7 +325,7 @@ class TestJSONExportsWithRuns:
         await register_patch_test_run(test_run.testID)
 
         run(
-            f'handshake patch "{root_dir}" -o "{report_dir}" -e json',
+            f'handshake export "{root_dir}" -o "{report_dir}" -e json',
             shell=True,
             stderr=PIPE,
         )
@@ -407,6 +409,67 @@ class TestJSONExportsWithRuns:
         for_this_project = feed[second_project]
         assert len(for_this_project) == 2
 
+    async def test_import_from_handshake_file(
+        self, root_dir, report_dir, helper_create_test_run, helper_create_test_session
+    ):
+        target = root_dir / "handshake.json"
+        if not target.exists():
+            run(
+                f'handshake init "{root_dir}"',
+                cwd=root_dir,
+                shell=True,
+            )
+        assert target.exists()
+        target.write_text(
+            dumps(
+                {
+                    "MAX_RUNS_PER_PROJECT": 10,
+                    "COMMANDS": {
+                        "EXPORT": {
+                            "OUTPUT_FOLDER": str(report_dir),
+                            "EXPORT_MODE": "json",
+                        }
+                    },
+                }
+            )
+        )
+
+        first = await helper_create_test_run("test-1", add_test_config=True)
+        test_run = await helper_create_test_run("test-1", add_test_config=True)
+        project = test_run.projectName
+
+        await register_patch_test_run(first.testID)
+        await register_patch_test_run(test_run.testID)
+
+        first = await helper_create_test_run("test-2", add_test_config=True)
+        test_run = await helper_create_test_run("test-2", add_test_config=True)
+
+        second_project = test_run.projectName
+
+        await register_patch_test_run(first.testID)
+        await register_patch_test_run(test_run.testID)
+
+        # notice we are not providing any options to mention out directory and the JSON export mode
+        run(
+            f'handshake export "{root_dir}"',
+            cwd=root_dir,
+            shell=True,
+            stderr=PIPE,
+            stdout=PIPE,
+        )
+
+        # TESTING projects.json
+        feed = json.loads(
+            (
+                report_dir / exportAttachmentFolderName / EXPORT_PROJECTS_FILE_NAME
+            ).read_text()
+        )
+        for_this_project = feed[project]
+        assert len(for_this_project) == 2
+
+        for_this_project = feed[second_project]
+        assert len(for_this_project) == 2
+
 
 @mark.usefixtures("clean_close")
 async def test_patch_interruption(
@@ -418,7 +481,7 @@ async def test_patch_interruption(
 
     try:
         run(
-            f'handshake patch "{root_dir}" -o "{report_dir}" -e json',
+            f'handshake export "{root_dir}" -o "{report_dir}" -e json',
             shell=True,
             stderr=PIPE,
             timeout=0.1,  # 1 second is not enough, so it fails

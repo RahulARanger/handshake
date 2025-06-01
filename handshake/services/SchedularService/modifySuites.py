@@ -55,7 +55,9 @@ class PatchTestSuite:
         )
 
     async def do_we_need_to_patch(self):
-        logger.debug("Patching Suite: {} | {}", self.suite.suiteID, self.suite.title)
+        logger.debug(
+            "Preparing Suite: {} | {} for export", self.suite.suiteID, self.suite.title
+        )
 
         if self.suite.standing != Status.YET_TO_CALCULATE:
             logger.debug(
@@ -358,7 +360,7 @@ class PatchTestSuite:
             (
                 reason
                 if reason
-                else f"Failed to patch the test suite, found an error in calculation: {traceback.format_exc()}"
+                else f"Failed to prepare the test suite for export, found an error in calculation: {traceback.format_exc()}"
             ),
             was_interrupted,
             JobType.MODIFY_SUITE,
@@ -373,6 +375,6 @@ async def patchTestSuite(suiteID: str, testID: str):
         has_patched = await patcher.patch_suite()
         return has_patched
     except Exception:
-        logger.exception("Failed to patch test suite")
+        logger.exception("Failed to prepare test suite for export")
         await patcher.fall_back()
         return False

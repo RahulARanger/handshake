@@ -115,7 +115,7 @@ def check_sqlite():
 @handle_cli.command(
     short_help="Migrates the database to the latest version as per the handshake executable.",
     help="it's a command to execute the required migration scripts, note; this command would be executed "
-    "automatically whenever we run patch or run-app command",
+    "automatically whenever we run export or run-app command",
 )
 def migrate(collection_path: str):
     return migration(db_path(collection_path), MigrationTrigger.CLI)
@@ -137,7 +137,7 @@ def step_back(collection_path: str):
 
 @handle_cli.command(
     short_help="Processes the collected results and even could export the test results",
-    help="runs an async loop, schedules some tasks to patch some your test results "
+    help="runs an async loop, schedules some tasks to export some your test results "
     "so you can see it in the way we need. you can pass the output directory to generate the report",
 )
 @option(
@@ -461,7 +461,7 @@ def latest_run(ctx: Context, allow_pending: bool):
 
 
 @faq.command(
-    short_help="fetches the number of yet to patch task",
+    short_help="fetches the number of yet to export task",
     help="returns list of tasks of form: (ticket_id, task_type, dropped_date, is_picked, test_id)",
 )
 @pass_context

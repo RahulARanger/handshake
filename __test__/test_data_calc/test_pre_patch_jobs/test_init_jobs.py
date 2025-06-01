@@ -95,7 +95,7 @@ class TestPickTasks:
         record.value = True
         await record.save()
 
-        result = run(f'handshake patch "{root_dir}"', shell=True)
+        result = run(f'handshake export "{root_dir}"', shell=True)
         assert result.returncode == 0
 
         # the first thing it would do it would make the flag: reset_test_run as false
@@ -112,7 +112,7 @@ class TestPickTasks:
 
         # we can reset manually through -r as well
 
-        result = run(f'handshake patch "{root_dir}" -r', shell=True)
+        result = run(f'handshake export "{root_dir}" -r', shell=True)
         assert result.returncode == 0
         record = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
         assert not record.value

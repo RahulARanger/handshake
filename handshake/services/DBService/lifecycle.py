@@ -4,7 +4,6 @@ from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
 from handshake.services.DBService.migrator import migration
 from tortoise import Tortoise, connections
-from os.path import relpath
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
 from typing import Optional, Union, TypedDict, Dict
@@ -96,6 +95,8 @@ async def create_run(projectName: str) -> str:
 
 
 class TestConfigManager:
+    path: Path
+
     def __init__(
         self,
         test_result_db: Optional[Path] = None,
@@ -103,12 +104,25 @@ class TestConfigManager:
     ):
         # default file
         # enhancement: Allow user to provide the path for the config file
-        self.path = (
-            Path(config_path) if config_path else Path.cwd()
-        ) / "handshake.json"
+
         self.db_path = test_result_db
+        self.pick_cfg_pth(config_path)
         if test_result_db:
             attachment_folder(self.db_path).mkdir(exist_ok=True)
+
+    def pick_cfg_pth(self, config_path: str):
+        prefs = [
+            Path(config_path) if config_path else None,
+            Path.cwd(),
+            self.db_path.parent if self.db_path else None,
+        ]
+        for pref in prefs:
+            if not pref:
+                continue
+            check = pref / "handshake.json"
+            self.path = check
+            if check.exists():
+                break
 
     async def sync(
         self, init_script: bool = False, avoid_config: Optional[bool] = False
@@ -143,13 +157,7 @@ class TestConfigManager:
             )
         )
         schema = {
-            "$schema": Path(
-                relpath(
-                    Path(__file__).parent.parent.parent
-                    / "handshake-config.schema.json",
-                    self.path.parent,
-                )
-            ).as_posix(),
+            "$schema": "https://raw.githubusercontent.com/RahulARanger/handshake/refs/heads/build/handshake/handshake-config.schema.json",
             "MAX_RUNS_PER_PROJECT": int(values.get("MAX_RUNS_PER_PROJECT", 100)),
         }
 
