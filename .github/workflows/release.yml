@@ -49,43 +49,43 @@ jobs:
       - name: prep env variables
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
         run: |
-          touch .env.prod
-          echo "CLARITY=${{ secrets.CLARITY }}" >> .env.prod
+          touch .env
+          echo "CLARITY=${{ secrets.CLARITY }}" >> .env
           ls -a
 
-#      - name: Building Dashboard
-#        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
-#        run: pnpm build
-#
-#      - name: Zipping the dashboard export
-#        working-directory: dashboard
-#        run: tar -cjf ../dashboard.tar.bz2 *
-#
-#      - name: fetch dashboard-version
-#        id: version
-#        run: bash .github/scripts/fetch-dashboard-version.sh
-#
-#      - name: create release
-#        uses: softprops/action-gh-release@v2
-#        id: release
-#        with:
-#          files: dashboard.tar.bz2
-#          body: ":rocket: Bump Handshake dashboard version to `${{ steps.version.outputs.VERSION }}`"
-#          tag_name: ${{ steps.version.outputs.VERSION }}
-#          name: "Handshake v${{ steps.version.outputs.VERSION }}"
-#          generate_release_notes: true
-#
-#      - name: build version file
-#        env:
-#          ASSETS: ${{ steps.release.outputs.assets }}
-#        run: node .github/scripts/sdv.cjs
-#
-#      - name: commiting the changes
-#        uses: stefanzweifel/git-auto-commit-action@v5
-#        id: post-release
-#        with:
-#          commit_message: Bump dashboard version in common-handshake's .version file
-#          file_pattern: '**/.version'
+      - name: Building Dashboard
+        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        run: pnpm build
+
+      - name: Zipping the dashboard export
+        working-directory: dashboard
+        run: tar -cjf ../dashboard.tar.bz2 *
+
+      - name: fetch dashboard-version
+        id: version
+        run: bash .github/scripts/fetch-dashboard-version.sh
+
+      - name: create release
+        uses: softprops/action-gh-release@v2
+        id: release
+        with:
+          files: dashboard.tar.bz2
+          body: ":rocket: Bump Handshake dashboard version to `${{ steps.version.outputs.VERSION }}`"
+          tag_name: ${{ steps.version.outputs.VERSION }}
+          name: "Handshake v${{ steps.version.outputs.VERSION }}"
+          generate_release_notes: true
+
+      - name: build version file
+        env:
+          ASSETS: ${{ steps.release.outputs.assets }}
+        run: node .github/scripts/sdv.cjs
+
+      - name: commiting the changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        id: post-release
+        with:
+          commit_message: Bump dashboard version in common-handshake's .version file
+          file_pattern: '**/.version'
 
   release-handshakes:
     name: Release Handshakes to PyPI
