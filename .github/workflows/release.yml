@@ -49,8 +49,9 @@ jobs:
       - name: prep env variables
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
         run: |
-          touch .env.prod
-          echo "CLARITY=${{ secrets.CLARITY }}" >> .env.prod
+          touch .env
+          echo "CLARITY=${{ secrets.CLARITY }}" >> .env
+          ls -a
 
       - name: Building Dashboard
         working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
