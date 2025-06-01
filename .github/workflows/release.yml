@@ -51,7 +51,7 @@ jobs:
         run: |
           touch .env.prod
           echo "CLARITY=${{ secrets.CLARITY }}" >> .env.prod
-          ls
+          ls -a
 
 #      - name: Building Dashboard
 #        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
