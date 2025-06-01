@@ -136,6 +136,7 @@ export default function FilterBox(properties: {
         return optionsForDateRangeCopy;
     }, [properties.recentRunDate]);
 
+    console.log(properties.runTags);
     return (
         <Box>
             <Group justify="space-around">

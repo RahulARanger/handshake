@@ -343,7 +343,7 @@ class TestPatchTestRunThroughScheduler:
         await session.save()
         await second_session.save()
 
-        result = run(f'handshake patch "{root_dir}"', shell=True)
+        result = run(f'handshake export "{root_dir}"', shell=True)
         assert result.returncode == 0
 
         test_record = await RunBase.filter(testID=test.testID).first()

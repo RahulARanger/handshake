@@ -5,12 +5,9 @@ from typing import Union, Optional, Dict, List
 from loguru import logger
 from time import sleep
 from sys import stdout, stderr
-from pathlib import Path
-from pytest import Session
 from handshake.services.DBService.models.types import (
     MarkTestRun,
     PydanticModalForCreatingTestRunConfigBase,
-    Tag,
 )
 from threading import Lock
 from concurrent.futures.thread import ThreadPoolExecutor
@@ -93,25 +90,6 @@ class CommonReporter:
             )
             return False
 
-    def parse_config(self, session: Session):
-        unregister = session.config.inicfg.get("disable_handshakes")
-        if unregister:
-            handshake_plugin = session.config.pluginmanager.get_plugin("handshakes")
-            session.config.pluginmanager.unregister(handshake_plugin)
-            return True
-
-        rel_path = session.config.inicfg.get("save_results_in")
-        port = session.config.inicfg.get("handshake_port")
-        config_path = session.config.inicfg.get("save_handshake_config_dir")
-        rel_to = Path(session.config.inipath.parent)
-
-        self.set_context(
-            True,
-            (rel_to / rel_path).resolve() if rel_path else self.results,
-            port if port else self.port,
-            (rel_to / config_path).resolve() if config_path else None,
-        )
-
     def set_context(
         self,
         set_client: bool,
@@ -131,8 +109,7 @@ class CommonReporter:
         self.url = f"http://127.0.0.1:{port}"
         self.config_path = config_path
 
-    def start_collection(self, session: Session, is_quiet: bool):
-        project_name = session.config.inicfg.get("projectName") or session.path.name
+    def start_collection(self, project_name: str, is_quiet: bool):
         postfix = " " + ("" if is_quiet else "-vb")
         command = (
             f'handshake run-app {project_name} "{self.results}" "{self.config_path}" -p {self.port}'
@@ -157,7 +134,7 @@ class CommonReporter:
                 to_retry = stack.pop()
                 try:
                     if self.skip and not force_call:
-                        return
+                        return None
                     if not self.health_connection():
                         return not force_call and self.set_skip(
                             "Handshake server has closed."
@@ -179,6 +156,7 @@ class CommonReporter:
                             "Failed to connect with handshake server, cancelling reports to send."
                         )
                     stack.append(to_retry + 1)
+            return None
 
     def call(
         self,
@@ -289,7 +267,7 @@ class CommonReporter:
 
     def force_wait(self):
         if not self.health_connection():
-            return
+            return None
 
         return self.wait_for_connection(1, True)
 
@@ -307,3 +285,4 @@ class CommonReporter:
 
         if not self.skip:
             logger.debug("Handshake Reporter has collected your reports.")
+        return None

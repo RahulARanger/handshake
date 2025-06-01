@@ -26,9 +26,11 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     init_tortoise_orm,
     log_less,
+    decide_value,
+    TestConfigManager,
 )
 from handshake.services.DBService.merge import Merger
-from click import option
+from click import option, get_current_context
 from pathlib import Path
 from handshake.services.DBService.shared import db_path
 from typing import Optional
@@ -113,7 +115,7 @@ def check_sqlite():
 @handle_cli.command(
     short_help="Migrates the database to the latest version as per the handshake executable.",
     help="it's a command to execute the required migration scripts, note; this command would be executed "
-    "automatically whenever we run patch or run-app command",
+    "automatically whenever we run export or run-app command",
 )
 def migrate(collection_path: str):
     return migration(db_path(collection_path), MigrationTrigger.CLI)
@@ -130,12 +132,12 @@ def step_back(collection_path: str):
     path_to_refer = db_path(collection_path)
     from_version = (check_version(path=path_to_refer, is_auto=True))[-1]
     if confirm(f"Do you want revert from v{from_version} to v{from_version - 1}"):
-        return revert_step_back(from_version, path_to_refer)
+        revert_step_back(from_version, path_to_refer)
 
 
 @handle_cli.command(
     short_help="Processes the collected results and even could export the test results",
-    help="runs an async loop, schedules some tasks to patch some your test results "
+    help="runs an async loop, schedules some tasks to export some your test results "
     "so you can see it in the way we need. you can pass the output directory to generate the report",
 )
 @option(
@@ -166,7 +168,7 @@ def step_back(collection_path: str):
     show_default=True,
 )
 @option(
-    "--out",
+    "--output-folder",
     "-o",
     help="generates the export at this desired place",
     type=C_Path(dir_okay=True, writable=True),
@@ -181,7 +183,7 @@ def step_back(collection_path: str):
     default="json",
 )
 @option(
-    "--xlsx",
+    "--include-excel",
     "-xl",
     help="generates excel export of the test run",
     required=False,
@@ -198,31 +200,45 @@ def step_back(collection_path: str):
     default=False,
     show_default=False,
 )
-def patch(
+def export(
     collection_path,
     reset: bool = False,
     config_path: Optional[str] = None,
-    out: str = None,
+    output_folder: str = None,
     verbose: bool = False,
     dev: bool = False,
     inside=False,
     export_mode: str = "json",
-    xlsx: bool = False,
+    include_excel: bool = False,
 ):
-    if not (verbose or dev):
+    q = not (verbose or dev)
+    if q:
         log_less()
 
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    if export_mode == "html" and out is None:
+    refer_from_here = TestConfigManager(config_path=config_path).get_config_for_command(
+        "EXPORT", q
+    )
+    context = get_current_context()
+    export_mode = decide_value(context, "EXPORT_MODE", refer_from_here, export_mode)
+    out_folder = decide_value(context, "OUTPUT_FOLDER", refer_from_here, output_folder)
+
+    if export_mode.lower() == "html" and out_folder is None:
         logger.error(
             "HTML export requires an output folder, please provide it using --out or -o"
         )
         return
 
     scheduler = Scheduler(
-        collection_path, out, reset, inside, dev, export_mode.lower(), xlsx
+        collection_path,
+        out_folder,
+        reset,
+        inside,
+        dev,
+        export_mode,
+        decide_value(context, "INCLUDE_EXCEL", refer_from_here, include_excel),
     )
     try:
         run(scheduler.start(config_path))
@@ -362,7 +378,7 @@ def init(collection_path, config_path=None):
     short_help="Commands that will/(try to) fetch mostly asked info. from db",
     help="you can query using db following the subcommands, which are created to provide mostly asked info. from db",
 )
-@version_option(DB_VERSION, prog_name="handshake-db")
+@version_option(str(DB_VERSION), prog_name="handshake-db")
 @general_requirement
 def faq(collection_path: str):
     if not Path(db_path(collection_path)).exists():
@@ -445,7 +461,7 @@ def latest_run(ctx: Context, allow_pending: bool):
 
 
 @faq.command(
-    short_help="fetches the number of yet to patch task",
+    short_help="fetches the number of yet to export task",
     help="returns list of tasks of form: (ticket_id, task_type, dropped_date, is_picked, test_id)",
 )
 @pass_context

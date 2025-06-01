@@ -59,7 +59,13 @@ export default function TestRunsChartArea(properties: {
                 </Card.Section>
                 <Card.Section pt={'xs'} pr={'xs'} ml={-18}>
                     {toLoad ? (
-                        <Skeleton w={'100%'} h={300} animate />
+                        <Skeleton
+                            w={'100%'}
+                            h={300}
+                            animate
+                            ml="5px"
+                            mb="2px"
+                        />
                     ) : (
                         <AreaChartForTestRuns
                             Rates={properties.runs.map((run) => ({
