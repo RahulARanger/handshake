@@ -22,7 +22,7 @@
       <excludeFolder url="file://$MODULE_DIR$/TestReports" />
       <excludeFolder url="file://$MODULE_DIR$/test_pytest_reporter/TestResults" />
     </content>
-    <orderEntry type="jdk" jdkName="Python 3.11 (Handshake)" jdkType="Python SDK" />
+    <orderEntry type="jdk" jdkName="Python 3.13 (handshake)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
   </component>
   <component name="PackageRequirementsSettings">

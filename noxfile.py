@@ -49,7 +49,7 @@ def save_version(session):
     save_version_to_version_file()
 
 
-@nox.session(python=["3.11", "3.12"])
+@nox.session(python=["3.11", "3.12", "3.13"])
 def test(session):
     """
     nox -s test
@@ -87,3 +87,11 @@ def zip_results(session):
         / "common-handshakes"
         / "dashboard.tar.bz2",
     )
+
+@nox.session(venv_backend="none")
+def setup_handshakes(session):
+    venv_name = "venv"
+    venv = Path(__file__).parent / venv_name
+    if not venv.exists():
+        session.run("python", "-m", "venv", venv_name, external=True)
+    session.run("poetry", "install", external=True)

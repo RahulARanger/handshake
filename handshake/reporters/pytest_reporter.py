@@ -82,7 +82,11 @@ class PyTestHandshakeReporter(CommonReporter):
         for key_desc, value in config.items():
             if not key_desc.startswith(test_run_tag_prefix):
                 continue
-            tags.append(Tag(label=value, desc=key_desc[len(test_run_tag_prefix) :]))
+            v = value
+            if type(value) != str:
+                v = str(value) or repr(value)
+                logger.warning("Expected {} to of string type but found {} hence saving it as {}", value, type(value), v)
+            tags.append(Tag(label=v, desc=key_desc[len(test_run_tag_prefix) :]))
 
         return self.add_run_config(
             PydanticModalForCreatingTestRunConfigBase(
