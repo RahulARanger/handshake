@@ -129,6 +129,7 @@ jobs:
             python-version: |
               3.11
               3.12
+              3.13
 
         - name: if Windows, Set up Python 3.11
           if: ${{ matrix.os == 'windows-latest' }}
@@ -166,7 +167,7 @@ jobs:
 
         # for macOS, we conduct tests that don't depend on optional dependencies
         # for linux, we conduct tests including the ones that depend on optional dependencies
-        # and run those on both 3.12 and 3.11
+        # and run those on both 3.11, 3.12 and 3.13
         - name: Regression Test without optional dependencies
           if: ${{ matrix.os != 'windows-latest' }}
           run: nox -s test
