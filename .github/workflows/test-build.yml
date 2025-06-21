@@ -52,7 +52,7 @@ jobs:
           with:
             filters: |
               dashboard:
-                - 'handshake-nodejs-reporters/packages/handshake-dashboard/**'
+                - 'handshake-dashboard/**'
               py:
                 - 'handshake/**'
                 - "poetry.toml"
@@ -87,21 +87,21 @@ jobs:
             cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
 
         - name: Installing node packages
-          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          working-directory: handshake-dashboard
           run: pnpm install && pnpm install @swc/cli @swc/core wait-on concurrently http-server && npx playwright install --with-deps
 
         - name: Building storybook
-          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          working-directory: handshake-dashboard
           run: pnpm build-storybook --quiet
 
         - name: Conducting Component Tests
-          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          working-directory: handshake-dashboard
           run: npx concurrently -k -s first -n "SB,TEST" -c "magenta,blue" \
             "npx http-server storybook-static --port 6006 --silent" \
             "npx wait-on tcp:6006 && pnpm test"
 
         - name: Building Dashboard
-          working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+          working-directory: handshake-dashboard
           run: pnpm build
 
     test-handshakes:

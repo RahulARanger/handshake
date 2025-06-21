@@ -62,10 +62,8 @@ check.py
 # Misc
 handshake-nodejs-reporters/packages/common-handshakes/bin
 handshake-nodejs-reporters/Jest-Results
-handshake-nodejs-reporters/packages/handshake-dashboard/public/antd.min.css
-/handshake-nodejs-reporters/packages/handshake-dashboard/test-export.ps1
 
-handshake-nodejs-reporters/packages/handshake-dashboard/analyze/*
+handshake-dashboard/analyze/*
 TestMigrationRollback
 TestReversionRollback
 TestMerge1

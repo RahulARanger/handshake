@@ -55,7 +55,7 @@ function TableOfSuites(properties: {
                 accessorKey: 'hasChildSuite',
                 header: '',
                 enableSorting: false,
-                maxSize: 12,
+                maxSize: 10,
                 enableHiding: false,
                 Cell: ({ row }) => {
                     return row.original.type === 'SUITE' &&
