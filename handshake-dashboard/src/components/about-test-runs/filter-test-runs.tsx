@@ -1,20 +1,26 @@
 import {
+    ActionIcon,
     Box,
     ComboboxItemGroup,
     Group,
+    Modal,
     MultiSelect,
     rem,
     Select,
+    Stack,
+    Text,
 } from '@mantine/core';
 import {
     IconPerspective,
     IconHistory,
     IconTagFilled,
+    IconFilter2,
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import type { ReactNode } from 'react';
 import isBetween from 'dayjs/plugin/isBetween';
 import React, { useMemo } from 'react';
+import { useDisclosure } from '@mantine/hooks';
 
 // rarely used in other pages so extending here (whenever necessary)
 dayjs.extend(isBetween);
@@ -49,6 +55,8 @@ export default function FilterBox(properties: {
     onTagFilterChange: (tags: string[] | null) => void;
     runTags?: ComboboxItemGroup[];
 }): ReactNode {
+    const [opened, { open, close }] = useDisclosure(false);
+
     const options = useMemo<optionForDateRange[]>(() => {
         const optionsForDateRangeCopy = [...optionsForDate];
         const today = dayjs().utc().local();
@@ -136,75 +144,87 @@ export default function FilterBox(properties: {
         return optionsForDateRangeCopy;
     }, [properties.recentRunDate]);
 
-    console.log(properties.runTags);
+    const SelectProject = <Select
+        size="xs"
+        data={properties.setOfProjects}
+        defaultValue={
+            properties.setOfProjects.length > 1
+                ? undefined
+                : properties.setOfProjects[0]
+        }
+        onChange={(value) =>
+            properties.onProjectFilterChange(value)
+        }
+        clearable
+        comboboxProps={{
+            position: 'bottom',
+            middlewares: { flip: false, shift: false },
+            offset: 0,
+        }}
+        placeholder="Filter by Project Name"
+        leftSection={
+            <IconPerspective
+                style={{ width: rem(15), height: rem(15) }}
+            />
+        }
+        aria-label="filter-projects"
+    />
+
     return (
         <Box>
             <Group justify="space-around">
-                <Select
-                    size="xs"
-                    data={properties.setOfProjects}
-                    defaultValue={
-                        properties.setOfProjects.length > 1
-                            ? undefined
-                            : properties.setOfProjects[0]
-                    }
-                    onChange={(value) =>
-                        properties.onProjectFilterChange(value)
-                    }
-                    clearable
-                    comboboxProps={{
-                        position: 'bottom',
-                        middlewares: { flip: false, shift: false },
-                        offset: 0,
-                    }}
-                    placeholder="Filter by Project Name"
-                    leftSection={
-                        <IconPerspective
-                            style={{ width: rem(15), height: rem(15) }}
+
+                {SelectProject}
+                <ActionIcon onClick={open}>
+                    <IconFilter2 size=".9rem" />
+                </ActionIcon>
+                <Modal opened={opened} onClose={close} title="Filter Test Runs" withOverlay={false} >
+                    <Stack>
+                        {SelectProject}
+                        <MultiSelect
+                            size="xs"
+                            data={options}
+                            style={{ minWidth: rem(150) }}
+                            label={<Text size="xs" mb="xs">You can filter the test runs by date range.</Text>}
+                            placeholder="Filter by Date Range"
+                            comboboxProps={{
+                                position: 'bottom',
+                                middlewares: { flip: false, shift: false },
+                                offset: 0,
+                            }}
+                            maxValues={5}
+                            clearable
+                            onChange={(_) =>
+                                properties.onDateRangeChange(_ as optionForDateRange[])
+                            }
+                            leftSection={
+                                <IconHistory
+                                    style={{ width: rem(15), height: rem(15) }}
+                                />
+                            }
                         />
-                    }
-                    aria-label="filter-projects"
-                />
-                <MultiSelect
-                    size="xs"
-                    data={options}
-                    style={{ minWidth: rem(150) }}
-                    placeholder="Filter by Date Range"
-                    comboboxProps={{
-                        position: 'bottom',
-                        middlewares: { flip: false, shift: false },
-                        offset: 0,
-                    }}
-                    maxValues={5}
-                    clearable
-                    onChange={(_) =>
-                        properties.onDateRangeChange(_ as optionForDateRange[])
-                    }
-                    leftSection={
-                        <IconHistory
-                            style={{ width: rem(15), height: rem(15) }}
+                        <MultiSelect
+                            size="xs"
+                            data={properties.runTags ?? []}
+                            style={{ minWidth: rem(150) }}
+                            placeholder="Filter by Tags"
+                            label={<Text size="xs" mb="xs">You can filter the test runs by custom tags.</Text>}
+                            comboboxProps={{
+                                position: 'bottom',
+                                middlewares: { flip: false, shift: false },
+                                offset: 0,
+                            }}
+                            onChange={(_) => properties.onTagFilterChange(_)}
+                            maxValues={5}
+                            clearable
+                            leftSection={
+                                <IconTagFilled
+                                    style={{ width: rem(15), height: rem(15) }}
+                                />
+                            }
                         />
-                    }
-                />
-                <MultiSelect
-                    size="xs"
-                    data={properties.runTags ?? []}
-                    style={{ minWidth: rem(150) }}
-                    placeholder="Filter by Tags"
-                    comboboxProps={{
-                        position: 'bottom',
-                        middlewares: { flip: false, shift: false },
-                        offset: 0,
-                    }}
-                    onChange={(_) => properties.onTagFilterChange(_)}
-                    maxValues={5}
-                    clearable
-                    leftSection={
-                        <IconTagFilled
-                            style={{ width: rem(15), height: rem(15) }}
-                        />
-                    }
-                />
+                    </Stack>
+                </Modal>
             </Group>
         </Box>
     );
