@@ -10,11 +10,12 @@ export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<ResponseData>,
 ) {
-    const { id } = request.query;
+    let { id } = request.query;
 
     switch (id) {
-        case 'runs.json':
-        case 'projects.json': {
+        case 'runs':
+        case 'projects': {
+            id += ".json"
             break;
         }
         default: {
@@ -24,6 +25,6 @@ export default async function handler(
 
     const filePath = path.join(process.env.TEST_RESULTS ?? '', 'Import', id);
 
-    const value = JSON.parse(fs.readFileSync(filePath, {encoding: 'binary'}));
+    const value = JSON.parse(fs.readFileSync(filePath, { encoding: 'binary' }));
     response.status(200).json(value);
 }

@@ -10,8 +10,11 @@ export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<ResponseData>,
 ) {
-    const { id } = request.query;
+    let id = request.query?.id as string[];
 
+    if (id?.at(-1) === "run" || id?.at(-1) === "suites") {
+        id[id?.length - 1] += ".json"
+    }
     const filePath = path.join(
         process.env.TEST_RESULTS ?? '',
         'Import',
