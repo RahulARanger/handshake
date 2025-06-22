@@ -18,6 +18,7 @@ export function getRandomInt(mini: number, maxi: number) {
 }
 
 export function percentage(x: number, y: number) {
+    if (y === 0) return "0"
     const value = (x * 100) / y;
     return (Number.isNaN(value) ? 0 : value).toFixed(2);
 }

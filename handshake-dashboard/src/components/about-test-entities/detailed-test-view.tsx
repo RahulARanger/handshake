@@ -18,7 +18,7 @@ import {
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import React from 'react';
 import type { ReactNode } from 'react';
-import type { AssertionRecord, ImageRecord, Tag } from 'types/test-entity-related';
+import type { AssertionRecord, ImageRecord } from 'types/test-entity-related';
 import { ErrorStack } from './error-card';
 import {
     IconChartBarPopular,
@@ -208,8 +208,8 @@ export function DetailedViewForTestEntity(properties: {
                             {properties.test.Tags.length > 0 ? (
                                 <ScrollAreaAutosize h={height - 4}>
                                     <Group p="lg">
-                                        {(properties.test.Tags).map((tag) => (
-                                            <TagComp tag={tag} />
+                                        {(properties.test.Tags).map((tag, index) => (
+                                            <TagComp key={`${index}-tag-${tag.label}`} tag={tag} />
                                         ))}
                                     </Group>
                                 </ScrollAreaAutosize>

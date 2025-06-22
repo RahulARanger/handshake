@@ -10,7 +10,7 @@ export default async function handler(
     request: NextApiRequest,
     response: NextApiResponse<ResponseData>,
 ) {
-    let id = request.query?.id as string[];
+    const id = request.query?.id as string[];
     id[id?.length - 1] += ".json"
 
     const filePath = path.join(

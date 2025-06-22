@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import { expect, findAllByRole, fn, within } from 'storybook/test';
-import FilterBox, { optionsForDate } from './filter-test-runs';
+import FilterBox from './filter-test-runs';
 import { randomTestProjects } from 'stories/TestData/test-runs';
 import dayjs from 'dayjs';
 
