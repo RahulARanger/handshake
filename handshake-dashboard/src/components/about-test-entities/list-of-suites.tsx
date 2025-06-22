@@ -11,7 +11,6 @@ import {
     MenuTarget,
     rem,
     Text,
-    Title,
     Tooltip,
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';

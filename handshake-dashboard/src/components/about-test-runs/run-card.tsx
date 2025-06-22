@@ -12,7 +12,6 @@ import {
     MenuDropdown,
     MenuItem,
     Divider,
-    Paper,
     Accordion,
     Text,
 } from '@mantine/core';
@@ -191,8 +190,8 @@ export default function TestRunCard(properties: {
                                 </Accordion.Control>
                                 <Accordion.Panel>
                                     <Group>
-                                        {properties.run.Tags.map((tag) => (
-                                            <TagComp tag={tag} size="sm" />
+                                        {properties.run.Tags.map((tag, index) => (
+                                            <TagComp key={`${index}-${tag.label}-tag`} tag={tag} size="sm" />
                                         ))}
                                     </Group>
                                 </Accordion.Panel>

@@ -2,8 +2,13 @@ import { Box } from '@mantine/core';
 import type { Meta, StoryObj } from '@storybook/nextjs';
 import EntitiesView from 'pages/RUNS/Suites';
 import { generateTestHierarchyWithSuites } from 'stories/TestData/test-suites';
+import { SuiteRecordDetails } from 'types/test-entity-related';
+import { TestRunRecord } from 'types/test-run-records';
 
-const WindowComp = (properties: typeof EntitiesView) => (
+const WindowComp = (properties: {
+    mockSuites?: SuiteRecordDetails[] | undefined;
+    mockRun?: TestRunRecord;
+}) => (
     <Box ml="-10px">
         <EntitiesView {...properties} />
     </Box>

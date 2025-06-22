@@ -1,4 +1,4 @@
-import { Badge, BadgeProps, Paper, Tooltip } from "@mantine/core";
+import { Badge, BadgeProps, Tooltip } from "@mantine/core";
 import { Tag } from "types/test-entity-related";
 
 export default function TagComp(properties: { tag: Tag, size?: BadgeProps["p"] }) {

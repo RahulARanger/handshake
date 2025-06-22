@@ -117,6 +117,9 @@ importers:
       '@chromatic-com/storybook':
         specifier: ^4.0.1
         version: 4.0.1(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))
+      '@eslint/eslintrc':
+        specifier: ^3.3.1
+        version: 3.3.1
       '@next/bundle-analyzer':
         specifier: ^15.3.4
         version: 15.3.4
