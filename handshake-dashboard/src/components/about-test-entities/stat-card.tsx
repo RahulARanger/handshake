@@ -80,10 +80,11 @@ export default function StatCard(properties: {
         properties.suite.RollupValues[1],
         properties.testRecord.Rate[1],
     );
+    const isSuite = properties.suite.type === 'SUITE';
     return (
         <Paper m="xs" p="sm">
             <Stack>
-                <Group justify="stretch">
+                {isSuite && <Group justify="stretch">
                     <StatValue
                         status="PASSED"
                         value={properties.suite.RollupValues[0]}
@@ -109,9 +110,9 @@ export default function StatCard(properties: {
                         value={properties.suite.RollupValues[1]}
                         total={properties.suite.totalRollupValue}
                     />
-                </Group>
+                </Group>}
                 <Group justify="stretch">
-                    <CustomStatValue
+                    {isSuite && <CustomStatValue
                         label="% number of tests in this suite w.r.t to entire test run"
                         replaceIcon={
                             <RingProgress
@@ -137,7 +138,7 @@ export default function StatCard(properties: {
                                 avoideAnimation
                             />
                         }
-                    />
+                    />}
                     <CustomStatValue
                         replaceIcon={
                             <RingProgress
@@ -165,7 +166,7 @@ export default function StatCard(properties: {
                             />
                         }
                     />
-                    <CustomStatValue
+                    {isSuite && <CustomStatValue
                         replaceIcon={
                             <RingProgress
                                 size={50}
@@ -195,7 +196,7 @@ export default function StatCard(properties: {
                                 avoideAnimation
                             />
                         }
-                    />
+                    />}
                 </Group>
             </Stack>
         </Paper>

@@ -15,16 +15,19 @@ import {
     Text,
     Tooltip,
 } from '@mantine/core';
+import MarkdownPreview from '@uiw/react-markdown-preview';
 import React from 'react';
 import type { ReactNode } from 'react';
-import type { AssertionRecord, ImageRecord } from 'types/test-entity-related';
+import type { AssertionRecord, ImageRecord, Tag } from 'types/test-entity-related';
 import { ErrorStack } from './error-card';
 import {
     IconChartBarPopular,
+    IconFileDescription,
     // IconExternalLink,
     IconMaximize,
     IconMinimize,
     IconPhoto,
+    IconTag,
     IconTestPipe,
     IconX,
 } from '@tabler/icons-react';
@@ -45,19 +48,20 @@ import TestStatusIcon, {
 import { TimeRange } from 'components/timings/time-range';
 import { DurationText } from 'components/timings/humanized-duration';
 import StatCard from './stat-card';
+import TagComp from './tag';
 
 export const detailedTestViewPortalTarget = '#detailed-test-view';
 type tabOfDetailedSuite = 'errors' | 'stats';
 
 export function DetailedViewForTestEntity(properties: {
     test: ParsedSuiteRecord;
-    testRecord: DetailedTestRecord;
+    testRunRecord: DetailedTestRecord;
 }) {
     const iconStyle = { width: rem(12), height: rem(12) };
     const height = 240;
     const defaultTab: tabOfDetailedSuite =
         properties.test.errors?.length > 0 ? 'errors' : 'stats';
-
+    const desc = properties.test.Desc.trim() || `_No Description was added to this ${properties.test.type.toLowerCase()}_`
     return (
         <Card withBorder shadow="xl" p="sm" radius="sm">
             <Stack gap={0}>
@@ -99,7 +103,7 @@ export function DetailedViewForTestEntity(properties: {
                                 prefix={'Ran '}
                                 startTime={properties.test.Started}
                                 endTime={properties.test.Ended}
-                                relativeFrom={properties.testRecord.Started}
+                                relativeFrom={properties.testRunRecord.Started}
                                 suffix={
                                     <DurationText
                                         prefix=" for "
@@ -126,6 +130,15 @@ export function DetailedViewForTestEntity(properties: {
                             mih={height}
                         >
                             <Tabs.Tab
+                                value="description"
+                                leftSection={
+                                    <IconFileDescription style={iconStyle} />
+                                }
+                                variant="light"
+                            >
+                                Desc.
+                            </Tabs.Tab>
+                            <Tabs.Tab
                                 value="stats"
                                 leftSection={
                                     <IconChartBarPopular style={iconStyle} />
@@ -151,16 +164,32 @@ export function DetailedViewForTestEntity(properties: {
                             >
                                 Errors
                             </Tabs.Tab>
+                            <Tabs.Tab
+                                value="tags"
+                                leftSection={
+                                    <IconTag style={iconStyle} />
+                                }
+                                variant="light"
+                            >
+                                Tags
+                            </Tabs.Tab>
                         </Tabs.List>
                         <Divider mx={6} orientation="vertical" />
+                        <Tabs.Panel value="description" h={height}>
+                            <MarkdownPreview
+                                source={desc}
+                                style={{ padding: '24px' }}
+                            />
+                        </Tabs.Panel>
                         <Tabs.Panel value="stats" h={height}>
                             <ScrollAreaAutosize h={height - 4}>
                                 <StatCard
                                     suite={properties.test}
-                                    testRecord={properties.testRecord}
+                                    testRecord={properties.testRunRecord}
                                 />
                             </ScrollAreaAutosize>
                         </Tabs.Panel>
+
                         <Tabs.Panel value="errors" h={height}>
                             {properties.test.errors.length > 0 ? (
                                 <ScrollAreaAutosize h={height - 4}>
@@ -174,6 +203,23 @@ export function DetailedViewForTestEntity(properties: {
                                     c={'green'}
                                 />
                             )}
+                        </Tabs.Panel>
+                        <Tabs.Panel value="tags" h={height}>
+                            {properties.test.Tags.length > 0 ? (
+                                <ScrollAreaAutosize h={height - 4}>
+                                    <Group p="lg">
+                                        {(properties.test.Tags).map((tag) => (
+                                            <TagComp tag={tag} />
+                                        ))}
+                                    </Group>
+                                </ScrollAreaAutosize>
+                            ) : (
+                                <NoThingsWereAdded
+                                    message={'No Tags were added'}
+                                    c={'yellow'}
+                                />
+                            )}
+
                         </Tabs.Panel>
                     </Tabs>
                 </Card.Section>
@@ -190,7 +236,7 @@ export function DetailedViewForSuite(properties: {
         <Box w="96vw" pos="sticky" style={{ overflow: 'auto', left: 12 }}>
             <DetailedViewForTestEntity
                 test={properties.suite}
-                testRecord={properties.testRecord}
+                testRunRecord={properties.testRecord}
             />
         </Box>
     );

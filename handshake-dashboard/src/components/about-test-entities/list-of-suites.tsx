@@ -4,11 +4,14 @@ import {
     Anchor,
     Badge,
     Breadcrumbs,
+    Group,
     Menu,
     MenuDropdown,
     MenuItem,
     MenuTarget,
     rem,
+    Text,
+    Title,
     Tooltip,
 } from '@mantine/core';
 import { TimeRange } from 'components/timings/time-range';
@@ -41,6 +44,7 @@ import useTableConfigurationsForListOfSuites from 'hooks/get-saved-filters';
 import CountUpNumber from 'components/counter';
 import { DetailedViewForSuite } from './detailed-test-view';
 import GridStyles from 'styles/data-table.module.css';
+import TagComp from './tag';
 
 function TableOfSuites(properties: {
     suites: ParsedSuiteRecord[];
@@ -56,6 +60,7 @@ function TableOfSuites(properties: {
                 header: '',
                 enableSorting: false,
                 maxSize: 10,
+                enableColumnFilter: false,
                 enableHiding: false,
                 Cell: ({ row }) => {
                     return row.original.type === 'SUITE' &&
@@ -265,10 +270,24 @@ function TableOfSuites(properties: {
                     align: 'right',
                 },
             },
+            {
+                accessorKey: 'tags',
+                header: 'Tags',
+                maxSize: 300,
+                mantineTableBodyCellProps: {
+                    align: 'right',
+                },
+                Cell: ({ row, renderedRowIndex }) => {
+                    return <Group wrap="nowrap">
+                        {row.original.Tags.slice(0, 2).map((tag) => <TagComp key={`${renderedRowIndex}-tag`} tag={tag} size="xs" />)}
+                        {row.original.Tags.length > 2 ? <Badge variant="light">+{row.original.Tags.length - 2}</Badge> : <></>}
+                    </Group>
+                },
+            },
         ],
         [properties.testRecord?.Started],
     );
-    const [maxWidth, setMaxWidth] = useState('98vw');
+    const [maxWidth, setMaxWidth] = useState('97vw');
     const { columnsShown, setColumnsShown } =
         useTableConfigurationsForListOfSuites();
 
@@ -296,6 +315,17 @@ function TableOfSuites(properties: {
                 borderRight: '1.5px solid rgba(255, 255, 255, 0.08) ',
             },
         },
+        mantineTableHeadRowProps: {
+            style: {
+                backgroundColor: 'rgba(85, 4, 27, 0.71) ',
+                borderBottom: '1.5px solid rgba(255, 255, 255, 0.08) ',
+            },
+        },
+        mantineTableHeadProps: {
+            style: {
+                borderRight: '1.5px solid rgba(255, 255, 255, 0.08) ',
+            },
+        },
         mantinePaperProps: {
             withBorder: true,
             shadow: 'xl',
@@ -303,7 +333,7 @@ function TableOfSuites(properties: {
             className: GridStyles.dataTable,
         },
         onIsFullScreenChange: () =>
-            setMaxWidth((width) => (width === '100vw' ? '98vw' : '100vw')),
+            setMaxWidth((width) => (width === '100vw' ? '97vw' : '100vw')),
 
         onColumnVisibilityChange: setColumnsShown,
 
@@ -320,18 +350,17 @@ function TableOfSuites(properties: {
         ),
 
         renderDetailPanel: ({ row }) => {
-            return row.original.type === 'SUITE' ? (
+            return (
                 <DetailedViewForSuite
                     suite={row.original}
                     testRecord={properties.testRecord as DetailedTestRecord}
                 />
-            ) : (
-                <></>
-            );
+            )
         },
     });
-
-    return <MantineReactTable table={table} />;
+    return <>
+        <MantineReactTable table={table} />
+    </>;
 }
 
 function BreadcrumbsForDrilldownSuites(properties: {
@@ -344,7 +373,12 @@ function BreadcrumbsForDrilldownSuites(properties: {
         : properties.levels;
 
     if (showLevels.length === 1) {
-        return <></>;
+        return <>
+            <Text size="xl" component="span">
+                List of Suites
+                <sub><Text size="xs" component="span" ml="xs">Click on any suites to view its tests/suites</Text></sub>
+            </Text>
+        </>
     }
 
     const menuOptions = insertMid ? properties.levels.slice(3, -3) : false;
@@ -367,7 +401,7 @@ function BreadcrumbsForDrilldownSuites(properties: {
     ) => (
         <Anchor
             variant="text"
-            size="sm"
+            size="md"
             underline={
                 index === properties.levels.length - 1 ? 'never' : 'hover'
             }
@@ -417,7 +451,7 @@ function BreadcrumbsForDrilldownSuites(properties: {
     }
 
     return (
-        <Breadcrumbs p="md">
+        <Breadcrumbs>
             {showLevels.map((level, index) => options(index, level))}
             {...comps}
         </Breadcrumbs>

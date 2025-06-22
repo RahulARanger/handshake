@@ -32,6 +32,7 @@ import {
 } from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import advancedFormat from 'dayjs/plugin/advancedFormat';
+import TagComp from 'components/about-test-entities/tag';
 
 dayjs.extend(advancedFormat);
 
@@ -191,27 +192,7 @@ export default function TestRunCard(properties: {
                                 <Accordion.Panel>
                                     <Group>
                                         {properties.run.Tags.map((tag) => (
-                                            <Tooltip
-                                                key={tag.label}
-                                                label={tag.desc}
-                                                color="cyan"
-                                            >
-                                                <Paper
-                                                    withBorder
-                                                    p={2}
-                                                    pb={3}
-                                                    px="xs"
-                                                    className="mirror"
-                                                >
-                                                    <Badge
-                                                        size="sm"
-                                                        variant="light"
-                                                        color="cyan.9"
-                                                    >
-                                                        {tag.label}
-                                                    </Badge>
-                                                </Paper>
-                                            </Tooltip>
+                                            <TagComp tag={tag} size="sm" />
                                         ))}
                                     </Group>
                                 </Accordion.Panel>

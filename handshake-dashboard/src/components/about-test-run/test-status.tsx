@@ -31,13 +31,13 @@ export function standingToColors(
             return bgColor ? 'orange' : 'gray';
         }
         case 'RETRIED': {
-            return bgColor ? 'orange' : 'indigo';
+            return bgColor ? 'orange' : 'blue';
         }
         case 'XFAILED': {
             return bgColor ? 'orange' : 'orange';
         }
         case 'XPASSED': {
-            return bgColor ? 'indigo' : 'teal';
+            return bgColor ? 'indigo' : 'indigo';
         }
         default: {
             return 'orange';
@@ -120,7 +120,7 @@ export default function TestStatusIcon(properties: {
         case 'XPASSED': {
             icon = (
                 <IconRosetteDiscountCheckOff
-                    color="var(--mantine-color-teal-filled)"
+                    color="var(--mantine-color-indigo-filled)"
                     stroke={2}
                     size={properties.size}
                 />

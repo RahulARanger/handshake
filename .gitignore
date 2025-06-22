@@ -93,3 +93,4 @@ tsconfig.tsbuildinfo
 local-scheduler.py
 
 aws.xml
+.idea/dbnavigator.xml
