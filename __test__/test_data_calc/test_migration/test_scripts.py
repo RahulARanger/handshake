@@ -286,6 +286,31 @@ class TestMigrationScripts:
             == run_record.xpassedSuites
         )
 
+
+    async def test_bump_v14(
+        self,
+        get_vth_connection,
+        scripts,
+        db_path,
+        helper_to_create_test_and_session,
+        create_suite,
+    ):
+        connection = await get_vth_connection(db_path, 14)
+        test_id, sample_session = await helper_to_create_test_and_session(
+            manual_insert_test_run=True, connection=connection, return_id=True
+        )
+
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            14, 15, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+        run_record = await RunBase.filter(testID=test_id).first()
+        assert (
+            run_record.projectDescription is None
+        )
+
     # say you are in v8 and have reverted your python build to an older version which uses v7
     # question: how does migrate function work?
 

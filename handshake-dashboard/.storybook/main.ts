@@ -12,14 +12,14 @@ function getAbsolutePath(value: string): string {
 const config: StorybookConfig = {
     stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
     addons: [
-        getAbsolutePath('@storybook/addon-links'),
-        getAbsolutePath('@storybook/addon-essentials'),
-        getAbsolutePath('@chromatic-com/storybook'),
-        getAbsolutePath('@storybook/addon-coverage'),
-        getAbsolutePath('@storybook/addon-interactions'),
+        '@storybook/addon-links',
+        '@storybook/addon-essentials',
+        '@chromatic-com/storybook',
+        '@storybook/addon-coverage',
+        '@storybook/addon-interactions',
     ],
     framework: {
-        name: getAbsolutePath("@storybook/nextjs"),
+        name: "@storybook/nextjs",
         options: { nextConfigPath: '../next.config.js' },
     },
     docs: {},
