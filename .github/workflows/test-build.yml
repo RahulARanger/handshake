@@ -129,7 +129,7 @@ jobs:
             python-version: |
               3.11
               3.12
-              "3.13"
+              3.13
 
         - name: if Windows, Set up Python 3.11
           if: ${{ matrix.os == 'windows-latest' }}
