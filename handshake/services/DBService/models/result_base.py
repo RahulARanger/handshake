@@ -93,6 +93,9 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
     projectName = CharField(
         max_length=30, null=False, description="Name of the project"
     )
+    projectDescription = TextField(
+        null=True, default="", description="Summary if provided for the test entity"
+    )
     specStructure = JSONField(
         description="file structure of spec files", default=dict()
     )

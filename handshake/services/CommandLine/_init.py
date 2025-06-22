@@ -27,6 +27,7 @@ from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     log_less,
     decide_value,
+decide_value_with_return,
     TestConfigManager,
 )
 from handshake.services.DBService.merge import Merger
@@ -175,6 +176,13 @@ def step_back(collection_path: str):
     required=False,
 )
 @option(
+    "--meta-file",
+    "-m",
+    help="loads the provided toml file as meta data about tests/suites/test run",
+    type=C_Path(file_okay=True, readable=True, exists=True),
+    required=False,
+)
+@option(
     "--export_mode",
     "-e",
     help="generates either json/html export",
@@ -210,6 +218,7 @@ def export(
     inside=False,
     export_mode: str = "json",
     include_excel: bool = False,
+        meta_file: str = None
 ):
     q = not (verbose or dev)
     if q:
@@ -218,12 +227,20 @@ def export(
     if not Path(collection_path).is_dir():
         raise NotADirectoryError(collection_path)
 
-    refer_from_here = TestConfigManager(config_path=config_path).get_config_for_command(
+    config = TestConfigManager(config_path=config_path)
+    refer_from_here = config.get_config_for_command(
         "EXPORT", q
     )
     context = get_current_context()
     export_mode = decide_value(context, "EXPORT_MODE", refer_from_here, export_mode)
-    out_folder = decide_value(context, "OUTPUT_FOLDER", refer_from_here, output_folder)
+
+    out_folder, is_from_config = decide_value_with_return(context, "OUTPUT_FOLDER", refer_from_here, output_folder)
+    if is_from_config:
+        out_folder = config.get_path(out_folder)
+
+    meta_file, is_from_config = decide_value_with_return(context, "META_FILE", refer_from_here, meta_file)
+    if is_from_config:
+        meta_file = config.get_path(meta_file)
 
     if export_mode.lower() == "html" and out_folder is None:
         logger.error(
@@ -241,7 +258,7 @@ def export(
         decide_value(context, "INCLUDE_EXCEL", refer_from_here, include_excel),
     )
     try:
-        run(scheduler.start(config_path))
+        run(scheduler.start(config_path, meta_file))
     except (KeyboardInterrupt, SystemExit):
         logger.warning("Scheduler terminated explicitly...")
         run(close_connection())

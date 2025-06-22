@@ -203,6 +203,9 @@ class TestConfigManager:
         )
         return {}
 
+    def get_path(self, path: str):
+        return self.path.parent / Path(path)
+
 
 def log_less():
     logger.remove(0)
@@ -215,3 +218,11 @@ def decide_value(context: Context, key: str, saved: dict, value_given):
     ) == ParameterSource.DEFAULT and saved.get(key):
         return saved[key]
     return value_given
+
+def decide_value_with_return(context: Context, key: str, saved: dict, value_given):
+    if context.get_parameter_source(
+        key.lower()
+    ) == ParameterSource.DEFAULT and saved.get(key):
+        return saved[key], True
+    return value_given, False
+

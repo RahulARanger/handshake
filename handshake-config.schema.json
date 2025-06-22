@@ -10,7 +10,14 @@
       "type": "number",
       "minimum": 1,
       "maximum": 100,
-      "examples": [50, 1, 2, 10, 69, 66]
+      "examples": [
+        50,
+        1,
+        2,
+        10,
+        69,
+        66
+      ]
     },
     "COMMANDS": {
       "type": "object",
@@ -36,33 +43,40 @@
           }
         },
         "EXPORT": {
-        "type": "object",
-        "title": "Export Options",
-        "description": "you can save the values for the input required by handshake export. manually provided values takes preference over the saved ones",
-        "properties": {
-          "OUTPUT_FOLDER": {
-            "type": "string",
-            "default": "TestReports",
-            "title": "Output Folder",
-            "description": "Define the relative path from this file for your output"
-          },
-          "INCLUDE_EXCEL": {
-            "type": "boolean",
-            "default": false,
-            "title": "Excel Export",
-            "description": "Let us know if you want to export Excel by default"
-          },
-          "EXPORT_MODE": {
-            "type": "string",
-            "default": "json",
-            "enum": [
-              "html", "json"
-            ],
-            "title": "Export Mode",
-            "description": "Can either be json export or html export."
+          "type": "object",
+          "title": "Export Options",
+          "description": "you can save the values for the input required by handshake export. manually provided values takes preference over the saved ones",
+          "properties": {
+            "OUTPUT_FOLDER": {
+              "type": "string",
+              "default": "TestReports",
+              "title": "Output Folder",
+              "description": "Define the relative path from this file for your output"
+            },
+            "INCLUDE_EXCEL": {
+              "type": "boolean",
+              "default": false,
+              "title": "Excel Export",
+              "description": "Let us know if you want to export Excel by default"
+            },
+            "META_FILE": {
+              "type": "string",
+              "default": "",
+              "title": "Meta File",
+              "description": "Define all about the test runs/suites/tests in this toml file."
+            },
+            "EXPORT_MODE": {
+              "type": "string",
+              "default": "json",
+              "enum": [
+                "html",
+                "json"
+              ],
+              "title": "Export Mode",
+              "description": "Can either be json export or html export."
+            }
           }
         }
-      }
       }
     }
   }

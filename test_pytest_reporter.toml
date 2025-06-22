@@ -1,0 +1,21 @@
+[about]
+Description = "This Test Suite is created to test the PyTest Reporter Plugin"
+
+[about.tags]
+ENV = "test"
+
+[suites]
+[suites.test_1]
+Title = "Nested Tests"
+Description = "In this Folder we have nested suites to see how handshakes would be able to capture this or not"
+
+[suites.test_1.test_sample.py]
+Title = "Nested Tests-Sample-1"
+Description = "In this first sample we have nested suites to see how handshakes would be able to capture this or not"
+
+
+[sample_project]
+[sample_project.about]
+ProjectName = "PyTest-Handshake-Plugin"
+Description = "This Test Suite is created to test the Pytest Plugin"
+
