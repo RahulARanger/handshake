@@ -1,5 +1,5 @@
 import { Box } from '@mantine/core';
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import EntitiesView from 'pages/RUNS/Suites';
 import { generateTestHierarchyWithSuites } from 'stories/TestData/test-suites';
 

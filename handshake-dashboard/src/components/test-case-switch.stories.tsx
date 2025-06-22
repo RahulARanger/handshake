@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { expect, fn, userEvent, within } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs';
+import { expect, fn, userEvent, within } from 'storybook/test';
 import SwitchTestCases from 'components/test-case-switch';
 
 // More on how to set up stories at: https://storybook.js.org/docs/writing-stories#default-export

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import AreaChartForTestRuns from 'components/about-test-runs/area-test-runs';
 import dayjs from 'dayjs';
 import { generator } from 'stories/TestData/test-case';

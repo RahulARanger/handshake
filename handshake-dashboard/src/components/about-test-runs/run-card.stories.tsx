@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { allPassed, mixed } from 'stories/TestData/test-runs';
 import TestRunCard from './run-card';
 import transformTestRunRecord from 'extractors/transform-run-record';

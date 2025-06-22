@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { generateTestRunForDemo } from 'stories/TestData/test-runs';
 import { RunsPageContent } from './test-runs-page-layout';
 import { useState } from 'react';

@@ -3,9 +3,9 @@
 import '@mantine/core/styles.css';
 import React from 'react';
 import { OurApp } from '../src/pages/_app';
-import type { Preview } from '@storybook/react';
+import type { Preview } from '@storybook/nextjs';
 // import { useEffect } from 'react';
-// import { addons } from '@storybook/preview-api';
+// import { addons } from 'storybook/preview-api';
 // import { DARK_MODE_EVENT_NAME } from 'storybook-dark-mode';
 import { useMantineColorScheme } from '@mantine/core';
 import { ReactNode } from 'react';

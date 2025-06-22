@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { TimeRange } from 'components/timings/time-range';
 import dayjs from 'dayjs';
 

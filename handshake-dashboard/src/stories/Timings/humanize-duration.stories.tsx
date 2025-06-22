@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { HumanizedDuration } from 'components/timings/humanized-duration';
 import dayjs from 'dayjs';
 import Duration from 'dayjs/plugin/duration';

@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import PassedRate from 'components/about-test-run/passed-rate';
 
 const meta = {

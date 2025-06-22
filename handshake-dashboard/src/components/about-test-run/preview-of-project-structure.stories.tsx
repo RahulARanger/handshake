@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { userEvent, within, expect, waitFor } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs';
+import { userEvent, within, expect, waitFor } from 'storybook/test';
 import { PreviewOfProjectStructure } from './preview-run';
 import {
     evenMoreDepth,

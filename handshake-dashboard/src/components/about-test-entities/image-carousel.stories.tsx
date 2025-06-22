@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { generateSampleWrittenAttachment } from 'stories/TestData/test-case';
 import ImageCarousel from './image-carousel';
 import { Chance } from 'chance';

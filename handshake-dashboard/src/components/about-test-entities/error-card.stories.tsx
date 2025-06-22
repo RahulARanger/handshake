@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import ErrorCard from './error-card';
 import { generateErrors } from 'stories/TestData/error';
 

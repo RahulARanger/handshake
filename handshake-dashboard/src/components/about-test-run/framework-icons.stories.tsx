@@ -1,5 +1,5 @@
-import type { Meta, StoryObj } from '@storybook/react';
-import { userEvent, within, expect } from '@storybook/test';
+import type { Meta, StoryObj } from '@storybook/nextjs';
+import { userEvent, within, expect } from 'storybook/test';
 import { FrameworksUsed } from 'components/about-test-run/framework-icons';
 
 const meta = {

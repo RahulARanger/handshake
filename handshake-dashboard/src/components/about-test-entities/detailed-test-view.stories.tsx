@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { DetailedViewForSuite } from './detailed-test-view';
 import { generateTestSuite } from 'stories/TestData/test-suites';
 import transformSuiteEntity, {

@@ -94,3 +94,4 @@ local-scheduler.py
 
 aws.xml
 .idea/dbnavigator.xml
+handshake-dashboard/debug-storybook.log

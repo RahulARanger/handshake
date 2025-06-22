@@ -1,4 +1,4 @@
-import type { Meta, StoryObj } from '@storybook/react';
+import type { Meta, StoryObj } from '@storybook/nextjs';
 import { Chance } from 'chance';
 import CurrentLocation from 'components/about-test-run/current-location';
 
