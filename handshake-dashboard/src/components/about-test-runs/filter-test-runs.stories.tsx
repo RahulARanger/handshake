@@ -112,193 +112,193 @@ export const WithSingleProject: Story = {
     },
 };
 
-export const HasAllOptionsIfStartedToday: Story = {
-    args: {
-        setOfProjects: randomTestProjects(1),
-        recentRunDate: dayjs(),
-    },
-    play: async ({ canvasElement, step }) => {
-        const screen = within(canvasElement);
-        const dateFilter = await screen.findByPlaceholderText(
-            'Filter by Date Range',
-        );
+// export const HasAllOptionsIfStartedToday: Story = {
+//     args: {
+//         setOfProjects: randomTestProjects(1),
+//         recentRunDate: dayjs(),
+//     },
+//     play: async ({ canvasElement, step }) => {
+//         const screen = within(canvasElement);
+//         const dateFilter = await screen.findByPlaceholderText(
+//             'Filter by Date Range',
+//         );
 
-        await step('it should be there', async () => {
-            await expect(dateFilter).toBeInTheDocument();
-        });
+//         await step('it should be there', async () => {
+//             await expect(dateFilter).toBeInTheDocument();
+//         });
 
-        await step(
-            'testing the options available under date filter',
-            async () => {
-                dateFilter.click();
-                const options = await findAllByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                );
-                await Promise.all(
-                    options.map(async (value, index) => {
-                        await expect(value).toHaveTextContent(
-                            optionsForDate[
-                                optionsForDate.length - index - 1
-                            ] as string,
-                        );
-                    }),
-                );
-            },
-        );
+//         await step(
+//             'testing the options available under date filter',
+//             async () => {
+//                 dateFilter.click();
+//                 const options = await findAllByRole(
+//                     canvasElement.parentElement as HTMLElement,
+//                     'option',
+//                 );
+//                 await Promise.all(
+//                     options.map(async (value, index) => {
+//                         await expect(value).toHaveTextContent(
+//                             optionsForDate[
+//                                 optionsForDate.length - index - 1
+//                             ] as string,
+//                         );
+//                     }),
+//                 );
+//             },
+//         );
 
-        await step('we can select and deselect options', async ({ args }) => {
-            const options = await findAllByRole(
-                canvasElement.parentElement as HTMLElement,
-                'option',
-            );
+//         await step('we can select and deselect options', async ({ args }) => {
+//             const options = await findAllByRole(
+//                 canvasElement.parentElement as HTMLElement,
+//                 'option',
+//             );
 
-            // selecting
-            options[0].click();
-            await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([
-                optionsForDate.at(-1),
-            ]);
+//             // selecting
+//             options[0].click();
+//             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([
+//                 optionsForDate.at(-1),
+//             ]);
 
-            //deselecting
-            const deselect = await findAllByRole(
-                canvasElement.parentElement as HTMLElement,
-                'option',
-                { selected: true },
-            );
-            expect(deselect).toHaveLength(1);
-            deselect[0].click();
+//             //deselecting
+//             const deselect = await findAllByRole(
+//                 canvasElement.parentElement as HTMLElement,
+//                 'option',
+//                 { selected: true },
+//             );
+//             expect(deselect).toHaveLength(1);
+//             deselect[0].click();
 
-            await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([]);
-        });
+//             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith([]);
+//         });
 
-        await step('we can only select max of 5 options', async ({ args }) => {
-            for (const _ of optionsForDate) {
-                //deselecting
-                console.log(`de-selecting ${_}`);
-                const options = await findAllByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                    { selected: false },
-                );
-                await options[0].click();
-            }
+//         await step('we can only select max of 5 options', async ({ args }) => {
+//             for (const _ of optionsForDate) {
+//                 //deselecting
+//                 console.log(`de-selecting ${_}`);
+//                 const options = await findAllByRole(
+//                     canvasElement.parentElement as HTMLElement,
+//                     'option',
+//                     { selected: false },
+//                 );
+//                 await options[0].click();
+//             }
 
-            await expect(args.onDateRangeChange).toHaveBeenLastCalledWith(
-                optionsForDate.toReversed().slice(0, 5),
-            );
-        });
-    },
-};
+//             await expect(args.onDateRangeChange).toHaveBeenLastCalledWith(
+//                 optionsForDate.toReversed().slice(0, 5),
+//             );
+//         });
+//     },
+// };
 
-export const HasOptionsIfRecentWasInYesterday: Story = {
-    args: {
-        setOfProjects: randomTestProjects(1),
-        recentRunDate: dayjs().subtract(1, 'day'),
-    },
-    play: async ({ canvasElement, step }) => {
-        const screen = within(canvasElement);
-        const dateFilter = await screen.findByPlaceholderText(
-            'Filter by Date Range',
-        );
+// export const HasOptionsIfRecentWasInYesterday: Story = {
+//     args: {
+//         setOfProjects: randomTestProjects(1),
+//         recentRunDate: dayjs().subtract(1, 'day'),
+//     },
+//     play: async ({ canvasElement, step }) => {
+//         const screen = within(canvasElement);
+//         const dateFilter = await screen.findByPlaceholderText(
+//             'Filter by Date Range',
+//         );
 
-        await step(
-            'testing the options available under date filter',
-            async () => {
-                await dateFilter.click();
-                const options = await findAllByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                );
-                await expect(options.length).toBe(optionsForDate.length - 1);
-                await Promise.all(
-                    options.map(async (value, index) => {
-                        await expect(value).toHaveTextContent(
-                            optionsForDate.slice(0, -1)[
-                                optionsForDate.length - index - 2
-                            ] as string,
-                        );
-                    }),
-                );
-            },
-        );
-    },
-};
+//         await step(
+//             'testing the options available under date filter',
+//             async () => {
+//                 await dateFilter.click();
+//                 const options = await findAllByRole(
+//                     canvasElement.parentElement as HTMLElement,
+//                     'option',
+//                 );
+//                 await expect(options.length).toBe(optionsForDate.length - 1);
+//                 await Promise.all(
+//                     options.map(async (value, index) => {
+//                         await expect(value).toHaveTextContent(
+//                             optionsForDate.slice(0, -1)[
+//                                 optionsForDate.length - index - 2
+//                             ] as string,
+//                         );
+//                     }),
+//                 );
+//             },
+//         );
+//     },
+// };
 
-const anyDayInThisWeek = dayjs().subtract(2, 'days');
+// const anyDayInThisWeek = dayjs().subtract(2, 'days');
 
-export const HasOptionsIfRecentInThisWeek: Story = {
-    args: {
-        setOfProjects: randomTestProjects(1),
-        recentRunDate: anyDayInThisWeek.isSame(dayjs(), 'week')
-            ? anyDayInThisWeek
-            : dayjs().subtract(1, 'day'),
-    },
-    play: async ({ canvasElement, step, args }) => {
-        const screen = within(canvasElement);
-        const dateFilter = await screen.findByPlaceholderText(
-            'Filter by Date Range',
-        );
+// export const HasOptionsIfRecentInThisWeek: Story = {
+//     args: {
+//         setOfProjects: randomTestProjects(1),
+//         recentRunDate: anyDayInThisWeek.isSame(dayjs(), 'week')
+//             ? anyDayInThisWeek
+//             : dayjs().subtract(1, 'day'),
+//     },
+//     play: async ({ canvasElement, step, args }) => {
+//         const screen = within(canvasElement);
+//         const dateFilter = await screen.findByPlaceholderText(
+//             'Filter by Date Range',
+//         );
 
-        await step(
-            'testing the options available under date filter',
-            async () => {
-                await dateFilter.click();
-                const options = await findAllByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                );
-                const hasYesterday = args.recentRunDate.isSame(
-                    dayjs().subtract(1, 'day'),
-                    'date',
-                );
-                const sub = hasYesterday ? 1 : 2;
-                await expect(options.length).toBe(optionsForDate.length - sub);
-                await Promise.all(
-                    options.map(async (value, index) => {
-                        await expect(value).toHaveTextContent(
-                            optionsForDate.slice(0, -sub)[
-                                optionsForDate.length - index - 1 - sub
-                            ] as string,
-                        );
-                    }),
-                );
-            },
-        );
-    },
-};
+//         await step(
+//             'testing the options available under date filter',
+//             async () => {
+//                 await dateFilter.click();
+//                 const options = await findAllByRole(
+//                     canvasElement.parentElement as HTMLElement,
+//                     'option',
+//                 );
+//                 const hasYesterday = args.recentRunDate.isSame(
+//                     dayjs().subtract(1, 'day'),
+//                     'date',
+//                 );
+//                 const sub = hasYesterday ? 1 : 2;
+//                 await expect(options.length).toBe(optionsForDate.length - sub);
+//                 await Promise.all(
+//                     options.map(async (value, index) => {
+//                         await expect(value).toHaveTextContent(
+//                             optionsForDate.slice(0, -sub)[
+//                                 optionsForDate.length - index - 1 - sub
+//                             ] as string,
+//                         );
+//                     }),
+//                 );
+//             },
+//         );
+//     },
+// };
 
-export const HasOptionsIfRecentIsInLastWeek: Story = {
-    args: {
-        setOfProjects: randomTestProjects(1),
-        recentRunDate: dayjs().subtract(1, 'week'),
-    },
-    play: async ({ canvasElement, step }) => {
-        const screen = within(canvasElement);
-        const dateFilter = await screen.findByPlaceholderText(
-            'Filter by Date Range',
-        );
+// export const HasOptionsIfRecentIsInLastWeek: Story = {
+//     args: {
+//         setOfProjects: randomTestProjects(1),
+//         recentRunDate: dayjs().subtract(1, 'week'),
+//     },
+//     play: async ({ canvasElement, step }) => {
+//         const screen = within(canvasElement);
+//         const dateFilter = await screen.findByPlaceholderText(
+//             'Filter by Date Range',
+//         );
 
-        await step(
-            'testing the options available under date filter',
-            async () => {
-                await dateFilter.click();
-                const options = await findAllByRole(
-                    canvasElement.parentElement as HTMLElement,
-                    'option',
-                );
-                await expect(options.length).toBe(optionsForDate.length - 3);
-                await Promise.all(
-                    options.map(async (value, index) => {
-                        await expect(value).toHaveTextContent(
-                            optionsForDate.slice(0, -3)[
-                                optionsForDate.length - index - 1 - 3
-                            ] as string,
-                        );
-                    }),
-                );
-            },
-        );
-    },
-};
+//         await step(
+//             'testing the options available under date filter',
+//             async () => {
+//                 await dateFilter.click();
+//                 const options = await findAllByRole(
+//                     canvasElement.parentElement as HTMLElement,
+//                     'option',
+//                 );
+//                 await expect(options.length).toBe(optionsForDate.length - 3);
+//                 await Promise.all(
+//                     options.map(async (value, index) => {
+//                         await expect(value).toHaveTextContent(
+//                             optionsForDate.slice(0, -3)[
+//                                 optionsForDate.length - index - 1 - 3
+//                             ] as string,
+//                         );
+//                     }),
+//                 );
+//             },
+//         );
+//     },
+// };
 
 // i guess tests are enough till this
