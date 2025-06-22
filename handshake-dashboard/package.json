@@ -1,7 +1,7 @@
 {
   "name": "handshake-dashboard",
   "description": "Dashboard for your handshake Test Results collection.",
-  "version": "0.9.4",
+  "version": "0.10.0",
   "license": "MIT",
   "private": "true",
   "scripts": {
