@@ -204,7 +204,7 @@ class Scheduler:
 
         async def add_export_jobs():
             if not self.excel_export:
-                return
+                return None
 
             test_ids_to_pick = await RunBase.filter(
                 ~Q(
@@ -227,15 +227,20 @@ class Scheduler:
         await gather(pick_old_tasks(), reset_completed_runs(), add_export_jobs())
         logger.debug("Pre-Patch Jobs have been initiated")
 
-    async def start(self, config_path: Optional[str] = None):
+    async def start(self, config_path: Optional[str] = None, meta_file: str  = ""):
         await init_tortoise_orm(self.db_path, True, config_path=config_path)
         self.connection = connections.get("default")
         await self.rotate_test_runs()
         await self.init_jobs()
 
-        await patch_jobs(self.excel_export, self.db_path)
+        await patch_jobs(self.excel_export, self.db_path, meta_file)
 
         if not self.skip_export:
             await self.exporter.start_exporting()
 
         await close_connection()
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio.run(Scheduler("../../../TestResults", dev=True).start(meta_file=Path("../../../test_pytest_reporter.toml")))

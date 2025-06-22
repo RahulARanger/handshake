@@ -1,5 +1,6 @@
 from handshake.services.DBService.models.dynamic_base import TaskBase
 from handshake.services.DBService.models.result_base import SuiteBase, Status, SuiteType
+from handshake.services.SchedularService.loadConfigFile import load_from_meta
 from handshake.services.SchedularService.modifySuites import patchTestSuite
 from handshake.services.SchedularService.constants import JobType
 from handshake.services.SchedularService.completeTestRun import patchTestRun
@@ -34,7 +35,7 @@ async def get_tasks():
     )
 
 
-async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
+async def patch_jobs(include_excel_export: bool = False, db_path: Path = None, meta_file: str = ""):
     tasks = await get_tasks()
     first_time = True
     before = len(tasks)
@@ -128,7 +129,7 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
 
         bar.update(before if before else 1)
 
-    logger.debug("Processing Test Runs")
+    logger.debug("Processing Test Runs & Loading from meta file")
     async with TaskGroup() as patcher:
         for job in await TaskBase.filter(
             Q(type=JobType.MODIFY_TEST_RUN) & Q(picked=False) & Q(processed=False)
@@ -136,6 +137,15 @@ async def patch_jobs(include_excel_export: bool = False, db_path: Path = None):
             job.picked = True
             await job.save()
             patcher.create_task(patchTestRun(job.ticketID), name=job.ticketID)
+
+    async with TaskGroup() as importer:
+        for job in await TaskBase.filter(
+            Q(type=JobType.LOAD_META_FILE)
+            & Q(picked=False) & Q(processed=False)
+        ).all():
+            job.picked = True
+            await job.save()
+            importer.create_task(load_from_meta(job.ticketID, meta_file), name=job.ticketID)
 
     if not (db_path and include_excel_export and excel_export):
         logger.debug("Done!")

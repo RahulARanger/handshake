@@ -43,18 +43,18 @@ jobs:
           cache-dependency-path: handshake-nodejs-reporters/pnpm-lock.yaml
 
       - name: Installing node packages
-        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        working-directory: handshake-dashboard
         run: pnpm install
 
       - name: prep env variables
-        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        working-directory: handshake-dashboard
         run: |
           touch .env
           echo "CLARITY=${{ secrets.CLARITY }}" >> .env
           ls -a
 
       - name: Building Dashboard
-        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        working-directory: handshake-dashboard
         run: pnpm build
 
       - name: Zipping the dashboard export
@@ -221,17 +221,17 @@ jobs:
           node-version: 20.9.0
 
       - name: Installing node packages
-        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        working-directory: handshake-dashboard
         run: pnpm install
 
       - name: Building storybook
-        working-directory: ./handshake-nodejs-reporters/packages/handshake-dashboard
+        working-directory: handshake-dashboard
         run: pnpm build-storybook --quiet
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./handshake-nodejs-reporters/packages/handshake-dashboard/storybook-static
+          path: handshake-dashboard/storybook-static
 
       - name: Deploy to GitHub Pages
         id: deployment

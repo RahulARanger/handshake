@@ -10,6 +10,7 @@ class JobType(StrEnum):
     PRUNE_TASKS = "prune-tasks"
     DELETE_RUNS = "delete-runs"
     EXPORT_EXCEL = "export-excel-job"
+    LOAD_META_FILE = "load-meta-file"
 
 
 writtenAttachmentFolderName = "Attachments"

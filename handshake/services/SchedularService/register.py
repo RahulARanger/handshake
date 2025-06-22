@@ -26,6 +26,12 @@ async def register_patch_test_run(testID: str, connection=None) -> TaskBase:
         ticketID=testID,
         using_db=connection,
     )
+    __, ___ = await TaskBase.get_or_create(
+        type=JobType.LOAD_META_FILE,
+        test_id=testID,
+        ticketID=str(uuid4()),
+        using_db=connection,
+    )
     return _
 
 
