@@ -24,7 +24,7 @@ module.exports = (phase, { defaultConfig }) => {
         images: {
             unoptimized: true,
         },
-        distDir: is_dev ? 'dist' : '../../../dashboard',
+        distDir: is_dev ? 'dist' : '../dashboard',
     };
 
     return withBundleAnalyzer ? withBundleAnalyzer(nextConfig) : nextConfig;
