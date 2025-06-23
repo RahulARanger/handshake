@@ -1,6 +1,7 @@
 import subprocess
 import uuid
 from typing import Optional
+from loguru import logger
 from pytest import fixture, mark
 from pathlib import Path
 from handshake.services.DBService.shared import db_path as shared_db_path
@@ -10,6 +11,7 @@ from handshake.services.DBService.lifecycle import (
     close_connection,
     DB_VERSION,
 )
+from json import dumps
 from handshake.services.DBService.models import (
     RunBase,
     SessionBase,
@@ -97,8 +99,45 @@ async def clean_close(db_path, init_db):
 
 
 async def helper_create_test_config(
-    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None
+    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None, tags=None, manual=False
 ):
+    if manual:
+        conn = (connection if connection else connections.get("default"))
+        await conn.execute_query(
+            '''
+            INSERT INTO "testconfigbase" (
+                "test_id",
+                "fileRetries",
+                "framework",
+                "platform",
+                "maxInstances",
+                "avoidParentSuitesInCount"
+            ) VALUES (?, ?, ?,  ?, ?, ?)
+            ON CONFLICT("test_id") DO UPDATE SET
+                "fileRetries" = excluded."fileRetries",
+                "framework" = excluded."framework",
+                "platform" = excluded."platform",
+                "maxInstances" = excluded."maxInstances",
+                "avoidParentSuitesInCount" = excluded."avoidParentSuitesInCount"
+            ''',
+            [
+                test_id,
+                file_retries,
+                "pytest",
+                "windows",
+                1,
+                avoidParentSuitesInCount,
+            ],
+        )
+        if tags:
+            try:
+                await conn.execute_query("UPDATE testconfigbase set tags = ? WHERE test_id = ?", [dumps(tags or []), test_id])
+            except Exception as error:
+                logger.exception("Failed to add tags")
+                raise error
+
+        return
+
     await TestConfigBase.update_or_create(
         fileRetries=file_retries,
         framework="pytest",
@@ -182,7 +221,7 @@ def helper_to_create_test_and_session():
     return create_test_and_session
 
 
-@fixture
+@fixture()
 def attach_config():
     return helper_create_test_config
 

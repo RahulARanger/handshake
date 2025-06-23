@@ -118,6 +118,10 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
         description="status of the test run marked by the test framework",
         default=RunStatus.PENDING,
     )
+    tags = JSONField(
+        default=[],
+        description="comma separated list of tags (used by framework) to filter the spec files",
+    )
 
 
 class SessionBase(CommonDetailedFields):

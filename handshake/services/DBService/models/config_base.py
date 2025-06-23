@@ -53,11 +53,6 @@ class TestConfigBase(Model):
         default=0,
         description="if > 0 then it means that run would stop if it finds this number of test cases failed",
     )
-    tags = JSONField(
-        default=[],
-        null=False,
-        description="comma separated list of tags (used by framework) to filter the spec files",
-    )
 
 
 class MigrationBase(Model):
