@@ -134,8 +134,6 @@ def step_back(collection_path: str):
     from_version = (check_version(path=path_to_refer, is_auto=True))[-1]
     if confirm(f"Do you want revert from v{from_version} to v{from_version - 1}"):
         revert_step_back(from_version, path_to_refer)
-        # sometimes you might be removing something from configbase
-        run(init_tortoise_orm(path_to_refer, False, True, True, avoid_config=True))
 
 
 @handle_cli.command(

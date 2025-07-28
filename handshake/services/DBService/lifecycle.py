@@ -1,8 +1,7 @@
 from json import loads, dumps
 from handshake.services.DBService.models.config_base import ConfigBase
-from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
-from handshake.services.DBService.migrator import migration
+from handshake.services.DBService.migrator import migration, config_script
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
@@ -70,9 +69,8 @@ async def init_tortoise_orm(
     chosen = force_db_path if force_db_path else db_path()
     force_init_scripts = not chosen.exists()
     # migrator is called here
-    migrated = False
     if migrate:
-        migrated = migration(chosen)
+        migration(chosen)
 
     # creating a connection
     await Tortoise.init(
@@ -84,7 +82,7 @@ async def init_tortoise_orm(
 
     test = TestConfigManager(chosen, config_path)
     # we run the init scripts for the newly created db
-    await test.sync(migrated or init_script or force_init_scripts, avoid_config)
+    await test.sync(init_script or force_init_scripts, avoid_config)
 
     if close_it:
         await close_connection()
@@ -130,12 +128,7 @@ class TestConfigManager:
     ):
         if init_script:
             await connections.get("default").execute_script(
-                f"""
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('MAX_RUNS_PER_PROJECT', '10', '0');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '1', '1');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('VERSION', '{DB_VERSION}', '1');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
-            """,
+                config_script
             )
         if avoid_config:
             return None

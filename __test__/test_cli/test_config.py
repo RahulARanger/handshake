@@ -1,13 +1,13 @@
 from subprocess import run
 from json import loads, dumps
+
+from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.models import ConfigBase
 from handshake.services.DBService.lifecycle import (
     TestConfigManager,
     db_path,
-    DB_VERSION,
 )
-
 
 async def test_default_config_file(root_dir):
     target = root_dir / "handshake.json"

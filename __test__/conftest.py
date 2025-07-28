@@ -3,12 +3,13 @@ import uuid
 from typing import Optional
 from pytest import fixture, mark
 from pathlib import Path
+
+from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.shared import db_path as shared_db_path
 from tortoise.connection import connections
 from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     close_connection,
-    DB_VERSION,
 )
 from handshake.services.DBService.models import (
     RunBase,
