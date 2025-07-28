@@ -174,7 +174,7 @@ class ExcelExporter(Exporter):
         )
         self.test_summary_row += 1
 
-        for status in ("passed", "failed", "skipped", "xfailed", "xpassed"):
+        for status in ("passed", "skipped", "failed", "xfailed", "xpassed"):
             edit_cell(
                 index_sheet,
                 self.test_summary_row,
@@ -183,15 +183,15 @@ class ExcelExporter(Exporter):
             )
             self.test_summary_row += 1  # at the end of the loop for overall percentage
 
-        edit_cell(
+        add_comment_to_cell(edit_cell(
             index_sheet,
             self.test_summary_row,
             self.test_summary_col,
             calc_percentage(
-                summary["passedSuites"] + summary["skippedSuites"],
-                summary["suites"],
+                summary["passed"] + summary["skipped"],
+                summary["tests"],
             ),
-        )
+        ), "((No. of Test Passed + Skipped) / Total Number of Tests) %")
         self.test_summary_row += 2  # files, platform
         self.test_summary_files_row = self.test_summary_row - 1
 
