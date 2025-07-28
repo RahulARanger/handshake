@@ -70,8 +70,9 @@ async def init_tortoise_orm(
     chosen = force_db_path if force_db_path else db_path()
     force_init_scripts = not chosen.exists()
     # migrator is called here
+    migrated = False
     if migrate:
-        migration(chosen)
+        migrated = migration(chosen)
 
     # creating a connection
     await Tortoise.init(
@@ -83,14 +84,14 @@ async def init_tortoise_orm(
 
     test = TestConfigManager(chosen, config_path)
     # we run the init scripts for the newly created db
-    await test.sync(init_script or force_init_scripts, avoid_config)
+    await test.sync(migrated or init_script or force_init_scripts, avoid_config)
 
     if close_it:
         await close_connection()
 
 
-async def create_run(projectName: str) -> str:
-    test_id = str((await RunBase.create(projectName=projectName)).testID)
+async def create_run(project_name: str) -> str:
+    test_id = str((await RunBase.create(projectName=project_name)).testID)
     return test_id
 
 
@@ -131,7 +132,7 @@ class TestConfigManager:
             await connections.get("default").execute_script(
                 f"""
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('MAX_RUNS_PER_PROJECT', '10', '0');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '', '1');
+            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '1', '1');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('VERSION', '{DB_VERSION}', '1');
             INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
             """,
