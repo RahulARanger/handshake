@@ -23,7 +23,7 @@ async def test_rollback_migration(get_vth_connection, db_path, root_dir):
     # testing to see if the changes are committed or not (expectation: rollback)
     connection = await get_vth_connection(db_path, OLDEST_VERSION)
     await connection.execute_query(
-        "drop table taskbase;",
+        "drop table suitebase;",
     )
     # we corrupt the database and see what would happen. 😈
 
@@ -39,4 +39,4 @@ async def test_rollback_migration(get_vth_connection, db_path, root_dir):
     record = await assert_migration(
         OLDEST_VERSION, DB_VERSION, MigrationStatus.FAILED, MigrationTrigger.AUTOMATIC
     )
-    assert "no such table: taskbase" in record.error
+    assert "no such table: suitebase" in record.error

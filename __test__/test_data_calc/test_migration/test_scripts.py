@@ -277,8 +277,8 @@ class TestMigrationScripts:
         assert f"Migrated to latest version v{DB_VERSION}!" in result.stderr.decode()
 
     async def test_revert_step_back(self, get_vth_connection, db_path):
-        await get_vth_connection(db_path, 7)
-        assert (await get_version()) == "7"
-        revert_step_back(7, db_path)
-        await assert_migration(7, 6, MigrationStatus.PASSED, MigrationTrigger.CLI)
-        assert (await get_version()) == "6"
+        await get_vth_connection(db_path, DB_VERSION)
+        assert (await get_version()) == str(DB_VERSION)
+        revert_step_back(DB_VERSION, db_path)
+        await assert_migration(DB_VERSION, DB_VERSION - 1, MigrationStatus.PASSED, MigrationTrigger.CLI)
+        assert (await get_version()) == str(DB_VERSION - 1)
