@@ -10,6 +10,7 @@ dist/*
 
 # testing
 .nox
+*.iml
 
 results
 test-results/*
