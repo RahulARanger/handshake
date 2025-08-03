@@ -1,4 +1,4 @@
-alter table runbase add column tags JSON DEFAULT '[]';
+alter table runbase add column tags JSON NOT NULL DEFAULT '[]';
 UPDATE runbase
 SET tags = (
   SELECT tc.tags
