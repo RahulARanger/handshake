@@ -209,10 +209,17 @@ async def create_test_and_session(
             if fix_tags:
                 vals.append('[]')
 
+            columns = '"started","ended","tests","passed","failed","skipped","duration","retried",' \
+                      '"standing","testID","projectName","specStructure","exitCode"'
+            if fix_tags:
+                columns += ',"tags"'
+
+            placeholders = "?,?,?,?,?,?,?,?,?,?,?,?,?"
+            if fix_tags:
+                placeholders += ",?"
+
             await (connection if connection else connections.get("default")).execute_query(
-                'INSERT INTO "runbase" ("started","ended","tests","passed","failed","skipped","duration","retried",'
-                f'"standing","testID","projectName","specStructure","exitCode" {',"tags"' if fix_tags else ''}) VALUES (?,?,?,?,?,'
-                f"?,?,?,?,?,?,?,?{', ?' if fix_tags else ''})",
+                f'INSERT INTO "runbase" ({columns}) VALUES ({placeholders})',
                 vals
             )
         except Exception as error:
