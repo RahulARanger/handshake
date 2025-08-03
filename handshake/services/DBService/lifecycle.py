@@ -1,8 +1,7 @@
 from json import loads, dumps
 from handshake.services.DBService.models.config_base import ConfigBase
-from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.result_base import RunBase
-from handshake.services.DBService.migrator import migration
+from handshake.services.DBService.migrator import migration, config_script
 from tortoise import Tortoise, connections
 from handshake.services.DBService.shared import db_path
 from pathlib import Path
@@ -89,8 +88,8 @@ async def init_tortoise_orm(
         await close_connection()
 
 
-async def create_run(projectName: str) -> str:
-    test_id = str((await RunBase.create(projectName=projectName)).testID)
+async def create_run(project_name: str) -> str:
+    test_id = str((await RunBase.create(projectName=project_name)).testID)
     return test_id
 
 
@@ -129,12 +128,7 @@ class TestConfigManager:
     ):
         if init_script:
             await connections.get("default").execute_script(
-                f"""
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('MAX_RUNS_PER_PROJECT', '10', '0');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '', '1');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('VERSION', '{DB_VERSION}', '1');
-            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
-            """,
+                config_script
             )
         if avoid_config:
             return None

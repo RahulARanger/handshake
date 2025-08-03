@@ -158,6 +158,8 @@ class Scheduler:
             logger.debug(
                 "we would be processing the test runs again, we can expect updated results."
             )
+        if reset_from_config.value:
+            logger.warning("There are few updates from the handshakes packages (Improvements) applying them to existing test runs as well.")
 
         to_reset = (
             (Q(type=JobType.MODIFY_TEST_RUN) | Q(type=JobType.EXPORT_EXCEL))

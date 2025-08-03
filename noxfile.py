@@ -90,8 +90,11 @@ def zip_results(session):
 
 @nox.session(venv_backend="none")
 def setup_handshakes(session):
-    venv_name = "venv"
-    venv = Path(__file__).parent / venv_name
-    if not venv.exists():
+    for venv_name in ("venv", ".venv"):
+        venv = Path(__file__).parent / venv_name
+        create_it = not venv.exists()
+        if not create_it:
+            break
+    if create_it:
         session.run("python", "-m", "venv", venv_name, external=True)
     session.run("poetry", "install", external=True)
