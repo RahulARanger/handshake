@@ -211,7 +211,7 @@ async def create_test_and_session(
 
             await (connection if connection else connections.get("default")).execute_query(
                 'INSERT INTO "runbase" ("started","ended","tests","passed","failed","skipped","duration","retried",'
-                f'"standing","testID","projectName","specStructure","exitCode" {', tags' if fix_tags else ''}) VALUES (?,?,?,?,?,'
+                f'"standing","testID","projectName","specStructure","exitCode" {',"tags"' if fix_tags else ''}) VALUES (?,?,?,?,?,'
                 f"?,?,?,?,?,?,?,?{', ?' if fix_tags else ''})",
                 vals
             )
