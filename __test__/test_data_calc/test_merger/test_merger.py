@@ -434,7 +434,7 @@ class TestMerger:
         # save it in second_connection
 
         test_id, session_1 = await helper_to_create_test_and_session(
-            manual_insert_test_run=True, connection=first_connection, return_id=True
+            manual_insert_test_run=True, connection=first_connection, return_id=True, fix_tags=(DB_VERSION - 1) >= 15
         )
         await create_session_with_hierarchy_with_no_retries(
             test_id,

@@ -183,31 +183,41 @@ def helper_set_db_config():
 
 
 async def create_test_and_session(
-    postfix="", manual_insert_test_run=False, connection=None, return_id=False
+    postfix="", fix_tags=False, manual_insert_test_run=False, connection=None, return_id=False
 ):
     if manual_insert_test_run:
         # used only in test cases that too, on db with old versions
         test_id = str(uuid.uuid4())
-        await (connection if connection else connections.get("default")).execute_query(
-            'INSERT INTO "runbase" ("started","ended","tests","passed","failed","skipped","duration","retried",'
-            '"standing","testID","projectName","specStructure","exitCode") VALUES (?,?,?,?,?,'
-            "?,?,?,?,?,?,?,?)",
-            [
-                "2024-09-14 17:33:57.568757+00:00",
-                "2024-09-14 17:43:57.568757+00:00",
-                2,
-                2,
-                0,
-                0,
-                0,
-                2,
-                "PENDING",
-                test_id,
-                "sample-test",
-                "{}",
-                0,
-            ],
-        )
+        try:
+            # we have fix tags to use for v15 onwards
+            vals = [
+                    "2024-09-14 17:33:57.568757+00:00",
+                    "2024-09-14 17:43:57.568757+00:00",
+                    2,
+                    2,
+                    0,
+                    0,
+                    0,
+                    2,
+                    "PENDING",
+                    test_id,
+                    "sample-test",
+                    "{}",
+                    0,
+
+                ]
+            if fix_tags:
+                vals.append('[]')
+
+            await (connection if connection else connections.get("default")).execute_query(
+                'INSERT INTO "runbase" ("started","ended","tests","passed","failed","skipped","duration","retried",'
+                f'"standing","testID","projectName","specStructure","exitCode" {",tags" if fix_tags else ''}) VALUES (?,?,?,?,?,'
+                f"?,?,?,?,?,?,?,?{",?" if fix_tags else ''})",
+                vals
+            )
+        except Exception as error:
+            print("FYI: ", error)
+            raise error
     else:
         test_id = (await sample_test_run(postfix, connection)).testID
 

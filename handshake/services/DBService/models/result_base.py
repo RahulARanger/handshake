@@ -119,7 +119,7 @@ class RunBase(CommonDetailedFields, EntityBaseSpecific):
         default=RunStatus.PENDING,
     )
     tags = JSONField(
-        default=[],
+        default=[], null=False,
         description="comma separated list of tags (used by framework) to filter the spec files",
     )
 

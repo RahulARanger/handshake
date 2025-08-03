@@ -1,4 +1,4 @@
-ALTER TABLE testconfigbase ADD COLUMN tags JSON DEFAULT '[]';
+ALTER TABLE testconfigbase ADD COLUMN tags JSON NOT NULL DEFAULT '[]';
 UPDATE testconfigbase
 SET tags = (
   SELECT r.tags
