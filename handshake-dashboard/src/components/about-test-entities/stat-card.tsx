@@ -72,13 +72,15 @@ export default function StatCard(properties: {
     suite: ParsedSuiteRecord;
     testRecord: DetailedTestRecord;
 }) {
+    console.log("HERE", properties.suite)
+    console.log("TEST", properties.testRecord)
     const percentageOfDuration = percentage(
         properties.suite.Duration.asSeconds(),
         properties.testRecord.Duration.asSeconds(),
     );
     const percentageFailedComparedToRun = percentage(
         properties.suite.RollupValues[1],
-        properties.testRecord.Rate[1],
+        properties.testRecord.Rate[1]
     );
     const isSuite = properties.suite.type === 'SUITE';
     return (
@@ -97,17 +99,17 @@ export default function StatCard(properties: {
                     />
                     <StatValue
                         status="SKIPPED"
-                        value={properties.suite.RollupValues[1]}
+                        value={properties.suite.RollupValues[2]}
                         total={properties.suite.totalRollupValue}
                     />
                     <StatValue
                         status="XFAILED"
-                        value={properties.suite.RollupValues[1]}
+                        value={properties.suite.RollupValues[3]}
                         total={properties.suite.totalRollupValue}
                     />
                     <StatValue
                         status="XPASSED"
-                        value={properties.suite.RollupValues[1]}
+                        value={properties.suite.RollupValues[4]}
                         total={properties.suite.totalRollupValue}
                     />
                 </Group>}

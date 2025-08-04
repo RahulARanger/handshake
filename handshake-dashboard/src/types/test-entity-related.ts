@@ -36,9 +36,11 @@ export interface SimpleSuiteDetails {
 
 export interface SuiteRecordDetails
     extends RecurringFields,
-        SimpleSuiteDetails {
+    SimpleSuiteDetails {
     rollup_passed: number;
+    rollup_xpassed: number;
     rollup_failed: number;
+    rollup_xfailed: number;
     rollup_skipped: number;
     rollup_tests: number;
     hasChildSuite: boolean;

@@ -79,6 +79,12 @@ def check_version(
         version_stored,  # what was the version stored?
     )
 
+config_script = f"""
+            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('MAX_RUNS_PER_PROJECT', '10', '0');
+            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RESET_FIX_TEST_RUN', '1', '1');
+            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('VERSION', '{DB_VERSION}', '1');
+            INSERT OR IGNORE INTO configbase("key", "value", "readonly") VALUES('RECENTLY_DELETED', '0', '1');
+            """
 
 def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> bool:
     if not path.exists():
@@ -127,6 +133,7 @@ def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> 
             trigger,
             True,
         )
+        connection.executescript(config_script)
         connection.commit()
         logger.info("Migrated to latest version v{}!", to_version)
         return True
@@ -145,6 +152,7 @@ def migration(path: Path, trigger=MigrationTrigger.AUTOMATIC, do_once=False) -> 
             False,
             error,
         )
+        connection.executescript(config_script)
         connection.commit()
         return False
     finally:
@@ -181,6 +189,7 @@ def revert_step_back(
     try:
         connection.executescript(script.read_text())
         log_migration(connection, to_revert, to_revert - 1, MigrationTrigger.CLI, True)
+        connection.executescript(config_script)
         connection.commit()
         logger.info("Done!, you are now at: v{}", to_revert - 1)
 
@@ -194,6 +203,7 @@ def revert_step_back(
         log_migration(
             connection, to_revert, to_revert - 1, MigrationTrigger.CLI, False, error
         )
+        connection.executescript(config_script)
         connection.commit()
     finally:
         connection.close()

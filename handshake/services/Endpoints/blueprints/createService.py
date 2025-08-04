@@ -61,10 +61,19 @@ async def register_test_session(request: Request) -> HTTPResponse:
 @create_service.post("/RunConfig")
 async def create_test_run_config(request: Request) -> HTTPResponse:
     run_config = PydanticModalForCreatingTestRunConfigBase.model_validate(request.json)
+
+    config =  {**run_config.model_dump()}
+    tags = config.pop("tags", []) if "tags" in config else []
+
     _, created = await TestConfigBase.get_or_create(
         test_id=get_test_id(),
-        **run_config.model_dump(),
+        **config,
     )
+    if tags:
+        test = await created.test
+        if hasattr(test, "tags"):
+            await test.update_from_dict(dict(tags=tags))
+            await test.save()
 
     return text(
         (

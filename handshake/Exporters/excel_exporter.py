@@ -61,7 +61,7 @@ class ExcelExporter(Exporter):
     test_link = {}
 
     test_summary_row = 3
-    test_summary_col = 4
+    test_summary_col = 3
     test_summary_files_row = -1
 
     def __init__(self, db_path: Path, dev_run: bool = False):
@@ -174,7 +174,7 @@ class ExcelExporter(Exporter):
         )
         self.test_summary_row += 1
 
-        for status in ("passed", "failed", "skipped", "xfailed", "xpassed"):
+        for status in ("passed", "skipped", "failed", "xfailed", "xpassed"):
             edit_cell(
                 index_sheet,
                 self.test_summary_row,
@@ -183,15 +183,15 @@ class ExcelExporter(Exporter):
             )
             self.test_summary_row += 1  # at the end of the loop for overall percentage
 
-        edit_cell(
+        add_comment_to_cell(edit_cell(
             index_sheet,
             self.test_summary_row,
             self.test_summary_col,
             calc_percentage(
-                summary["passedSuites"] + summary["skippedSuites"],
-                summary["suites"],
+                summary["passed"] + summary["skipped"],
+                summary["tests"],
             ),
-        )
+        ), "((No. of Test Passed + Skipped) / Total Number of Tests) %")
         self.test_summary_row += 2  # files, platform
         self.test_summary_files_row = self.test_summary_row - 1
 
@@ -288,6 +288,7 @@ class ExcelExporter(Exporter):
         )
         alias = {
             "aliasID": "Alias",
+            "parent": 'Parent Suite',
             "numberOfErrors": "Errors",
             "duration": "test_duration",
             "tests": "passed%",
@@ -384,7 +385,7 @@ class ExcelExporter(Exporter):
                             resize_col(suites_sheet, cell, 30)
                             resize = False
                     case "parent":
-                        to_save = "〰️"
+                        to_save = "〰"
                         cell.alignment = Alignment("center", "center")
                         if value and self.parent_links[value]:
                             to_save = f"{suite['parent_title']} 🔗"
@@ -392,7 +393,7 @@ class ExcelExporter(Exporter):
                             resize = True
                             add_comment_to_cell(cell, self.parent_links[value][1])
                     case "Parent Alias":
-                        to_save = "〰️"
+                        to_save = "〰"
                         cell.alignment = Alignment("center", "center")
                         if value:
                             to_save = f"{value[-1]} 🔗"
@@ -462,6 +463,7 @@ class ExcelExporter(Exporter):
         )
         alias = {
             "aliasID": "alias",
+            "parent": "Parent Suite",
             "duration": "test_duration",
             "numberOfErrors": "Errors",
             "simplified": "Ran with",
@@ -689,7 +691,7 @@ class ExcelExporter(Exporter):
                             resize_col(assertion_sheet, cell, 30)
                             resize = False
                     case "entity_id":
-                        to_save = "〰️"
+                        to_save = "〰"
                         cell.alignment = Alignment("center", "center")
                         link, tip, parent_alias = self.parent_links.get(
                             value, ("", "", "")
@@ -700,7 +702,7 @@ class ExcelExporter(Exporter):
                             resize = True
                             add_comment_to_cell(cell, tip)
                     case "Test Alias":
-                        to_save = "〰️"
+                        to_save = "〰"
                         cell.alignment = Alignment("center", "center")
                         link, tip, parent_alias = value
                         if value and link:
@@ -757,7 +759,7 @@ def copy_format_to_cell(
 ):
     for rule in formatting_rules.rules:
         sheet.conditional_formatting.add(
-            f"{cell.column_letter}{cell.row}",
+            f"${cell.column_letter}${cell.row}",
             rule,
         )
 

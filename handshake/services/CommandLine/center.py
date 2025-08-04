@@ -59,8 +59,12 @@ def setup_app(
         service_provider.shared_ctx.ROOT = Array("c", str.encode(path))
         if dev:
             service_provider.shared_ctx.DEV = Array("c", str.encode("1"))
-        await init_tortoise_orm(migrate=True, config_path=config_path)
-        test_id = await create_run(projectname)
+        try:
+            await init_tortoise_orm(migrate=True, config_path=config_path)
+            test_id = await create_run(projectname)
+        except Exception as error:
+            logger.exception("Failed to start the server")
+            raise error
         service_provider.shared_ctx.TEST_ID = Array("c", str.encode(test_id))
         set_test_id()
 

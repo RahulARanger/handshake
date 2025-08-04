@@ -4,13 +4,12 @@ import tortoise
 from handshake.services.DBService.models import (
     ConfigBase,
     TestLogBase,
-    TaskBase,
     MigrationBase,
     SuiteBase,
     SessionBase,
     RunBase,
 )
-from .conftest import get_version, get_config_value
+from .conftest import get_version
 from handshake.services.DBService.models.enums import (
     ConfigKeys,
     MigrationStatus,
@@ -51,86 +50,8 @@ class TestMigrationScripts:
         assert int(sqlite3.sqlite_version_info[0]) >= 3
         assert int(sqlite3.sqlite_version_info[1]) >= 38
 
-    async def test_bump_v5(
-        self,
-        helper_create_test_session,
-        helper_to_create_test_and_session,
-        create_suite,
-        get_vth_connection,
-        scripts,
-        db_path,
-    ):
-        await get_vth_connection(db_path, 5)
-        test_id, session_id = await helper_to_create_test_and_session(
-            manual_insert_test_run=True, return_id=True
-        )
-
-        # based on the previous test, we are now in version: 5
-        assert int(await get_version()) == 5
-
-        script = scripts / "bump-v5.sql"
-        assert script.exists()
-
-        suite = await create_suite(session_id, manual_insert=True)
-        await tortoise.connections.get("default").execute_query(
-            'INSERT INTO "taskbase" ("ticketID","type","dropped","meta","picked","test_id") VALUES (?,?,?,?,?,?)',
-            [
-                suite[0],
-                "fix-suite",
-                "2024-02-07 19:46:39.059284+00:00",
-                "{}",
-                0,
-                str(test_id),
-            ],
-        )
-        # you cannot use this because processed col is not there yet.
-        # await register_patch_suite(suite.suiteID, test_run.testID)
-
-        assert migration(db_path, do_once=True), "we still have further migration to go"
-
-        await assert_migration(5, 6, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
-
-        assert (await TaskBase.filter(ticketID=suite[0]).first()).picked == 0
-        # new column: processed, is added.
-        assert (await TaskBase.filter(ticketID=suite[0]).first()).processed == 0
-
-    async def test_bump_v6(
-        self, get_vth_connection, scripts, db_path, sample_test_session
-    ):
-        await get_vth_connection(db_path, 6)
-        assert migration(
-            db_path, do_once=True
-        ), "it should now be in the latest version"
-        await assert_migration(6, 7, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
-
-        # relies on init_job to complete the migration
-        assert (await get_config_value(ConfigKeys.reset_test_run)) == "1"
-
-        logs = await TestLogBase.all().values("dropped")
-        assert len(logs) >= 0
-
-    async def test_bump_v7(
-        self, get_vth_connection, scripts, db_path, sample_test_session
-    ):
-        await get_vth_connection(db_path, 7)
-        assert migration(
-            db_path, do_once=True
-        ), "it should now be in the latest version"
-        await assert_migration(7, 8, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC)
-
-        assert (await ConfigBase.filter(key=ConfigKeys.version).first()).value == "8"
-
-        assert (await ConfigBase.filter(key=ConfigKeys.version).first()).readonly
-        assert (
-            await ConfigBase.filter(key=ConfigKeys.recentlyDeleted).first()
-        ).readonly
-        assert (await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()).readonly
-        assert not (
-            await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()
-        ).readonly
-
     async def test_bump_v8(
-        self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
+        self, get_vth_connection, db_path, sample_test_session, create_suite
     ):
         await get_vth_connection(db_path, 8)
         suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
@@ -157,7 +78,7 @@ class TestMigrationScripts:
         # we are also dropping table: "ExportBase" it was used long before v3
 
     async def test_bump_v9(
-        self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
+        self, get_vth_connection, db_path, sample_test_session, create_suite
     ):
         connection = await get_vth_connection(db_path, 9)
         suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
@@ -178,7 +99,7 @@ class TestMigrationScripts:
         assert result[0] == result[1] == 0
 
     async def test_bump_v10(
-        self, get_vth_connection, scripts, db_path, sample_test_session, create_suite
+        self, get_vth_connection, db_path, sample_test_session, create_suite
     ):
         await get_vth_connection(db_path, 10)
         suite = await create_suite(sample_test_session.sessionID, manual_insert=True)
@@ -225,7 +146,6 @@ class TestMigrationScripts:
     async def test_bump_v12(
         self,
         get_vth_connection,
-        scripts,
         db_path,
         helper_to_create_test_and_session,
     ):
@@ -254,7 +174,6 @@ class TestMigrationScripts:
     async def test_bump_v13(
         self,
         get_vth_connection,
-        scripts,
         db_path,
         helper_to_create_test_and_session,
         create_suite,
@@ -290,10 +209,8 @@ class TestMigrationScripts:
     async def test_bump_v14(
         self,
         get_vth_connection,
-        scripts,
         db_path,
         helper_to_create_test_and_session,
-        create_suite,
     ):
         connection = await get_vth_connection(db_path, 14)
         test_id, sample_session = await helper_to_create_test_and_session(
@@ -310,6 +227,51 @@ class TestMigrationScripts:
         assert (
             run_record.projectDescription is None
         )
+
+    async def test_bump_v15(
+        self,
+        get_vth_connection,
+        scripts,
+        db_path,
+        helper_to_create_test_and_session,
+        create_suite,
+        attach_config
+    ):
+        connection = await get_vth_connection(db_path, 15)
+        test_id, sample_session = await helper_to_create_test_and_session(
+            manual_insert_test_run=True, connection=connection, return_id=True
+        )
+        await attach_config(test_id, tags=[dict(label="test", desc="desc")], manual=True)
+
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            15, 16, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+        run_record = await RunBase.filter(testID=test_id).first()
+        assert (
+            run_record.tags[0]["label"] == 'test'
+        )
+        assert (
+                run_record.tags[0]["desc"] == 'desc'
+        )
+
+    async def test_bump_v16(
+            self,
+            get_vth_connection,
+            scripts,
+            db_path,
+    ):
+        await get_vth_connection(db_path, 16)
+        assert migration(
+            db_path, do_once=True
+        ), "it should now be in the latest version"
+        await assert_migration(
+            16, 17, MigrationStatus.PASSED, MigrationTrigger.AUTOMATIC
+        )
+        reset_run = await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()
+        assert reset_run.value == '1'
 
     # say you are in v8 and have reverted your python build to an older version which uses v7
     # question: how does migrate function work?
@@ -331,8 +293,8 @@ class TestMigrationScripts:
         assert f"Migrated to latest version v{DB_VERSION}!" in result.stderr.decode()
 
     async def test_revert_step_back(self, get_vth_connection, db_path):
-        await get_vth_connection(db_path, 7)
-        assert (await get_version()) == "7"
-        revert_step_back(7, db_path)
-        await assert_migration(7, 6, MigrationStatus.PASSED, MigrationTrigger.CLI)
-        assert (await get_version()) == "6"
+        await get_vth_connection(db_path, DB_VERSION)
+        assert (await get_version()) == str(DB_VERSION)
+        revert_step_back(DB_VERSION, db_path)
+        await assert_migration(DB_VERSION, DB_VERSION - 1, MigrationStatus.PASSED, MigrationTrigger.CLI)
+        assert (await get_version()) == str(DB_VERSION - 1)

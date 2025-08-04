@@ -1,13 +1,13 @@
 from subprocess import run
 from json import loads, dumps
+
+from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.models.enums import ConfigKeys
 from handshake.services.DBService.models import ConfigBase
 from handshake.services.DBService.lifecycle import (
     TestConfigManager,
     db_path,
-    DB_VERSION,
 )
-
 
 async def test_default_config_file(root_dir):
     target = root_dir / "handshake.json"
@@ -72,7 +72,7 @@ async def test_init_script(root_dir):
         int((await ConfigBase.filter(key=ConfigKeys.maxRunsPerProject).first()).value)
         > 1
     )
-    assert (await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()).value == ""
+    assert (await ConfigBase.filter(key=ConfigKeys.reset_test_run).first()).value == "1"
 
     assert (await ConfigBase.filter(key=ConfigKeys.version).first()).readonly == 1
     assert (

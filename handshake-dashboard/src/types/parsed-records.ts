@@ -45,7 +45,7 @@ export interface DetailedTestRecord extends BasicDetails {
 }
 
 export interface ParsedSuiteRecord extends BasicDetails, SimpleSuiteDetails {
-    RollupValues: [number, number, number];
+    RollupValues: [number, number, number, number, number];
     Contribution: number;
     File: string;
     entityName: possibleEntityNames;

@@ -1,23 +1,36 @@
 from pathlib import Path
-from typing import  Optional, TypedDict, List
+from typing import Union
 from tomllib import loads
 from asyncio import gather
 from loguru import logger
 from handshake.services.DBService.models import TaskBase, RunBase
 from handshake.services.SchedularService.register import warn_about_test_run
+from handshake.services.DBService.models.types import Tag
 
 
 def to_lower( map_obj: dict):
     return {k.lower(): v for k, v in map_obj.items()}
 
+def get_tag(tag: Union[str, Tag]) -> Tag:
+    if type(tag) == str:
+        return dict(label=tag, desc="")
+    tag_obj = to_lower(tag)
+    return dict(label=tag_obj.get("label", ""), desc=tag_obj.get("desc", tag_obj.get("description", "")))
+
+def get_any_from_keys(pt: dict, *names):
+    for name in names:
+        if name in pt:
+            return pt[name]
+    return None
+
 class LoadMetaFile:
     key: str
     project_specific: dict
     imported: dict
+    test: RunBase
 
     def __init__(self, task: TaskBase):
         self.task: TaskBase = task
-        self.test: Optional[RunBase] = None
 
     async def start_import(self,  meta_file: Path):
         self.test = await RunBase.filter(testID=self.task.test_id).first()
@@ -32,12 +45,18 @@ class LoadMetaFile:
         if save_as:
             setattr(self.test, save_to, save_as)
 
+    def save_tags_in_test(self, pt):
+        tags = [get_tag(_) for _ in get_any_from_keys(pt, "tags", "tag", "label", "labels")]
+        if tags:
+            self.test.tags = [*self.test.tags, *tags]
+
     async def import_to_run(self):
         about = to_lower(self.imported.get("about", {}))
         about.update(to_lower(self.project_specific.get("about", {})))
 
         self.save_in_test(about, "description", "projectDescription")
         self.save_in_test(about, "projectname", "projectName")
+        self.save_tags_in_test(about)
         await self.test.save()
 
     async def mark_processed(self):

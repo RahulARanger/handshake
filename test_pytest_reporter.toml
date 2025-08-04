@@ -1,8 +1,6 @@
 [about]
 Description = "This Test Suite is created to test the PyTest Reporter Plugin"
-
-[about.tags]
-ENV = "test"
+tags = [{ label = "Pytest-Plugin", description = "Test Report for the pytest-plugin" }]
 
 [suites]
 [suites.test_1]

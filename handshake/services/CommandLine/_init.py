@@ -222,6 +222,7 @@ def export(
 ):
     q = not (verbose or dev)
     if q:
+        logger.info("We have started the export, Please wait for some time. It takes few minutes to process your test runs.")
         log_less()
 
     if not Path(collection_path).is_dir():

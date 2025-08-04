@@ -44,6 +44,8 @@ export default function transformSuiteEntity(
             testEntity.rollup_passed,
             testEntity.rollup_failed,
             testEntity.rollup_skipped,
+            testEntity.rollup_xfailed,
+            testEntity.rollup_xpassed
         ],
         totalRollupValue: testEntity.rollup_tests,
         entityName: testEntity.entityName as possibleEntityNames,

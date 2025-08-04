@@ -1,15 +1,18 @@
 import subprocess
 import uuid
 from typing import Optional
+from loguru import logger
 from pytest import fixture, mark
 from pathlib import Path
+
+from handshake.services.DBService import DB_VERSION
 from handshake.services.DBService.shared import db_path as shared_db_path
 from tortoise.connection import connections
 from handshake.services.DBService.lifecycle import (
     init_tortoise_orm,
     close_connection,
-    DB_VERSION,
 )
+from json import dumps
 from handshake.services.DBService.models import (
     RunBase,
     SessionBase,
@@ -97,8 +100,45 @@ async def clean_close(db_path, init_db):
 
 
 async def helper_create_test_config(
-    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None
+    test_id: str, file_retries=0, avoidParentSuitesInCount=False, connection=None, tags=None, manual=False
 ):
+    if manual:
+        conn = (connection if connection else connections.get("default"))
+        await conn.execute_query(
+            '''
+            INSERT INTO "testconfigbase" (
+                "test_id",
+                "fileRetries",
+                "framework",
+                "platform",
+                "maxInstances",
+                "avoidParentSuitesInCount"
+            ) VALUES (?, ?, ?,  ?, ?, ?)
+            ON CONFLICT("test_id") DO UPDATE SET
+                "fileRetries" = excluded."fileRetries",
+                "framework" = excluded."framework",
+                "platform" = excluded."platform",
+                "maxInstances" = excluded."maxInstances",
+                "avoidParentSuitesInCount" = excluded."avoidParentSuitesInCount"
+            ''',
+            [
+                test_id,
+                file_retries,
+                "pytest",
+                "windows",
+                1,
+                avoidParentSuitesInCount,
+            ],
+        )
+        if tags:
+            try:
+                await conn.execute_query("UPDATE testconfigbase set tags = ? WHERE test_id = ?", [dumps(tags or []), test_id])
+            except Exception as error:
+                logger.exception("Failed to add tags")
+                raise error
+
+        return
+
     await TestConfigBase.update_or_create(
         fileRetries=file_retries,
         framework="pytest",
@@ -143,31 +183,48 @@ def helper_set_db_config():
 
 
 async def create_test_and_session(
-    postfix="", manual_insert_test_run=False, connection=None, return_id=False
+    postfix="", fix_tags=False, manual_insert_test_run=False, connection=None, return_id=False
 ):
     if manual_insert_test_run:
         # used only in test cases that too, on db with old versions
         test_id = str(uuid.uuid4())
-        await (connection if connection else connections.get("default")).execute_query(
-            'INSERT INTO "runbase" ("started","ended","tests","passed","failed","skipped","duration","retried",'
-            '"standing","testID","projectName","specStructure","exitCode") VALUES (?,?,?,?,?,'
-            "?,?,?,?,?,?,?,?)",
-            [
-                "2024-09-14 17:33:57.568757+00:00",
-                "2024-09-14 17:43:57.568757+00:00",
-                2,
-                2,
-                0,
-                0,
-                0,
-                2,
-                "PENDING",
-                test_id,
-                "sample-test",
-                "{}",
-                0,
-            ],
-        )
+        try:
+            # we have fix tags to use for v15 onwards
+            vals = [
+                    "2024-09-14 17:33:57.568757+00:00",
+                    "2024-09-14 17:43:57.568757+00:00",
+                    2,
+                    2,
+                    0,
+                    0,
+                    0,
+                    2,
+                    "PENDING",
+                    test_id,
+                    "sample-test",
+                    "{}",
+                    0,
+
+                ]
+            if fix_tags:
+                vals.append('[]')
+
+            columns = '"started","ended","tests","passed","failed","skipped","duration","retried",' \
+                      '"standing","testID","projectName","specStructure","exitCode"'
+            if fix_tags:
+                columns += ',"tags"'
+
+            placeholders = "?,?,?,?,?,?,?,?,?,?,?,?,?"
+            if fix_tags:
+                placeholders += ",?"
+
+            await (connection if connection else connections.get("default")).execute_query(
+                f'INSERT INTO "runbase" ({columns}) VALUES ({placeholders})',
+                vals
+            )
+        except Exception as error:
+            print("FYI: ", error)
+            raise error
     else:
         test_id = (await sample_test_run(postfix, connection)).testID
 
@@ -182,7 +239,7 @@ def helper_to_create_test_and_session():
     return create_test_and_session
 
 
-@fixture
+@fixture()
 def attach_config():
     return helper_create_test_config
 
