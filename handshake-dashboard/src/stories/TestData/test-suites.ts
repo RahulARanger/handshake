@@ -98,6 +98,8 @@ export function generateTestSuite(
         rollup_passed: (feeder.rollup_passed ?? 0) + passed,
         rollup_failed: (feeder.rollup_failed ?? 0) + failed,
         rollup_skipped: (feeder.rollup_skipped ?? 0) + skipped,
+        rollup_xfailed: (feeder.rollup_xfailed ?? 0) + xfailed,
+        rollup_xpassed: (feeder.rollup_xpassed ?? 0) + xpassed,
         rollup_tests: (feeder.rollup_tests ?? 0) + tests,
         hooks: generator.integer({ min: 0, max: 10 }),
         duration,
